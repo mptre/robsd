@@ -151,13 +151,13 @@ report() {
 		(
 		eval "${_line}"
 
-		printf '> %d. %s\n' "$stage" "$name"
+		printf '> %s\n' "$name"
 		printf 'Date:     %s\n' "$(date -u -r "$time")"
 		printf 'Exit:     %d\n' "$exit"
 		printf 'Duration: %s\n' "$(report_duration "$duration")"
 		printf 'Log:      %s\n' "$log"
 
-		report_log "$stage" "$log"
+		report_log "$name" "$log"
 		)
 
 		_i=$((_i + 1))
@@ -198,8 +198,12 @@ report_log() {
 	[ -s "$2" ] && echo
 
 	case "$1" in
-	start|cvs|diff)	cat "$2";;
-	*)		tail "$2";;
+	start|cvs|diff)
+		cat "$2"
+		;;
+	*)
+		tail "$2"
+		;;
 	esac
 }
 
