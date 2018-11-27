@@ -1,0 +1,279 @@
+#!/bin/sh
+
+set -eu
+
+usage() {
+	cat <<-EOF 1>&2
+	usage: release
+	[-D]
+	[-d diff]
+	[-r path]
+	EOF
+	exit 1
+}
+
+fatal() {
+	info "$@"
+	exit 1
+}
+
+info() {
+	echo "release: ${@}" 1>&2
+}
+
+atexit() {
+	local _err=$?
+
+	report "${LOGDIR}/stages" "${LOGDIR}/report"
+
+	# XXX diff_revert
+
+	if [ $_err -ne 0 ]; then
+		info "failed in stage ${STAGE:-unknown} (${S})"
+	fi
+	exit 0
+}
+
+# build_id directory
+#
+# Generate a new build directory path.
+build_id() {
+	local _c _d _p
+
+	_d="$(date '+%Y-%m-%d')"
+	_c="$(find "$1" -type d -name "${_d}*" | wc -l)"
+	printf '%s.%02d\n' "$_d" "$((_c + 1))"
+}
+
+# end_stage -d duration -e exit -l log -n name -s stage file
+#
+# Mark the given stage as ended by writing an entry to the given file.
+end_stage() {
+	local _d _e _l _n _s
+
+	while [ $# -gt 0 ]; do
+		case "$1" in
+		-d)	shift; _d="$1";;
+		-e)	shift; _e="$1";;
+		-l)	shift; _l="$1";;
+		-n)	shift; _n="$1";;
+		-s)	shift; _s="$1";;
+		*)	break;;
+		esac
+		shift
+	done
+
+        # Remove any existing entry for the same stage, could be present if a
+        # previous execution failed.
+	[ -e "$1" ] && sed -i -e "/stage=\"${_s}\"/d" "$1"
+
+	printf 'stage="%d" name="%s" exit="%d" duration="%d" log="%s" time="%d"\n' \
+		"$_s" "$_n" "$_e" "$_d" "$_l" "$(date '+%s')" >>"$1"
+}
+
+# exec_stage -f fail -l log stage
+#
+# Execute the given stage and redirect any output to log.
+exec_stage() (
+	local _fail _log
+
+	while [ $# -gt 0 ]; do
+		case "$1" in
+		-f)	shift; _fail="$1";;
+		-l)	shift; _log="$1";;
+		*)	break;;
+		esac
+		shift
+	done
+
+	[ -t 0 ] || exec >/dev/null 2>&1
+
+	trap ">$_fail" INT
+
+	{ sh -eux "$1" </dev/null 2>&1 || >"$_fail"; } | tee "$_log"
+	if [ -e "$_fail" ]; then
+		rm -f "$_fail"
+		return 1
+	fi
+	return 0
+)
+
+# next_stage file
+#
+# Outputs the next stage to execute. If the last stage failed, it will be
+# executed again.
+next_stage() {
+	local _exit _line _stage
+
+	tail -n 1 "$1" | while read _line; do
+		_exit="$(sh -c "eval ${_line}; echo \$exit")"
+		_stage="$(sh -c "eval ${_line}; echo \$stage")"
+		if [ $_exit -ne 0 ]; then
+			echo "$_stage"
+		else
+			echo "$((_stage + 1))"
+		fi
+	done
+}
+
+# log_id stage-id stage-name
+#
+# Generate the corresponding log file name for the given stage.
+log_id() {
+	printf '%02d-%s.log' "$1" "$2"
+}
+
+# must_reboot stage
+#
+# Exits 0 if a reboot is required before executing the next stage.
+must_reboot() {
+	case "$1" in
+	kernel)
+		cat <<-EOF >>/etc/rc.firsttime
+		exec </dev/null >/dev/null 2>&1
+		/usr/local/sbin/release -r ${LOGDIR} &
+		EOF
+		return 0
+		;;
+	*)	return 1;;
+	esac
+}
+
+# report stages dest
+#
+# Generate a build report and save it to dest.
+report() {
+	local _i=0 _line
+
+	while read _line; do
+		[ $_i -gt 0 ] && echo
+
+		(
+		eval "${_line}"
+
+		printf '> %d. %s\n' "$stage" "$name"
+		printf 'Date:     %s\n' "$(date -u -r "$time")"
+		printf 'Exit:     %d\n' "$exit"
+		printf 'Duration: %s\n' "$(report_duration "$duration")"
+		printf 'Log:      %s\n' "$log"
+
+		report_log "$stage" "$log"
+		)
+
+		_i=$((_i + 1))
+	done <"$1" >"$2"
+
+	mail -s 'release build report' root <"$2"
+}
+
+# report_duration duration
+#
+# Writes a human readable representation of the given duration.
+report_duration() {
+	local _d="$1" _h= _m= _s=
+
+	[ $_d -eq 0 ] && { echo 0; return 0; }
+
+	if [ $_d -gt 3600 ]; then
+		_h="$((_d / 3600))h"
+		_d=$((_d % 3600))
+	fi
+
+	if [ $_d -gt 60 ]; then
+		_m="$((_d / 60))m"
+		_d=$((_d % 60))
+	fi
+
+	if [ $_d -gt 0 ]; then
+		_s="${_d}s"
+	fi
+
+	echo $_h $_m $_s
+}
+
+# report_log stage log
+#
+# Writes an excerpt of the given log.
+report_log() {
+	[ -s "$2" ] && echo
+
+	case "$1" in
+	start|cvs|diff)	cat "$2";;
+	*)		tail "$2";;
+	esac
+}
+
+[ $(id -u) -ne 0 ] && fatal "must be run as root"
+
+# Global variables with sensible defaults.
+export BSDSRCDIR; BSDSRCDIR="/usr/src"
+export BUILDDIR
+export CVSROOT
+export CVSUSER
+export DESTDIR
+export DIFF
+export EXECDIR; EXECDIR="/usr/local/libexec/release"
+export MAKEFLAGS; MAKEFLAGS="-j$(sysctl -n hw.ncpuonline)"
+export RELEASEDIR
+
+[ -e /root/.releaserc ] && . /root/.releaserc
+
+# Ensure mandatory variables are defined.
+: "${BUILDDIR:?}"
+: "${CVSROOT:?}"
+: "${CVSUSER:?}"
+: "${DESTDIR:?}"
+
+LOGDIR=""
+S=0
+STAGE=""
+
+while getopts "Dd:r:" opt; do
+	case "$opt" in
+	D)	set -x;;
+	d)	DIFF="$OPTARG";;
+	r)	LOGDIR="$OPTARG";
+	esac
+done
+shift $((OPTIND - 1))
+[ $# -ne 0 ] && usage
+
+trap 'atexit' EXIT
+
+if [ -z "$LOGDIR" ]; then
+	LOGDIR="${BUILDDIR}/$(build_id "$BUILDDIR")"
+	mkdir "$LOGDIR"
+else
+	S="$(next_stage "${LOGDIR}/stages")"
+	info "resume build from stage ${S}"
+fi
+info "using directory ${LOGDIR}"
+RELEASEDIR="${LOGDIR}/$(machine)"
+
+while :; do
+	case "$S" in
+	0)	STAGE="start";;
+	1)	STAGE="cvs";;
+	2)	STAGE="diff";;
+	3)	STAGE="kernel";;
+	4)	STAGE="base";;
+	5)	STAGE="release";;
+	*)	exit 0;;
+	esac
+
+	info "enter stage ${STAGE}"
+
+	LOG="${LOGDIR}/$(log_id "$S" "$STAGE")"
+	EXIT=0
+	T0="$(date '+%s')"
+        exec_stage -f "${LOGDIR}/fail" -l "$LOG" "${EXECDIR}/${STAGE}.sh" ||
+		EXIT=1
+	T1="$(date '+%s')"
+	end_stage -d "$((T1 - T0))" -e "$EXIT" -l "$LOG" -n "$STAGE" -s "$S" \
+		"${LOGDIR}/stages"
+	[ $EXIT -ne 0 ] && exit 1
+
+	must_reboot "$STAGE" && reboot
+
+	S=$((S + 1))
+done
