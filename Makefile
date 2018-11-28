@@ -2,6 +2,7 @@ PROG=	 release
 
 SCRIPTS+=	base.sh
 SCRIPTS+=	cvs.sh
+SCRIPTS+=	diff-revert.sh
 SCRIPTS+=	diff.sh
 SCRIPTS+=	kernel.sh
 SCRIPTS+=	release.sh

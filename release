@@ -26,8 +26,6 @@ atexit() {
 
 	report "${LOGDIR}/stages" "${LOGDIR}/report"
 
-	# XXX diff_revert
-
 	if [ $_err -ne 0 ]; then
 		info "failed in stage ${STAGE:-unknown} (${S})"
 	fi
@@ -198,7 +196,7 @@ report_log() {
 	[ -s "$2" ] && echo
 
 	case "$1" in
-	start|cvs|diff)
+	start|cvs|diff|diff-revert)
 		cat "$2"
 		;;
 	*)
@@ -264,6 +262,7 @@ while :; do
 	3)	STAGE="kernel";;
 	4)	STAGE="base";;
 	5)	STAGE="release";;
+	6)	STAGE="diff-revert";;
 	*)	exit 0;;
 	esac
 
