@@ -168,7 +168,8 @@ report() {
 		_i=$((_i + 1))
 	done >"$2"
 
-	mail -s 'release build report' root <"$2"
+	_subject="$([ $exit -eq 0 ] && echo 'success' || echo 'failure')"
+	mail -s "release build: ${_subject}" root <"$2"
 }
 
 # report_duration duration
