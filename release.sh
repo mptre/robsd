@@ -11,4 +11,4 @@ cd "${BSDSRCDIR}/etc"
 make release
 
 cd "${BSDSRCDIR}/distrib/sets"
-sh checkflist
+sh checkflist || true
