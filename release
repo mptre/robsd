@@ -149,7 +149,7 @@ report() {
 		(
 		eval "${_line}"
 
-		printf '> %s\n' "$name"
+		printf '> %s:\n' "$name"
 		printf 'Date:     %s\n' "$(date -u -r "$time")"
 		printf 'Exit:     %d\n' "$exit"
 		printf 'Duration: %s\n' "$(report_duration "$duration")"
