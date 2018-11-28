@@ -266,7 +266,7 @@ while :; do
 	*)	exit 0;;
 	esac
 
-	info "enter stage ${STAGE}"
+	info "stage ${STAGE}"
 
 	LOG="${LOGDIR}/$(log_id "$S" "$STAGE")"
 	EXIT=0
