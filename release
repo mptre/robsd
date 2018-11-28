@@ -149,14 +149,16 @@ must_reboot() {
 	esac
 }
 
-# report stages dest
+# report stages dst
 #
-# Generate a build report and save it to dest.
+# Generate a build report and save it to dst.
 report() {
-	local _i=1 _line _subject
+	local _dst="$2" _i=1 _line _subject _t0 _t1
 
 	while eval_stage "$_i" "$1"; do
 		[ $_i -gt 1 ] && echo
+
+		[ $_i -eq 1 ] && _t0="$time" || _t1="$time"
 
 		printf '> %s:\n' "$name"
 		printf 'Date:     %s\n' "$(date -u -r "$time")"
@@ -166,10 +168,21 @@ report() {
 		report_log "$name" "$log"
 
 		_i=$((_i + 1))
-	done >"$2"
+	done >"$_dst"
+
+	# Add stats section to the beginning of the report.
+	ed -s <<-EOF "$_dst"
+	H
+	0a
+	> stats:
+	Duration: $(report_duration "$((_t1 - _t0))")
+
+	.
+	w
+	EOF
 
 	_subject="$([ $exit -eq 0 ] && echo 'success' || echo 'failure')"
-	mail -s "release build: ${_subject}" root <"$2"
+	mail -s "release build: ${_subject}" root <"$_dst"
 }
 
 # report_duration duration
