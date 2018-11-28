@@ -229,7 +229,7 @@ export RELEASEDIR
 : "${DESTDIR:?}"
 
 LOGDIR=""
-S=0
+S=1
 STAGE=""
 
 while getopts "Dd:r:" opt; do
@@ -256,13 +256,13 @@ RELEASEDIR="${LOGDIR}/$(machine)"
 
 while :; do
 	case "$S" in
-	0)	STAGE="start";;
-	1)	STAGE="cvs";;
-	2)	STAGE="diff";;
-	3)	STAGE="kernel";;
-	4)	STAGE="base";;
-	5)	STAGE="release";;
-	6)	STAGE="diff-revert";;
+	1)	STAGE="start";;
+	2)	STAGE="cvs";;
+	3)	STAGE="diff";;
+	4)	STAGE="kernel";;
+	5)	STAGE="base";;
+	6)	STAGE="release";;
+	7)	STAGE="diff-revert";;
 	*)	exit 0;;
 	esac
 
