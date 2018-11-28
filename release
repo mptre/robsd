@@ -214,7 +214,7 @@ export BUILDDIR
 export CVSROOT
 export CVSUSER
 export DESTDIR
-export DIFF
+export DIFF; DIFF=""
 export EXECDIR; EXECDIR="/usr/local/libexec/release"
 export LOGDIR
 export MAKEFLAGS; MAKEFLAGS="-j$(sysctl -n hw.ncpuonline)"
