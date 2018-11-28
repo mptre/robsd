@@ -69,6 +69,23 @@ end_stage() {
 		"$_s" "$_n" "$_e" "$_d" "$_l" "$(date '+%s')" >>"$1"
 }
 
+# eval_stage stage file
+#
+# Read the given stage from file and as a side-effect assign all variables tied
+# to it.
+eval_stage() {
+	local _stage="$1" _file="$2" _line
+
+	if [ $_stage -lt 0 ]; then
+		_line="$(tail "$_stage" "$_file" | head -1)"
+	else
+		_line="$(sed -n -e "${_stage}p" "$_file")"
+	fi
+	[ -z "$_line" ] && return 1
+
+	eval "$_line"
+}
+
 # exec_stage -f fail -l log stage
 #
 # Execute the given stage and redirect any output to log.
@@ -101,17 +118,12 @@ exec_stage() (
 # Outputs the next stage to execute. If the last stage failed, it will be
 # executed again.
 next_stage() {
-	local _exit _line _stage
-
-	tail -n 1 "$1" | while read _line; do
-		_exit="$(sh -c "eval ${_line}; echo \$exit")"
-		_stage="$(sh -c "eval ${_line}; echo \$stage")"
-		if [ $_exit -ne 0 ]; then
-			echo "$_stage"
-		else
-			echo "$((_stage + 1))"
-		fi
-	done
+	eval_stage -1 "$1"
+	if [ $exit -ne 0 ]; then
+		echo "$stage"
+	else
+		echo "$((stage + 1))"
+	fi
 }
 
 # log_id stage-id stage-name
@@ -141,25 +153,20 @@ must_reboot() {
 #
 # Generate a build report and save it to dest.
 report() {
-	local _i=0 _line
+	local _i=1 _line _subject
 
-	while read _line; do
-		[ $_i -gt 0 ] && echo
-
-		(
-		eval "${_line}"
+	while eval_stage "$_i" "$1"; do
+		[ $_i -gt 1 ] && echo
 
 		printf '> %s:\n' "$name"
 		printf 'Date:     %s\n' "$(date -u -r "$time")"
 		printf 'Exit:     %d\n' "$exit"
 		printf 'Duration: %s\n' "$(report_duration "$duration")"
 		printf 'Log:      %s\n' "$log"
-
 		report_log "$name" "$log"
-		)
 
 		_i=$((_i + 1))
-	done <"$1" >"$2"
+	done >"$2"
 
 	mail -s 'release build report' root <"$2"
 }
