@@ -1,2 +1,2 @@
 sysctl -n kern.version
-printenv
+printenv | sort
