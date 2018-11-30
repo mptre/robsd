@@ -24,7 +24,9 @@ info() {
 atexit() {
 	local _err=$?
 
-	report "${LOGDIR}/stages" "${LOGDIR}/report"
+	if [ $_err -ne 0 ] || must_report "$STAGE"; then
+		report "${LOGDIR}/stages" "${LOGDIR}/report"
+	fi
 
 	if [ $_err -ne 0 ]; then
 		info "failed in stage ${STAGE:-unknown} (${S})"
@@ -145,6 +147,16 @@ must_reboot() {
 		EOF
 		return 0
 		;;
+	*)	return 1;;
+	esac
+}
+
+# must_report stage
+#
+# Exits 0 if a report must be generated.
+must_report() {
+	case "$1" in
+	end)	return 0;;
 	*)	return 1;;
 	esac
 }
@@ -284,7 +296,10 @@ while :; do
 	5)	STAGE="base";;
 	6)	STAGE="release";;
 	7)	STAGE="diff-revert";;
-	*)	exit 0;;
+	8)	STAGE="end"
+		exit 0
+		;;
+	*)	exit 1;;
 	esac
 
 	info "stage ${STAGE}"
