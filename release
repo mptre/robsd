@@ -314,7 +314,8 @@ while :; do
 		"${LOGDIR}/stages"
 	[ $EXIT -ne 0 ] && exit 1
 
-	must_reboot "$STAGE" && reboot
+        # Add some grace before rebooting in order to let the script finish.
+	must_reboot "$STAGE" && { shutdown -r '+1'; exit 0; }
 
 	S=$((S + 1))
 done
