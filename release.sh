@@ -1,3 +1,5 @@
+DESTDIR="${DESTDIR}/src"
+mkdir -p "$DESTDIR"
 chown build "$DESTDIR"
 chmod 700 "$DESTDIR"
 rm -rf $DESTDIR/* $DESTDIR/.*
