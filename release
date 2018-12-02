@@ -229,7 +229,7 @@ report_log() {
 	[ -s "$2" ] && echo
 
 	case "$1" in
-	start|cvs|diff|diff-revert)
+	start|cvs|diff|diff-revert|distrib)
 		cat "$2"
 		;;
 	*)
@@ -252,6 +252,9 @@ export EXECDIR; EXECDIR="/usr/local/libexec/release"
 export LOGDIR
 export MAKEFLAGS; MAKEFLAGS="-j$(sysctl -n hw.ncpuonline)"
 export RELEASEDIR
+export SSHHOST
+export SSHPATH
+export SSHUSER
 
 [ -e /root/.releaserc ] && . /root/.releaserc
 
@@ -260,6 +263,9 @@ export RELEASEDIR
 : "${CVSROOT:?}"
 : "${CVSUSER:?}"
 : "${DESTDIR:?}"
+: "${SSHHOST:?}"
+: "${SSHPATH:?}"
+: "${SSHUSER:?}"
 
 LOGDIR=""
 S=1
@@ -296,7 +302,8 @@ while :; do
 	5)	STAGE="base";;
 	6)	STAGE="release";;
 	7)	STAGE="diff-revert";;
-	8)	STAGE="end"
+	8)	STAGE="distrib";;
+	9)	STAGE="end"
 		exit 0
 		;;
 	*)	exit 1;;

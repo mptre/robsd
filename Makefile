@@ -4,6 +4,7 @@ SCRIPTS+=	base.sh
 SCRIPTS+=	cvs.sh
 SCRIPTS+=	diff-revert.sh
 SCRIPTS+=	diff.sh
+SCRIPTS+=	distrib.sh
 SCRIPTS+=	kernel.sh
 SCRIPTS+=	release.sh
 SCRIPTS+=	start.sh
