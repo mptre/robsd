@@ -255,6 +255,7 @@ export RELEASEDIR
 export SSHHOST
 export SSHPATH
 export SSHUSER
+export X11SRCDIR; X11SRCDIR="/usr/xenocara"
 
 [ -e /root/.releaserc ] && . /root/.releaserc
 
