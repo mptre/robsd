@@ -1,8 +1,9 @@
-DESTDIR="${DESTDIR}/src"
-mkdir -p "$DESTDIR"
+rm -rf $DESTDIR/* $DESTDIR/.*
 chown build "$DESTDIR"
 chmod 700 "$DESTDIR"
-rm -rf $DESTDIR/* $DESTDIR/.*
+
+DESTDIR="${DESTDIR}/src"
+mkdir -p "$DESTDIR"
 
 mkdir -p "$RELEASEDIR"
 chown build "$RELEASEDIR"
