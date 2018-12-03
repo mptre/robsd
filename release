@@ -7,6 +7,7 @@ usage() {
 	usage: release
 	[-D]
 	[-d diff]
+	[-k keep]
 	[-r path]
 	EOF
 	exit 1
@@ -161,6 +162,22 @@ must_report() {
 	esac
 }
 
+# purge dir count
+#
+# Keep the latest count number of directories in dir.
+purge() {
+	local _dir="$1" _n="$2" _d
+
+	find "$_dir" -type d -mindepth 1 -maxdepth 1 |
+	sort -n |
+	tail -r |
+	tail -n "+$((_n + 1))" |
+	while read _d; do
+		info "removing directory ${_d}"
+		rm -r "$_d"
+	done
+}
+
 # report stages dst
 #
 # Generate a build report and save it to dst.
@@ -270,14 +287,16 @@ export X11SRCDIR; X11SRCDIR="/usr/xenocara"
 : "${SSHUSER:?}"
 : "${X11OBJDIR:?}"
 
+KEEP=0
 LOGDIR=""
 S=1
 STAGE=""
 
-while getopts "Dd:r:" opt; do
+while getopts "Dd:k:r:" opt; do
 	case "$opt" in
 	D)	set -x;;
 	d)	DIFF="$OPTARG";;
+	k)	KEEP="$OPTARG";;
 	r)	LOGDIR="$OPTARG";
 	esac
 done
@@ -295,6 +314,10 @@ else
 fi
 info "using directory ${LOGDIR}"
 RELEASEDIR="${LOGDIR}/$(machine)"
+
+if [ "$KEEP" -gt 0 ]; then
+	purge "$BUILDDIR" "$KEEP"
+fi
 
 while :; do
 	case "$S" in
