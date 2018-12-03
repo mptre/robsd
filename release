@@ -173,9 +173,9 @@ report() {
 		[ $_i -eq 1 ] && _t0="$time" || _t1="$time"
 
 		printf '> %s:\n' "$name"
-		printf 'Date:     %s\n' "$(date -u -r "$time")"
 		printf 'Exit:     %d\n' "$exit"
 		printf 'Duration: %s\n' "$(report_duration "$duration")"
+		printf 'Date:     %s\n' "$(date -u -r "$time")"
 		printf 'Log:      %s\n' "$log"
 		report_log "$name" "$log"
 
