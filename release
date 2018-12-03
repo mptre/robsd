@@ -5,7 +5,7 @@ set -eu
 usage() {
 	cat <<-EOF | xargs 1>&2
 	usage: release
-	[-D]
+	[-v]
 	[-d diff]
 	[-k keep]
 	[-r path]
@@ -292,12 +292,13 @@ LOGDIR=""
 S=1
 STAGE=""
 
-while getopts "Dd:k:r:" opt; do
+while getopts "d:k:r:v" opt; do
 	case "$opt" in
-	D)	set -x;;
 	d)	DIFF="$OPTARG";;
 	k)	KEEP="$OPTARG";;
-	r)	LOGDIR="$OPTARG";
+	r)	LOGDIR="$OPTARG";;
+	v)	set -x;;
+	*)	usage;;
 	esac
 done
 shift $((OPTIND - 1))
