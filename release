@@ -3,7 +3,7 @@
 set -eu
 
 usage() {
-	cat <<-EOF 1>&2
+	cat <<-EOF | xargs 1>&2
 	usage: release
 	[-D]
 	[-d diff]
