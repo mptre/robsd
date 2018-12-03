@@ -255,6 +255,7 @@ export RELEASEDIR
 export SSHHOST
 export SSHPATH
 export SSHUSER
+export X11OBJDIR; X11OBJDIR="/usr/xobj"
 export X11SRCDIR; X11SRCDIR="/usr/xenocara"
 
 [ -e /root/.releaserc ] && . /root/.releaserc
@@ -267,6 +268,7 @@ export X11SRCDIR; X11SRCDIR="/usr/xenocara"
 : "${SSHHOST:?}"
 : "${SSHPATH:?}"
 : "${SSHUSER:?}"
+: "${X11OBJDIR:?}"
 
 LOGDIR=""
 S=1
@@ -302,9 +304,12 @@ while :; do
 	4)	STAGE="kernel";;
 	5)	STAGE="base";;
 	6)	STAGE="release";;
-	7)	STAGE="diff-revert";;
-	8)	STAGE="distrib";;
-	9)	STAGE="end"
+	7)	STAGE="xbase";;
+	8)	STAGE="xrelease";;
+	9)	STAGE="image";;
+	10)	STAGE="diff-revert";;
+	11)	STAGE="distrib";;
+	12)	STAGE="end"
 		exit 0
 		;;
 	*)	exit 1;;

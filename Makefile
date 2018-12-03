@@ -5,9 +5,12 @@ SCRIPTS+=	cvs.sh
 SCRIPTS+=	diff-revert.sh
 SCRIPTS+=	diff.sh
 SCRIPTS+=	distrib.sh
+SCRIPTS+=	image.sh
 SCRIPTS+=	kernel.sh
 SCRIPTS+=	release.sh
 SCRIPTS+=	start.sh
+SCRIPTS+=	xbase.sh
+SCRIPTS+=	xrelease.sh
 
 PREFIX=	/usr/local
 
