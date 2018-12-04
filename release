@@ -207,6 +207,8 @@ purge() {
 report() {
 	local _dst="$2" _i=1 _line _subject _t0 _t1
 
+	[ -e "$1" ] || return 0
+
 	while eval_stage "$_i" "$1"; do
 		[ $_i -gt 1 ] && echo
 
