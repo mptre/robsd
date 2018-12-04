@@ -230,6 +230,9 @@ report() {
 	0a
 	> stats:
 	Duration: $(report_duration "$((_t1 - _t0))")
+	Size:     $(report_size "${RELEASEDIR}/bsd")
+	Size:     $(report_size "${RELEASEDIR}/bsd.mp")
+	Size:     $(report_size "${RELEASEDIR}/bsd.rd")
 
 	.
 	w
@@ -278,6 +281,24 @@ report_log() {
 		tail "$2"
 		;;
 	esac
+}
+
+# report_size file
+#
+# Writes a human readable representation of the size of the given file.
+report_size() {
+	local _f="$1"
+
+	printf '%s' "$(basename "$_f")"
+
+	if ! [ -e "$_f" ]; then
+		printf ' 0\n'
+		return 0
+	fi
+
+	printf ' %s' "$(du -h "$_f" | awk '{print $1}')"
+	printf ' (%d)' "$(size "$_f" | sed -n -e '2p' | awk '{print $4}')"
+	printf '\n'
 }
 
 [ $(id -u) -ne 0 ] && fatal "must be run as root"
