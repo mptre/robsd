@@ -271,7 +271,7 @@ report_log() {
 	[ -s "$2" ] && echo
 
 	case "$1" in
-	start|cvs|diff|diff-revert|distrib)
+	start|cvs|patch|revert|distrib)
 		cat "$2"
 		;;
 	*)
@@ -355,14 +355,14 @@ while :; do
 	case "$S" in
 	1)	STAGE="start";;
 	2)	STAGE="cvs";;
-	3)	STAGE="diff";;
+	3)	STAGE="patch";;
 	4)	STAGE="kernel";;
 	5)	STAGE="base";;
 	6)	STAGE="release";;
 	7)	STAGE="xbase";;
 	8)	STAGE="xrelease";;
 	9)	STAGE="image";;
-	10)	STAGE="diff-revert";;
+	10)	STAGE="revert";;
 	11)	STAGE="distrib";;
 	12)	STAGE="end"
 		exit 0
