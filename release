@@ -293,6 +293,7 @@ export DIFF; DIFF=""
 export EXECDIR; EXECDIR="/usr/local/libexec/release"
 export LOGDIR
 export MAKEFLAGS; MAKEFLAGS="-j$(sysctl -n hw.ncpuonline)"
+export PATH; PATH="/bin:/sbin:/usr/bin:/usr/sbin:/usr/X11R6/bin"
 export RELEASEDIR
 export SSHHOST
 export SSHPATH
