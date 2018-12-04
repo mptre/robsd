@@ -25,6 +25,8 @@ info() {
 atexit() {
 	local _err=$?
 
+	lock_release "$LOGDIR"
+
 	if [ $_err -ne 0 ] || must_report "$STAGE"; then
 		report "${LOGDIR}/stages" "${LOGDIR}/report"
 	fi
@@ -115,6 +117,27 @@ exec_stage() (
 	fi
 	return 0
 )
+
+# lock_present directory
+#
+# Exits 0 if no build lock already is acquired.
+lock_present() {
+	! ls $1/*/running 2>/dev/null | cmp -s - /dev/null
+}
+
+# lock_acquire directory
+#
+# Acquire a new build lock.
+lock_acquire() {
+	>"${1}/running"
+}
+
+# lock_release directory
+#
+# Release the current build lock.
+lock_release() {
+	rm -f "${1}/running"
+}
 
 # next_stage file
 #
@@ -315,6 +338,11 @@ else
 fi
 info "using directory ${LOGDIR}"
 RELEASEDIR="${LOGDIR}/$(machine)"
+
+if lock_present "$BUILDDIR"; then
+	fatal "already running"
+fi
+lock_acquire "$LOGDIR"
 
 if [ "$KEEP" -gt 0 ]; then
 	purge "$BUILDDIR" "$KEEP"
