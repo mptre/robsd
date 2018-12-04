@@ -217,7 +217,7 @@ report() {
 		printf '> %s:\n' "$name"
 		printf 'Exit: %d\n' "$exit"
 		printf 'Duration: %s\n' "$(report_duration "$duration")"
-		printf 'Date: %s\n' "$(date -u -r "$time")"
+		printf 'Date: %s\n' "$(date -u -r "$time" | xargs)"
 		printf 'Log: %s\n' "$log"
 		report_log "$name" "$log"
 
