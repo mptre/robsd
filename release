@@ -45,7 +45,7 @@ build_id() {
 
 	_d="$(date '+%Y-%m-%d')"
 	_c="$(find "$1" -type d -name "${_d}*" | wc -l)"
-	printf '%s.%02d\n' "$_d" "$((_c + 1))"
+	printf '%s.%d\n' "$_d" "$((_c + 1))"
 }
 
 # end_stage -d duration -e exit -l log -n name -s stage file
