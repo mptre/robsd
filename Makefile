@@ -9,6 +9,7 @@ SCRIPTS+=	patch.sh
 SCRIPTS+=	release.sh
 SCRIPTS+=	revert.sh
 SCRIPTS+=	start.sh
+SCRIPTS+=	util.sh
 SCRIPTS+=	xbase.sh
 SCRIPTS+=	xrelease.sh
 
