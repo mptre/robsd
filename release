@@ -238,6 +238,9 @@ report() {
 	w
 	EOF
 
+	# Do not send mail during interactive invocations.
+	[ -t 0 ] && return 0
+
 	_subject="$([ $exit -eq 0 ] && echo 'success' || echo 'failure')"
 	mail -s "release build: ${_subject}" root <"$_dst"
 }
