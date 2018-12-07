@@ -371,6 +371,13 @@ if lock_present "$BUILDDIR"; then
 fi
 lock_acquire "$LOGDIR"
 
+if [ -e "${LOGDIR}/src.diff" ]; then
+	if [ -n "$DIFF" ]; then
+		fatal "diff already specified"
+	fi
+	DIFF="${LOGDIR}/src.diff"
+fi
+
 if [ "$KEEP" -gt 0 ]; then
 	purge "$BUILDDIR" "$KEEP"
 fi
