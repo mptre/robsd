@@ -48,6 +48,17 @@ build_id() {
 	printf '%s.%d\n' "$_d" "$((_c + 1))"
 }
 
+# check_perf
+#
+# Sanity check performance parameters.
+check_perf() {
+	[ "$(sysctl -n hw.perfpolicy)" = "auto" ] && return 0
+	[ "$(sysctl -n hw.setperf)" -eq 100 ] && return 0
+
+	info "non-optimal performance detected, check hw.perfpolicy and hw.setperf"
+	return 1
+}
+
 # end_stage -d duration -e exit -l log -n name -s stage file
 #
 # Mark the given stage as ended by writing an entry to the given file.
@@ -355,6 +366,8 @@ shift $((OPTIND - 1))
 [ $# -ne 0 ] && usage
 
 trap 'atexit' EXIT
+
+check_perf || exit 1
 
 if [ -z "$LOGDIR" ]; then
 	LOGDIR="${BUILDDIR}/$(build_id "$BUILDDIR")"
