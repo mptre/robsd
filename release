@@ -52,7 +52,10 @@ build_id() {
 #
 # Sanity check performance parameters.
 check_perf() {
-	[ "$(sysctl -n hw.perfpolicy)" = "auto" ] && return 0
+	case "$(sysctl -n hw.perfpolicy)" in
+	auto|high)	return 0;;
+	esac
+
 	[ "$(sysctl -n hw.setperf)" -eq 100 ] && return 0
 
 	info "non-optimal performance detected, check hw.perfpolicy and hw.setperf"
@@ -367,9 +370,9 @@ shift $((OPTIND - 1))
 
 trap 'atexit' EXIT
 
-check_perf || exit 1
-
 if [ -z "$LOGDIR" ]; then
+	check_perf || exit 1
+
 	LOGDIR="${BUILDDIR}/$(build_id "$BUILDDIR")"
 	mkdir "$LOGDIR"
 else
