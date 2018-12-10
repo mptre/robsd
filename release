@@ -28,7 +28,7 @@ atexit() {
 	lock_release "$LOGDIR"
 
 	if [ $_err -ne 0 ] || must_report "$STAGE"; then
-		report "${LOGDIR}/stages" "${LOGDIR}/report"
+		report -e "$_err" -r "${LOGDIR}/report" -s "${LOGDIR}/stages"
 	fi
 
 	if [ $_err -ne 0 ]; then
@@ -215,15 +215,25 @@ purge() {
 	done
 }
 
-# report stages dst
+# report -e exit -r report -s stages
 #
-# Generate a build report and save it to dst.
+# Generate a build report and save it to report.
 report() {
-	local _dst="$2" _i=1 _tot=0 _line _subject
+	local _i=1 _tot=0 _exit _line _report _stages _subject
 
-	[ -e "$1" ] || return 0
+	while [ $# -gt 0 ]; do
+		case "$1" in
+		-e)	shift; _exit="$1";;
+		-r)	shift; _report="$1";;
+		-s)	shift; _stages="$1";;
+		*)	break;;
+		esac
+		shift
+	done
 
-	while eval_stage "$_i" "$1"; do
+	[ -e "$_stages" ] || return 0
+
+	while eval_stage "$_i" "$_stages"; do
 		[ $_i -gt 1 ] && echo
 
 		_tot=$((_tot + duration))
@@ -235,10 +245,10 @@ report() {
 		report_log "$name" "$log"
 
 		_i=$((_i + 1))
-	done >"$_dst"
+	done >"$_report"
 
 	# Add stats section to the beginning of the report.
-	ed -s <<-EOF "$_dst"
+	ed -s <<-EOF "$_report"
 	H
 	0a
 	> stats:
@@ -255,8 +265,8 @@ report() {
 	# Do not send mail during interactive invocations.
 	[ -t 0 ] && return 0
 
-	_subject="$([ $exit -eq 0 ] && echo 'success' || echo 'failure')"
-	mail -s "release build: ${_subject}" root <"$_dst"
+	_subject="$([ "$_exit" -eq 0 ] && echo 'success' || echo 'failure')"
+	mail -s "release build: ${_subject}" "$USER" <"$_report"
 }
 
 # report_duration duration
