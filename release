@@ -220,7 +220,7 @@ purge() {
 #
 # Generate a build report and save it to report.
 report() {
-	local _i=1 _tot=0 _exit _line _report _stages _subject
+	local _i=1 _name='' _tot=0 _exit _line _report _stages _subject
 
 	while [ $# -gt 0 ]; do
 		case "$1" in
@@ -237,6 +237,7 @@ report() {
 	while eval_stage "$_i" "$_stages"; do
 		[ $_i -gt 1 ] && echo
 
+		_name="$name"
 		_tot=$((_tot + duration))
 
 		printf '> %s:\n' "$name"
@@ -266,8 +267,12 @@ report() {
 	# Do not send mail during interactive invocations.
 	[ -t 0 ] && return 0
 
-	_subject="$([ "$_exit" -eq 0 ] && echo 'success' || echo 'failure')"
-	mail -s "release build: ${_subject}" "${USER:-root}" <"$_report"
+	if [ "$_exit" -eq 0 ]; then
+		_subject='ok'
+	else
+		_subject="failed in ${_name}"
+	fi
+	mail -s "release: ${_subject}" "${USER:-root}" <"$_report"
 }
 
 # report_duration duration
