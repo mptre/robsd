@@ -380,6 +380,7 @@ shift $((OPTIND - 1))
 [ $# -ne 0 ] && usage
 
 trap 'atexit' EXIT
+trap 'info "caught SIGINT"' INT
 
 if [ -z "$LOGDIR" ]; then
 	check_perf || exit 1
