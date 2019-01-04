@@ -200,6 +200,16 @@ must_report() {
 	esac
 }
 
+# prev_release
+#
+# Get the previous release directory.
+prev_release() {
+	find "$BUILDDIR" -type d -mindepth 1 -maxdepth 1 |
+	sort -n |
+	grep -B 1 -e "$LOGDIR" |
+	head -1
+}
+
 # purge dir count
 #
 # Keep the latest count number of directories in dir.
@@ -319,18 +329,25 @@ report_log() {
 # report_size file
 #
 # Writes a human readable representation of the size of the given file.
+# If the same file is present in the previous release, report that size as well.
 report_size() {
-	local _f="$1"
+	local _f="$1" _name _prev
 
-	printf '%s' "$(basename "$_f")"
+	_name="$(basename "$_f")"
 
+	printf '%s' "$_name"
 	if ! [ -e "$_f" ]; then
 		printf ' 0\n'
 		return 0
 	fi
 
 	printf ' %s' "$(du -h "$_f" | awk '{print $1}')"
-	printf ' (%d)' "$(size "$_f" | sed -n -e '2p' | awk '{print $4}')"
+
+	_prev="$(prev_release)"
+	if [ -n "$_prev" ]; then
+		printf ' (%s)' "$(du -h "${_prev}/$(machine)/${_name}" | awk '{print $1}')"
+	fi
+
 	printf '\n'
 }
 
