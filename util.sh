@@ -17,19 +17,18 @@ diff_root() {
 				return 0
 			fi
 			_path="$(strip_path "$_path")"
-			break
 		done
 	done
 }
 
 # strip_path path
 #
-# Strip of the first component of the given path.
+# Strip of the last component of the given path.
 strip_path() {
 	local _src="$1" _dst
 
-	_dst="${_src#/}"
+	_dst="${_src%/*}"
 	[ "$_src" = "$_dst" ] && return 0
 
-	echo "/${_dst#*/}"
+	echo "$_dst"
 }
