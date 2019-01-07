@@ -90,9 +90,6 @@ TNAME=""	# test file name
 TERR=0		# number of failures for test case
 TPASS=0		# test case called passed
 
-# Mandatory globals.
-BSDSRCDIR="/usr/src"
-
 for a; do
 	TNAME="${a##*/}"
 	. "$a"
