@@ -25,3 +25,7 @@ install:
 	${INSTALL} -m 0644 ${.CURDIR}/$s \
 		${DESTDIR}${PREFIX}/libexec/${PROG}/$s
 .endfor
+
+test:
+	${MAKE} -C tests RELEASEDIR=${.OBJDIR}
+.PHONY: test
