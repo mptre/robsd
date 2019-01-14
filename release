@@ -417,6 +417,9 @@ info "using directory ${LOGDIR}"
 RELEASEDIR="${LOGDIR}/$(machine)"
 
 if lock_present "$BUILDDIR"; then
+	# Do not leave an empty release around.
+	[ $STAGE -eq 1 ] && rm -r "$LOGDIR"
+
 	fatal "already running"
 fi
 lock_acquire "$LOGDIR"
