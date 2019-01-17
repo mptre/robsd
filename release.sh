@@ -12,6 +12,3 @@ rm -rf $RELEASEDIR/* $RELEASEDIR/.*
 
 cd "${BSDSRCDIR}/etc"
 make release
-
-cd "${BSDSRCDIR}/distrib/sets"
-sh checkflist || true

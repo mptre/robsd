@@ -1,6 +1,7 @@
 PROG=	 release
 
 SCRIPTS+=	base.sh
+SCRIPTS+=	checkflist.sh
 SCRIPTS+=	cvs.sh
 SCRIPTS+=	distrib.sh
 SCRIPTS+=	env.sh

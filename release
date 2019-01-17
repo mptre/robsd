@@ -350,6 +350,7 @@ stage_names() {
 	env
 	base
 	release
+	checkflist
 	xbase
 	xrelease
 	image
