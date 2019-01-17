@@ -63,76 +63,6 @@ check_perf() {
 	return 1
 }
 
-# end_stage -d duration -e exit -l log -n name -s stage file
-#
-# Mark the given stage as ended by writing an entry to the given file.
-end_stage() {
-	local _d _e _l _n _s
-
-	while [ $# -gt 0 ]; do
-		case "$1" in
-		-d)	shift; _d="$1";;
-		-e)	shift; _e="$1";;
-		-l)	shift; _l="$1";;
-		-n)	shift; _n="$1";;
-		-s)	shift; _s="$1";;
-		*)	break;;
-		esac
-		shift
-	done
-
-        # Remove any existing entry for the same stage, could be present if a
-        # previous execution failed.
-	[ -e "$1" ] && sed -i -e "/stage=\"${_s}\"/d" "$1"
-
-	printf 'stage="%d" name="%s" exit="%d" duration="%d" log="%s" time="%d"\n' \
-		"$_s" "$_n" "$_e" "$_d" "$_l" "$(date '+%s')" >>"$1"
-}
-
-# eval_stage stage file
-#
-# Read the given stage from file and as a side-effect assign all variables tied
-# to it.
-eval_stage() {
-	local _stage="$1" _file="$2" _line
-
-	if [ $_stage -lt 0 ]; then
-		_line="$(tail "$_stage" "$_file" | head -1)"
-	else
-		_line="$(sed -n -e "${_stage}p" "$_file")"
-	fi
-	[ -z "$_line" ] && return 1
-
-	eval "$_line"
-}
-
-# exec_stage -f fail -l log stage
-#
-# Execute the given stage and redirect any output to log.
-exec_stage() (
-	local _fail _log
-
-	while [ $# -gt 0 ]; do
-		case "$1" in
-		-f)	shift; _fail="$1";;
-		-l)	shift; _log="$1";;
-		*)	break;;
-		esac
-		shift
-	done
-
-	[ -t 0 ] || exec >/dev/null 2>&1
-
-	trap ">$_fail" INT
-
-	{ sh -eux "$1" </dev/null 2>&1 || >"$_fail"; } | tee "$_log"
-	if [ -e "$_fail" ]; then
-		rm -f "$_fail"
-		return 1
-	fi
-	return 0
-)
-
 # lock_present directory
 #
 # Exits 0 if no build lock already is acquired.
@@ -152,19 +82,6 @@ lock_acquire() {
 # Release the current build lock.
 lock_release() {
 	rm -f "${1}/running"
-}
-
-# next_stage file
-#
-# Outputs the next stage to execute. If the last stage failed, it will be
-# executed again.
-next_stage() {
-	eval_stage -1 "$1"
-	if [ $exit -ne 0 ]; then
-		echo "$stage"
-	else
-		echo "$((stage + 1))"
-	fi
 }
 
 # log_id stage-id stage-name
@@ -244,7 +161,7 @@ report() {
 
 	[ -e "$_stages" ] || return 0
 
-	while eval_stage "$_i" "$_stages"; do
+	while stage_eval "$_i" "$_stages"; do
 		[ $_i -gt 1 ] && echo
 
 		_name="$name"
@@ -351,6 +268,76 @@ report_size() {
 	printf '\n'
 }
 
+# stage_end -d duration -e exit -l log -n name -s stage file
+#
+# Mark the given stage as ended by writing an entry to the given file.
+stage_end() {
+	local _d _e _l _n _s
+
+	while [ $# -gt 0 ]; do
+		case "$1" in
+		-d)	shift; _d="$1";;
+		-e)	shift; _e="$1";;
+		-l)	shift; _l="$1";;
+		-n)	shift; _n="$1";;
+		-s)	shift; _s="$1";;
+		*)	break;;
+		esac
+		shift
+	done
+
+        # Remove any existing entry for the same stage, could be present if a
+        # previous execution failed.
+	[ -e "$1" ] && sed -i -e "/stage=\"${_s}\"/d" "$1"
+
+	printf 'stage="%d" name="%s" exit="%d" duration="%d" log="%s" time="%d"\n' \
+		"$_s" "$_n" "$_e" "$_d" "$_l" "$(date '+%s')" >>"$1"
+}
+
+# stage_eval stage file
+#
+# Read the given stage from file and as a side-effect assign all variables tied
+# to it.
+stage_eval() {
+	local _stage="$1" _file="$2" _line
+
+	if [ $_stage -lt 0 ]; then
+		_line="$(tail "$_stage" "$_file" | head -1)"
+	else
+		_line="$(sed -n -e "${_stage}p" "$_file")"
+	fi
+	[ -z "$_line" ] && return 1
+
+	eval "$_line"
+}
+
+# stage_exec -f fail -l log stage
+#
+# Execute the given stage and redirect any output to log.
+stage_exec() (
+	local _fail _log
+
+	while [ $# -gt 0 ]; do
+		case "$1" in
+		-f)	shift; _fail="$1";;
+		-l)	shift; _log="$1";;
+		*)	break;;
+		esac
+		shift
+	done
+
+	[ -t 0 ] || exec >/dev/null 2>&1
+
+	trap ">$_fail" INT
+
+	{ sh -eux "$1" </dev/null 2>&1 || >"$_fail"; } | tee "$_log"
+	if [ -e "$_fail" ]; then
+		rm -f "$_fail"
+		return 1
+	fi
+	return 0
+)
+
 # stage_names
 #
 # Writes the names of all stages in execution order.
@@ -370,6 +357,19 @@ stage_names() {
 	distrib
 	end
 	EOF
+}
+
+# stage_next file
+#
+# Outputs the next stage to execute. If the last stage failed, it will be
+# executed again.
+stage_next() {
+	stage_eval -1 "$1"
+	if [ $exit -ne 0 ]; then
+		echo "$stage"
+	else
+		echo "$((stage + 1))"
+	fi
 }
 
 # stage_resolve stage
@@ -444,7 +444,7 @@ if [ -z "$LOGDIR" ]; then
 	LOGDIR="${BUILDDIR}/$(build_id "$BUILDDIR")"
 	mkdir "$LOGDIR"
 else
-	S="$(next_stage "${LOGDIR}/stages")"
+	S="$(stage_next "${LOGDIR}/stages")"
 	info "resume build from stage ${S}"
 fi
 info "using directory ${LOGDIR}"
@@ -477,10 +477,10 @@ while :; do
 	LOG="${LOGDIR}/$(log_id "$S" "$STAGE")"
 	EXIT=0
 	T0="$(date '+%s')"
-        exec_stage -f "${LOGDIR}/fail" -l "$LOG" "${EXECDIR}/${STAGE}.sh" ||
+        stage_exec -f "${LOGDIR}/fail" -l "$LOG" "${EXECDIR}/${STAGE}.sh" ||
 		EXIT=1
 	T1="$(date '+%s')"
-	end_stage -d "$((T1 - T0))" -e "$EXIT" -l "$LOG" -n "$STAGE" -s "$S" \
+	stage_end -d "$((T1 - T0))" -e "$EXIT" -l "$LOG" -n "$STAGE" -s "$S" \
 		"${LOGDIR}/stages"
 	[ $EXIT -ne 0 ] && exit 1
 
