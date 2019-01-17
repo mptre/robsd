@@ -351,6 +351,40 @@ report_size() {
 	printf '\n'
 }
 
+# stage_names
+#
+# Writes the names of all stages in execution order.
+stage_names() {
+	cat <<-EOF
+	env
+	cvs
+	patch
+	kernel
+	env
+	base
+	release
+	xbase
+	xrelease
+	image
+	revert
+	distrib
+	end
+	EOF
+}
+
+# stage_resolve stage
+#
+# Resolve the given numeric stage to its corresponding name.
+stage_resolve() {
+	local _stage="$(stage_names | sed -n -e "${1}p")"
+
+	if [ -n "$_stage" ]; then
+		echo "$_stage"
+	else
+		return 1
+	fi
+}
+
 [ $(id -u) -ne 0 ] && fatal "must be run as root"
 
 # Global variables with sensible defaults.
@@ -436,25 +470,8 @@ if [ "$KEEP" -gt 0 ]; then
 fi
 
 while :; do
-	case "$S" in
-	1)	STAGE="env";;
-	2)	STAGE="cvs";;
-	3)	STAGE="patch";;
-	4)	STAGE="kernel";;
-	5)	STAGE="env";;
-	6)	STAGE="base";;
-	7)	STAGE="release";;
-	8)	STAGE="xbase";;
-	9)	STAGE="xrelease";;
-	10)	STAGE="image";;
-	11)	STAGE="revert";;
-	12)	STAGE="distrib";;
-	13)	STAGE="end"
-		exit 0
-		;;
-	*)	exit 1;;
-	esac
-
+	STAGE="$(stage_resolve "$S")"
+	[ "$STAGE" = "end" ] && exit 0
 	info "stage ${STAGE}"
 
 	LOG="${LOGDIR}/$(log_id "$S" "$STAGE")"
