@@ -237,6 +237,11 @@ report_log() {
 	env|cvs|patch|revert|distrib)
 		cat "$2"
 		;;
+	checkflist)
+		# Silent if the log only contains PS4 traces.
+		grep -vq '^\+' "$2" || return 0
+		cat "$2"
+		;;
 	*)
 		tail "$2"
 		;;
