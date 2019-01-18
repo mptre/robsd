@@ -346,6 +346,8 @@ stage_exec() (
 # stage_names
 #
 # Writes the names of all stages in execution order.
+# The last stage named end is a sentinel stage without a corresponding stage
+# script.
 stage_names() {
 	cat <<-EOF
 	env
