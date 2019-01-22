@@ -14,7 +14,7 @@ diff_root() {
 		while [ -n "$_p" ]; do
 			[ -e "$_p" ] && break
 
-			_p="$(strip_path "$_p")"
+			_p="$(path_strip "$_p")"
 		done
 
 		echo "$_p"
@@ -22,10 +22,10 @@ diff_root() {
 	done
 }
 
-# strip_path path
+# path_strip path
 #
 # Strip of the first component of the given path.
-strip_path() {
+path_strip() {
 	local _src="$1" _dst
 
 	_dst="${_src#/}"
