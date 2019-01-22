@@ -12,10 +12,6 @@ atexit() {
 	fi
 }
 
-load() {
-	. "${RELEASEDIR}/${1}"
-}
-
 testcase() {
 	assert_pass
 
@@ -89,6 +85,8 @@ TCASE=""	# test case description
 TNAME=""	# test file name
 TERR=0		# number of failures for test case
 TPASS=0		# test case called passed
+
+. "${RELEASEDIR}/util.sh"
 
 for a; do
 	TNAME="${a##*/}"

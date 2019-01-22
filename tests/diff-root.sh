@@ -1,5 +1,3 @@
-load util.sh
-
 if testcase "simple prefix"; then
 	cat <<-EOF >$TMP1
 	Index: kern/kern_descrip.c
