@@ -1,4 +1,5 @@
-TESTS=	diff-root
+TESTS+=	diff-root
+TESTS+=	stage-eval
 
 all: test
 
