@@ -429,6 +429,8 @@ export X11SRCDIR; X11SRCDIR="/usr/xenocara"
 : "${SSHUSER:?}"
 : "${X11OBJDIR:?}"
 
+. "${EXECDIR}/util.sh"
+
 KEEP=0
 LOGDIR=""
 S=1
