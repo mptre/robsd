@@ -26,7 +26,9 @@ testcase() {
 assert_eq() {
 	[ "$1" = "$2" ] && return 0
 
-	fail
+	# Intentionally unquoted since it's optional.
+	fail $3
+
 	printf '\tWANT:\t%s\n\tGOT:\t%s\n' "$1" "$2" 1>&2
 }
 
@@ -70,7 +72,7 @@ report() {
 
 	{
 		printf '%s: %s: %s' "$_prefix" "$TNAME" "$TCASE"
-		[ $# -gt 0 ] && printf ': %s' "$@"
+		[ $# -gt 0 ] && printf ': %s' "$*"
 		echo
 	} 1>&2
 }
