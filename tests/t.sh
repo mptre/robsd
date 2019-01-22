@@ -26,10 +26,8 @@ testcase() {
 assert_eq() {
 	[ "$1" = "$2" ] && return 0
 
-	# Intentionally unquoted since it's optional.
-	fail $3
-
-	printf '\tWANT:\t%s\n\tGOT:\t%s\n' "$1" "$2" 1>&2
+	# $3 is intentionally unquoted since it's optional.
+	printf '\tWANT:\t%s\n\tGOT:\t%s\n' "$1" "$2" 1>&2 | fail - $3
 }
 
 assert_pass() {
@@ -46,14 +44,17 @@ pass() {
 fail() {
 	NERR=$((NERR + 1))
 	TERR=$((TERR + 1))
+
 	report -f "$@"
 }
 
+# report [-] [-f] message...
 report() {
-	local _force=0 _prefix
+	local _force=0 _prefix _stdin=0
 
 	while [ $# -gt 0 ]; do
 		case "$1" in
+		-)	_stdin=1;;
 		-f)	_force=1;;
 		*)	break;;
 		esac
@@ -70,16 +71,21 @@ report() {
 		NERR=$((NERR + 1))
 	fi
 
+	# Try very hard to output everything to stderr in one go.
 	{
 		printf '%s: %s: %s' "$_prefix" "$TNAME" "$TCASE"
 		[ $# -gt 0 ] && printf ': %s' "$*"
 		echo
-	} 1>&2
+		[ $_stdin -eq 1 ] && cat
+	} >$_TMP1
+	cat <$_TMP1 1>&2
 }
 
+# Internal and external temporary files.
+_TMP1="$(mktemp -t release.XXXXXX)"
 TMP1="$(mktemp -t release.XXXXXX)"
 
-trap 'atexit $TMP1' EXIT
+trap 'atexit $_TMP1 $TMP1' EXIT
 
 NERR=0		# total number of errors
 NTEST=0		# total number of executed test cases
