@@ -147,7 +147,7 @@ purge() {
 #
 # Generate a build report and save it to report.
 report() {
-	local _i=1 _name='' _tot=0 _exit _line _report _stages _subject
+	local _i=1 _name='' _tot=0 _exit _line _report _stages _status
 
 	while [ $# -gt 0 ]; do
 		case "$1" in
@@ -176,12 +176,19 @@ report() {
 		_i=$((_i + 1))
 	done >"$_report"
 
+	if [ "$_exit" -eq 0 ]; then
+		_status='ok'
+	else
+		_status="failed in ${_name}"
+	fi
+
 	# Add stats section to the beginning of the report.
 	ed -s <<-EOF "$_report"
 	H
 	0a
 	> stats:
 	Build: ${LOGDIR}
+	Status: ${_status}
 	Duration: $(report_duration "$_tot")
 	Size: $(report_size "${RELEASEDIR}/bsd")
 	Size: $(report_size "${RELEASEDIR}/bsd.mp")
@@ -194,12 +201,7 @@ report() {
 	# Do not send mail during interactive invocations.
 	[ -t 0 ] && return 0
 
-	if [ "$_exit" -eq 0 ]; then
-		_subject='ok'
-	else
-		_subject="failed in ${_name}"
-	fi
-	mail -s "release: ${_subject}" "${USER:-root}" <"$_report"
+	mail -s "release: ${_status}" "${USER:-root}" <"$_report"
 }
 
 # report_duration duration
