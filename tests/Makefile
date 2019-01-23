@@ -1,4 +1,5 @@
 TESTS+=	diff-root
+TESTS+=	report-recipients
 TESTS+=	stage-eval
 
 all: test

@@ -34,6 +34,22 @@ path_strip() {
 
 }
 
+# report_recipients stages
+#
+# Writes the report recipients based on the given stages file.
+# If the user that started the release is not in the wheel group, root will
+# receive the report as well.
+report_recipients() {
+	local _user
+
+	stage_eval 1 "$1"
+	_user="${_STAGE[$(stage_field user)]}"
+	if ! groups "$_user" | grep -qw wheel; then
+		printf 'root '
+	fi
+	echo "$_user"
+}
+
 # stage_eval stage file
 #
 # Read the given stage from file into the array _STAGE.

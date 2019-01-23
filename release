@@ -202,7 +202,8 @@ report() {
 	# Do not send mail during interactive invocations.
 	[ -t 0 ] && return 0
 
-	mail -s "release: ${_status}" "${USER:-root}" <"$_report"
+	mail -s "release: ${_status}" \
+		$(report_recipients "$_stages") <"$_report"
 }
 
 # report_duration duration
