@@ -32,7 +32,7 @@ atexit() {
 	fi
 
 	if [ $_err -ne 0 ]; then
-		info "failed in stage ${STAGE:-unknown} (${S})"
+		info "failed in stage ${STAGE:-unknown}"
 	fi
 
 	return "$_err"
