@@ -1,4 +1,4 @@
-set -e
+set -eu
 
 atexit() {
 	assert_pass
@@ -27,7 +27,7 @@ assert_eq() {
 	[ "$1" = "$2" ] && return 0
 
 	# $3 is intentionally unquoted since it's optional.
-	printf '\tWANT:\t%s\n\tGOT:\t%s\n' "$1" "$2" 1>&2 | fail - $3
+	printf '\tWANT:\t%s\n\tGOT:\t%s\n' "$1" "$2" 1>&2 | fail - ${3:-}
 }
 
 assert_pass() {
