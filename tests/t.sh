@@ -3,7 +3,7 @@ set -eu
 atexit() {
 	assert_pass
 
-	rm -f "$@"
+	rm -rf "$@"
 
 	if [ $NERR -gt 0 ]; then
 		exit 1
@@ -19,6 +19,8 @@ testcase() {
 	TCASE="$@"
 	TERR=0
 	TPASS=0
+
+	find "$WRKDIR" -mindepth 1 -not -name '*tmp*' -delete
 
 	return 0
 }
@@ -82,10 +84,11 @@ report() {
 }
 
 # Internal and external temporary files.
-_TMP1="$(mktemp -t release.XXXXXX)"
-TMP1="$(mktemp -t release.XXXXXX)"
+WRKDIR="$(mktemp -d -t release.XXXXXX)"
+_TMP1="${WRKDIR}/_tmp1"
+TMP1="${WRKDIR}/tmp1"
 
-trap 'atexit $_TMP1 $TMP1' EXIT
+trap 'atexit $WRKDIR' EXIT
 
 NERR=0		# total number of errors
 NTEST=0		# total number of executed test cases
