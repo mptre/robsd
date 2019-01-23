@@ -87,6 +87,7 @@ stage_field() {
 	duration)	echo 3;;
 	log)		echo 4;;
 	time)		echo 5;;
+	user)		echo 6;;
 	*)		echo -1;;
 	esac
 }

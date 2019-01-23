@@ -305,6 +305,7 @@ stage_end() {
 		printf 'exit="%d" ' "$_e"
 		printf 'duration="%d" ' "$_d"
 		printf 'log="%s" ' "$_l"
+		printf 'user="%s" ' "$(logname)"
 		printf 'time="%d"' "$(date '+%s')"
 		printf '\n'
 	} >>"$1"
