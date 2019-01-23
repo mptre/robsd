@@ -163,16 +163,16 @@ report() {
 	while stage_eval "$_i" "$_stages"; do
 		[ $_i -gt 1 ] && echo
 
-		_name="${_STAGE[$_STAGE_NAME]}"
-		_exit="${_STAGE[$_STAGE_EXIT]}"
-		_tot=$((_tot + ${_STAGE[$_STAGE_DURATION]}))
+		_name="${_STAGE[$(stage_field name)]}"
+		_exit="${_STAGE[$(stage_field exit)]}"
+		_tot=$((_tot + ${_STAGE[$(stage_field duration)]}))
 
-		printf '> %s:\n' "${_STAGE[$_STAGE_NAME]}"
-		printf 'Exit: %d\n' "${_STAGE[$_STAGE_EXIT]}"
+		printf '> %s:\n' "$_name"
+		printf 'Exit: %d\n' "$_exit"
 		printf 'Duration: %s\n' \
-			"$(report_duration "${_STAGE[$_STAGE_DURATION]}")"
-                printf 'Log: %s\n' "$(basename "${_STAGE[$_STAGE_LOG]}")"
-                report_log "${_STAGE[$_STAGE_NAME]}" "${_STAGE[$_STAGE_LOG]}"
+                        "$(report_duration "${_STAGE[$(stage_field duration)]}")"
+                printf 'Log: %s\n' "$(basename "${_STAGE[$(stage_field log)]}")"
+                report_log "$_name" "${_STAGE[$(stage_field log)]}"
 
 		_i=$((_i + 1))
 	done >"$_report"
@@ -360,10 +360,10 @@ stage_names() {
 # executed again.
 stage_next() {
 	stage_eval -1 "$1"
-	if [ ${_STAGE[$_STAGE_EXIT]} -ne 0 ]; then
-		echo "${_STAGE[$_STAGE_ID]}"
+	if [ ${_STAGE[$(stage_field exit)]} -ne 0 ]; then
+		echo "${_STAGE[$(stage_field stage)]}"
 	else
-		echo "$((${_STAGE[$_STAGE_ID]} + 1))"
+		echo "$((${_STAGE[$(stage_field stage)]} + 1))"
 	fi
 }
 

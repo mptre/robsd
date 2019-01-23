@@ -1,11 +1,3 @@
-# Array indices for _STAGE array populated by stage_eval.
-_STAGE_ID=0
-_STAGE_NAME=1
-_STAGE_EXIT=2
-_STAGE_DURATION=3
-_STAGE_LOG=4
-_STAGE_TIME=5
-
 # diff_root diff
 #
 # Find the root directory for the given diff.
@@ -46,7 +38,7 @@ path_strip() {
 #
 # Read the given stage from file into the array _STAGE.
 stage_eval() {
-	local _stage="$1" _file="$2" _i=0 _k _next _s _v
+	local _stage="$1" _file="$2" _i _k _next _s _v
 
 	set -A _STAGE
 
@@ -62,18 +54,12 @@ stage_eval() {
 		_k="${_next%=*}"
 		_v="${_next#*=\"}"; _v="${_v%\"}"
 
-		case "$_k" in
-		stage)		_STAGE[$_STAGE_ID]="$_v";;
-		name)		_STAGE[$_STAGE_NAME]="$_v";;
-		exit)		_STAGE[$_STAGE_EXIT]="$_v";;
-		duration)	_STAGE[$_STAGE_DURATION]="$_v";;
-		log)		_STAGE[$_STAGE_LOG]="$_v";;
-		time)		_STAGE[$_STAGE_TIME]="$_v";;
-
-		*)	echo "stage_eval: ${_file}: unknown field ${_k}" 1>&2
+		_i="$(stage_field "$_k")"
+		if [ "$_i" -lt 0 ]; then
+			echo "stage_eval: ${_file}: unknown field ${_k}" 1>&2
 			return 1
-			;;
-		esac
+		fi
+		_STAGE[$_i]="$_v"
 
 		_next="${_line#* }"
 		if [ "$_next" = "$_line" ]; then
@@ -81,7 +67,6 @@ stage_eval() {
 		else
 			_line="$_next"
 		fi
-		_i=$((i + 1))
 	done
 
 	if [ ${#_STAGE[*]} -eq 0 ]; then
@@ -89,4 +74,19 @@ stage_eval() {
 	else
 		return 0
 	fi
+}
+
+# stage_field name
+#
+# Writes the corresponding _STAGE array index for the given field name.
+stage_field() {
+	case "$1" in
+	stage)		echo 0;;
+	name)		echo 1;;
+	exit)		echo 2;;
+	duration)	echo 3;;
+	log)		echo 4;;
+	time)		echo 5;;
+	*)		echo -1;;
+	esac
 }
