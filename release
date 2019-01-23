@@ -299,8 +299,15 @@ stage_end() {
 	[ -e "$1" ] && sed -i -e "/stage=\"${_s}\"/d" "$1"
 
         # Caution: all values must be quoted and cannot contain spaces.
-	printf 'stage="%d" name="%s" exit="%d" duration="%d" log="%s" time="%d"\n' \
-		"$_s" "$_n" "$_e" "$_d" "$_l" "$(date '+%s')" >>"$1"
+	{
+		printf 'stage="%d" ' "$_s"
+		printf 'name="%s" ' "$_n"
+		printf 'exit="%d" ' "$_e"
+		printf 'duration="%d" ' "$_d"
+		printf 'log="%s" ' "$_l"
+		printf 'time="%d"' "$(date '+%s')"
+		printf '\n'
+	} >>"$1"
 }
 
 # stage_exec -f fail -l log stage
