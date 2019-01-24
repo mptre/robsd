@@ -50,6 +50,13 @@ report_recipients() {
 	echo "$_user"
 }
 
+# release_dir prefix
+#
+# Writes the release directory with the given prefix applied.
+release_dir() {
+	echo "${1}/reldir"
+}
+
 # stage_eval stage file
 #
 # Read the given stage from file into the array _STAGE.

@@ -271,7 +271,7 @@ report_size() {
 
 	_prev="$(prev_release)"
 	if [ -n "$_prev" ]; then
-		printf ' (%s)' "$(du -h "${_prev}/$(machine)/${_name}" | awk '{print $1}')"
+		printf ' (%s)' "$(du -h "$(release_dir "$_prev")/${_name}" | awk '{print $1}')"
 	fi
 
 	printf '\n'
@@ -455,7 +455,7 @@ else
 	info "resume build from stage ${S}"
 fi
 info "using directory ${LOGDIR}"
-RELEASEDIR="${LOGDIR}/$(machine)"
+RELEASEDIR="$(release_dir "$LOGDIR")"
 
 if lock_present "$BUILDDIR"; then
 	# Do not leave an empty release around.
