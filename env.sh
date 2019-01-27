@@ -1,2 +1,2 @@
-sysctl -n kern.version | sed -e '/^$/d'
+sysctl -n kern.version
 printenv | sort
