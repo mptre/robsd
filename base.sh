@@ -6,3 +6,6 @@ chmod 770 "$BSDOBJDIR"
 cd "$BSDSRCDIR"
 make obj
 make build
+
+sysmerge
+cd /dev && ./MAKEDEV all
