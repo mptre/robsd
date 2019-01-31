@@ -28,6 +28,10 @@ install:
 .endfor
 .PHONY: install
 
+lint:
+	shellcheck -f gcc ${SCRIPTS}
+.PHONY: lint
+
 test:
 	${MAKE} -C tests RELEASEDIR=${.OBJDIR}
 .PHONY: test
