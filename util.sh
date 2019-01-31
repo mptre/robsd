@@ -9,7 +9,7 @@ diff_root() {
 	sed -e 's/,v$//' -e 's,/src/,/usr/src/,g' |
 	head -2 |
 	xargs -r |
-	while read _file _path; do
+	while read -r _file _path; do
 		_p="${_path%/${_file}}"
 		while [ -n "$_p" ]; do
 			[ -e "$_p" ] && break
@@ -61,11 +61,11 @@ release_dir() {
 #
 # Read the given stage from file into the array _STAGE.
 stage_eval() {
-	local _stage="$1" _file="$2" _i _k _next _s _v
+	local _stage="$1" _file="$2" _i _k _next _v
 
 	set -A _STAGE
 
-	if [ $_stage -lt 0 ]; then
+	if [ "$_stage" -lt 0 ]; then
 		_line="$(tail "$_stage" "$_file" | head -1)"
 	else
 		_line="$(sed -n -e "${_stage}p" "$_file")"

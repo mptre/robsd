@@ -19,7 +19,7 @@ fatal() {
 }
 
 info() {
-	echo "release: ${@}" 1>&2
+	echo "release: ${*}" 1>&2
 }
 
 atexit() {
@@ -42,7 +42,7 @@ atexit() {
 #
 # Generate a new build directory path.
 build_id() {
-	local _c _d _p
+	local _c _d
 
 	_d="$(date '+%Y-%m-%d')"
 	_c="$(find "$1" -type d -name "${_d}*" | wc -l)"
@@ -67,14 +67,14 @@ check_perf() {
 #
 # Exits 0 if no build lock already is acquired.
 lock_present() {
-	! ls $1/*/running 2>/dev/null | cmp -s - /dev/null
+	! find "$1" -type f -name running | cmp -s - /dev/null
 }
 
 # lock_acquire directory
 #
 # Acquire a new build lock.
 lock_acquire() {
-	>"${1}/running"
+	touch "${1}/running"
 }
 
 # lock_release directory
@@ -137,7 +137,7 @@ purge() {
 	sort -n |
 	tail -r |
 	tail -n "+$((_n + 1))" |
-	while read _d; do
+	while read -r _d; do
 		info "removing directory ${_d}"
 		rm -r "$_d"
 	done
@@ -147,7 +147,7 @@ purge() {
 #
 # Generate a build report and save it to report.
 report() {
-	local _i=1 _name='' _tot=0 _exit=0 _line _report _stages _status
+	local _i=1 _name='' _tot=0 _exit=0 _report _stages _status
 
 	while [ $# -gt 0 ]; do
 		case "$1" in
@@ -210,21 +210,21 @@ report() {
 #
 # Writes a human readable representation of the given duration.
 report_duration() {
-	local _d="$1" _h= _m= _s=
+	local _d="$1" _h="" _m="" _s=""
 
-	[ $_d -eq 0 ] && { echo 0; return 0; }
+	[ "$_d" -eq 0 ] && { echo 0; return 0; }
 
-	if [ $_d -gt 3600 ]; then
+	if [ "$_d" -gt 3600 ]; then
 		_h="$((_d / 3600))h"
 		_d=$((_d % 3600))
 	fi
 
-	if [ $_d -gt 60 ]; then
+	if [ "$_d" -gt 60 ]; then
 		_m="$((_d / 60))m"
 		_d=$((_d % 60))
 	fi
 
-	if [ $_d -gt 0 ]; then
+	if [ "$_d" -gt 0 ]; then
 		_s="${_d}s"
 	fi
 
@@ -331,7 +331,7 @@ stage_exec() (
 
 	trap ">$_fail" INT
 
-	{ sh -eux "$1" </dev/null 2>&1 || >"$_fail"; } | tee "$_log"
+	{ sh -eux "$1" </dev/null 2>&1 || touch "$_fail"; } | tee "$_log"
 	if [ -e "$_fail" ]; then
 		rm -f "$_fail"
 		return 1
@@ -369,7 +369,7 @@ stage_names() {
 # executed again.
 stage_next() {
 	stage_eval -1 "$1"
-	if [ ${_STAGE[$(stage_field exit)]} -ne 0 ]; then
+	if [ "${_STAGE[$(stage_field exit)]}" -ne 0 ]; then
 		echo "${_STAGE[$(stage_field stage)]}"
 	else
 		echo "$((${_STAGE[$(stage_field stage)]} + 1))"
@@ -380,8 +380,9 @@ stage_next() {
 #
 # Resolve the given numeric stage to its corresponding name.
 stage_resolve() {
-	local _stage="$(stage_names | sed -n -e "${1}p")"
+	local _stage
 
+	_stage="$(stage_names | sed -n -e "${1}p")"
 	if [ -n "$_stage" ]; then
 		echo "$_stage"
 	else
@@ -389,7 +390,7 @@ stage_resolve() {
 	fi
 }
 
-[ $(id -u) -ne 0 ] && fatal "must be run as root"
+[ "$(id -u)" -ne 0 ] && fatal "must be run as root"
 
 # Global variables with sensible defaults.
 export BSDOBJDIR; BSDOBJDIR="/usr/obj"
