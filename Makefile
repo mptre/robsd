@@ -16,6 +16,10 @@ SCRIPTS+=	xrelease.sh
 
 PREFIX=	/usr/local
 
+SHELLCHECKFLAGS+=	-f gcc
+SHELLCHECKFLAGS+=	-e SC2148	# missing shebang
+SHELLCHECKFLAGS+=	-e SC1090	# non-constant source
+
 all:
 
 install:
@@ -29,7 +33,7 @@ install:
 .PHONY: install
 
 lint:
-	shellcheck -f gcc ${SCRIPTS}
+	shellcheck ${SHELLCHECKFLAGS} ${SCRIPTS}
 .PHONY: lint
 
 test:
