@@ -17,8 +17,9 @@ SCRIPTS+=	xrelease.sh
 PREFIX=	/usr/local
 
 SHELLCHECKFLAGS+=	-f gcc
-SHELLCHECKFLAGS+=	-e SC2148	# missing shebang
 SHELLCHECKFLAGS+=	-e SC1090	# non-constant source
+SHELLCHECKFLAGS+=	-e SC2148	# missing shebang
+SHELLCHECKFLAGS+=	-e SC2164	# cd failure
 
 all:
 
