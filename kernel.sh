@@ -3,7 +3,7 @@ kernel_path() {
 
 	_a="$(machine)"
 	_n="$(sysctl -n hw.ncpu)"
-	_s="$(test $_n -gt 1 && echo '.MP')"
+	_s="$(test "$_n" -gt 1 && echo '.MP')"
 
 	printf 'arch/%s/compile/GENERIC%s\n' "$_a" "$_s"
 }
