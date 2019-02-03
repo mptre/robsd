@@ -1,3 +1,15 @@
+# cleandir dir ...
+#
+# Remove all entries in the given directory without removing the actual
+# directory.
+cleandir() {
+	local _d
+
+	for _d; do
+                find "$_d" -mindepth 1 -maxdepth 1 -print0 | xargs -0r rm -r
+	done
+}
+
 # diff_root diff
 #
 # Find the root directory for the given diff.

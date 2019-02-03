@@ -1,4 +1,6 @@
-rm -rf $DESTDIR/* $DESTDIR/.*
+. "${EXECDIR}/util.sh"
+
+cleandir "$DESTDIR"
 chown build "$DESTDIR"
 chmod 700 "$DESTDIR"
 
@@ -8,7 +10,8 @@ mkdir -p "$DESTDIR"
 mkdir -p "$RELEASEDIR"
 chown build "$RELEASEDIR"
 chmod 755 "$RELEASEDIR"
-rm -rf $RELEASEDIR/* $RELEASEDIR/.*
+# Wipe release directory in case of resuming.
+cleandir "$RELEASEDIR"
 
 cd "${BSDSRCDIR}/etc"
 make release
