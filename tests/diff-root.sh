@@ -5,7 +5,6 @@ if testcase "simple prefix"; then
 	RCS file: /cvs/src/sys/kern/kern_descrip.c,v
 	EOF
 	assert_eq "/usr/src/sys" "$(diff_root "$TMP1")"
-	pass
 fi
 
 if testcase "relative prefix"; then
@@ -15,7 +14,6 @@ if testcase "relative prefix"; then
 	RCS file: /cvs/src/sys/kern/kern_descrip.c,v
 	EOF
 	assert_eq "/usr/src/sys/kern" "$(diff_root "$TMP1")"
-	pass
 fi
 
 if testcase "complex prefix"; then
@@ -25,5 +23,4 @@ if testcase "complex prefix"; then
 	RCS file: /data/src/openbsd/src/sys/sys/pool.h,v
 	EOF
 	assert_eq "/usr/src" "$(diff_root "$TMP1")"
-	pass
 fi

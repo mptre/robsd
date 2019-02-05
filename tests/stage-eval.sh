@@ -13,8 +13,6 @@ if testcase "positive offset"; then
 	assert_eq "2" "${#_STAGE[*]}" "two: array length"
 	assert_eq "2" "${_STAGE[$(stage_field stage)]}" "two: id"
 	assert_eq "two" "${_STAGE[$(stage_field name)]}" "two: name"
-
-	pass
 fi
 
 if testcase "negative offset"; then
@@ -32,14 +30,11 @@ if testcase "negative offset"; then
 	assert_eq "2" "${#_STAGE[*]}" "one: array length"
 	assert_eq "1" "${_STAGE[$(stage_field stage)]}" "one: id"
 	assert_eq "one" "${_STAGE[$(stage_field name)]}" "one: name"
-
-	pass
 fi
 
 if testcase "offset not found"; then
 	cat </dev/null >$TMP1
 	stage_eval 1337 "$TMP1" && fail "bogus offset found"
-	pass
 fi
 
 if testcase "unknown field"; then
@@ -47,5 +42,4 @@ if testcase "unknown field"; then
 	bogus="bogus"
 	EOF
 	stage_eval 1 "$TMP1" 2>/dev/null && fail "bougs field found"
-	pass
 fi

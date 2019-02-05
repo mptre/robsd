@@ -35,24 +35,19 @@ assert_file() {
 # fail [message]
 fail() {
 	NERR=$((NERR + 1))
-	TERR=$((TERR + 1))
 
 	report -f -p FAIL "$@"
-}
-
-# pass
-pass() {
-	report -p PASS
 }
 
 # testcase [-t tag] description
 testcase() {
 	local _tags=""
 
-	assert_pass
+	# Report on behalf of the previous test case.
+	[ "$NTEST" -gt 0 ] && report -p PASS
 
 	NTEST=$((NTEST + 1))
-	TCPASS=0
+	TCREPORT=0
 
 	find "$WRKDIR" -mindepth 1 -delete
 
@@ -84,14 +79,6 @@ testcase() {
 
 # Everything below is part of the private API, relying on it is a bad idea.
 
-# assert_pass
-assert_pass() {
-	[ $NTEST -eq 0 ] && return 0
-	[ $TCPASS -eq 1 ] && return 0
-
-	fail "pass never called"
-}
-
 # fatal message
 fatal() {
 	echo "t.sh: ${*}" 1>&2
@@ -112,8 +99,10 @@ report() {
 		shift
 	done
 
-	{ [ "$_force" -eq 0 ] && [ "$TCPASS" -eq 1 ]; } && return 0
-	TCPASS=1
+	if [ "$_force" -eq 0 ] && [ "$TCREPORT" -eq 1 ]; then
+		return 0
+	fi
+	TCREPORT=1
 
 	# Try hard to output everything to stderr in one go.
 	{
@@ -126,7 +115,8 @@ report() {
 }
 
 atexit() {
-	assert_pass
+	# Report on behalf of the previous test case.
+	[ "$NTEST" -gt 0 ] && report -p PASS
 
 	rm -rf "$@"
 
@@ -154,7 +144,7 @@ NAME=""		# test file name
 NERR=0		# total number of errors
 NTEST=0		# total number of executed test cases
 TCDESC=""	# current test case description
-TCPASS=0	# current test case called pass
+TCREPORT=0	# current test has called report
 
 while getopts "F:f:t:T:" opt; do
 	case "$opt" in

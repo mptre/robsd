@@ -13,7 +13,6 @@ if testcase "user in wheel group"; then
 
 	assert_eq "foo" \
 		"$(PATH="${BINDIR}:${PATH}" report_recipients "$TMP1")"
-	pass
 fi
 
 if testcase "user not in wheel group"; then
@@ -27,5 +26,4 @@ if testcase "user not in wheel group"; then
 
 	assert_eq "root foo" \
 		"$(PATH="${BINDIR}:${PATH}" report_recipients "$TMP1")"
-	pass
 fi
