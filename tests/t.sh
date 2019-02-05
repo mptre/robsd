@@ -1,3 +1,5 @@
+#!/bin/sh
+
 # Copyright (c) 2019 Anton Lindqvist <anton@basename.se>
 #
 # Permission to use, copy, modify, and distribute this software for any
@@ -50,7 +52,6 @@ testcase() {
 	assert_pass
 
 	NTEST=$((NTEST + 1))
-	TCNERR=0
 	TCPASS=0
 
 	find "$WRKDIR" -mindepth 1 -delete
@@ -62,7 +63,7 @@ testcase() {
 		esac
 		shift
 	done
-	TCDESC="$@"
+	TCDESC="$*"
 
 	if [ -s "$INCLUDE" ]; then
 		case "$FILTER" in
@@ -93,7 +94,7 @@ assert_pass() {
 
 # fatal message
 fatal() {
-	echo "t.sh: ${@}" 1>&2
+	echo "t.sh: ${*}" 1>&2
 	exit 1
 }
 
@@ -153,7 +154,6 @@ NAME=""		# test file name
 NERR=0		# total number of errors
 NTEST=0		# total number of executed test cases
 TCDESC=""	# current test case description
-TCNERR=0	# number of failures for current test case
 TCPASS=0	# current test case called pass
 
 while getopts "F:f:t:T:" opt; do
