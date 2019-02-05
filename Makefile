@@ -38,5 +38,5 @@ lint:
 .PHONY: lint
 
 test:
-	${MAKE} -C tests RELEASEDIR=${.OBJDIR}
+	env "RELEASEDIR=${.CURDIR}" ${MAKE} -C tests "TESTFLAGS=${TESTFLAGS}"
 .PHONY: test

@@ -1,7 +1,7 @@
-TESTS+=	cleandir
-TESTS+=	diff-root
-TESTS+=	report-recipients
-TESTS+=	stage-eval
+TESTS+=	cleandir.sh
+TESTS+=	diff-root.sh
+TESTS+=	report-recipients.sh
+TESTS+=	stage-eval.sh
 
 all: test
 
@@ -9,6 +9,6 @@ test: ${TESTS}
 
 .for t in ${TESTS}
 $t:
-	env RELEASEDIR=${RELEASEDIR} sh ${.CURDIR}/t.sh ${.CURDIR}/$t.sh
+	sh ${.CURDIR}/t.sh ${TESTFLAGS} ${.CURDIR}/util.sh ${.CURDIR}/$t
 .PHONY: $t
 .endfor
