@@ -114,17 +114,26 @@ report() {
 	cat <"$_tmp" 1>&2
 }
 
+# atexit file ...
 atexit() {
-	# Report on behalf of the previous test case.
-	[ "$NTEST" -gt 0 ] && report -p PASS
+	local _err="$?"
 
+	if [ "$NTEST" -gt 0 ]; then
+		# Report on behalf of the previous test case.
+		if [ "$_err" -eq 0 ]; then
+			report -p PASS
+		else
+			report -p FAIL
+		fi
+	fi
+
+	# Remove temporary files.
 	rm -rf "$@"
 
-	if [ "$NERR" -gt 0 ]; then
+	if [ "$NERR" -ne 0 ]; then
 		exit 1
-	else
-		exit 0
 	fi
+	exit "$_err"
 }
 
 usage() {
@@ -144,7 +153,7 @@ NAME=""		# test file name
 NERR=0		# total number of errors
 NTEST=0		# total number of executed test cases
 TCDESC=""	# current test case description
-TCREPORT=0	# current test has called report
+TCREPORT=0	# current test called report
 
 while getopts "F:f:t:T:" opt; do
 	case "$opt" in

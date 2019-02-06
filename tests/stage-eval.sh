@@ -41,5 +41,7 @@ if testcase "unknown field"; then
 	cat <<-EOF >$TMP1
 	bogus="bogus"
 	EOF
-	stage_eval 1 "$TMP1" 2>/dev/null && fail "bougs field found"
+	if stage_eval 1 "$TMP1" 2>/dev/null; then
+		fail "bogus field found"
+	fi
 fi
