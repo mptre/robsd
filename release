@@ -412,7 +412,7 @@ export SSHUSER
 export X11OBJDIR; X11OBJDIR="/usr/xobj"
 export X11SRCDIR; X11SRCDIR="/usr/xenocara"
 
-[ -e /root/.releaserc ] && . /root/.releaserc
+[ -e /etc/releaserc ] && . /etc/releaserc
 
 # Ensure mandatory variables are defined.
 : "${BUILDDIR:?}"
