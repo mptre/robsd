@@ -277,6 +277,26 @@ report_size() {
 	printf '\n'
 }
 
+# stage_begin -l log -n name -s stage
+#
+# Mark the given stage as about to execute by writing an entry to the given
+# file. The same entry will be overwritten once the stage has ended.
+stage_begin() {
+	local _l _n _s
+
+	while [ $# -gt 0 ]; do
+		case "$1" in
+		-l)	shift; _l="$1";;
+		-n)	shift; _n="$1";;
+		-s)	shift; _s="$1";;
+		*)	break;;
+		esac
+		shift
+	done
+
+	stage_end -d -1 -e 0 -l "$_l" -n "$_n" -s "$_s" "$1"
+}
+
 # stage_end -d duration -e exit -l log -n name -s stage file
 #
 # Mark the given stage as ended by writing an entry to the given file.
@@ -485,6 +505,7 @@ while :; do
 	LOG="${LOGDIR}/$(log_id "$S" "$STAGE")"
 	EXIT=0
 	T0="$(date '+%s')"
+	stage_begin -l "$LOG" -n "$STAGE" -s "$S" "${LOGDIR}/stages"
         stage_exec -f "${LOGDIR}/fail" -l "$LOG" "${EXECDIR}/${STAGE}.sh" ||
 		EXIT=1
 	T1="$(date '+%s')"
