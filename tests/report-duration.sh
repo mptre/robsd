@@ -6,9 +6,9 @@ if testcase "with previous"; then
 	stage="1" duration="1800"
 	EOF
 
-	assert_eq "1h (+30m)" "$(report_duration -s 1 3600)"
+	assert_eq "01:00:00 (+00:30:00)" "$(report_duration -s 1 3600)"
 fi
 
 if testcase "without previous"; then
-	assert_eq "1h" "$(report_duration 3600)"
+	assert_eq "01:00:00" "$(report_duration 3600)"
 fi

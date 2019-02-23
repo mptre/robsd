@@ -5,5 +5,5 @@ if testcase "basic"; then
 	name="end" duration="3"
 	EOF
 
-	assert_eq 3 "$(build_duration "$TMP1")"
+	assert_eq "3" "$(build_duration "$TMP1")"
 fi

@@ -62,20 +62,20 @@ duration_format() {
 	[ "$_d" -eq 0 ] && { echo 0; return 0; }
 
 	if [ "$_d" -ge 3600 ]; then
-		_h="$((_d / 3600))h"
+		_h="$((_d / 3600))"
 		_d=$((_d % 3600))
 	fi
 
 	if [ "$_d" -ge 60 ]; then
-		_m="$((_d / 60))m"
+		_m="$((_d / 60))"
 		_d=$((_d % 60))
 	fi
 
 	if [ "$_d" -gt 0 ]; then
-		_s="${_d}s"
+		_s="$_d"
 	fi
 
-	echo $_h $_m $_s
+	printf '%02d:%02d:%02d\n' "$_h" "$_m" "$_s"
 }
 
 # path_strip path
