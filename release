@@ -171,8 +171,8 @@ report() {
 		printf '> %s:\n' "$_name"
 		printf 'Exit: %d\n' "$_exit"
 		printf 'Duration: %s\n' "$(report_duration "$_duration")"
-                printf 'Log: %s\n' "$(basename "${_STAGE[$(stage_field log)]}")"
-                report_log "$_name" "${_STAGE[$(stage_field log)]}"
+		printf 'Log: %s\n' "$(basename "${_STAGE[$(stage_field log)]}")"
+		report_log "$_name" "${_STAGE[$(stage_field log)]}"
 
 		_i=$((_i + 1))
 	done >"$_report"
@@ -300,11 +300,11 @@ stage_end() {
 		shift
 	done
 
-        # Remove any existing entry for the same stage, could be present if a
-        # previous execution failed.
+	# Remove any existing entry for the same stage, could be present if a
+	# previous execution failed.
 	[ -e "$1" ] && sed -i -e "/stage=\"${_s}\"/d" "$1"
 
-        # Caution: all values must be quoted and cannot contain spaces.
+	# Caution: all values must be quoted and cannot contain spaces.
 	{
 		printf 'stage="%d" ' "$_s"
 		printf 'name="%s" ' "$_n"
@@ -499,14 +499,14 @@ while :; do
 	EXIT=0
 	T0="$(date '+%s')"
 	stage_begin -l "$LOG" -n "$STAGE" -s "$S" "${LOGDIR}/stages"
-        stage_exec -f "${LOGDIR}/fail" -l "$LOG" "${EXECDIR}/${STAGE}.sh" ||
+	stage_exec -f "${LOGDIR}/fail" -l "$LOG" "${EXECDIR}/${STAGE}.sh" ||
 		EXIT=1
 	T1="$(date '+%s')"
 	stage_end -d "$((T1 - T0))" -e "$EXIT" -l "$LOG" -n "$STAGE" -s "$S" \
 		"${LOGDIR}/stages"
 	[ $EXIT -ne 0 ] && exit 1
 
-        # Add some grace before rebooting in order to let the script finish.
+	# Add some grace before rebooting in order to let the script finish.
 	must_reboot "$STAGE" && { shutdown -r '+1'; exit 0; }
 
 	S=$((S + 1))
