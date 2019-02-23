@@ -90,6 +90,16 @@ path_strip() {
 
 }
 
+# prev_release
+#
+# Get the previous release directory.
+prev_release() {
+	find "$BUILDDIR" -type d -mindepth 1 -maxdepth 1 |
+	sort -n |
+	grep -B 1 -e "$LOGDIR" |
+	head -1
+}
+
 # report_recipients stages
 #
 # Writes the report recipients based on the given stages file.
