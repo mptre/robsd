@@ -100,6 +100,38 @@ prev_release() {
 	head -1
 }
 
+# report_duration [-s stage] duration
+#
+# Format the given duration to a human readable representation.
+# If a stage is given, the duration delta for the same stage in the previous
+# release is also formatted.
+report_duration() {
+	local _stage=0
+	local _d _delta _p _prev
+
+	while [ $# -gt 0 ]; do
+		case "$1" in
+		-s)	shift; _stage="$1";;
+		*)	break;;
+		esac
+		shift
+	done
+	_d="$1"
+
+	if [ "$_stage" -gt 0 ]; then
+		_prev="$(prev_release)"
+		stage_eval "$_stage" "${_prev}/stages"
+		_p="${_STAGE[$(stage_field duration)]}"
+		_delta=$((_d - _p))
+		printf '%s (%s%s)\n' \
+			"$(duration_format "$_d")" \
+			"$([ $_delta -lt 0 ] && echo "-" || echo "+")" \
+			"$(duration_format "$_delta")"
+	else
+		duration_format "$_d"
+	fi
+}
+
 # report_recipients stages
 #
 # Writes the report recipients based on the given stages file.

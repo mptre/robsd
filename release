@@ -137,7 +137,7 @@ purge() {
 #
 # Generate a build report and save it to report.
 report() {
-	local _duration=0 _i=1 _name='' _exit=0
+	local _duration=0 _i=1 _name='' _exit=0 _stage=0
 	local _report _stages _status
 
 	while [ $# -gt 0 ]; do
@@ -154,6 +154,7 @@ report() {
 	while stage_eval "$_i" "$_stages"; do
 		[ $_i -gt 1 ] && echo
 
+		_stage="${_STAGE[$(stage_field stage)]}"
 		_name="${_STAGE[$(stage_field name)]}"
 		_exit="${_STAGE[$(stage_field exit)]}"
 		_duration="${_STAGE[$(stage_field duration)]}"
@@ -180,7 +181,7 @@ report() {
 	> stats:
 	Build: ${LOGDIR}
 	Status: ${_status}
-	Duration: $(report_duration "$_duration")
+	Duration: $(report_duration -s "$_stage" "$_duration")
 	Size: $(report_size "${RELEASEDIR}/bsd")
 	Size: $(report_size "${RELEASEDIR}/bsd.mp")
 	Size: $(report_size "${RELEASEDIR}/bsd.rd")
@@ -194,13 +195,6 @@ report() {
 
 	mail -s "release: $(machine): ${_status}" \
 		$(report_recipients "$_stages") <"$_report"
-}
-
-# report_duration duration
-#
-# Get a human readable representation of the given duration.
-report_duration() {
-	duration_format "$1"
 }
 
 # report_log stage log
