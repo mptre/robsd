@@ -45,3 +45,9 @@ if testcase "unknown field"; then
 		fail "bogus field found"
 	fi
 fi
+
+if testcase "stages file not found"; then
+	if stage_eval 1 empty >/dev/null 2>&1; then
+		fail "expected non-zero return"
+	fi
+fi
