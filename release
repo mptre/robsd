@@ -147,7 +147,8 @@ purge() {
 #
 # Generate a build report and save it to report.
 report() {
-	local _i=1 _name='' _tot=0 _exit=0 _report _stages _status
+	local _duration=0 _i=1 _name='' _exit=0
+	local _report _stages _status
 
 	while [ $# -gt 0 ]; do
 		case "$1" in
@@ -165,12 +166,11 @@ report() {
 
 		_name="${_STAGE[$(stage_field name)]}"
 		_exit="${_STAGE[$(stage_field exit)]}"
-		_tot=$((_tot + ${_STAGE[$(stage_field duration)]}))
+		_duration="${_STAGE[$(stage_field duration)]}"
 
 		printf '> %s:\n' "$_name"
 		printf 'Exit: %d\n' "$_exit"
-		printf 'Duration: %s\n' \
-                        "$(report_duration "${_STAGE[$(stage_field duration)]}")"
+		printf 'Duration: %s\n' "$(report_duration "$_duration")"
                 printf 'Log: %s\n' "$(basename "${_STAGE[$(stage_field log)]}")"
                 report_log "$_name" "${_STAGE[$(stage_field log)]}"
 
@@ -190,7 +190,7 @@ report() {
 	> stats:
 	Build: ${LOGDIR}
 	Status: ${_status}
-	Duration: $(report_duration "$_tot")
+	Duration: $(report_duration "$_duration")
 	Size: $(report_size "${RELEASEDIR}/bsd")
 	Size: $(report_size "${RELEASEDIR}/bsd.mp")
 	Size: $(report_size "${RELEASEDIR}/bsd.rd")
@@ -208,27 +208,9 @@ report() {
 
 # report_duration duration
 #
-# Writes a human readable representation of the given duration.
+# Get a human readable representation of the given duration.
 report_duration() {
-	local _d="$1" _h="" _m="" _s=""
-
-	[ "$_d" -eq 0 ] && { echo 0; return 0; }
-
-	if [ "$_d" -gt 3600 ]; then
-		_h="$((_d / 3600))h"
-		_d=$((_d % 3600))
-	fi
-
-	if [ "$_d" -gt 60 ]; then
-		_m="$((_d / 60))m"
-		_d=$((_d % 60))
-	fi
-
-	if [ "$_d" -gt 0 ]; then
-		_s="${_d}s"
-	fi
-
-	echo $_h $_m $_s
+	duration_format "$1"
 }
 
 # report_log stage log
@@ -245,6 +227,8 @@ report_log() {
 		# Silent if the log only contains PS4 traces.
 		grep -vq '^\+' "$2" || return 0
 		cat "$2"
+		;;
+	end)
 		;;
 	*)
 		tail "$2"
@@ -297,11 +281,12 @@ stage_begin() {
 	stage_end -d -1 -e 0 -l "$_l" -n "$_n" -s "$_s" "$1"
 }
 
-# stage_end -d duration -e exit -l log -n name -s stage file
+# stage_end [-e exit] [-l log] -d duration -n name -s stage file
 #
 # Mark the given stage as ended by writing an entry to the given file.
 stage_end() {
-	local _d _e _l _n _s
+	local _e=0 _l=""
+	local _d _n _s
 
 	while [ $# -gt 0 ]; do
 		case "$1" in
@@ -390,6 +375,8 @@ stage_names() {
 stage_next() {
 	stage_eval -1 "$1"
 	if [ "${_STAGE[$(stage_field exit)]}" -ne 0 ]; then
+		echo "${_STAGE[$(stage_field stage)]}"
+	elif [ "${_STAGE[$(stage_field name)]}" = "end" ]; then
 		echo "${_STAGE[$(stage_field stage)]}"
 	else
 		echo "$((${_STAGE[$(stage_field stage)]} + 1))"
@@ -499,8 +486,14 @@ fi
 
 while :; do
 	STAGE="$(stage_resolve "$S")"
-	[ "$STAGE" = "end" ] && exit 0
 	info "stage ${STAGE}"
+
+	if [ "$STAGE" = "end" ]; then
+		# The duration of the end stage is the accumulated duration.
+		stage_end -d "$(build_duration "${LOGDIR}/stages")" -n "$STAGE" \
+			-s "$S" "${LOGDIR}/stages"
+		exit 0
+	fi
 
 	LOG="${LOGDIR}/$(log_id "$S" "$STAGE")"
 	EXIT=0

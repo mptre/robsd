@@ -1,3 +1,22 @@
+# build_duration stages
+#
+# Calculate the accumulated build duration.
+build_duration() {
+	local _i=1 _stages="$1" _tot=0 _d
+
+	while stage_eval "$_i" "$_stages"; do
+		_i=$((_i + 1))
+
+		# Do not include the previous accumulated build duration.
+		[ "${_STAGE[$(stage_field name)]}" = "end" ] && continue
+
+		_d="${_STAGE[$(stage_field duration)]}"
+		_tot=$((_tot + _d))
+	done
+
+	echo "$_tot"
+}
+
 # cleandir dir ...
 #
 # Remove all entries in the given directory without removing the actual
@@ -32,6 +51,31 @@ diff_root() {
 		echo "$_p"
 		return 0
 	done
+}
+
+# duration_format duration
+#
+# Format the given duration to a human readable representation.
+duration_format() {
+	local _d="$1" _h="" _m="" _s=""
+
+	[ "$_d" -eq 0 ] && { echo 0; return 0; }
+
+	if [ "$_d" -ge 3600 ]; then
+		_h="$((_d / 3600))h"
+		_d=$((_d % 3600))
+	fi
+
+	if [ "$_d" -ge 60 ]; then
+		_m="$((_d / 60))m"
+		_d=$((_d % 60))
+	fi
+
+	if [ "$_d" -gt 0 ]; then
+		_s="${_d}s"
+	fi
+
+	echo $_h $_m $_s
 }
 
 # path_strip path
