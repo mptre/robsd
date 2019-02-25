@@ -107,7 +107,7 @@ prev_release() {
 # release is also formatted.
 report_duration() {
 	local _stage=0
-	local _d _delta _p _prev
+	local _d _delta _p _prev _sign
 
 	while [ $# -gt 0 ]; do
 		case "$1" in
@@ -123,9 +123,15 @@ report_duration() {
 		stage_eval "$_stage" "${_prev}/stages"
 		_p="${_STAGE[$(stage_field duration)]}"
 		_delta=$((_d - _p))
+		if [ "$_delta" -lt 0 ]; then
+			_sign="-"
+			_delta=$((-_delta))
+		else
+			_sign="+"
+		fi
 		printf '%s (%s%s)\n' \
 			"$(duration_format "$_d")" \
-			"$([ $_delta -lt 0 ] && echo "-" || echo "+")" \
+			"$_sign" \
 			"$(duration_format "$_delta")"
 	else
 		duration_format "$_d"
