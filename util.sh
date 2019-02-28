@@ -78,6 +78,22 @@ duration_format() {
 	printf '%02d:%02d:%02d\n' "$_h" "$_m" "$_s"
 }
 
+# duration_prev
+#
+# Get the duration of the previous release.
+# Exits non-zero if no previous release exists or the previous one failed.
+duration_prev() {
+	local _prev
+
+	_prev="$(prev_release)"
+	[ -z "$_prev" ] && return 1
+
+	stage_eval -1 "${_prev}/stages"
+	[ "${_STAGE[$(stage_field name)]}" = "end" ] || return 1
+
+	echo "${_STAGE[$(stage_field duration)]}"
+}
+
 # path_strip path
 #
 # Strip of the first component of the given path.
@@ -100,42 +116,40 @@ prev_release() {
 	head -1
 }
 
-# report_duration [-s stage] duration
+# report_duration [-d] duration
 #
 # Format the given duration to a human readable representation.
-# If a stage is given, the duration delta for the same stage in the previous
-# release is also formatted.
+# If option `-d' is given, the duration delta for previous release is also
+# formatted.
 report_duration() {
-	local _stage=0
-	local _d _delta _p _prev _sign
+	local _do_delta=0
+	local _d _delta _prev _sign
 
 	while [ $# -gt 0 ]; do
 		case "$1" in
-		-s)	shift; _stage="$1";;
+		-d)	_do_delta=1;;
 		*)	break;;
 		esac
 		shift
 	done
 	_d="$1"
 
-	if [ "$_stage" -gt 0 ]; then
-		_prev="$(prev_release)"
-		stage_eval "$_stage" "${_prev}/stages"
-		_p="${_STAGE[$(stage_field duration)]}"
-		_delta=$((_d - _p))
-		if [ "$_delta" -lt 0 ]; then
-			_sign="-"
-			_delta=$((-_delta))
-		else
-			_sign="+"
-		fi
-		printf '%s (%s%s)\n' \
-			"$(duration_format "$_d")" \
-			"$_sign" \
-			"$(duration_format "$_delta")"
-	else
+	if [ "$_do_delta" -eq 0 ] || ! _prev="$(duration_prev)"; then
 		duration_format "$_d"
+		return 0
 	fi
+
+	_delta=$((_d - _prev))
+	if [ "$_delta" -lt 0 ]; then
+		_sign="-"
+		_delta=$((-_delta))
+	else
+		_sign="+"
+	fi
+	printf '%s (%s%s)\n' \
+		"$(duration_format "$_d")" \
+		"$_sign" \
+		"$(duration_format "$_delta")"
 }
 
 # report_recipients stages

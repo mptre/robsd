@@ -137,8 +137,8 @@ purge() {
 #
 # Generate a build report and save it to report.
 report() {
-	local _duration=0 _exit=0 _i=1 _name="" _stage=0
-	local _report _stages _status
+	local _duration=0 _exit=0 _i=1 _name=""
+	local _d _report _stages _status
 
 	while [ $# -gt 0 ]; do
 		case "$1" in
@@ -154,7 +154,6 @@ report() {
 	while stage_eval "$_i" "$_stages"; do
 		[ $_i -gt 1 ] && echo
 
-		_stage="${_STAGE[$(stage_field stage)]}"
 		_name="${_STAGE[$(stage_field name)]}"
 		_exit="${_STAGE[$(stage_field exit)]}"
 		_duration="${_STAGE[$(stage_field duration)]}"
@@ -168,10 +167,15 @@ report() {
 		_i=$((_i + 1))
 	done >"$_report"
 
+	_duration="$(build_duration "$_stages")"
+
 	if [ "$_exit" -eq 0 ]; then
 		_status='ok'
+		# Only calculate the build duration delta on success.
+		_d="$(report_duration -d "$_duration")"
 	else
 		_status="failed in ${_name}"
+		_d="$(report_duration "$_duration")"
 	fi
 
 	# Add stats section to the beginning of the report.
@@ -181,7 +185,7 @@ report() {
 	> stats:
 	Build: ${LOGDIR}
 	Status: ${_status}
-	Duration: $(report_duration -s "$_stage" "$_duration")
+	Duration: ${_d}
 	Size: $(report_size "${RELEASEDIR}/bsd")
 	Size: $(report_size "${RELEASEDIR}/bsd.mp")
 	Size: $(report_size "${RELEASEDIR}/bsd.rd")
