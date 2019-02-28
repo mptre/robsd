@@ -152,9 +152,11 @@ report() {
 	[ -e "$_stages" ] || return 0
 
 	while stage_eval "$_i" "$_stages"; do
+		_name="${_STAGE[$(stage_field name)]}"
+		[ "$_name" = "end" ] && break
+
 		[ $_i -gt 1 ] && echo
 
-		_name="${_STAGE[$(stage_field name)]}"
 		_exit="${_STAGE[$(stage_field exit)]}"
 		_duration="${_STAGE[$(stage_field duration)]}"
 
@@ -215,8 +217,6 @@ report_log() {
 		# Silent if the log only contains PS4 traces.
 		grep -vq '^\+' "$2" || return 0
 		cat "$2"
-		;;
-	end)
 		;;
 	*)
 		tail "$2"
