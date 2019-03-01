@@ -443,7 +443,7 @@ RELEASEDIR="$(release_dir "$LOGDIR")"
 
 if lock_present "$BUILDDIR"; then
 	# Do not leave an empty release around.
-	[ $STAGE -eq 1 ] && rm -r "$LOGDIR"
+	[ "$S" -eq 1 ] && rm -r "$LOGDIR"
 
 	fatal "already running"
 fi
