@@ -5,6 +5,7 @@ TESTS+=	duration-format.sh
 TESTS+=	report-duration.sh
 TESTS+=	report-recipients.sh
 TESTS+=	stage-eval.sh
+TESTS+=	stage-next.sh
 
 all: test
 

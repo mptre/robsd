@@ -246,18 +246,19 @@ stage_value() {
 
 # stage_next stages
 #
-# Outputs the next stage to execute. If the last stage failed, it will be
-# executed again.
+# Get the next stage to execute. If the last stage failed, it will be executed
+# again. The exception also applies to the end stage, this is useful since it
+# allows the report to be regenerated for a finished release.
 stage_next() {
 	local _stage
 
 	stage_eval -1 "$1"
+	_stage="$(stage_value stage)"
 	if [ "$(stage_value exit)" -ne 0 ]; then
-		echo "$(stage_value stage)"
+		echo "$_stage"
 	elif [ "$(stage_value name)" = "end" ]; then
-		echo "$(stage_value stage)"
+		echo "$_stage"
 	else
-		_stage="$(stage_value stage)"
 		echo $((_stage + 1))
 	fi
 }
