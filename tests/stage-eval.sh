@@ -6,13 +6,13 @@ if testcase "positive offset"; then
 
 	stage_eval 1 "$TMP1"
 	assert_eq "2" "${#_STAGE[*]}" "one: array length"
-	assert_eq "1" "${_STAGE[$(stage_field stage)]}" "one: id"
-	assert_eq "one" "${_STAGE[$(stage_field name)]}" "one: name"
+	assert_eq "1" "$(stage_value stage)" "one: id"
+	assert_eq "one" "$(stage_value name)" "one: name"
 
 	stage_eval 2 "$TMP1"
 	assert_eq "2" "${#_STAGE[*]}" "two: array length"
-	assert_eq "2" "${_STAGE[$(stage_field stage)]}" "two: id"
-	assert_eq "two" "${_STAGE[$(stage_field name)]}" "two: name"
+	assert_eq "2" "$(stage_value stage)" "two: id"
+	assert_eq "two" "$(stage_value name)" "two: name"
 fi
 
 if testcase "negative offset"; then
@@ -23,13 +23,13 @@ if testcase "negative offset"; then
 
 	stage_eval -1 "$TMP1"
 	assert_eq "2" "${#_STAGE[*]}" "two: array length"
-	assert_eq "2" "${_STAGE[$(stage_field stage)]}" "two: id"
-	assert_eq "two" "${_STAGE[$(stage_field name)]}" "two: name"
+	assert_eq "2" "$(stage_value stage)" "two: id"
+	assert_eq "two" "$(stage_value name)" "two: name"
 
 	stage_eval -2 "$TMP1"
 	assert_eq "2" "${#_STAGE[*]}" "one: array length"
-	assert_eq "1" "${_STAGE[$(stage_field stage)]}" "one: id"
-	assert_eq "one" "${_STAGE[$(stage_field name)]}" "one: name"
+	assert_eq "1" "$(stage_value stage)" "one: id"
+	assert_eq "one" "$(stage_value name)" "one: name"
 fi
 
 if testcase "offset not found"; then

@@ -8,9 +8,9 @@ build_duration() {
 		_i=$((_i + 1))
 
 		# Do not include the previous accumulated build duration.
-		[ "${_STAGE[$(stage_field name)]}" = "end" ] && continue
+		[ "$(stage_value name)" = "end" ] && continue
 
-		_d="${_STAGE[$(stage_field duration)]}"
+		_d="$(stage_value duration)"
 		_tot=$((_tot + _d))
 	done
 
@@ -89,9 +89,9 @@ duration_prev() {
 	[ -z "$_prev" ] && return 1
 
 	stage_eval -1 "${_prev}/stages"
-	[ "${_STAGE[$(stage_field name)]}" = "end" ] || return 1
+	[ "$(stage_value name)" = "end" ] || return 1
 
-	echo "${_STAGE[$(stage_field duration)]}"
+	echo "$(stage_value duration)"
 }
 
 # path_strip path
@@ -161,7 +161,7 @@ report_recipients() {
 	local _user
 
 	stage_eval 1 "$1"
-	_user="${_STAGE[$(stage_field user)]}"
+	_user="$(stage_value user)"
 	if ! groups "$_user" | grep -qw wheel; then
 		printf 'root '
 	fi
@@ -219,7 +219,7 @@ stage_eval() {
 
 # stage_field name
 #
-# Writes the corresponding _STAGE array index for the given field name.
+# Get the corresponding _STAGE array index for the given field name.
 stage_field() {
 	case "$1" in
 	stage)		echo 0;;
@@ -231,4 +231,15 @@ stage_field() {
 	user)		echo 6;;
 	*)		echo -1;;
 	esac
+}
+
+# stage_value name
+#
+# Get corresponding value for the given field name in the global _STAGE array.
+stage_value() {
+	local _i
+
+	_i="$(stage_field "$1")"
+
+	echo "${_STAGE[$_i]}"
 }

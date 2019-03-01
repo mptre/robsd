@@ -137,7 +137,7 @@ purge() {
 #
 # Generate a build report and save it to report.
 report() {
-	local _duration=0 _exit=0 _i=1 _name=""
+	local _duration=0 _i=1 _name=""
 	local _d _report _stages _status
 
 	while [ $# -gt 0 ]; do
@@ -152,26 +152,25 @@ report() {
 	[ -e "$_stages" ] || return 0
 
 	while stage_eval "$_i" "$_stages"; do
-		_name="${_STAGE[$(stage_field name)]}"
+		_name="$(stage_value name)"
 		[ "$_name" = "end" ] && break
 
 		[ $_i -gt 1 ] && echo
 
-		_exit="${_STAGE[$(stage_field exit)]}"
-		_duration="${_STAGE[$(stage_field duration)]}"
+		_duration="$(stage_value duration)"
 
 		printf '> %s:\n' "$_name"
-		printf 'Exit: %d\n' "$_exit"
+		printf 'Exit: %d\n' "$(stage_value exit)"
 		printf 'Duration: %s\n' "$(report_duration "$_duration")"
-		printf 'Log: %s\n' "$(basename "${_STAGE[$(stage_field log)]}")"
-		report_log "$_name" "${_STAGE[$(stage_field log)]}"
+		printf 'Log: %s\n' "$(basename "$(stage_value log)")"
+		report_log "$_name" "$(stage_value log)"
 
 		_i=$((_i + 1))
 	done >"$_report"
 
 	_duration="$(build_duration "$_stages")"
 
-	if [ "$_exit" -eq 0 ]; then
+	if [ "$(stage_value exit)" -eq 0 ]; then
 		_status='ok'
 		# Only calculate the build duration delta on success.
 		_d="$(report_duration -d "$_duration")"
@@ -365,13 +364,16 @@ stage_names() {
 # Outputs the next stage to execute. If the last stage failed, it will be
 # executed again.
 stage_next() {
+	local _stage
+
 	stage_eval -1 "$1"
-	if [ "${_STAGE[$(stage_field exit)]}" -ne 0 ]; then
-		echo "${_STAGE[$(stage_field stage)]}"
-	elif [ "${_STAGE[$(stage_field name)]}" = "end" ]; then
-		echo "${_STAGE[$(stage_field stage)]}"
+	if [ "$(stage_value exit)" -ne 0 ]; then
+		echo "$(stage_value stage)"
+	elif [ "$(stage_value name)" = "end" ]; then
+		echo "$(stage_value stage)"
 	else
-		echo "$((${_STAGE[$(stage_field stage)]} + 1))"
+		_stage="$(stage_value stage)"
+		echo $((_stage + 1))
 	fi
 }
 
