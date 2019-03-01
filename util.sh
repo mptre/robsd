@@ -243,3 +243,21 @@ stage_value() {
 
 	echo "${_STAGE[$_i]}"
 }
+
+# stage_next stages
+#
+# Outputs the next stage to execute. If the last stage failed, it will be
+# executed again.
+stage_next() {
+	local _stage
+
+	stage_eval -1 "$1"
+	if [ "$(stage_value exit)" -ne 0 ]; then
+		echo "$(stage_value stage)"
+	elif [ "$(stage_value name)" = "end" ]; then
+		echo "$(stage_value stage)"
+	else
+		_stage="$(stage_value stage)"
+		echo $((_stage + 1))
+	fi
+}
