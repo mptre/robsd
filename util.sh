@@ -91,7 +91,7 @@ duration_prev() {
 	stage_eval -1 "${_prev}/stages"
 	[ "$(stage_value name)" = "end" ] || return 1
 
-	echo "$(stage_value duration)"
+	stage_value duration
 }
 
 # path_strip path
