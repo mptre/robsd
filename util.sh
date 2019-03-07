@@ -116,6 +116,22 @@ prev_release() {
 	head -1
 }
 
+# purge dir count
+#
+# Keep the latest count number of directories in dir.
+purge() {
+	local _dir="$1" _n="$2" _d
+
+	find "$_dir" -type d -mindepth 1 -maxdepth 1 |
+	sort -n |
+	tail -r |
+	tail -n "+$((_n + 1))" |
+	while read -r _d; do
+		info "removing directory ${_d}"
+		rm -r "$_d"
+	done
+}
+
 # report_duration [-d] duration
 #
 # Format the given duration to a human readable representation.
