@@ -1,5 +1,4 @@
 if testcase "with previous"; then
-	BUILDDIR="${WRKDIR}/release"
 	LOGDIR="${BUILDDIR}/2019-02-23"
 	mkdir -p ${BUILDDIR}/2019-02-{22,23}
 	cat <<-EOF >${BUILDDIR}/2019-02-22/stages
@@ -10,7 +9,6 @@ if testcase "with previous"; then
 fi
 
 if testcase "with previous negative"; then
-	BUILDDIR="${WRKDIR}/release"
 	LOGDIR="${BUILDDIR}/2019-02-23"
 	mkdir -p ${BUILDDIR}/2019-02-{22,23}
 	cat <<-EOF >${BUILDDIR}/2019-02-22/stages
@@ -21,7 +19,6 @@ if testcase "with previous negative"; then
 fi
 
 if testcase "with previous failed"; then
-	BUILDDIR="${WRKDIR}/release"
 	LOGDIR="${BUILDDIR}/2019-02-23"
 	mkdir -p ${BUILDDIR}/2019-02-{22,23}
 	cat <<-EOF >${BUILDDIR}/2019-02-22/stages
@@ -32,9 +29,6 @@ if testcase "with previous failed"; then
 fi
 
 if testcase "with previous absent"; then
-	BUILDDIR="${WRKDIR}/release"
-	mkdir "$BUILDDIR"
-
 	assert_eq "00:30:00" "$(report_duration -d 1800)"
 fi
 
