@@ -121,7 +121,7 @@ prev_release() {
 # Keep the latest count number of release directories in dir.
 # The older ones will be moved to the attic, keeping only the relevant files.
 purge() {
-	local _attic="${BUILDDIR}/attic" _dir="$1" _n="$2"
+	local _attic="${BUILDDIR}/attic" _dir="$1" _log="" _n="$2"
 	local _d
 
 	find "$_dir" -type d -mindepth 1 -maxdepth 1 |
@@ -133,8 +133,15 @@ purge() {
 
 		[ -d "$_attic" ] || mkdir "$_attic"
 
+		# If the last stage failed, keep the log.
+		if stage_eval -1 "${_d}/stages" 2>/dev/null &&
+			[ "$(stage_value exit)" -ne 0 ]
+		then
+			_log="$(basename "$(stage_value log)")"
+		fi
+
                 # Only keep the interesting parts and free up some disk space.
-		rm -r ${_d:?}/!(stages|report|*cvs.log|*.diff)
+		rm -r ${_d:?}/!(stages|report|*cvs.log|*.diff|${_log})
 
 		mv "$_d" "$_attic"
 	done

@@ -1,9 +1,11 @@
 if testcase "basic"; then
 	mkdir -p ${BUILDDIR}/2019-03-0{1,2}
 	for _d in ${BUILDDIR}/*; do
-		for _f in 01-base.log 02-cvs.log report src.diff stages; do
+		for _f in 01-base.log 02-cvs.log report src.diff; do
 			(cd "$_d" && echo "$_f" >$_f)
 		done
+		cat <<-EOF >"${_d}/stages"
+		EOF
 	done
 
 	purge "$BUILDDIR" 1
@@ -23,6 +25,21 @@ if testcase "basic"; then
 		_p="${BUILDDIR}/attic/2019-03-01/${_f}"
 		[ -e "$_p" ] || fail "expected ${_p} to be left"
 	done
+fi
+
+if testcase "last stage failure"; then
+	mkdir -p ${BUILDDIR}/2019-03-0{1,2}/reldir
+	_d="${BUILDDIR}/2019-03-01"
+	touch "${_d}/04-kernel.log"
+	cat <<-EOF >"${_d}/stages"
+	exit="1" log="${_d}/04-kernel.log"
+	EOF
+
+	purge "$BUILDDIR" 1
+
+	_d="${BUILDDIR}/attic/2019-03-01"
+	[ -e "${_d}/04-kernel.log" ] ||
+		fail "expected ${_d}/04-kernel.log to be left"
 fi
 
 if testcase "missing log files"; then
