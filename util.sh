@@ -203,9 +203,15 @@ release_dir() {
 #
 # Read the given stage from file into the array _STAGE.
 stage_eval() {
-	local _stage="$1" _file="$2" _i _k _next _v
+	local _stage="$1" _file="$2"
+	local _i _k _next _v
 
 	set -A _STAGE
+
+	if ! [ -e "$_file" ]; then
+		echo "stage_eval: ${_file}: no such file" 1>&2
+		return 1
+	fi
 
 	if [ "$_stage" -lt 0 ]; then
 		_line="$(tail "$_stage" "$_file" | head -1)"
