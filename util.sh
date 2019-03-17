@@ -49,8 +49,10 @@ diff_root() {
 		done
 
 		echo "$_p"
-		return 0
-	done
+		return 1
+	done && echo "$BSDSRCDIR"
+
+	return 0
 }
 
 # duration_format duration
