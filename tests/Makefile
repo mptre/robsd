@@ -10,10 +10,9 @@ TESTS+=	stage-next.sh
 
 all: test
 
-test: ${TESTS}
+test: ${TESTS:.sh=.fake}
 
-.for t in ${TESTS}
-$t:
-	sh ${.CURDIR}/t.sh ${TESTFLAGS} ${.CURDIR}/util.sh ${.CURDIR}/$t
-.PHONY: $t
-.endfor
+.SUFFIXES: .sh .fake
+
+.sh.fake:
+	sh ${.CURDIR}/t.sh ${TESTFLAGS} ${.CURDIR}/util.sh ${.CURDIR}/$<
