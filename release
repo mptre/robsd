@@ -310,9 +310,9 @@ stage_exec() (
 
 	[ -t 0 ] || exec >/dev/null 2>&1
 
-	trap ">$_fail" INT
+	trap ": >$_fail" INT
 
-	{ sh -eux "$1" </dev/null 2>&1 || touch "$_fail"; } | tee "$_log"
+	{ sh -eux "$1" </dev/null 2>&1 || : >"$_fail"; } | tee "$_log"
 	if [ -e "$_fail" ]; then
 		rm -f "$_fail"
 		return 1
