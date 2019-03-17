@@ -282,15 +282,14 @@ stage_end() {
 
 	# Caution: all values must be quoted and cannot contain spaces.
 	{
-		printf 'stage="%d" ' "$_s"
-		printf 'name="%s" ' "$_n"
-		printf 'exit="%d" ' "$_e"
-		printf 'duration="%d" ' "$_d"
-		printf 'log="%s" ' "$_l"
-		printf 'user="%s" ' "$(logname)"
-		printf 'time="%d"' "$(date '+%s')"
-		printf '\n'
-	} >>"$1"
+		printf 'stage="%d"\n' "$_s"
+		printf 'name="%s"\n' "$_n"
+		printf 'exit="%d"\n' "$_e"
+		printf 'duration="%d"\n' "$_d"
+		printf 'log="%s"\n' "$_l"
+		printf 'user="%s"\n' "$(logname)"
+		printf 'time="%d"\n' "$(date '+%s')"
+	} | paste -s -d ' ' - >>"$1"
 }
 
 # stage_exec -f fail -l log stage
