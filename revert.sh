@@ -1,8 +1,8 @@
 . "${EXECDIR}/util.sh"
 
-[ -z "$DIFF" ] && exit 0
+[ -z "$SRCDIFF" ] && exit 0
 
-SRCDIR="$(diff_root "$DIFF")"
-(cd "$SRCDIR" && patch -ERs) <"$DIFF"
+SRCDIR="$(diff_root "$SRCDIFF")"
+(cd "$SRCDIR" && patch -ERs) <"$SRCDIFF"
 find "$BSDSRCDIR" -type f \( -name '*.orig' -o -name '*.rej' \) |
 xargs -rt rm

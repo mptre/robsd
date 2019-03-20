@@ -6,7 +6,7 @@ usage() {
 	cat <<-EOF | xargs 1>&2
 	usage: release
 	[-v]
-	[-d diff]
+	[-S src-diff]
 	[-k keep]
 	[-r path]
 	EOF
@@ -366,13 +366,13 @@ export BUILDDIR
 export CVSROOT
 export CVSUSER
 export DESTDIR
-export DIFF; DIFF=""
 export EXECDIR; EXECDIR="/usr/local/libexec/release"
 export LOGDIR
 export MAKEFLAGS; MAKEFLAGS="-j$(sysctl -n hw.ncpuonline)"
 export PATH; PATH="/bin:/sbin:/usr/bin:/usr/sbin:/usr/X11R6/bin"
 export RELEASEDIR
 export SIGNIFY; SIGNIFY=""
+export SRCDIFF; SRCDIFF=""
 export SSHHOST
 export SSHPATH
 export SSHUSER
@@ -398,9 +398,9 @@ LOGDIR=""
 S=1
 STAGE=""
 
-while getopts "d:k:r:v" opt; do
+while getopts "S:k:r:v" opt; do
 	case "$opt" in
-	d)	DIFF="$OPTARG";;
+	S)	SRCDIFF="$OPTARG";;
 	k)	KEEP="$OPTARG";;
 	r)	LOGDIR="$OPTARG";;
 	v)	set -x;;
@@ -434,11 +434,11 @@ fi
 lock_acquire "$LOGDIR"
 
 if [ -e "${LOGDIR}/src.diff" ]; then
-	if [ -n "$DIFF" ]; then
-		fatal "diff already specified"
-	fi
-	DIFF="${LOGDIR}/src.diff"
+	[ -n "$SRCDIFF" ] && fatal "src diff already specified"
+elif [ -n "$SRCDIFF" ]; then
+	cp "$SRCDIFF" "${LOGDIR}/src.diff"
 fi
+[ -e "${LOGDIR}/src.diff" ] && SRCDIFF="${LOGDIR}/src.diff"
 
 if [ "$KEEP" -gt 0 ]; then
 	purge "$BUILDDIR" "$KEEP"
