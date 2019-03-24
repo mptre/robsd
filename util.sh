@@ -29,16 +29,17 @@ cleandir() {
 	done
 }
 
-# diff_root [-f fallback] diff
+# diff_root [-f fallback] [-r repo] diff
 #
 # Find the root directory for the given diff. Otherwise use the given fallback.
 diff_root() {
 	local _file _p _path
-	local _fallback=""
+	local _fallback="" _repo="src"
 
 	while [ $# -gt 0 ]; do
 		case "$1" in
 		-f)	shift; _fallback="$1";;
+		-r)	shift; _repo="$1";;
 		*)	break
 		esac
 		shift
@@ -46,7 +47,7 @@ diff_root() {
 
 	grep -e '^Index:' -e '^RCS file:' "$1" |
 	awk '{print $NF}' |
-	sed -e 's/,v$//' -e 's,/src/,/usr/src/,g' |
+	sed -e 's/,v$//' -e "s,/.*/${_repo}/,/usr/${_repo}/," |
 	head -2 |
 	xargs -r |
 	while read -r _file _path; do

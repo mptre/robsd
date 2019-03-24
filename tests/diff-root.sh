@@ -25,6 +25,15 @@ if testcase "complex prefix"; then
 	assert_eq "/usr/src" "$(diff_root "$TMP1")"
 fi
 
+if testcase "xenocara prefix"; then
+	cat <<-EOF >$TMP1
+	Index: driver/xf86-input-keyboard/src/bsd_kbd.c
+	===================================================================
+	RCS file: /cvs/OpenBSD/xenocara/driver/xf86-input-keyboard/src/bsd_kbd.c,v
+	EOF
+	assert_eq "/usr/xenocara" "$(diff_root -r xenocara "$TMP1")"
+fi
+
 if testcase "fallback"; then
 	cat <<-EOF >$TMP1
 	diff --git distrib/sets/lists/man/mi distrib/sets/lists/man/mi
