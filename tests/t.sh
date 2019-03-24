@@ -43,7 +43,7 @@ assert_file() {
 	local _tmp="${WRKDIR}/assert_file"
 
 	if ! _assert_file "$1" "$2"; then
-                diff -u -L want -L got "$1" "$2" >"$_tmp"
+                diff -u -L want -L got "$1" "$2" >"$_tmp" || true
 		fail - "${3:-assert_file}" <"$_tmp"
 	fi
 }
