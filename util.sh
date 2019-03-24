@@ -29,11 +29,20 @@ cleandir() {
 	done
 }
 
-# diff_root diff
+# diff_root [-f fallback] diff
 #
-# Find the root directory for the given diff.
+# Find the root directory for the given diff. Otherwise use the given fallback.
 diff_root() {
 	local _file _p _path
+	local _fallback=""
+
+	while [ $# -gt 0 ]; do
+		case "$1" in
+		-f)	shift; _fallback="$1";;
+		*)	break
+		esac
+		shift
+	done
 
 	grep -e '^Index:' -e '^RCS file:' "$1" |
 	awk '{print $NF}' |
@@ -50,7 +59,7 @@ diff_root() {
 
 		echo "$_p"
 		return 1
-	done && echo "$BSDSRCDIR"
+	done && echo "$_fallback"
 
 	return 0
 }

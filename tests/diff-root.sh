@@ -34,5 +34,5 @@ if testcase "fallback"; then
 	@@ -1526,6 +1526,7 @@
 	+./usr/share/man/man4/kubsan.4
 	EOF
-	assert_eq "/usr/src" "$(diff_root "$TMP1")"
+	assert_eq "/usr/src" "$(diff_root -f /usr/src "$TMP1")"
 fi
