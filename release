@@ -7,6 +7,7 @@ usage() {
 	usage: release
 	[-v]
 	[-S src-diff]
+	[-X xenocara-diff]
 	[-k keep]
 	[-r path]
 	EOF
@@ -378,6 +379,7 @@ export SSHPATH
 export SSHUSER
 export X11OBJDIR; X11OBJDIR="/usr/xobj"
 export X11SRCDIR; X11SRCDIR="/usr/xenocara"
+export X11DIFF; X11DIFF=""
 
 [ -e /etc/releaserc ] && . /etc/releaserc
 
@@ -398,9 +400,10 @@ LOGDIR=""
 S=1
 STAGE=""
 
-while getopts "S:k:r:v" opt; do
+while getopts "S:X:k:r:v" opt; do
 	case "$opt" in
 	S)	SRCDIFF="$OPTARG";;
+	X)	X11DIFF="$OPTARG";;
 	k)	KEEP="$OPTARG";;
 	r)	LOGDIR="$OPTARG";;
 	v)	set -x;;
@@ -439,6 +442,13 @@ elif [ -n "$SRCDIFF" ]; then
 	cp "$SRCDIFF" "${LOGDIR}/src.diff"
 fi
 [ -e "${LOGDIR}/src.diff" ] && SRCDIFF="${LOGDIR}/src.diff"
+
+if [ -e "${LOGDIR}/xenocara.diff" ]; then
+	[ -n "$X11DIFF" ] && fatal "xenocara diff already specified"
+elif [ -n "$X11DIFF" ]; then
+	cp "$X11DIFF" "${LOGDIR}/xenocara.diff"
+fi
+[ -e "${LOGDIR}/xenocara.diff" ] && X11DIFF="${LOGDIR}/xenocara.diff"
 
 if [ "$KEEP" -gt 0 ]; then
 	purge "$BUILDDIR" "$KEEP"
