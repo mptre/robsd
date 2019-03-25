@@ -4,7 +4,7 @@ if testcase "simple prefix"; then
 	============================================
 	RCS file: /cvs/src/sys/kern/kern_descrip.c,v
 	EOF
-	assert_eq "/usr/src/sys" "$(diff_root "$TMP1")"
+	assert_eq "/usr/src/sys" "$(diff_root -r src "$TMP1")"
 fi
 
 if testcase "relative prefix"; then
@@ -13,7 +13,7 @@ if testcase "relative prefix"; then
 	============================================
 	RCS file: /cvs/src/sys/kern/kern_descrip.c,v
 	EOF
-	assert_eq "/usr/src/sys/kern" "$(diff_root "$TMP1")"
+	assert_eq "/usr/src/sys/kern" "$(diff_root -r src "$TMP1")"
 fi
 
 if testcase "complex prefix"; then
@@ -22,7 +22,7 @@ if testcase "complex prefix"; then
 	================================================
 	RCS file: /data/src/openbsd/src/sys/sys/pool.h,v
 	EOF
-	assert_eq "/usr/src" "$(diff_root "$TMP1")"
+	assert_eq "/usr/src" "$(diff_root -r src "$TMP1")"
 fi
 
 if testcase "xenocara prefix"; then
@@ -43,5 +43,5 @@ if testcase "fallback"; then
 	@@ -1526,6 +1526,7 @@
 	+./usr/share/man/man4/kubsan.4
 	EOF
-	assert_eq "/usr/src" "$(diff_root -f /usr/src "$TMP1")"
+	assert_eq "/usr/src" "$(diff_root -f /usr/src -r src "$TMP1")"
 fi
