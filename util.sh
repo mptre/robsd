@@ -160,6 +160,19 @@ purge() {
 	done
 }
 
+# reboot_commence
+#
+# Commence reboot and continue building the current release after boot.
+reboot_commence() {
+	cat <<-EOF >>/etc/rc.firsttime
+	exec </dev/null >/dev/null 2>&1
+	/usr/local/sbin/release -r ${LOGDIR} &
+	EOF
+
+	# Add some grace in order to let the script finish.
+	shutdown -r '+1' </dev/null >/dev/null 2>&1
+}
+
 # report_duration [-d] duration
 #
 # Format the given duration to a human readable representation.

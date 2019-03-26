@@ -1,3 +1,5 @@
+. "${EXECDIR}/util.sh"
+
 kernel_path() {
 	local _n _s
 
@@ -12,3 +14,5 @@ make obj
 make config
 make
 make install
+
+reboot_commence

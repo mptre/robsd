@@ -92,22 +92,6 @@ log_id() {
 	printf '%02d-%s.log' "$1" "$2"
 }
 
-# must_reboot stage
-#
-# Exits 0 if a reboot is required before executing the next stage.
-must_reboot() {
-	case "$1" in
-	kernel)
-		cat <<-EOF >>/etc/rc.firsttime
-		exec </dev/null >/dev/null 2>&1
-		/usr/local/sbin/release -r ${LOGDIR} &
-		EOF
-		return 0
-		;;
-	*)	return 1;;
-	esac
-}
-
 # must_report stage
 #
 # Exits 0 if a report must be generated.
@@ -476,8 +460,8 @@ while :; do
 		"${LOGDIR}/stages"
 	[ $EXIT -ne 0 ] && exit 1
 
-	# Add some grace before rebooting in order to let the script finish.
-	must_reboot "$STAGE" && { shutdown -r '+1'; exit 0; }
+	# Reboot in progress?
+	pgrep shutdown >/dev/null && exit 0
 
 	S=$((S + 1))
 done
