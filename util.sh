@@ -81,10 +81,26 @@ diff_root() {
 	return 0
 }
 
-# duration_format duration
+# duration_prev
+#
+# Get the duration of the previous release.
+# Exits non-zero if no previous release exists or the previous one failed.
+duration_prev() {
+	local _prev
+
+	_prev="$(prev_release)"
+	[ -z "$_prev" ] && return 1
+
+	stage_eval -1 "${_prev}/stages"
+	[ "$(stage_value name)" = "end" ] || return 1
+
+	stage_value duration
+}
+
+# format_duration duration
 #
 # Format the given duration to a human readable representation.
-duration_format() {
+format_duration() {
 	local _d="$1" _h="" _m="" _s=""
 
 	[ "$_d" -eq 0 ] && { echo 0; return 0; }
@@ -104,22 +120,6 @@ duration_format() {
 	fi
 
 	printf '%02d:%02d:%02d\n' "$_h" "$_m" "$_s"
-}
-
-# duration_prev
-#
-# Get the duration of the previous release.
-# Exits non-zero if no previous release exists or the previous one failed.
-duration_prev() {
-	local _prev
-
-	_prev="$(prev_release)"
-	[ -z "$_prev" ] && return 1
-
-	stage_eval -1 "${_prev}/stages"
-	[ "$(stage_value name)" = "end" ] || return 1
-
-	stage_value duration
 }
 
 # format_size [-s] size
@@ -242,7 +242,7 @@ report_duration() {
 	_d="$1"
 
 	if [ "$_do_delta" -eq 0 ] || ! _prev="$(duration_prev)"; then
-		duration_format "$_d"
+		format_duration "$_d"
 		return 0
 	fi
 
@@ -254,9 +254,9 @@ report_duration() {
 		_sign="+"
 	fi
 	printf '%s (%s%s)\n' \
-		"$(duration_format "$_d")" \
+		"$(format_duration "$_d")" \
 		"$_sign" \
-		"$(duration_format "$_delta")"
+		"$(format_duration "$_delta")"
 }
 
 # report_recipients stages
