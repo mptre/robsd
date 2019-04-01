@@ -1,3 +1,18 @@
+# abs number
+#
+# Get the absolute value of the given number.
+abs() {
+	local _n="$1"
+
+	: "${_n:?}"
+
+	if [ "$_n" -lt 0 ]; then
+		echo "$((- _n))"
+	else
+		echo "$_n"
+	fi
+}
+
 # build_duration stages
 #
 # Calculate the accumulated build duration.
@@ -105,6 +120,41 @@ duration_prev() {
 	[ "$(stage_value name)" = "end" ] || return 1
 
 	stage_value duration
+}
+
+# format_size [-s] size
+#
+# Format the given size into a human readable representation.
+# Optionally include the sign if the size is a delta.
+format_size() {
+	local _d=1 _p="" _sign=0
+	local _abs _size
+
+	while [ $# -gt 0 ]; do
+		case "$1" in
+		-s)	_sign=1;;
+		*)	break;;
+		esac
+		shift
+	done
+	_size="$1"
+	: "${_size:?}"
+
+	_abs="$(abs "$_size")"
+	if [ "$_abs" -ge "$((1024 * 1024))" ]; then
+		_d=$((1024 * 1024))
+		_p="M"
+	elif [ "$_abs" -ge "1024" ]; then
+		_d=1024
+		_p="K"
+	fi
+
+	if [ "$_sign" -eq 1 ] && [ "$_size" -ge 0 ]; then
+		echo -n '+'
+	fi
+
+	echo "${_size} ${_d} ${_p}" |
+	awk '{ printf("%.01f%s", $1 / $2, $3) }'
 }
 
 # path_strip path
@@ -228,10 +278,13 @@ report_recipients() {
 # report_size file
 #
 # Writes a human readable representation of the size of the given file.
-# If the same file is present in the previous release, report that size as well.
+# If the same file is present in the previous release, report that size as
+# well.
 report_size() {
 	local _f="$1"
-	local _name _path _prev
+	local _delta _name _path _prev _s1 _s2
+
+	: "${_f:?}"
 
 	_name="$(basename "$_f")"
 
@@ -241,13 +294,18 @@ report_size() {
 		return 0
 	fi
 
-	printf ' %s' "$(du -h "$_f" | awk '{print $1}')"
+	_s1="$(ls -l "$_f" | awk '{print $5}')"
+	printf ' %s' "$(format_size "${_s1}")"
 
 	_prev="$(prev_release)"
 	if [ -n "$_prev" ]; then
 		_path="$(release_dir "$_prev")/${_name}"
 		if [ -e "$_path" ]; then
-			printf ' (%s)' "$(du -h "$_path" | awk '{print $1}')"
+			_s2="$(ls -l "$_path" | awk '{print $5}')"
+			_delta="$((_s1 - _s2))"
+			if [ "$(abs "$_delta")" -ge 1024 ]; then
+				printf ' (%s)' "$(format_size -s "$_delta")"
+			fi
 		fi
 	fi
 
