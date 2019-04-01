@@ -225,6 +225,35 @@ report_recipients() {
 	echo "$_user"
 }
 
+# report_size file
+#
+# Writes a human readable representation of the size of the given file.
+# If the same file is present in the previous release, report that size as well.
+report_size() {
+	local _f="$1"
+	local _name _path _prev
+
+	_name="$(basename "$_f")"
+
+	printf '%s' "$_name"
+	if ! [ -e "$_f" ]; then
+		printf ' 0\n'
+		return 0
+	fi
+
+	printf ' %s' "$(du -h "$_f" | awk '{print $1}')"
+
+	_prev="$(prev_release)"
+	if [ -n "$_prev" ]; then
+		_path="$(release_dir "$_prev")/${_name}"
+		if [ -e "$_path" ]; then
+			printf ' (%s)' "$(du -h "$_path" | awk '{print $1}')"
+		fi
+	fi
+
+	printf '\n'
+}
+
 # release_dir prefix
 #
 # Writes the release directory with the given prefix applied.
