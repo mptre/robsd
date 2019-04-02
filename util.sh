@@ -312,6 +312,19 @@ report_size() {
 	printf '\n'
 }
 
+# report_skip stage
+#
+# Exits zero if the given stage should not be included in the report.
+report_skip() {
+	case "$1" in
+	env|end)
+		return 0
+		;;
+	esac
+
+	return 1
+}
+
 # release_dir prefix
 #
 # Writes the release directory with the given prefix applied.

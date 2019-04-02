@@ -121,10 +121,10 @@ report() {
 	[ -e "$_stages" ] || return 0
 
 	while stage_eval "$_i" "$_stages"; do
-		_name="$(stage_value name)"
-		[ "$_name" = "end" ] && break
+		_i=$((_i + 1))
 
-		[ $_i -gt 1 ] && echo
+		_name="$(stage_value name)"
+		report_skip "$_name" && continue
 
 		_duration="$(stage_value duration)"
 		_exit="$(stage_value exit)"
@@ -134,8 +134,7 @@ report() {
 		printf 'Duration: %s\n' "$(report_duration "$_duration")"
 		printf 'Log: %s\n' "$(basename "$(stage_value log)")"
 		report_log "$_name" "$(stage_value log)"
-
-		_i=$((_i + 1))
+		printf '\n'
 	done >"$_report"
 
 	_duration="$(build_duration "$_stages")"
@@ -179,7 +178,7 @@ report_log() {
 	[ -s "$2" ] && echo
 
 	case "$1" in
-	env|cvs|patch|revert|distrib)
+	cvs|patch|revert|distrib)
 		cat "$2"
 		;;
 	checkflist)
