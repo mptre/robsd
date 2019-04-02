@@ -7,12 +7,12 @@ diff_clean() {
 
 if [ -n "$SRCDIFF" ]; then
 	cd "$(diff_root -f "$BSDSRCDIR" -r src "$SRCDIFF")"
-	patch -ERs <"$SRCDIFF"
+	su "$CVSUSER" -c "patch -ERs" <"$SRCDIFF"
 	diff_clean "$BSDSRCDIR"
 fi
 
 if [ -n "$X11DIFF" ]; then
 	cd "$(diff_root -f "$X11SRCDIR" -r xenocara "$X11DIFF")"
-	patch -ERs <"$X11DIFF"
+	su "$CVSUSER" -c "patch -ERs" <"$X11DIFF"
 	diff_clean "$X11SRCDIR"
 fi
