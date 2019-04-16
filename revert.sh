@@ -1,8 +1,8 @@
 . "${EXECDIR}/util.sh"
 
 diff_clean() {
-	find "$1" -type f \( -name '*.orig' -o -name '*.rej' \) |
-	xargs -rt rm
+	find "$1" -type f \( -name '*.orig' -o -name '*.rej' \) -print0 |
+	xargs -0rt rm
 }
 
 if [ -n "$SRCDIFF" ]; then
