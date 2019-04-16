@@ -122,16 +122,17 @@ format_duration() {
 	printf '%02d:%02d:%02d\n' "$_h" "$_m" "$_s"
 }
 
-# format_size [-s] size
+# format_size [-M] [-s] size
 #
 # Format the given size into a human readable representation.
 # Optionally include the sign if the size is a delta.
 format_size() {
-	local _d=1 _p="" _sign=0
+	local _d=1 _mega=0 _p="" _sign=0
 	local _abs _size
 
 	while [ $# -gt 0 ]; do
 		case "$1" in
+		-M)	_mega=1;;
 		-s)	_sign=1;;
 		*)	break;;
 		esac
@@ -141,7 +142,7 @@ format_size() {
 	: "${_size:?}"
 
 	_abs="$(abs "$_size")"
-	if [ "$_abs" -ge "$((1024 * 1024))" ]; then
+	if [ "$_mega" -eq 1 ] || [ "$_abs" -ge "$((1024 * 1024))" ]; then
 		_d=$((1024 * 1024))
 		_p="M"
 	elif [ "$_abs" -ge "1024" ]; then
@@ -303,8 +304,8 @@ report_size() {
 		if [ -e "$_path" ]; then
 			_s2="$(ls -l "$_path" | awk '{print $5}')"
 			_delta="$((_s1 - _s2))"
-			if [ "$(abs "$_delta")" -ge 1024 ]; then
-				printf ' (%s)' "$(format_size -s "$_delta")"
+			if [ "$(abs "$_delta")" -ge $((1024 * 100)) ]; then
+				printf ' (%s)' "$(format_size -M -s "$_delta")"
 			fi
 		fi
 	fi

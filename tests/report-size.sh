@@ -27,22 +27,13 @@ if testcase "previous delta too small"; then
 	assert_eq "${NAME} 1.0K" "$(report_size "$TMP1")"
 fi
 
-if testcase "previous delta kilobytes"; then
-	zero 2K "$TMP1"
-	LOGDIR="${BUILDDIR}/2019-02-23"
-	mkdir -p ${BUILDDIR}/2019-02-{22,23}/reldir
-	zero 1K "${BUILDDIR}/2019-02-22/reldir/${NAME}"
-
-	assert_eq "${NAME} 2.0K (+1.0K)" "$(report_size "$TMP1")"
-fi
-
 if testcase "previous delta megabytes"; then
-	zero 2M "$TMP1"
+	zero "$((1024 * 1024 + 438902))" "$TMP1"
 	LOGDIR="${BUILDDIR}/2019-02-23"
 	mkdir -p ${BUILDDIR}/2019-02-{22,23}/reldir
-	zero 1K "${BUILDDIR}/2019-02-22/reldir/${NAME}"
+	zero "$((1024 * 1024))" "${BUILDDIR}/2019-02-22/reldir/${NAME}"
 
-	assert_eq "${NAME} 2.0M (+2.0M)" "$(report_size "$TMP1")"
+	assert_eq "${NAME} 1.4M (+0.4M)" "$(report_size "$TMP1")"
 fi
 
 if testcase "previous delta negative"; then
