@@ -204,8 +204,9 @@ purge() {
 			_log="$(basename "$(stage_value log)")"
 		fi
 
-                # Only keep the interesting parts and free up some disk space.
-		rm -r ${_d:?}/!(stages|report|*cvs.log|*.diff|${_log})
+		find "$_d" -mindepth 1 -not \( \
+			-name stages -o -name report -o -name '*cvs.log' -o \
+			-name '*.diff' -o -name "$_log" \) -delete
 
 		mv "$_d" "$_attic"
 	done
