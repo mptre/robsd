@@ -189,6 +189,7 @@ purge() {
 	local _d
 
 	find "$_dir" -type d -mindepth 1 -maxdepth 1 |
+	grep -v "$_attic" |
 	sort -n |
 	tail -r |
 	tail -n "+$((_n + 1))" |

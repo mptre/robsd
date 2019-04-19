@@ -49,3 +49,15 @@ if testcase "missing log files"; then
 
 	assert_eq "" "$(find "${BUILDDIR}/attic/2019-03-01" -type f)"
 fi
+
+if testcase "attic already present"; then
+	mkdir -p ${BUILDDIR}/2019-03-0{1,2}
+	mkdir -p ${BUILDDIR}/attic
+
+	purge "$BUILDDIR" 1
+
+	[ -d "${BUILDDIR}/2019-03-02" ] ||
+		fail "expected 2019-03-02 to be left"
+	[ -d "${BUILDDIR}/attic/2019-03-01" ] ||
+		fail "expected 2019-03-01 to be moved"
+fi
