@@ -217,6 +217,8 @@ purge() {
 #
 # Commence reboot and continue building the current release after boot.
 reboot_commence() {
+	# Do not inherit standard file descriptors in order to let the boot
+	# process proceed.
 	cat <<-EOF >>/etc/rc.firsttime
 	exec </dev/null >/dev/null 2>&1
 	/usr/local/sbin/release -r ${LOGDIR} &
