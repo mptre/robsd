@@ -331,9 +331,9 @@ export SRCDIFF; SRCDIFF=""
 export SSHHOST
 export SSHPATH
 export SSHUSER
+export X11DIFF; X11DIFF=""
 export X11OBJDIR; X11OBJDIR="/usr/xobj"
 export X11SRCDIR; X11SRCDIR="/usr/xenocara"
-export X11DIFF; X11DIFF=""
 
 [ -e /etc/releaserc ] && . /etc/releaserc
 
