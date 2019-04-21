@@ -8,7 +8,6 @@ usage() {
 	[-v]
 	[-S src-diff]
 	[-X xenocara-diff]
-	[-k keep]
 	[-r path]
 	EOF
 	exit 1
@@ -322,6 +321,7 @@ export CVSROOT
 export CVSUSER
 export DESTDIR
 export EXECDIR; EXECDIR="/usr/local/libexec/release"
+export KEEP; KEEP=0
 export LOGDIR
 export MAKEFLAGS; MAKEFLAGS="-j$(sysctl -n hw.ncpuonline)"
 export PATH; PATH="/bin:/sbin:/usr/bin:/usr/sbin:/usr/X11R6/bin"
@@ -349,16 +349,14 @@ export X11DIFF; X11DIFF=""
 
 . "${EXECDIR}/util.sh"
 
-KEEP=0
 LOGDIR=""
 S=1
 STAGE=""
 
-while getopts "S:X:k:r:v" opt; do
+while getopts "S:X:r:v" opt; do
 	case "$opt" in
 	S)	SRCDIFF="$OPTARG";;
 	X)	X11DIFF="$OPTARG";;
-	k)	KEEP="$OPTARG";;
 	r)	LOGDIR="$OPTARG";;
 	v)	set -x;;
 	*)	usage;;
