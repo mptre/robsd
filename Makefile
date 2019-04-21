@@ -14,7 +14,12 @@ SCRIPTS+=	util.sh
 SCRIPTS+=	xbase.sh
 SCRIPTS+=	xrelease.sh
 
-PREFIX=	/usr/local
+PREFIX?=	/usr/local
+BINDIR?=	${PREFIX}/sbin
+LIBEXECDIR?=	${PREFIX}/libexec
+MANDIR?=	${PREFIX}/man
+INSTALL?=	install
+INSTALL_MAN?=	install
 
 SHELLCHECKFLAGS+=	-f gcc
 SHELLCHECKFLAGS+=	-e SC1090	# non-constant source
@@ -25,13 +30,14 @@ SHELLCHECKFLAGS+=	-e SC2164	# cd failure
 all:
 
 install:
-	mkdir -p ${DESTDIR}${PREFIX}/sbin
-	${INSTALL} -m 0755 ${.CURDIR}/${PROG} ${DESTDIR}${PREFIX}/sbin
-	mkdir -p ${DESTDIR}${PREFIX}/libexec/${PROG}
+	mkdir -p ${DESTDIR}${BINDIR}
+	${INSTALL} -m 0755 ${.CURDIR}/${PROG} ${DESTDIR}${BINDIR}
+	mkdir -p ${DESTDIR}${LIBEXECDIR}/${PROG}
 .for s in ${SCRIPTS}
-	${INSTALL} -m 0644 ${.CURDIR}/$s \
-		${DESTDIR}${PREFIX}/libexec/${PROG}/$s
+	${INSTALL} -m 0644 ${.CURDIR}/$s ${DESTDIR}${LIBEXECDIR}/${PROG}/$s
 .endfor
+	@mkdir -p ${DESTDIR}${MANDIR}/man8
+	${INSTALL_MAN} ${.CURDIR}/robsd.8 ${DESTDIR}${MANDIR}/man8
 .PHONY: install
 
 lint:
