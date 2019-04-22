@@ -41,6 +41,7 @@ install:
 .PHONY: install
 
 lint:
+	mandoc -Tlint -Wstyle ${.CURDIR}/robsd.8
 	shellcheck ${SHELLCHECKFLAGS} ${SCRIPTS}
 .PHONY: lint
 
