@@ -4,7 +4,7 @@ set -eu
 
 usage() {
 	cat <<-EOF | xargs 1>&2
-	usage: release
+	usage: robsd
 	[-v]
 	[-S src-diff]
 	[-X xenocara-diff]
@@ -19,7 +19,7 @@ fatal() {
 }
 
 info() {
-	echo "release: ${*}" 1>&2
+	echo "robsd: ${*}" 1>&2
 }
 
 atexit() {
@@ -166,7 +166,7 @@ report() {
 	# Do not send mail during interactive invocations.
 	[ -t 0 ] && return 0
 
-	mail -s "release: $(machine): ${_status}" \
+	mail -s "robsd: $(machine): ${_status}" \
 		$(report_recipients "$_stages") <"$_report"
 }
 
@@ -320,7 +320,7 @@ export BUILDDIR
 export CVSROOT
 export CVSUSER
 export DESTDIR
-export EXECDIR; EXECDIR="/usr/local/libexec/release"
+export EXECDIR; EXECDIR="/usr/local/libexec/robsd"
 export KEEP; KEEP=0
 export LOGDIR
 export MAKEFLAGS; MAKEFLAGS="-j$(sysctl -n hw.ncpuonline)"
@@ -335,7 +335,7 @@ export X11DIFF; X11DIFF=""
 export X11OBJDIR; X11OBJDIR="/usr/xobj"
 export X11SRCDIR; X11SRCDIR="/usr/xenocara"
 
-[ -e /etc/releaserc ] && . /etc/releaserc
+[ -e /etc/robsdrc ] && . /etc/robsdrc
 
 # Ensure mandatory variables are defined.
 : "${BUILDDIR:?}"

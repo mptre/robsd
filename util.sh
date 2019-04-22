@@ -221,7 +221,7 @@ reboot_commence() {
 	# process proceed.
 	cat <<-EOF >>/etc/rc.firsttime
 	exec </dev/null >/dev/null 2>&1
-	/usr/local/sbin/release -r ${LOGDIR} &
+	/usr/local/sbin/robsd -r ${LOGDIR} &
 	EOF
 
 	# Add some grace in order to let the script finish.

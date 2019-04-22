@@ -1,4 +1,4 @@
-PROG=	 release
+PROG=	 robsd
 
 SCRIPTS+=	base.sh
 SCRIPTS+=	checkflist.sh
