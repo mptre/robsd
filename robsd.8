@@ -17,11 +17,9 @@ The
 .Nm
 utility builds a
 .Ox
-release, according to process described in
-.Xr release 8 .
-.Nm
-executes the stages as described in
-.Xr release 8 .
+release according to
+.Xr release 8
+process.
 In addition, some auxiliary stages are also executed:
 .Bl -dash
 .It
@@ -33,14 +31,12 @@ Upon the next boot, the same release build is resumed from
 .It
 After stage 8
 .Pq Create boot and installation disk images
-the final release files are signed using
-.Xr signify 1
-and distributed to another host using
-.Xr scp 1 .
-Note that the destination directory on the host will be wiped before uploading.
+the final release files are distributed to another host.
 .El
 .Pp
-Each release build is identified by a directory in
+Each release build is identified by a directory created by
+.Nm
+rooted in
 .Ev BUILDDIR
 and is named after the current date.
 The release directory contains the entries as follows.
@@ -52,10 +48,12 @@ Directory containing the final release files.
 Referred to as RELEASEDIR in
 .Xr release 8 .
 .It report
-A summary of the release build which is delivered as an email to the user who
+A summary of the release build which is delivered as a mail to the user who
 started the release build once
 .Nm
 terminates.
+If the same user is not in the wheel group, root will also receive a copy of
+the report.
 .It stages
 Internal representation of executed stages so far for the current release
 build.
@@ -148,14 +146,15 @@ usage:
 and the log from the last failing stage.
 Those files can be used to track various metrics over time.
 .It Ev SIGNIFY
-Private key used to sign a release using
+Private key used to optionally sign the final release files using
 .Xr signify 1 .
 .It Ev SSHHOST
-Host to upload a release to during the distribution stage.
+Host to upload the final release files to during the distribution stage.
 .It Ev SSHPATH
 Path on
 .Ev SSHHOST
-to upload a release to during the distribution stage.
+to upload the final release files to during the distribution stage.
+Note that the directory will be wiped before uploading.
 .It Ev SSHUSER
 User to perform
 .Xr ssh 1
@@ -185,7 +184,7 @@ CVSUSER=anton
 DESTDIR=/home/noperm
 SIGNIFY=/etc/signify/puffy-base.sec
 SSHHOST=example.com
-SSHPATH=/var/www/pub/OpenBSD/snapshots/amd64
+SSHPATH=/var/www/pub/OpenBSD/snapshots/`machine`
 SSHUSER=anton
 .Ed
 .Sh DIAGNOSTICS
