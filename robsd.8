@@ -31,7 +31,8 @@ Upon the next boot, the same release build is resumed from
 .It
 After stage 8
 .Pq Create boot and installation disk images
-the final release files are distributed to another host.
+the final release files are distributed to another host using
+.Xr rsync 1 .
 .El
 .Pp
 Each release build is identified by a directory created by
@@ -126,6 +127,16 @@ Directory rooted on a filesystem mounted with the
 .Xr mount 8
 option, see
 .Xr release 8 .
+.It Ev DISTRIBHOST
+Host to upload the final release files to during the distribution stage.
+.It Ev DISTRIBPATH
+Directory on
+.Ev DISTRIBHOST
+to upload the final release files to during the distribution stage.
+.It Ev DISTRIBUSER
+User to perform
+.Xr rsync 1
+operations on behalf of.
 .It Ev KEEP
 Number of releases to keep in
 .Ev BUILDDIR .
@@ -148,19 +159,6 @@ Those files can be used to track various metrics over time.
 .It Ev SIGNIFY
 Private key used to optionally sign the final release files using
 .Xr signify 1 .
-.It Ev SSHHOST
-Host to upload the final release files to during the distribution stage.
-.It Ev SSHPATH
-Path on
-.Ev SSHHOST
-to upload the final release files to during the distribution stage.
-Note that the directory will be wiped before uploading.
-.It Ev SSHUSER
-User to perform
-.Xr ssh 1
-and
-.Xr scp 1
-operations on behalf of.
 .It Ev X11OBJDIR
 Object directory for the xenocara tree.
 .Bq /usr/xobj
@@ -182,9 +180,9 @@ BUILDDIR=/home/release
 CVSROOT=anoncvs@anoncvs.eu.openbsd.org:/cvs
 CVSUSER=anton
 DESTDIR=/home/noperm
-SSHHOST=example.com
-SSHPATH=/var/www/pub/OpenBSD/snapshots/`machine`
-SSHUSER=anton
+DISTRIBHOST=example.com
+DISTRIBPATH=/var/www/pub/OpenBSD/snapshots/`machine`
+DISTRIBUSER=anton
 .Ed
 .Sh DIAGNOSTICS
 .Ex -std

@@ -8,5 +8,5 @@ fi
 
 ls -nT -- * >index.txt
 
-su "$SSHUSER" -c "ssh ${SSHHOST} rm -f ${SSHPATH}/*"
-su "$SSHUSER" -c "scp ${RELEASEDIR}/* ${SSHHOST}:${SSHPATH}"
+su "$DISTRIBUSER" \
+	-c "/usr/local/bin/rsync -prt --del ${RELEASEDIR} ${DISTRIBHOST}:${DISTRIBPATH}"
