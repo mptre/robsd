@@ -388,21 +388,10 @@ if lock_present "$BUILDDIR"; then
 fi
 lock_acquire "$LOGDIR"
 
-if [ -e "${LOGDIR}/src.diff" ]; then
-	[ -n "$SRCDIFF" ] && fatal "src diff already specified"
-elif [ -n "$SRCDIFF" ]; then
-	cp "$SRCDIFF" "${LOGDIR}/src.diff"
-	chmod 644 "${LOGDIR}/src.diff"
-fi
-[ -e "${LOGDIR}/src.diff" ] && SRCDIFF="${LOGDIR}/src.diff"
-
-if [ -e "${LOGDIR}/xenocara.diff" ]; then
-	[ -n "$X11DIFF" ] && fatal "xenocara diff already specified"
-elif [ -n "$X11DIFF" ]; then
-	cp "$X11DIFF" "${LOGDIR}/xenocara.diff"
-	chmod 644 "${LOGDIR}/xenocara.diff"
-fi
-[ -e "${LOGDIR}/xenocara.diff" ] && X11DIFF="${LOGDIR}/xenocara.diff"
+SRCDIFF="$(diff_copy "$SRCDIFF" "${LOGDIR}/src.diff)" ||
+	fatal "src diff already specified"
+X11DIFF="$(diff_copy "$X11DIFF" "${LOGDIR}/xenocara.diff)" ||
+	fatal "xenocara diff already specified"
 
 if [ "$KEEP" -gt 0 ]; then
 	purge "$BUILDDIR" "$KEEP"

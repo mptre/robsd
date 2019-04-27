@@ -44,6 +44,25 @@ cleandir() {
 	done
 }
 
+# diff_copy src dst
+#
+# Copy the given diff located at src to dst.
+# Exits non-zero if dst already exists.
+diff_copy() {
+	local _src="$1" _dst="$2"
+
+	if [ -e "$_dst" ]; then
+		[ -n "$_src" ] && return 1
+	elif [ -n "$_src" ]; then
+		cp "$_src" "$_dst"
+		chmod 644 "$_dst"
+	fi
+	if [ -e "$_dst" ]; then
+		echo "$_dst"
+	fi
+	return 0
+}
+
 # diff_root [-f fallback] -r repo diff
 #
 # Find the root directory for the given diff. Otherwise, use the given fallback.
