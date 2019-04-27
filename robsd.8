@@ -32,7 +32,7 @@ Upon the next boot, the same release build is resumed from
 After stage 8
 .Pq Create boot and installation disk images
 the final release files are distributed to another host using
-.Xr rsync 1 .
+.Xr scp 1 .
 .El
 .Pp
 Each release build is identified by a directory created by
@@ -135,7 +135,7 @@ Directory on
 to upload the final release files to during the distribution stage.
 .It Ev DISTRIBUSER
 User to perform
-.Xr rsync 1
+.Xr scp 1
 operations on behalf of.
 .It Ev KEEP
 Number of releases to keep in
