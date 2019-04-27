@@ -1,5 +1,5 @@
 cd "$RELEASEDIR"
-rm -f SHA256
+rm -f index.txt SHA256{,.sig}
 sha256 -h SHA256 -- *
 
 if [ -n "$SIGNIFY" ]; then
