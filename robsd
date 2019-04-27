@@ -392,6 +392,7 @@ if [ -e "${LOGDIR}/src.diff" ]; then
 	[ -n "$SRCDIFF" ] && fatal "src diff already specified"
 elif [ -n "$SRCDIFF" ]; then
 	cp "$SRCDIFF" "${LOGDIR}/src.diff"
+	chmod 644 "${LOGDIR}/src.diff"
 fi
 [ -e "${LOGDIR}/src.diff" ] && SRCDIFF="${LOGDIR}/src.diff"
 
@@ -399,6 +400,7 @@ if [ -e "${LOGDIR}/xenocara.diff" ]; then
 	[ -n "$X11DIFF" ] && fatal "xenocara diff already specified"
 elif [ -n "$X11DIFF" ]; then
 	cp "$X11DIFF" "${LOGDIR}/xenocara.diff"
+	chmod 644 "${LOGDIR}/xenocara.diff"
 fi
 [ -e "${LOGDIR}/xenocara.diff" ] && X11DIFF="${LOGDIR}/xenocara.diff"
 
