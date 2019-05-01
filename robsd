@@ -388,9 +388,9 @@ if lock_present "$BUILDDIR"; then
 fi
 lock_acquire "$LOGDIR"
 
-SRCDIFF="$(diff_copy "$SRCDIFF" "${LOGDIR}/src.diff)" ||
+SRCDIFF="$(diff_copy "$SRCDIFF" "${LOGDIR}/src.diff")" ||
 	fatal "src diff already specified"
-X11DIFF="$(diff_copy "$X11DIFF" "${LOGDIR}/xenocara.diff)" ||
+X11DIFF="$(diff_copy "$X11DIFF" "${LOGDIR}/xenocara.diff")" ||
 	fatal "xenocara diff already specified"
 
 if [ "$KEEP" -gt 0 ]; then
