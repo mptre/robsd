@@ -42,7 +42,7 @@ install:
 
 lint:
 	mandoc -Tlint -Wstyle ${.CURDIR}/robsd.8
-	shellcheck ${SHELLCHECKFLAGS} ${SCRIPTS}
+	shellcheck ${SHELLCHECKFLAGS} ${SCRIPTS} ${.CURDIR}/${PROG}
 .PHONY: lint
 
 test:
