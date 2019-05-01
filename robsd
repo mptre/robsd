@@ -250,7 +250,7 @@ stage_end() {
 #
 # Execute the given stage and redirect any output to log.
 stage_exec() (
-	local _fail _log
+	local _fail _log _stage
 
 	while [ $# -gt 0 ]; do
 		case "$1" in
@@ -260,12 +260,16 @@ stage_exec() (
 		esac
 		shift
 	done
+	_stage="$1"
+	: "${_fail:?}"
+	: "${_log:?}"
+	: "${_stage:?}"
 
 	[ -t 0 ] || exec >/dev/null 2>&1
 
-	trap ": >$_fail" INT
+	trap ': >$_fail' INT
 
-	{ sh -eux "$1" </dev/null 2>&1 || : >"$_fail"; } | tee "$_log"
+	{ sh -eux "$_stage" </dev/null 2>&1 || : >"$_fail"; } | tee "$_log"
 	if [ -e "$_fail" ]; then
 		rm -f "$_fail"
 		return 1
