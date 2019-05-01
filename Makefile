@@ -23,6 +23,7 @@ INSTALL_MAN?=	install
 
 SHELLCHECKFLAGS+=	-f gcc
 SHELLCHECKFLAGS+=	-e SC1090	# non-constant source
+SHELLCHECKFLAGS+=	-e SC1091	# constant source
 SHELLCHECKFLAGS+=	-e SC2012	# find instead of ls
 SHELLCHECKFLAGS+=	-e SC2148	# missing shebang
 SHELLCHECKFLAGS+=	-e SC2164	# cd failure
