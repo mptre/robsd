@@ -5,7 +5,6 @@ TESTS+=	diff-root.sh
 TESTS+=	format-duration.sh
 TESTS+=	purge.sh
 TESTS+=	report-duration.sh
-TESTS+=	report-recipients.sh
 TESTS+=	report-size.sh
 TESTS+=	stage-eval.sh
 TESTS+=	stage-next.sh

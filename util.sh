@@ -285,22 +285,6 @@ report_duration() {
 		"$(format_duration "$_delta")"
 }
 
-# report_recipients stages
-#
-# Writes the report recipients based on the given stages file.
-# If the user that started the release is not in the wheel group, root will
-# receive the report as well.
-report_recipients() {
-	local _user
-
-	stage_eval 1 "$1"
-	_user="$(stage_value user)"
-	if ! groups "$_user" | grep -qw wheel; then
-		printf 'root '
-	fi
-	echo "$_user"
-}
-
 # report_size file
 #
 # Writes a human readable representation of the size of the given file.

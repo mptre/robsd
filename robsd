@@ -166,8 +166,7 @@ report() {
 	# Do not send mail during interactive invocations.
 	[ -t 0 ] && return 0
 
-	mail -s "robsd: $(machine): ${_status}" \
-		$(report_recipients "$_stages") <"$_report"
+	mail -s "robsd: $(machine): ${_status}" root <"$_report"
 }
 
 # report_log stage log
