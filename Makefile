@@ -43,9 +43,12 @@ install:
 
 lint:
 	mandoc -Tlint -Wstyle ${.CURDIR}/robsd.8
-	shellcheck ${SHELLCHECKFLAGS} ${SCRIPTS} ${.CURDIR}/${PROG}
+	shellcheck ${SHELLCHECKFLAGS} \
+		${SCRIPTS:C/^/${.CURDIR}\//} ${.CURDIR}/${PROG}
 .PHONY: lint
 
 test:
-	${MAKE} -C tests "RELEASEDIR=${.CURDIR}" "TESTFLAGS=${TESTFLAGS}"
+	${MAKE} -C ${.CURDIR}/tests \
+		"RELEASEDIR=${.CURDIR}" \
+		"TESTFLAGS=${TESTFLAGS}"
 .PHONY: test
