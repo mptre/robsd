@@ -203,6 +203,7 @@ prev_release() {
 #
 # Keep the latest count number of release directories in dir.
 # The older ones will be moved to the attic, keeping only the relevant files.
+# All purged directories are written to stdout.
 purge() {
 	local _attic="${BUILDDIR}/attic" _dir="$1" _log="" _n="$2"
 	local _d
@@ -213,8 +214,6 @@ purge() {
 	tail -r |
 	tail -n "+$((_n + 1))" |
 	while read -r _d; do
-		info "moving ${_d} to the attic"
-
 		[ -d "$_attic" ] || mkdir "$_attic"
 
 		# If the last stage failed, keep the log.
@@ -229,6 +228,7 @@ purge() {
 			-name '*.diff' -o -name "$_log" \) -delete
 
 		mv "$_d" "$_attic"
+		echo "$_d"
 	done
 }
 

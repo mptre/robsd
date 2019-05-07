@@ -8,7 +8,7 @@ if testcase "basic"; then
 		EOF
 	done
 
-	purge "$BUILDDIR" 1
+	assert_eq "${BUILDDIR}/2019-03-01" "$(purge "$BUILDDIR" 1)"
 
 	[ -d "${BUILDDIR}/2019-03-02" ] ||
 		fail "expected 2019-03-02 to be left"
@@ -35,7 +35,7 @@ if testcase "last stage failure"; then
 	exit="1" log="${_d}/04-kernel.log"
 	EOF
 
-	purge "$BUILDDIR" 1
+	assert_eq "${BUILDDIR}/2019-03-01" "$(purge "$BUILDDIR" 1)"
 
 	_d="${BUILDDIR}/attic/2019-03-01"
 	[ -e "${_d}/04-kernel.log" ] ||
@@ -45,8 +45,7 @@ fi
 if testcase "missing log files"; then
 	mkdir -p ${BUILDDIR}/2019-03-0{1,2}/reldir
 
-	purge "$BUILDDIR" 1
-
+	assert_eq "${BUILDDIR}/2019-03-01" "$(purge "$BUILDDIR" 1)"
 	assert_eq "" "$(find "${BUILDDIR}/attic/2019-03-01" -type f)"
 fi
 
@@ -54,7 +53,7 @@ if testcase "attic already present"; then
 	mkdir -p ${BUILDDIR}/2019-03-0{1,2}
 	mkdir -p ${BUILDDIR}/attic
 
-	purge "$BUILDDIR" 1
+	assert_eq "${BUILDDIR}/2019-03-01" "$(purge "$BUILDDIR" 1)"
 
 	[ -d "${BUILDDIR}/2019-03-02" ] ||
 		fail "expected 2019-03-02 to be left"
