@@ -206,7 +206,7 @@ prev_release() {
 # All purged directories are written to stdout.
 purge() {
 	local _attic="${BUILDDIR}/attic" _dir="$1" _log="" _n="$2"
-	local _d
+	local _d _dst
 
 	find "$_dir" -type d -mindepth 1 -maxdepth 1 |
 	grep -v "$_attic" |
@@ -227,7 +227,10 @@ purge() {
 			-name stages -o -name report -o -name '*cvs.log' -o \
 			-name '*.diff' -o -name "$_log" \) -delete
 
-		mv "$_d" "$_attic"
+		# Transform: YYYY-MM-DD.X -> YYYY/MM/DD.X
+		_dst="${_attic}/$(echo "${_d##*/}" | tr '-' '/')"
+		mkdir -p "${_dst%/*}"
+		mv "$_d" "$_dst"
 		echo "$_d"
 	done
 }
