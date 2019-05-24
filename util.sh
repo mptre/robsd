@@ -110,13 +110,16 @@ diff_root() {
 duration_prev() {
 	local _prev
 
-	_prev="$(prev_release)"
-	[ -z "$_prev" ] && return 1
+	prev_release 8 |
+	while read -r _prev; do
+		stage_eval -1 "${_prev}/stages"
+		[ "$(stage_value name)" = "end" ] || continue
 
-	stage_eval -1 "${_prev}/stages"
-	[ "$(stage_value name)" = "end" ] || return 1
+		stage_value duration
+		return 1
+	done || return 0
 
-	stage_value duration
+	return 1
 }
 
 # format_duration duration
@@ -192,14 +195,15 @@ path_strip() {
 
 }
 
-# prev_release
+# prev_release [count]
 #
-# Get the previous release directory.
+# Get the previous count number of release directories. Where count defaults
+# to 1.
 prev_release() {
 	find "$BUILDDIR" -type d -mindepth 1 -maxdepth 1 |
-	sort -n |
-	grep -B 1 -e "$LOGDIR" |
-	head -1
+	sort -nr |
+	grep -v -e "$LOGDIR" -e "${BUILDDIR}/attic" |
+	head "-${1:-1}"
 }
 
 # purge dir count
