@@ -8,7 +8,8 @@ if testcase "destination not present"; then
 fi
 
 if testcase "destination present"; then
-	touch ${WRKDIR}/{src,dst}.diff
+	echo a >${WRKDIR}/src.diff
+	echo b >${WRKDIR}/dst.diff
 	if diff_copy "${WRKDIR}/src.diff" "${WRKDIR}/dst.diff"; then
 		fail "expected diff_copy to exit non-zero"
 	fi

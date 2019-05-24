@@ -155,6 +155,16 @@ Those files can be used to track various metrics over time.
 .It Ev SIGNIFY
 Private key used to optionally sign the final release files using
 .Xr signify 1 .
+.It Ev SRCDIFF
+Path to sticky diff to always apply to the src tree.
+The diff is ignored if the path does not exist.
+Otherwise, it cannot be combined with option
+.Fl S .
+.It Ev X11DIFF
+Path to sticky diff to always apply to the xenocara tree.
+The diff is ignored if the path does not exist.
+Otherwise, it cannot be combined with option
+.Fl X .
 .It Ev X11OBJDIR
 Object directory for the xenocara tree.
 .Bq /usr/xobj

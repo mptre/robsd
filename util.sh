@@ -52,11 +52,14 @@ diff_copy() {
 	local _src="$1" _dst="$2"
 
 	if [ -e "$_dst" ]; then
-		[ -n "$_src" ] && return 1
+		if [ -n "$_src" ] && ! cmp -s "$_src" "$_dst"; then
+			return 1
+		fi
 	elif [ -n "$_src" ]; then
 		cp "$_src" "$_dst"
 		chmod 644 "$_dst"
 	fi
+
 	if [ -e "$_dst" ]; then
 		echo "$_dst"
 	fi
