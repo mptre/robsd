@@ -411,13 +411,10 @@ if lock_present "$BUILDDIR"; then
 fi
 lock_acquire "$LOGDIR"
 
-# Do not copy diff(s) during resume.
-if [ "$S" -eq 1 ]; then
-	SRCDIFF="$(diff_copy "$SRCDIFF" "${LOGDIR}/src.diff")" ||
-		fatal "src diff already specified"
-	X11DIFF="$(diff_copy "$X11DIFF" "${LOGDIR}/xenocara.diff")" ||
-		fatal "xenocara diff already specified"
-fi
+SRCDIFF="$(diff_copy "$SRCDIFF" "${LOGDIR}/src.diff")" ||
+	fatal "src diff already specified"
+X11DIFF="$(diff_copy "$X11DIFF" "${LOGDIR}/xenocara.diff")" ||
+	fatal "xenocara diff already specified"
 
 if [ "$KEEP" -gt 0 ]; then
 	purge "$BUILDDIR" "$KEEP" | while read -r _d; do
