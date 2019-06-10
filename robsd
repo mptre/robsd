@@ -63,23 +63,24 @@ check_perf() {
 	return 1
 }
 
-# lock_present directory
+# lock_acquire log-dir
 #
-# Exits 0 if no build lock already is acquired.
-lock_present() {
-	! find "$1" -type f -name running | cmp -s - /dev/null
-}
-
-# lock_acquire directory
-#
-# Acquire a new build lock.
+# Acquire the build lock.
 lock_acquire() {
+	local _owner
+
+	_owner="$(find "$BUILDDIR" -type f -name running)"
+	if [ -n "$_owner" ]; then
+		info "${_owner}: lock already acquired"
+		return 1
+	fi
+
 	touch "${1}/running"
 }
 
-# lock_release directory
+# lock_release log-dir
 #
-# Release the current build lock.
+# Release the build lock.
 lock_release() {
 	rm -f "${1}/running"
 }
@@ -403,13 +404,12 @@ fi
 info "using directory ${LOGDIR}"
 RELEASEDIR="$(release_dir "$LOGDIR")"
 
-if lock_present "$BUILDDIR"; then
+if ! lock_acquire "$LOGDIR"; then
 	# Do not leave an empty release around.
 	[ "$S" -eq 1 ] && rm -r "$LOGDIR"
 
 	fatal "already running"
 fi
-lock_acquire "$LOGDIR"
 
 SRCDIFF="$(diff_copy "$SRCDIFF" "${LOGDIR}/src.diff")" ||
 	fatal "src diff already specified"
