@@ -231,8 +231,11 @@ purge() {
 		fi
 
 		find "$_d" -mindepth 1 -not \( \
-			-name stages -o -name report -o -name '*cvs.log' -o \
-			-name '*.diff' -o -name "$_log" \) -delete
+			-name stages -o \
+			-name report -o \
+			-name '*cvs.log' -o \
+			-name '*.diff' -o \
+			-name "$_log" \) -delete
 
 		# Transform: YYYY-MM-DD.X -> YYYY/MM/DD.X
 		_dst="${_attic}/$(echo "${_d##*/}" | tr '-' '/')"
