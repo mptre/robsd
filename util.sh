@@ -231,6 +231,7 @@ purge() {
 		fi
 
 		find "$_d" -mindepth 1 -not \( \
+			-name comment -o \
 			-name stages -o \
 			-name report -o \
 			-name '*cvs.log' -o \
