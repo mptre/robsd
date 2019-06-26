@@ -48,7 +48,8 @@ cleandir() {
 #
 # Remove leftovers from patch(1) in dir.
 diff_clean() {
-	find "$1" -type f \( -name '*.orig' -o -name '*.rej' \) -print0 |
+	find "$1" -type f \( \
+		-name '*.orig' -o -name '*.rej' -o -name '.#*' \) -print0 |
 	xargs -0rt rm
 }
 
