@@ -1,10 +1,5 @@
 . "${EXECDIR}/util.sh"
 
-diff_clean() {
-	find "$1" -type f \( -name '*.orig' -o -name '*.rej' \) -print0 |
-	xargs -0rt rm
-}
-
 if [ -n "$SRCDIFF" ]; then
 	cd "$(diff_root -f "$BSDSRCDIR" -r src "$SRCDIFF")"
 	su "$CVSUSER" -c "patch -ERs" <"$SRCDIFF"

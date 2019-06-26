@@ -44,6 +44,14 @@ cleandir() {
 	done
 }
 
+# diff_clean dir
+#
+# Remove leftovers from patch(1) in dir.
+diff_clean() {
+	find "$1" -type f \( -name '*.orig' -o -name '*.rej' \) -print0 |
+	xargs -0rt rm
+}
+
 # diff_copy src dst
 #
 # Copy the given diff located at src to dst.
