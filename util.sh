@@ -46,7 +46,7 @@ cleandir() {
 
 # diff_clean dir
 #
-# Remove leftovers from patch(1) in dir.
+# Remove leftovers from cvs and patch in dir.
 diff_clean() {
 	find "$1" -type f \( \
 		-name '*.orig' -o -name '*.rej' -o -name '.#*' \) -print0 |
