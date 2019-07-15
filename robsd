@@ -156,9 +156,9 @@ report() {
 	Build: ${LOGDIR}
 	Status: ${_status}
 	Duration: ${_d}
-	Size: $(report_size "${RELEASEDIR}/bsd")
-	Size: $(report_size "${RELEASEDIR}/bsd.mp")
-	Size: $(report_size "${RELEASEDIR}/bsd.rd")
+	Size: $(report_size "$(release_dir "$LOGDIR")/bsd")
+	Size: $(report_size "$(release_dir "$LOGDIR")/bsd.mp")
+	Size: $(report_size "$(release_dir "$LOGDIR")/bsd.rd")
 
 	.
 	w
