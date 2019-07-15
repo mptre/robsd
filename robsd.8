@@ -39,7 +39,7 @@ Each release build is identified by a directory created by
 .Nm
 rooted in
 .Ev BUILDDIR
-and is named after the current date.
+and named after the current date.
 The release directory contains the entries as follows.
 In addition, each executed stage has a corresponding log file in the same
 directory.
@@ -53,7 +53,7 @@ Referred to as RELEASEDIR in
 .It Pa report
 A summary of the release build which is delivered as a mail to root once
 .Nm
-terminates.
+exits.
 .It Pa stages
 Internal representation of the executed stages.
 This file should never be edited manually.
@@ -61,7 +61,7 @@ This file should never be edited manually.
 .Pp
 .Nm
 must be run as root.
-However, some stages can operate on behalf of another user using
+Some stages can however operate on behalf of another user using
 .Xr su 1 ,
 see
 .Sx ENVIRONMENT .
@@ -92,8 +92,7 @@ in the release directory.
 The
 .Nm
 utility is configured using environment variables.
-Variables are inherited from the current environment and can optionally be
-specified in
+Variables and can optionally be specified in
 .Pa /etc/robsdrc ,
 which is sourced during runtime.
 Where the latter takes higher precedence.
