@@ -112,17 +112,20 @@ diff_root() {
 	return 0
 }
 
-# duration_prev
+# duration_prev stage
 #
-# Get the duration of the previous release.
+# Get the duration for the given stage from the previous successful release.
 # Exits non-zero if no previous release exists or the previous one failed.
 duration_prev() {
-	local _prev
+	local _prev _stage
+
+	_stage="$1"
+	: "${_stage:?}"
 
 	prev_release 8 |
 	while read -r _prev; do
 		stage_eval -1 "${_prev}/stages"
-		[ "$(stage_value name)" = "end" ] || continue
+		[ "$(stage_value name)" = "$_stage" ] || continue
 
 		stage_value duration
 		return 1
@@ -272,25 +275,25 @@ reboot_commence() {
 	shutdown -r '+1' </dev/null >/dev/null 2>&1
 }
 
-# report_duration [-d] duration
+# report_duration [-d stage] duration
 #
 # Format the given duration to a human readable representation.
-# If option `-d' is given, the duration delta for previous release is also
-# formatted.
+# If option `-d' is given, the duration delta for the given stage relative
+# to the previous succesful release is also formatted.
 report_duration() {
-	local _do_delta=0
-	local _d _delta _prev _sign
+	local _delta=""
+	local _d _prev _sign
 
 	while [ $# -gt 0 ]; do
 		case "$1" in
-		-d)	_do_delta=1;;
+		-d)	shift; _delta="$1";;
 		*)	break;;
 		esac
 		shift
 	done
 	_d="$1"
 
-	if [ "$_do_delta" -eq 0 ] || ! _prev="$(duration_prev)"; then
+	if [ -z "$_delta" ] || ! _prev="$(duration_prev "$_delta")"; then
 		format_duration "$_d"
 		return 0
 	fi

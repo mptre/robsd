@@ -142,7 +142,7 @@ report() {
 	if [ "$_exit" -eq 0 ]; then
 		_status='ok'
 		# Only calculate the build duration delta on success.
-		_d="$(report_duration -d "$_duration")"
+		_d="$(report_duration -d end "$_duration")"
 	else
 		_status="failed in ${_name}"
 		_d="$(report_duration "$_duration")"
