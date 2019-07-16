@@ -304,6 +304,10 @@ report_duration() {
 	else
 		_sign="+"
 	fi
+	if [ "$_delta" -le 60 ]; then
+		format_duration "$_d"
+		return 0
+	fi
 	printf '%s (%s%s)\n' \
 		"$(format_duration "$_d")" \
 		"$_sign" \

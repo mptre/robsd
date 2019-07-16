@@ -131,7 +131,7 @@ report() {
 
 		printf '> %s:\n' "$_name"
 		printf 'Exit: %d\n' "$(stage_value exit)"
-		printf 'Duration: %s\n' "$(report_duration "$_duration")"
+		printf 'Duration: %s\n' "$(report_duration -d "$_name" "$_duration")"
 		printf 'Log: %s\n' "$(basename "$(stage_value log)")"
 		report_log "$_name" "$(stage_value log)"
 		printf '\n'
