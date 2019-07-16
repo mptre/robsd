@@ -164,6 +164,19 @@ report() {
 	w
 	EOF
 
+	# Add comment to the beginning of the report.
+	if [ -e "${LOGDIR}/comment" ]; then
+		ed -s <<-EOF "$_report"
+		H
+		0a
+		> comment:
+		$(cat "${LOGDIR}/comment")
+
+		.
+		w
+		EOF
+	fi
+
 	# Do not send mail during interactive invocations.
 	[ -t 0 ] && return 0
 
