@@ -124,8 +124,7 @@ duration_prev() {
 
 	prev_release 8 |
 	while read -r _prev; do
-		stage_eval -1 "${_prev}/stages"
-		[ "$(stage_value name)" = "$_stage" ] || continue
+		stage_eval -n "$_stage" "${_prev}/stages" || continue
 
 		stage_value duration
 		return 1
@@ -368,12 +367,26 @@ release_dir() {
 	echo "${1}/reldir"
 }
 
-# stage_eval stage file
+# stage_eval offset file
+# stage_eval -n stage-name file
 #
-# Read the given stage from file into the array _STAGE.
+# Read the given stage from file into the _STAGE array. The offset argument
+# refers to a line in file. A negative offset starts from the end of file.
 stage_eval() {
-	local _stage="$1" _file="$2"
-	local _i _k _next _v
+	local _name=0
+	local _file _i _k _next _stage _v
+
+	while [ $# -gt 0 ]; do
+		case "$1" in
+		-n)	_name=1;;
+		*)	break;;
+		esac
+		shift
+	done
+	_stage="$1"
+	: "${_stage:?}"
+	_file="$2"
+	: "${_file:?}"
 
 	set -A _STAGE
 
@@ -382,7 +395,9 @@ stage_eval() {
 		return 1
 	fi
 
-	if [ "$_stage" -lt 0 ]; then
+	if [ "$_name" -eq 1 ]; then
+		_line="$(sed -n -e "/name=\"${_stage}\"/p" "$_file")"
+	elif [ "$_stage" -lt 0 ]; then
 		_line="$(tail "$_stage" "$_file" | head -1)"
 	else
 		_line="$(sed -n -e "${_stage}p" "$_file")"
