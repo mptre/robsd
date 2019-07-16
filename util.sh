@@ -112,7 +112,7 @@ diff_root() {
 	return 0
 }
 
-# duration_prev stage
+# duration_prev stage-name
 #
 # Get the duration for the given stage from the previous successful release.
 # Exits non-zero if no previous release exists or the previous one failed.
