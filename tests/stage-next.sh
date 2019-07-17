@@ -1,6 +1,6 @@
 if testcase "stage exit zero"; then
 	cat <<-EOF >$TMP1
-	stage="0" exit="0"
+	stage="0" name="cvs" exit="0"
 	EOF
 
 	assert_eq "1" "$(stage_next "$TMP1")"
