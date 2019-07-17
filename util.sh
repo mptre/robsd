@@ -274,6 +274,83 @@ reboot_commence() {
 	shutdown -r '+1' </dev/null >/dev/null 2>&1
 }
 
+# report [-M] -r report -s stages
+#
+# Create a build report and save it to report.
+report() {
+	local _duration=0 _i=1 _mail=1 _name=""
+	local _report _stages _status
+
+	while [ $# -gt 0 ]; do
+		case "$1" in
+		-M)	_mail=0;;
+		-r)	shift; _report="$1";;
+		-s)	shift; _stages="$1";;
+		*)	break;;
+		esac
+		shift
+	done
+
+	if ! [ -e "$_stages" ]; then
+		echo "report: ${_stages}: no such file"
+		return 1
+	fi
+
+	# Clear or create report. Useful when resuming a build only to re-create
+	# the report.
+	echo -n >"$_report"
+
+	# Add comment to the beginning of the report.
+	if [ -e "${LOGDIR}/comment" ]; then
+		cat <<-EOF >>"$_report"
+		> comment:
+		$(cat "${LOGDIR}/comment")
+
+		EOF
+	fi
+
+	# Add stats to the beginning of the report.
+	stage_eval -1 "$_stages"
+	if [ "$(stage_value exit)" -eq 0 ]; then
+		_status="ok"
+		_duration="$(stage_value duration)"
+		_duration="$(report_duration -d end "$_duration")"
+	else
+		_status="failed in $(stage_value name)"
+		_duration="$(build_duration "$_stages")"
+		_duration="$(report_duration "$_duration")"
+	fi
+	cat <<-EOF >>"$_report"
+	> stats:
+	Build: ${LOGDIR}
+	Status: ${_status}
+	Duration: ${_duration}
+	Size: $(report_size "$(release_dir "$LOGDIR")/bsd")
+	Size: $(report_size "$(release_dir "$LOGDIR")/bsd.mp")
+	Size: $(report_size "$(release_dir "$LOGDIR")/bsd.rd")
+	EOF
+
+	while stage_eval "$_i" "$_stages"; do
+		_i=$((_i + 1))
+
+		_name="$(stage_value name)"
+		report_skip "$_name" && continue
+
+		_duration="$(stage_value duration)"
+
+		printf '\n> %s:\n' "$_name"
+		printf 'Exit: %d\n' "$(stage_value exit)"
+		printf 'Duration: %s\n' "$(report_duration -d "$_name" "$_duration")"
+		printf 'Log: %s\n' "$(basename "$(stage_value log)")"
+		report_log "$_name" "$(stage_value log)"
+	done >>"$_report"
+
+	# Do not send mail during interactive invocations.
+	{ [ -t 0 ] || [ "$_mail" -eq 0 ]; } && return 0
+
+	mail -s "robsd: $(machine): ${_status}" root <"$_report"
+}
+
 # report_duration [-d stage] duration
 #
 # Format the given duration to a human readable representation.
@@ -312,6 +389,27 @@ report_duration() {
 		"$(format_duration "$_d")" \
 		"$_sign" \
 		"$(format_duration "$_delta")"
+}
+
+# report_log stage log
+#
+# Writes an excerpt of the given log.
+report_log() {
+	[ -s "$2" ] && echo
+
+	case "$1" in
+	cvs|patch|revert|distrib)
+		cat "$2"
+		;;
+	checkflist)
+		# Silent if the log only contains PS4 traces.
+		grep -vq '^\+' "$2" || return 0
+		cat "$2"
+		;;
+	*)
+		tail "$2"
+		;;
+	esac
 }
 
 # report_size file

@@ -7,6 +7,7 @@ TESTS+=	format-duration.sh
 TESTS+=	purge.sh
 TESTS+=	report-duration.sh
 TESTS+=	report-size.sh
+TESTS+=	report.sh
 TESTS+=	stage-eval.sh
 TESTS+=	stage-next.sh
 
