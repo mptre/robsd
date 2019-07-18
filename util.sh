@@ -13,25 +13,6 @@ abs() {
 	fi
 }
 
-# build_duration stages
-#
-# Calculate the accumulated build duration.
-build_duration() {
-	local _i=1 _stages="$1" _tot=0 _d
-
-	while stage_eval "$_i" "$_stages"; do
-		_i=$((_i + 1))
-
-		# Do not include the previous accumulated build duration.
-		[ "$(stage_value name)" = "end" ] && continue
-
-		_d="$(stage_value duration)"
-		_tot=$((_tot + _d))
-	done
-
-	echo "$_tot"
-}
-
 # cleandir dir ...
 #
 # Remove all entries in the given directory without removing the actual
@@ -131,6 +112,31 @@ duration_prev() {
 	done || return 0
 
 	return 1
+}
+
+# duration_total stages
+#
+# Calculate the accumulated build duration.
+duration_total() {
+	local _i=1
+	local _tot=0
+	local _d _stages
+
+	_stages="$1"
+	: "${_stages:?}"
+
+	while stage_eval "$_i" "$_stages"; do
+		_i=$((_i + 1))
+
+		# Do not include the previous accumulated build duration.
+		# Could be present if the report is re-generated.
+		[ "$(stage_value name)" = "end" ] && continue
+
+		_d="$(stage_value duration)"
+		_tot=$((_tot + _d))
+	done
+
+	echo "$_tot"
 }
 
 # format_duration duration
@@ -317,7 +323,7 @@ report() {
 		_duration="$(report_duration -d end "$_duration")"
 	else
 		_status="failed in $(stage_value name)"
-		_duration="$(build_duration "$_stages")"
+		_duration="$(duration_total "$_stages")"
 		_duration="$(report_duration "$_duration")"
 	fi
 	cat <<-EOF >>"$_report"

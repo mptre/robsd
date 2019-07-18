@@ -339,7 +339,7 @@ while :; do
 
 	if [ "$STAGE" = "end" ]; then
 		# The duration of the end stage is the accumulated duration.
-		stage_end -d "$(build_duration "${LOGDIR}/stages")" -n "$STAGE" \
+		stage_end -d "$(duration_total "${LOGDIR}/stages")" -n "$STAGE" \
 			-s "$S" "${LOGDIR}/stages"
 		exit 0
 	fi

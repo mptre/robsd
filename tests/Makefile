@@ -1,8 +1,8 @@
-TESTS+=	build-duration.sh
 TESTS+=	cleandir.sh
 TESTS+=	diff-clean.sh
 TESTS+=	diff-copy.sh
 TESTS+=	diff-root.sh
+TESTS+=	duration-total.sh
 TESTS+=	format-duration.sh
 TESTS+=	purge.sh
 TESTS+=	report-duration.sh
