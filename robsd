@@ -92,7 +92,7 @@ log_id() {
 	printf '%02d-%s.log' "$1" "$2"
 }
 
-# must_report stage
+# must_report stage-name
 #
 # Exits 0 if a report must be generated.
 must_report() {
@@ -102,7 +102,7 @@ must_report() {
 	esac
 }
 
-# stage_begin -l log -n name -s stage
+# stage_begin -l log -n name -s stage-name
 #
 # Mark the given stage as about to execute by writing an entry to the given
 # file. The same entry will be overwritten once the stage has ended.
@@ -122,7 +122,7 @@ stage_begin() {
 	stage_end -d -1 -e 0 -l "$_l" -n "$_n" -s "$_s" "$1"
 }
 
-# stage_end [-e exit] [-l log] -d duration -n name -s stage file
+# stage_end [-e exit] [-l log] -d duration -n name -s stage-name file
 #
 # Mark the given stage as ended by writing an entry to the given file.
 stage_end() {
@@ -212,7 +212,7 @@ stage_names() {
 	EOF
 }
 
-# stage_resolve stage
+# stage_resolve stage-id
 #
 # Resolve the given numeric stage to its corresponding name.
 stage_resolve() {
