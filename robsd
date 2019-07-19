@@ -6,6 +6,7 @@ usage() {
 	cat <<-EOF | xargs 1>&2
 	usage: robsd
 	[-v]
+	[-c file]
 	[-S src-diff]
 	[-X xenocara-diff]
 	[-r path]
@@ -274,11 +275,12 @@ if [ -n "$X11DIFF" ] && ! [ -e "$X11DIFF" ]; then
 	X11DIFF=""
 fi
 
+COMMENT=""
 LOGDIR=""
 S=1
 STAGE=""
 
-while getopts "S:X:r:v" opt; do
+while getopts "S:X:c:r:v" opt; do
 	case "$opt" in
 	S)
 		if [ -n "$SRCDIFF" ]; then
@@ -292,6 +294,7 @@ while getopts "S:X:r:v" opt; do
 		fi
 		X11DIFF="$OPTARG"
 		;;
+	c)	COMMENT="$OPTARG";;
 	r)	LOGDIR="$OPTARG";;
 	v)	set -x;;
 	*)	usage;;
@@ -326,6 +329,12 @@ SRCDIFF="$(diff_copy "$SRCDIFF" "${LOGDIR}/src.diff")" ||
 	fatal "src diff already specified"
 X11DIFF="$(diff_copy "$X11DIFF" "${LOGDIR}/xenocara.diff")" ||
 	fatal "xenocara diff already specified"
+
+if [ -n "$COMMENT" ]; then
+	if ! comment "$COMMENT" "${LOGDIR}/comment"; then
+		fatal "comment already specified"
+	fi
+fi
 
 if [ "$KEEP" -gt 0 ]; then
 	purge "$BUILDDIR" "$KEEP" | while read -r _d; do

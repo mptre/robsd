@@ -7,6 +7,7 @@
 .Sh SYNOPSIS
 .Nm robsd
 .Op Fl v
+.Op Fl c Ar file
 .Op Fl S Ar src-diff
 .Op Fl X Ar xenocara-diff
 .Nm
@@ -45,7 +46,7 @@ In addition, each executed stage has a corresponding log file in the same
 directory.
 .Bl -tag -width Ds
 .It Pa comment
-Manually created file used to annotate the release build.
+File used to annotate the release build.
 .It Pa reldir
 Directory containing the final release files.
 Referred to as RELEASEDIR in
@@ -68,6 +69,17 @@ see
 .Pp
 The options are as follows:
 .Bl -tag -width Ds
+.It Fl c Ar file
+Annotate the release build.
+.Ar file
+is copied to
+.Pa comment
+in the release directory.
+If
+.Ar file
+is
+.Sq - ,
+stdin is used.
 .It Fl r Ar path
 Resume a release build located at
 .Ar path .

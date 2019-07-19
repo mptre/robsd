@@ -25,6 +25,25 @@ cleandir() {
 	done
 }
 
+# comment src dst
+#
+# Copy the comment file src to dst. If src is `-', stdin is used.
+# Exits non-zero if dst already exists.
+comment() {
+	local _dst _src
+
+	_src="$1"; : "${_src:?}"
+	_dst="$2"; : "${_dst:?}"
+
+	[ -e "$_dst" ] && return 1
+
+	if [ "$_src" = "-" ]; then
+		cat >"$_dst"
+	else
+		cp "$_src" "$_dst"
+	fi
+}
+
 # diff_clean dir
 #
 # Remove leftovers from cvs and patch in dir.
