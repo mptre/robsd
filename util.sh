@@ -297,10 +297,9 @@ report() {
 		shift
 	done
 
-	if ! [ -e "$_stages" ]; then
-		echo "report: ${_stages}: no such file"
-		return 1
-	fi
+	# The stages file could be absent when a build fails to start due to
+	# another already running build.
+	[ -e "$_stages" ] || return 0
 
 	# Clear or create report. Useful when resuming a build only to re-create
 	# the report.

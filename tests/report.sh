@@ -64,3 +64,7 @@ if testcase "failure"; then
 
 	assert_file "$TMP1" "$REPORT"
 fi
+
+if testcase "missing stages"; then
+	report -M -r "$REPORT" -s "$STAGES"
+fi
