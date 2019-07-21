@@ -304,7 +304,7 @@ reboot_commence() {
 # Create a build report and save it to report.
 report() {
 	local _duration=0 _i=1 _mail=1 _name=""
-	local _report _stages _status
+	local _log _report _stages _status
 
 	while [ $# -gt 0 ]; do
 		case "$1" in
@@ -358,14 +358,15 @@ report() {
 		_i=$((_i + 1))
 
 		_name="$(stage_value name)"
-		report_skip "$_name" && continue
+		_log="$(stage_value log)"
+		report_skip "$_name" "$_log" && continue
 
 		_duration="$(stage_value duration)"
 
 		printf '\n> %s:\n' "$_name"
 		printf 'Exit: %d\n' "$(stage_value exit)"
 		printf 'Duration: %s\n' "$(report_duration -d "$_name" "$_duration")"
-		printf 'Log: %s\n' "$(basename "$(stage_value log)")"
+		printf 'Log: %s\n' "$(basename "$_log")"
 		report_log "$_name" "$(stage_value log)"
 	done >>"$_report"
 
@@ -422,12 +423,7 @@ report_log() {
 	[ -s "$2" ] && echo
 
 	case "$1" in
-	cvs|patch|revert|distrib)
-		cat "$2"
-		;;
-	checkflist)
-		# Silent if the log only contains PS4 traces.
-		grep -vq '^\+' "$2" || return 0
+	cvs|patch|checkflist|revert|distrib)
 		cat "$2"
 		;;
 	*)
@@ -473,13 +469,17 @@ report_size() {
 	printf '\n'
 }
 
-# report_skip stage
+# report_skip stage-name stage-log
 #
 # Exits zero if the given stage should not be included in the report.
 report_skip() {
 	case "$1" in
 	env|end)
 		return 0
+		;;
+	checkflist)
+		# Skip if the log only contains PS4 traces.
+		grep -vq '^\+' "$2" || return 0
 		;;
 	esac
 
