@@ -398,7 +398,6 @@ report() {
 	local _i=1
 	local _mail=1
 	local _name=""
-	local _threshold=60
 	local _log _report _stages _status
 
 	while [ $# -gt 0 ]; do
@@ -433,7 +432,7 @@ report() {
 	if [ "$(stage_value exit)" -eq 0 ]; then
 		_status="ok"
 		_duration="$(stage_value duration)"
-		_duration="$(report_duration -d end -t "$_threshold" "$_duration")"
+		_duration="$(report_duration -d end -t 60 "$_duration")"
 	else
 		_status="failed in $(stage_value name)"
 		_duration="$(duration_total "$_stages")"
@@ -460,7 +459,7 @@ report() {
 
 		printf '\n> %s:\n' "$_name"
 		printf 'Exit: %d\n' "$(stage_value exit)"
-		printf 'Duration: %s\n' "$(report_duration -d "$_name" -t "$_threshold" "$_duration")"
+		printf 'Duration: %s\n' "$(report_duration -d "$_name" "$_duration")"
 		printf 'Log: %s\n' "$(basename "$_log")"
 		report_log "$_name" "$(stage_value log)"
 	done >>"$_report"
