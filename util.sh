@@ -394,7 +394,11 @@ reboot_commence() {
 #
 # Create a build report and save it to report.
 report() {
-	local _duration=0 _i=1 _mail=1 _name=""
+	local _duration=0
+	local _i=1
+	local _mail=1
+	local _name=""
+	local _threshold=60
 	local _log _report _stages _status
 
 	while [ $# -gt 0 ]; do
@@ -429,7 +433,7 @@ report() {
 	if [ "$(stage_value exit)" -eq 0 ]; then
 		_status="ok"
 		_duration="$(stage_value duration)"
-		_duration="$(report_duration -d end "$_duration")"
+		_duration="$(report_duration -d end -t "$_threshold" "$_duration")"
 	else
 		_status="failed in $(stage_value name)"
 		_duration="$(duration_total "$_stages")"
@@ -456,7 +460,7 @@ report() {
 
 		printf '\n> %s:\n' "$_name"
 		printf 'Exit: %d\n' "$(stage_value exit)"
-		printf 'Duration: %s\n' "$(report_duration -d "$_name" "$_duration")"
+		printf 'Duration: %s\n' "$(report_duration -d "$_name" -t "$_threshold" "$_duration")"
 		printf 'Log: %s\n' "$(basename "$_log")"
 		report_log "$_name" "$(stage_value log)"
 	done >>"$_report"
@@ -467,18 +471,21 @@ report() {
 	mail -s "robsd: $(machine): ${_status}" root <"$_report"
 }
 
-# report_duration [-d stage] duration
+# report_duration [-d stage] [-t threshold] duration
 #
 # Format the given duration to a human readable representation.
 # If option `-d' is given, the duration delta for the given stage relative
-# to the previous succesful release is also formatted.
+# to the previous succesful release is also formatted if the delta is greater
+# than the given threshold.
 report_duration() {
 	local _delta=""
+	local _threshold=0
 	local _d _prev _sign
 
 	while [ $# -gt 0 ]; do
 		case "$1" in
 		-d)	shift; _delta="$1";;
+		-t)	shift; _threshold="$1";;
 		*)	break;;
 		esac
 		shift
@@ -497,7 +504,7 @@ report_duration() {
 	else
 		_sign="+"
 	fi
-	if [ "$_delta" -le 60 ]; then
+	if [ "$_delta" -le "$_threshold" ]; then
 		format_duration "$_d"
 		return 0
 	fi
