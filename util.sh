@@ -360,6 +360,7 @@ purge() {
 		find "$_d" -mindepth 1 -not \( \
 			-name 'comment' -o \
 			-name 'stages' -o \
+			-name 'index.txt' -o \
 			-name 'report' -o \
 			-name '*cvs.log' -o \
 			-name '*.diff' -o \
