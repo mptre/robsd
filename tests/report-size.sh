@@ -7,7 +7,7 @@ zero() {
 FILE="$(basename "$TMP1")"
 
 if testcase "previous release missing"; then
-	assert_eq "${FILE} 0" "$(report_size "$TMP1")"
+	assert_eq "" "$(report_size "$TMP1")"
 fi
 
 if testcase "previous release missing file"; then
@@ -15,7 +15,7 @@ if testcase "previous release missing file"; then
 	LOGDIR="${BUILDDIR}/2019-02-23"
 	mkdir -p ${BUILDDIR}/2019-02-{22,23}/reldir
 
-	assert_eq "${FILE} 1.0K" "$(report_size "$TMP1")"
+	assert_eq "" "$(report_size "$TMP1")"
 fi
 
 if testcase "previous delta too small"; then
@@ -24,7 +24,7 @@ if testcase "previous delta too small"; then
 	mkdir -p ${BUILDDIR}/2019-02-{22,23}/reldir
 	zero 1K "${BUILDDIR}/2019-02-22/reldir/${FILE}"
 
-	assert_eq "${FILE} 1.0K" "$(report_size "$TMP1")"
+	assert_eq "" "$(report_size "$TMP1")"
 fi
 
 if testcase "previous delta megabytes"; then

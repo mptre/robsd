@@ -398,7 +398,7 @@ report() {
 	local _i=1
 	local _mail=1
 	local _name=""
-	local _log _report _stages _status
+	local _f _log _report _stages _status
 
 	while [ $# -gt 0 ]; do
 		case "$1" in
@@ -438,15 +438,16 @@ report() {
 		_duration="$(duration_total "$_stages")"
 		_duration="$(report_duration "$_duration")"
 	fi
-	cat <<-EOF >>"$_report"
-	> stats:
-	Build: ${LOGDIR}
-	Status: ${_status}
-	Duration: ${_duration}
-	Size: $(report_size "$(release_dir "$LOGDIR")/bsd")
-	Size: $(report_size "$(release_dir "$LOGDIR")/bsd.mp")
-	Size: $(report_size "$(release_dir "$LOGDIR")/bsd.rd")
-	EOF
+	{
+		cat <<-EOF
+		> stats:
+		Build: ${LOGDIR}
+		Status: ${_status}
+		Duration: ${_duration}
+		EOF
+
+		report_sizes "$(release_dir "$LOGDIR")"
+	} >>"$_report"
 
 	while stage_eval "$_i" "$_stages"; do
 		_i=$((_i + 1))
@@ -531,9 +532,8 @@ report_log() {
 
 # report_size file
 #
-# Writes a human readable representation of the size of the given file.
-# If the same file is present in the previous release, report that size as
-# well.
+# If the given file is significantly larger than the same file in the previous
+# release, a human readable representation of the size and delta is reported.
 report_size() {
 	local _f="$1"
 	local _delta _name _path _prev _s1 _s2
@@ -542,28 +542,40 @@ report_size() {
 
 	_name="$(basename "$_f")"
 
-	printf '%s' "$_name"
-	if ! [ -e "$_f" ]; then
-		printf ' 0\n'
-		return 0
-	fi
-
-	_s1="$(ls -l "$_f" | awk '{print $5}')"
-	printf ' %s' "$(format_size "${_s1}")"
+	[ -e "$_f" ] || return 0
 
 	_prev="$(prev_release)"
-	if [ -n "$_prev" ]; then
-		_path="$(release_dir "$_prev")/${_name}"
-		if [ -e "$_path" ]; then
-			_s2="$(ls -l "$_path" | awk '{print $5}')"
-			_delta="$((_s1 - _s2))"
-			if [ "$(abs "$_delta")" -ge $((1024 * 100)) ]; then
-				printf ' (%s)' "$(format_size -M -s "$_delta")"
-			fi
-		fi
-	fi
+	[ -z "$_prev" ] && return 0
 
-	printf '\n'
+	_path="$(release_dir "$_prev")/${_name}"
+	[ -e "$_path" ] || return 0
+
+	_s1="$(ls -l "$_f" | awk '{print $5}')"
+	_s2="$(ls -l "$_path" | awk '{print $5}')"
+	_delta="$((_s1 - _s2))"
+	[ "$(abs "$_delta")" -ge $((1024 * 100)) ] || return 0
+
+	echo "$_name" "$(format_size "$_s1")" \
+		"($(format_size -M -s "$_delta"))"
+}
+
+# report_sizes release_dir
+#
+# Report significant growth of any file present in the given release directory.
+report_sizes() {
+	local _dir="$1"
+	local _f _siz
+
+	: "${_dir:?}"
+
+	[ -d "$_dir" ] || return 0
+
+	find "$_dir" -type f | while read -r _f; do
+		_siz="$(report_size "$_f")"
+		[ -z "$_siz" ] && continue
+
+		echo "Size: ${_siz}"
+	done
 }
 
 # report_skip stage-name stage-log
