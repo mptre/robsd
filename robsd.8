@@ -167,6 +167,13 @@ usage:
 .Pa cvs.log
 and the log from the last failing stage.
 Those files can be used to track various metrics over time.
+.It Ev MAKEFLAGS
+Options passed to
+.Xr make 1 .
+Defaults to setting the maximum number of processes option to the value of
+.Va hw.ncpuonline ,
+see
+.Xr sysctl 8 .
 .It Ev SIGNIFY
 Private key used to optionally sign the final release files using
 .Xr signify 1 .
