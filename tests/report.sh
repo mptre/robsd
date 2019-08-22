@@ -38,9 +38,9 @@ if testcase "basic"; then
 	comment goes here
 
 	> stats:
-	Build: ${LOGDIR}
 	Status: ok
 	Duration: 01:00:00
+	Build: ${LOGDIR}
 	Size: bsd.rd 2.0M (+1.0M)
 
 	> cvs:
@@ -65,9 +65,9 @@ if testcase "failure"; then
 	EOF
 	cat <<-EOF >$TMP1
 	> stats:
-	Build: ${LOGDIR}
 	Status: failed in cvs
 	Duration: 00:00:11
+	Build: ${LOGDIR}
 
 	> cvs:
 	Exit: 1

@@ -442,9 +442,9 @@ report() {
 	{
 		cat <<-EOF
 		> stats:
-		Build: ${LOGDIR}
 		Status: ${_status}
 		Duration: ${_duration}
+		Build: ${LOGDIR}
 		EOF
 
 		report_sizes "$(release_dir "$LOGDIR")"
