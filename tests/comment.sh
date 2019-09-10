@@ -1,5 +1,5 @@
-SRC="${WRKDIR}/src"
-DST="${WRKDIR}/dst"
+SRC="${TSHDIR}/src"
+DST="${TSHDIR}/dst"
 
 if testcase "basic"; then
 	echo comment >"$SRC"

@@ -1,6 +1,6 @@
-LOGDIR="${WRKDIR}/logdir"
-STAGES="${WRKDIR}/stages"
-REPORT="${WRKDIR}/report"
+LOGDIR="${TSHDIR}/logdir"
+STAGES="${TSHDIR}/stages"
+REPORT="${TSHDIR}/report"
 
 # genfile size path
 #

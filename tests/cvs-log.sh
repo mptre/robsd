@@ -38,7 +38,7 @@ su() {
 }
 
 if testcase "basic"; then
-	mkdir "${WRKDIR}/.cvs"
+	mkdir "${TSHDIR}/.cvs"
 	LOGDIR="${BUILDDIR}/2019-07-21"
 	mkdir -p ${BUILDDIR}/2019-07-{20,21}
 	cat <<-EOF >${BUILDDIR}/2019-07-20/stages
@@ -51,7 +51,7 @@ if testcase "basic"; then
 	P sbin/dhclient/clparse.c
 	EOF
 
-	cat <<-EOF >"${WRKDIR}/exp"
+	cat <<-EOF >"${TSHDIR}/exp"
 	commit GsUu9lB5EDnr7xWy
 	Author: anton
 	Date: 2019/07/15 06:00:00
@@ -81,6 +81,6 @@ if testcase "basic"; then
 
 	EOF
 
-	cvs_log -r "." -t "${WRKDIR}/.cvs" -u nobody <"$TMP1" >"${WRKDIR}/act"
-	assert_file "${WRKDIR}/exp" "${WRKDIR}/act"
+	cvs_log -r "." -t "${TSHDIR}/.cvs" -u nobody <"$TMP1" >"${TSHDIR}/act"
+	assert_file "${TSHDIR}/exp" "${TSHDIR}/act"
 fi
