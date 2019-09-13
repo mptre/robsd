@@ -1,7 +1,7 @@
 if testcase "basic"; then
 	mkdir -p ${BUILDDIR}/2019-03-0{1,2}/reldir
 	for _d in ${BUILDDIR}/*; do
-		for _f in 01-base.log 02-cvs.log comment reldir/index.txt report src.diff; do
+		for _f in 01-base.log 02-cvs.log 03-env.log comment reldir/index.txt report src.diff; do
 			(cd "$_d" && echo "$_f" >$_f)
 		done
 		cat <<-EOF >"${_d}/stages"
@@ -21,7 +21,7 @@ if testcase "basic"; then
 		[ -e "$_p" ] && fail "expected ${_p} to be removed"
 	done
 
-	for _f in 02-cvs.log comment reldir/index.txt report src.diff stages; do
+	for _f in 02-cvs.log 03-env.log comment reldir/index.txt report src.diff stages; do
 		_p="${BUILDDIR}/attic/2019/03/01/${_f}"
 		[ -e "$_p" ] || fail "expected ${_p} to be left"
 	done
