@@ -358,12 +358,12 @@ purge() {
 		fi
 
 		find "$_d" -mindepth 1 -not \( \
+			-name '*.diff' -o \
+			-name '*cvs.log' -o \
 			-name 'comment' -o \
-			-name 'stages' -o \
 			-name 'index.txt' -o \
 			-name 'report' -o \
-			-name '*cvs.log' -o \
-			-name '*.diff' -o \
+			-name 'stages' -o \
 			-name "$_log" \) -delete
 
 		# Transform: YYYY-MM-DD.X -> YYYY/MM/DD.X
