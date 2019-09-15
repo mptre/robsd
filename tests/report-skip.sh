@@ -27,3 +27,39 @@ if testcase "checkflist not empty"; then
 		fail "expected checkflist to not be skipped"
 	fi
 fi
+
+if testcase "diff src present"; then
+	SRCDIFF="src.diff"
+	X11DIFF=""
+
+	if report_skip "patch"; then
+		fail "expected patch to not be skipped"
+	fi
+	if report_skip "revert"; then
+		fail "expected revert to not be skipped"
+	fi
+fi
+
+if testcase "diff xenocara present"; then
+	SRCDIFF=""
+	X11DIFF="xenocara.diff"
+
+	if report_skip "patch"; then
+		fail "expected patch to not be skipped"
+	fi
+	if report_skip "revert"; then
+		fail "expected revert to not be skipped"
+	fi
+fi
+
+if testcase "diff not present"; then
+	SRCDIFF=""
+	X11DIFF=""
+
+	if ! report_skip "patch"; then
+		fail "expected patch to be skipped"
+	fi
+	if ! report_skip "revert"; then
+		fail "expected revert to be skipped"
+	fi
+fi

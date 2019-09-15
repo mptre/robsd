@@ -580,17 +580,25 @@ report_sizes() {
 	done
 }
 
-# report_skip stage-name stage-log
+# report_skip stage-name [stage-log]
 #
 # Exits zero if the given stage should not be included in the report.
 report_skip() {
-	case "$1" in
+	local _name _log
+
+	_name="$1"; : "${_name:?}"
+
+	case "$_name" in
 	env|end)
 		return 0
 		;;
 	checkflist)
 		# Skip if the log only contains PS4 traces.
-		grep -vq '^\+' "$2" || return 0
+		_log="$2"
+		grep -vq '^\+' "$_log" || return 0
+		;;
+	patch|revert)
+		[ -z "$SRCDIFF" ] && [ -z "$X11DIFF" ] && return 0
 		;;
 	esac
 

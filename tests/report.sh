@@ -12,6 +12,8 @@ genfile() {
 }
 
 if testcase "basic"; then
+	SRCDIFF=""
+	X11DIFF=""
 	LOGDIR="${BUILDDIR}/2019-02-23"
 	mkdir -p ${BUILDDIR}/2019-02-{22,23}
 	echo "comment goes here" >"${LOGDIR}/comment"
@@ -19,7 +21,8 @@ if testcase "basic"; then
 	cat <<-EOF >${LOGDIR}/stages
 	stage="1" name="env" exit="0" duration="0" log="${LOGDIR}/env.log" user="root" time="0"
 	stage="2" name="cvs" exit="0" duration="358" log="${LOGDIR}/cvs.log" user="root" time="0"
-	stage="3" name="end" exit="0" duration="3600" log="" user="root" time="0"
+	stage="3" name="patch" exit="0" duration="0" log="${LOGDIR}/patch.log" user="root" time="0"
+	stage="4" name="end" exit="0" duration="3600" log="" user="root" time="0"
 	EOF
 	mkdir "${LOGDIR}/reldir"
 	genfile 2 "${LOGDIR}/reldir/bsd.rd"
