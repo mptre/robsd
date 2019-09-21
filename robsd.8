@@ -21,7 +21,24 @@ utility builds a
 release according to the
 .Xr release 8
 process.
-In addition, some auxiliary stages are also executed:
+Some stages are enhanced as follows:
+.Bl -dash
+.It
+During stage 2
+.Pq Build and install a new kernel
+the
+.Pa GENERIC.MP
+kernel is favored on multiprocessor machines based on
+.Va hw.ncpu ,
+see
+.Xr sysctl 8 .
+Otherwise,
+the
+.Pa GENERIC
+kernel is used.
+.El
+.Pp
+In addition, the following stages are also executed:
 .Bl -dash
 .It
 After stage 2
