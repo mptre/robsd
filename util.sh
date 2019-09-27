@@ -65,7 +65,7 @@ cvs_field() {
 cvs_log() {
 	local _indent="  "
 	local _message=0
-	local _date _id _line _path _prev _repo _user
+	local _date _id _line _log _path _prev _repo _user
 
 	while [ $# -gt 0 ]; do
 		case "$1" in
@@ -80,9 +80,13 @@ cvs_log() {
 	: "${_tmp:?}"
 	: "${_user:?}"
 
+	# Use the date from latest revision from the previous release.
 	_prev="$(prev_release)"
 	stage_eval -n cvs "${_prev}/stages"
-	_date="$(stage_value time)"; _date="$(date -r "$_date" '+%F %T')"
+	_log="$(stage_value log)"
+	_date="$(grep -m 1 '^Date:' "$_log" | sed -e 's/^[^:]*: *//')"
+	: "${_date:?}"
+	_date="$(date -j -f '%Y/%m/%d %H:%M:%S' +'%F %T' "$_date")"
 
 	grep '^[MPU]\>' |
 	cut -d ' ' -f 2 |

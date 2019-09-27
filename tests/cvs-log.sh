@@ -2,6 +2,11 @@
 su() {
 	local _file
 
+	if ! echo "$3" | grep -s "'>2019-07-14 00:00:00'"; then
+		fail "invalid date: ${3}"
+		return 1
+	fi
+
 	while read -r _file; do
 		case "$_file" in
 		bin/ed/ed.*)
@@ -42,7 +47,11 @@ if testcase "basic"; then
 	LOGDIR="${BUILDDIR}/2019-07-21"
 	mkdir -p ${BUILDDIR}/2019-07-{20,21}
 	cat <<-EOF >${BUILDDIR}/2019-07-20/stages
-	stage="2" name="cvs" time="1563616561"
+	stage="2" name="cvs" log="${BUILDDIR}/2019-07-20/cvs.log" time="1563616561"
+	EOF
+	cat <<-EOF >${BUILDDIR}/2019-07-20/cvs.log
+	Date: 2019/07/14 00:00:00
+	Date: 2019/07/13 23:59:59
 	EOF
 
 	cat <<-EOF >$TMP1
