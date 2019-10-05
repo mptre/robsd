@@ -404,7 +404,7 @@ report() {
 	local _i=1
 	local _mail=1
 	local _name=""
-	local _f _log _report _stages _status
+	local _f _log _report _stages _status _tmp
 
 	while [ $# -gt 0 ]; do
 		case "$1" in
@@ -420,13 +420,11 @@ report() {
 	# another already running build.
 	[ -e "$_stages" ] || return 0
 
-	# Clear or create report. Useful when resuming a build only to re-create
-	# the report.
-	echo -n >"$_report"
+	_tmp="$(mktemp -t robsd.XXXXXX)"
 
 	# Add comment to the beginning of the report.
 	if [ -e "${LOGDIR}/comment" ]; then
-		cat <<-EOF >>"$_report"
+		cat <<-EOF >>"$_tmp"
 		> comment:
 		$(cat "${LOGDIR}/comment")
 
@@ -453,7 +451,7 @@ report() {
 		EOF
 
 		report_sizes "$(release_dir "$LOGDIR")"
-	} >>"$_report"
+	} >>"$_tmp"
 
 	while stage_eval "$_i" "$_stages"; do
 		_i=$((_i + 1))
@@ -469,7 +467,13 @@ report() {
 		printf 'Duration: %s\n' "$(report_duration -d "$_name" "$_duration")"
 		printf 'Log: %s\n' "$(basename "$_log")"
 		report_log "$_name" "$(stage_value log)"
-	done >>"$_report"
+	done >>"$_tmp"
+
+	# smtpd(8) rejects messages with carriage return not followed by a
+	# newline. Play it safe and let vis(1) encode potential carriage
+	# returns.
+	vis "$_tmp" >"$_report"
+	rm "$_tmp"
 
 	# Do not send mail during interactive invocations.
 	{ [ -t 0 ] || [ "$_mail" -eq 0 ]; } && return 0
