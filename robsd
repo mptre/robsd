@@ -358,7 +358,7 @@ while :; do
 	T0="$(date '+%s')"
 	stage_begin -l "$LOG" -n "$STAGE" -s "$S" "${LOGDIR}/stages"
 	stage_exec -f "${LOGDIR}/fail" -l "$LOG" "${EXECDIR}/${STAGE}.sh" ||
-		EXIT=1
+		EXIT="$?"
 	T1="$(date '+%s')"
 	stage_end -d "$((T1 - T0))" -e "$EXIT" -l "$LOG" -n "$STAGE" -s "$S" \
 		"${LOGDIR}/stages"
