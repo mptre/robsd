@@ -532,7 +532,7 @@ report_log() {
 	[ -s "$2" ] && echo
 
 	case "$1" in
-	cvs|patch|checkflist|revert|distrib)
+	env|cvs|patch|checkflist|revert|distrib)
 		cat "$2"
 		;;
 	*)
