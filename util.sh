@@ -404,7 +404,7 @@ report() {
 	local _i=1
 	local _mail=1
 	local _name=""
-	local _f _log _report _stages _status _tmp
+	local _exit _f _log _report _stages _status _tmp
 
 	while [ $# -gt 0 ]; do
 		case "$1" in
@@ -457,13 +457,14 @@ report() {
 		_i=$((_i + 1))
 
 		_name="$(stage_value name)"
+		_exit="$(stage_value exit)"
 		_log="$(stage_value log)"
-		report_skip "$_name" "$_log" && continue
+		[ "$_exit" -eq 0 ] && report_skip "$_name" "$_log" && continue
 
 		_duration="$(stage_value duration)"
 
 		printf '\n> %s:\n' "$_name"
-		printf 'Exit: %d\n' "$(stage_value exit)"
+		printf 'Exit: %d\n' "$_exit"
 		printf 'Duration: %s\n' "$(report_duration -d "$_name" "$_duration")"
 		printf 'Log: %s\n' "$(basename "$_log")"
 		report_log "$_name" "$(stage_value log)"

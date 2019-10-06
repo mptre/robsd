@@ -85,6 +85,31 @@ if testcase "failure"; then
 	assert_file "$TMP1" "$REPORT"
 fi
 
+if testcase "failure in skipped stage"; then
+	mkdir "$LOGDIR"
+	echo "env log" >"${LOGDIR}/env.log"
+	cat <<-EOF >$STAGES
+	stage="1" name="env" exit="1" duration="1" log="${LOGDIR}/env.log" user="root" time="0"
+	EOF
+	cat <<-EOF >$TMP1
+	> stats:
+	Status: failed in env
+	Duration: 00:00:01
+	Build: ${LOGDIR}
+
+	> env:
+	Exit: 1
+	Duration: 00:00:01
+	Log: env.log
+
+	env log
+	EOF
+
+	report -M -r "$REPORT" -s "$STAGES"
+
+	assert_file "$TMP1" "$REPORT"
+fi
+
 if testcase "missing stages"; then
 	report -M -r "$REPORT" -s "$STAGES"
 fi
