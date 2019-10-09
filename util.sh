@@ -82,8 +82,8 @@ cvs_log() {
 
 	# Use the date from latest revision from the previous release.
 	_prev="$(prev_release)"
-	stage_eval -n cvs "${_prev}/stages"
-	_log="$(stage_value log)"
+	step_eval -n cvs "${_prev}/steps"
+	_log="$(step_value log)"
 	_date="$(grep -m 1 '^Date:' "$_log" | sed -e 's/^[^:]*: *//')"
 	: "${_date:?}"
 	_date="$(date -j -f '%Y/%m/%d %H:%M:%S' +'%F %T' "$_date")"
@@ -207,46 +207,46 @@ diff_root() {
 	return 0
 }
 
-# duration_prev stage-name
+# duration_prev step-name
 #
-# Get the duration for the given stage from the previous successful release.
+# Get the duration for the given step from the previous successful release.
 # Exits non-zero if no previous release exists or the previous one failed.
 duration_prev() {
-	local _prev _stage
+	local _prev _step
 
-	_stage="$1"
-	: "${_stage:?}"
+	_step="$1"
+	: "${_step:?}"
 
 	prev_release 8 |
 	while read -r _prev; do
-		stage_eval -n "$_stage" "${_prev}/stages" || continue
+		step_eval -n "$_step" "${_prev}/steps" || continue
 
-		stage_value duration
+		step_value duration
 		return 1
 	done || return 0
 
 	return 1
 }
 
-# duration_total stages
+# duration_total steps
 #
 # Calculate the accumulated build duration.
 duration_total() {
 	local _i=1
 	local _tot=0
-	local _d _stages
+	local _d _steps
 
-	_stages="$1"
-	: "${_stages:?}"
+	_steps="$1"
+	: "${_steps:?}"
 
-	while stage_eval "$_i" "$_stages"; do
+	while step_eval "$_i" "$_steps"; do
 		_i=$((_i + 1))
 
 		# Do not include the previous accumulated build duration.
 		# Could be present if the report is re-generated.
-		[ "$(stage_value name)" = "end" ] && continue
+		[ "$(step_value name)" = "end" ] && continue
 
-		_d="$(stage_value duration)"
+		_d="$(step_value duration)"
 		_tot=$((_tot + _d))
 	done
 
@@ -354,11 +354,11 @@ purge() {
 	while read -r _d; do
 		[ -d "$_attic" ] || mkdir "$_attic"
 
-		# If the last stage failed, keep the log.
-		if stage_eval -1 "${_d}/stages" 2>/dev/null &&
-			[ "$(stage_value exit)" -ne 0 ]
+		# If the last step failed, keep the log.
+		if step_eval -1 "${_d}/steps" 2>/dev/null &&
+			[ "$(step_value exit)" -ne 0 ]
 		then
-			_log="$(basename "$(stage_value log)")"
+			_log="$(basename "$(step_value log)")"
 		fi
 
 		find "$_d" -mindepth 1 -not \( \
@@ -368,7 +368,7 @@ purge() {
 			-name 'comment' -o \
 			-name 'index.txt' -o \
 			-name 'report' -o \
-			-name 'stages' -o \
+			-name 'steps' -o \
 			-name "$_log" \) -delete
 
 		# Transform: YYYY-MM-DD.X -> YYYY/MM/DD.X
@@ -396,7 +396,7 @@ reboot_commence() {
 	shutdown -r '+1' </dev/null >/dev/null 2>&1
 }
 
-# report [-M] -r report -s stages
+# report [-M] -r report -s steps
 #
 # Create a build report and save it to report.
 report() {
@@ -404,21 +404,21 @@ report() {
 	local _i=1
 	local _mail=1
 	local _name=""
-	local _exit _f _log _report _stages _status _tmp
+	local _exit _f _log _report _steps _status _tmp
 
 	while [ $# -gt 0 ]; do
 		case "$1" in
 		-M)	_mail=0;;
 		-r)	shift; _report="$1";;
-		-s)	shift; _stages="$1";;
+		-s)	shift; _steps="$1";;
 		*)	break;;
 		esac
 		shift
 	done
 
-	# The stages file could be absent when a build fails to start due to
+	# The steps file could be absent when a build fails to start due to
 	# another already running build.
-	[ -e "$_stages" ] || return 0
+	[ -e "$_steps" ] || return 0
 
 	_tmp="$(mktemp -t robsd.XXXXXX)"
 
@@ -432,14 +432,14 @@ report() {
 	fi
 
 	# Add stats to the beginning of the report.
-	stage_eval -1 "$_stages"
-	if [ "$(stage_value exit)" -eq 0 ]; then
+	step_eval -1 "$_steps"
+	if [ "$(step_value exit)" -eq 0 ]; then
 		_status="ok"
-		_duration="$(stage_value duration)"
+		_duration="$(step_value duration)"
 		_duration="$(report_duration -d end -t 60 "$_duration")"
 	else
-		_status="failed in $(stage_value name)"
-		_duration="$(duration_total "$_stages")"
+		_status="failed in $(step_value name)"
+		_duration="$(duration_total "$_steps")"
 		_duration="$(report_duration "$_duration")"
 	fi
 	{
@@ -453,21 +453,21 @@ report() {
 		report_sizes "$(release_dir "$LOGDIR")"
 	} >>"$_tmp"
 
-	while stage_eval "$_i" "$_stages"; do
+	while step_eval "$_i" "$_steps"; do
 		_i=$((_i + 1))
 
-		_name="$(stage_value name)"
-		_exit="$(stage_value exit)"
-		_log="$(stage_value log)"
+		_name="$(step_value name)"
+		_exit="$(step_value exit)"
+		_log="$(step_value log)"
 		[ "$_exit" -eq 0 ] && report_skip "$_name" "$_log" && continue
 
-		_duration="$(stage_value duration)"
+		_duration="$(step_value duration)"
 
 		printf '\n> %s:\n' "$_name"
 		printf 'Exit: %d\n' "$_exit"
 		printf 'Duration: %s\n' "$(report_duration -d "$_name" "$_duration")"
 		printf 'Log: %s\n' "$(basename "$_log")"
-		report_log "$_name" "$(stage_value log)"
+		report_log "$_name" "$(step_value log)"
 	done >>"$_tmp"
 
 	# smtpd(8) rejects messages with carriage return not followed by a
@@ -482,10 +482,10 @@ report() {
 	mail -s "robsd: $(machine): ${_status}" root <"$_report"
 }
 
-# report_duration [-d stage] [-t threshold] duration
+# report_duration [-d steps] [-t threshold] duration
 #
 # Format the given duration to a human readable representation.
-# If option `-d' is given, the duration delta for the given stage relative
+# If option `-d' is given, the duration delta for the given step relative
 # to the previous succesful release is also formatted if the delta is greater
 # than the given threshold.
 report_duration() {
@@ -525,7 +525,7 @@ report_duration() {
 		"$(format_duration "$_delta")"
 }
 
-# report_log stage log
+# report_log step log
 #
 # Writes an excerpt of the given log.
 report_log() {
@@ -589,9 +589,9 @@ report_sizes() {
 	done
 }
 
-# report_skip stage-name [stage-log]
+# report_skip step-name [step-log]
 #
-# Exits zero if the given stage should not be included in the report.
+# Exits zero if the given step should not be included in the report.
 report_skip() {
 	local _name _log
 
@@ -621,14 +621,14 @@ release_dir() {
 	echo "${1}/reldir"
 }
 
-# stage_eval offset file
-# stage_eval -n stage-name file
+# step_eval offset file
+# step_eval -n step-name file
 #
-# Read the given stage from file into the _STAGE array. The offset argument
+# Read the given step from file into the _STEP array. The offset argument
 # refers to a line in file. A negative offset starts from the end of file.
-stage_eval() {
+step_eval() {
 	local _name=0
-	local _file _i _k _next _stage _v
+	local _file _i _k _next _step _v
 
 	while [ $# -gt 0 ]; do
 		case "$1" in
@@ -637,24 +637,24 @@ stage_eval() {
 		esac
 		shift
 	done
-	_stage="$1"
-	: "${_stage:?}"
+	_step="$1"
+	: "${_step:?}"
 	_file="$2"
 	: "${_file:?}"
 
-	set -A _STAGE
+	set -A _STEP
 
 	if ! [ -e "$_file" ]; then
-		echo "stage_eval: ${_file}: no such file" 1>&2
+		echo "step_eval: ${_file}: no such file" 1>&2
 		return 1
 	fi
 
 	if [ "$_name" -eq 1 ]; then
-		_line="$(sed -n -e "/name=\"${_stage}\"/p" "$_file")"
-	elif [ "$_stage" -lt 0 ]; then
-		_line="$(tail "$_stage" "$_file" | head -1)"
+		_line="$(sed -n -e "/name=\"${_step}\"/p" "$_file")"
+	elif [ "$_step" -lt 0 ]; then
+		_line="$(tail "$_step" "$_file" | head -1)"
 	else
-		_line="$(sed -n -e "${_stage}p" "$_file")"
+		_line="$(sed -n -e "${_step}p" "$_file")"
 	fi
 	[ -z "$_line" ] && return 1
 
@@ -663,12 +663,12 @@ stage_eval() {
 		_k="${_next%=*}"
 		_v="${_next#*=\"}"; _v="${_v%\"}"
 
-		_i="$(stage_field "$_k")"
+		_i="$(step_field "$_k")"
 		if [ "$_i" -lt 0 ]; then
-			echo "stage_eval: ${_file}: unknown field ${_k}" 1>&2
+			echo "step_eval: ${_file}: unknown field ${_k}" 1>&2
 			return 1
 		fi
-		_STAGE[$_i]="$_v"
+		_STEP[$_i]="$_v"
 
 		_next="${_line#* }"
 		if [ "$_next" = "$_line" ]; then
@@ -678,19 +678,19 @@ stage_eval() {
 		fi
 	done
 
-	if [ ${#_STAGE[*]} -eq 0 ]; then
+	if [ ${#_STEP[*]} -eq 0 ]; then
 		return 1
 	else
 		return 0
 	fi
 }
 
-# stage_field name
+# step_field name
 #
-# Get the corresponding _STAGE array index for the given field name.
-stage_field() {
+# Get the corresponding _STEP array index for the given field name.
+step_field() {
 	case "$1" in
-	stage)		echo 0;;
+	step)		echo 0;;
 	name)		echo 1;;
 	exit)		echo 2;;
 	duration)	echo 3;;
@@ -701,32 +701,32 @@ stage_field() {
 	esac
 }
 
-# stage_value name
+# step_value name
 #
-# Get corresponding value for the given field name in the global _STAGE array.
-stage_value() {
+# Get corresponding value for the given field name in the global _STEP array.
+step_value() {
 	local _i
 
-	_i="$(stage_field "$1")"
+	_i="$(step_field "$1")"
 
-	echo "${_STAGE[$_i]}"
+	echo "${_STEP[$_i]}"
 }
 
-# stage_next stages
+# step_next steps
 #
-# Get the next stage to execute. If the last stage failed, it will be executed
-# again. The exception also applies to the end stage, this is useful since it
+# Get the next step to execute. If the last step failed, it will be executed
+# again. The exception also applies to the end step, this is useful since it
 # allows the report to be regenerated for a finished release.
-stage_next() {
-	local _stage
+step_next() {
+	local _step
 
-	stage_eval -1 "$1"
-	_stage="$(stage_value stage)"
-	if [ "$(stage_value exit)" -ne 0 ]; then
-		echo "$_stage"
-	elif [ "$(stage_value name)" = "end" ]; then
-		echo "$_stage"
+	step_eval -1 "$1"
+	_step="$(step_value step)"
+	if [ "$(step_value exit)" -ne 0 ]; then
+		echo "$_step"
+	elif [ "$(step_value name)" = "end" ]; then
+		echo "$_step"
 	else
-		echo $((_stage + 1))
+		echo $((_step + 1))
 	fi
 }

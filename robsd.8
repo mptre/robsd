@@ -21,10 +21,10 @@ utility builds a
 release according to the
 .Xr release 8
 process.
-Some stages are enhanced as follows:
+Some steps are enhanced as follows:
 .Bl -dash
 .It
-During stage 2
+During step 2
 .Pq Build and install a new kernel
 the
 .Pa GENERIC.MP
@@ -38,16 +38,16 @@ the
 kernel is used.
 .El
 .Pp
-In addition, the following stages are also executed:
+In addition, the following steps are also executed:
 .Bl -dash
 .It
-After stage 2
+After step 2
 .Pq Build and install a new kernel
 the machine is rebooted.
 Upon the next boot, the same release build is resumed from
 .Xr rc.firsttime 8 .
 .It
-After stage 8
+After step 8
 .Pq Create boot and installation disk images
 the final release files are distributed to another host using
 .Xr scp 1 .
@@ -59,7 +59,7 @@ rooted in
 .Ev BUILDDIR
 and named after the current date.
 The release directory contains the entries as follows.
-In addition, each executed stage has a corresponding log file in the same
+In addition, each executed step has a corresponding log file in the same
 directory.
 .Bl -tag -width Ds
 .It Pa comment
@@ -72,14 +72,14 @@ Referred to as RELEASEDIR in
 A summary of the release build which is delivered as a mail to root once
 .Nm
 exits.
-.It Pa stages
-Internal representation of the executed stages.
+.It Pa steps
+Internal representation of the executed steps.
 This file should never be edited manually.
 .El
 .Pp
 .Nm
 must be run as root.
-Some stages can however operate on behalf of another user using
+Some steps can however operate on behalf of another user using
 .Xr su 1 ,
 see
 .Sx ENVIRONMENT .
@@ -100,8 +100,8 @@ stdin is used.
 .It Fl r Ar path
 Resume a release build located at
 .Ar path .
-If the last executed stage failed, it will be executed again.
-Otherwise, the next stage will be executed.
+If the last executed step failed, it will be executed again.
+Otherwise, the next step will be executed.
 .It Fl S Ar src-diff
 Diff to apply to the src tree.
 The same diff will be reverted once the release is finished.
@@ -154,11 +154,11 @@ Directory rooted on a filesystem mounted with the
 option, see
 .Xr release 8 .
 .It Ev DISTRIBHOST
-Host to upload the final release files to during the distribution stage.
+Host to upload the final release files to during the distribution step.
 .It Ev DISTRIBPATH
 Directory on
 .Ev DISTRIBHOST
-to upload the final release files to during the distribution stage.
+to upload the final release files to during the distribution step.
 .It Ev DISTRIBUSER
 User to perform
 .Xr scp 1
@@ -181,9 +181,9 @@ usage:
 .Pa reldir/index.txt ,
 .Pa report ,
 .Pa src.diff ,
-.Pa stages ,
+.Pa steps ,
 .Pa xenocara.diff ,
-and the log from the last failing stage.
+and the log from the last failing step.
 Those files can be used to track various metrics over time.
 .It Ev MAKEFLAGS
 Options passed to

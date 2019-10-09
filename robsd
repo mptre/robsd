@@ -28,12 +28,12 @@ atexit() {
 
 	lock_release "$LOGDIR"
 
-	if [ $_err -ne 0 ] || must_report "$STAGE"; then
-		report -r "${LOGDIR}/report" -s "${LOGDIR}/stages"
+	if [ $_err -ne 0 ] || must_report "$STEP"; then
+		report -r "${LOGDIR}/report" -s "${LOGDIR}/steps"
 	fi
 
 	if [ $_err -ne 0 ]; then
-		info "failed in stage ${STAGE:-unknown}"
+		info "failed in step ${STEP:-unknown}"
 	fi
 
 	return "$_err"
@@ -86,14 +86,14 @@ lock_release() {
 	rm -f "${1}/running"
 }
 
-# log_id stage-id stage-name
+# log_id step-id step-name
 #
-# Generate the corresponding log file name for the given stage.
+# Generate the corresponding log file name for the given step.
 log_id() {
 	printf '%02d-%s.log' "$1" "$2"
 }
 
-# must_report stage-name
+# must_report step-name
 #
 # Exits 0 if a report must be generated.
 must_report() {
@@ -103,11 +103,11 @@ must_report() {
 	esac
 }
 
-# stage_begin -l log -n name -s stage-name
+# step_begin -l log -n name -s step-name
 #
-# Mark the given stage as about to execute by writing an entry to the given
-# file. The same entry will be overwritten once the stage has ended.
-stage_begin() {
+# Mark the given step as about to execute by writing an entry to the given
+# file. The same entry will be overwritten once the step has ended.
+step_begin() {
 	local _l _n _s
 
 	while [ $# -gt 0 ]; do
@@ -120,13 +120,13 @@ stage_begin() {
 		shift
 	done
 
-	stage_end -d -1 -e 0 -l "$_l" -n "$_n" -s "$_s" "$1"
+	step_end -d -1 -e 0 -l "$_l" -n "$_n" -s "$_s" "$1"
 }
 
-# stage_end [-e exit] [-l log] -d duration -n name -s stage-name file
+# step_end [-e exit] [-l log] -d duration -n name -s step-name file
 #
-# Mark the given stage as ended by writing an entry to the given file.
-stage_end() {
+# Mark the given step as ended by writing an entry to the given file.
+step_end() {
 	local _e=0 _l=""
 	local _d _n _s
 
@@ -142,13 +142,13 @@ stage_end() {
 		shift
 	done
 
-	# Remove any existing entry for the same stage, could be present if a
+	# Remove any existing entry for the same step, could be present if a
 	# previous execution failed.
-	[ -e "$1" ] && sed -i -e "/stage=\"${_s}\"/d" "$1"
+	[ -e "$1" ] && sed -i -e "/step=\"${_s}\"/d" "$1"
 
 	# Caution: all values must be quoted and cannot contain spaces.
 	{
-		printf 'stage="%d"\n' "$_s"
+		printf 'step="%d"\n' "$_s"
 		printf 'name="%s"\n' "$_n"
 		printf 'exit="%d"\n' "$_e"
 		printf 'duration="%d"\n' "$_d"
@@ -158,11 +158,11 @@ stage_end() {
 	} | paste -s -d ' ' - >>"$1"
 }
 
-# stage_exec -f fail -l log stage
+# step_exec -f fail -l log step
 #
-# Execute the given stage and redirect any output to log.
-stage_exec() (
-	local _fail _log _stage
+# Execute the given step and redirect any output to log.
+step_exec() (
+	local _fail _log _step
 
 	while [ $# -gt 0 ]; do
 		case "$1" in
@@ -172,16 +172,16 @@ stage_exec() (
 		esac
 		shift
 	done
-	_stage="$1"
+	_step="$1"
 	: "${_fail:?}"
 	: "${_log:?}"
-	: "${_stage:?}"
+	: "${_step:?}"
 
 	[ -t 0 ] || exec >/dev/null 2>&1
 
 	trap ': >$_fail' INT
 
-	{ sh -eux "$_stage" </dev/null 2>&1 || : >"$_fail"; } | tee "$_log"
+	{ sh -eux "$_step" </dev/null 2>&1 || : >"$_fail"; } | tee "$_log"
 	if [ -e "$_fail" ]; then
 		rm -f "$_fail"
 		return 1
@@ -189,12 +189,12 @@ stage_exec() (
 	return 0
 )
 
-# stage_names
+# step_names
 #
-# Writes the names of all stages in execution order.
-# The last stage named end is a sentinel stage without a corresponding stage
+# Writes the names of all steps in execution order.
+# The last step named end is a sentinel step without a corresponding step
 # script.
-stage_names() {
+step_names() {
 	cat <<-EOF
 	env
 	cvs
@@ -213,15 +213,15 @@ stage_names() {
 	EOF
 }
 
-# stage_resolve stage-id
+# step_resolve step-id
 #
-# Resolve the given numeric stage to its corresponding name.
-stage_resolve() {
-	local _stage
+# Resolve the given numeric step to its corresponding name.
+step_resolve() {
+	local _step
 
-	_stage="$(stage_names | sed -n -e "${1}p")"
-	if [ -n "$_stage" ]; then
-		echo "$_stage"
+	_step="$(step_names | sed -n -e "${1}p")"
+	if [ -n "$_step" ]; then
+		echo "$_step"
 	else
 		return 1
 	fi
@@ -278,7 +278,7 @@ fi
 COMMENT=""
 LOGDIR=""
 S=1
-STAGE=""
+STEP=""
 
 while getopts "S:X:c:r:v" opt; do
 	case "$opt" in
@@ -312,8 +312,8 @@ if [ -z "$LOGDIR" ]; then
 	LOGDIR="${BUILDDIR}/$(build_id "$BUILDDIR")"
 	mkdir "$LOGDIR"
 else
-	S="$(stage_next "${LOGDIR}/stages")"
-	info "resume build from stage ${S}"
+	S="$(step_next "${LOGDIR}/steps")"
+	info "resume build from step ${S}"
 fi
 info "using directory ${LOGDIR}"
 RELEASEDIR="$(release_dir "$LOGDIR")"
@@ -343,25 +343,25 @@ if [ "$KEEP" -gt 0 ]; then
 fi
 
 while :; do
-	STAGE="$(stage_resolve "$S")"
-	info "stage ${STAGE}"
+	STEP="$(step_resolve "$S")"
+	info "step ${STEP}"
 
-	if [ "$STAGE" = "end" ]; then
-		# The duration of the end stage is the accumulated duration.
-		stage_end -d "$(duration_total "${LOGDIR}/stages")" -n "$STAGE" \
-			-s "$S" "${LOGDIR}/stages"
+	if [ "$STEP" = "end" ]; then
+		# The duration of the end step is the accumulated duration.
+		step_end -d "$(duration_total "${LOGDIR}/steps")" -n "$STEP" \
+			-s "$S" "${LOGDIR}/steps"
 		exit 0
 	fi
 
-	LOG="${LOGDIR}/$(log_id "$S" "$STAGE")"
+	LOG="${LOGDIR}/$(log_id "$S" "$STEP")"
 	EXIT=0
 	T0="$(date '+%s')"
-	stage_begin -l "$LOG" -n "$STAGE" -s "$S" "${LOGDIR}/stages"
-	stage_exec -f "${LOGDIR}/fail" -l "$LOG" "${EXECDIR}/${STAGE}.sh" ||
+	step_begin -l "$LOG" -n "$STEP" -s "$S" "${LOGDIR}/steps"
+	step_exec -f "${LOGDIR}/fail" -l "$LOG" "${EXECDIR}/${STEP}.sh" ||
 		EXIT="$?"
 	T1="$(date '+%s')"
-	stage_end -d "$((T1 - T0))" -e "$EXIT" -l "$LOG" -n "$STAGE" -s "$S" \
-		"${LOGDIR}/stages"
+	step_end -d "$((T1 - T0))" -e "$EXIT" -l "$LOG" -n "$STEP" -s "$S" \
+		"${LOGDIR}/steps"
 	[ $EXIT -ne 0 ] && exit 1
 
 	# Reboot in progress?

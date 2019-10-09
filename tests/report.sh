@@ -1,5 +1,5 @@
 LOGDIR="${TSHDIR}/logdir"
-STAGES="${TSHDIR}/stages"
+STEPS="${TSHDIR}/steps"
 REPORT="${TSHDIR}/report"
 
 # genfile size path
@@ -18,19 +18,19 @@ if testcase "basic"; then
 	mkdir -p ${BUILDDIR}/2019-02-{22,23}
 	echo "comment goes here" >"${LOGDIR}/comment"
 	echo "cvs log" >"${LOGDIR}/cvs.log"
-	cat <<-EOF >${LOGDIR}/stages
-	stage="1" name="env" exit="0" duration="0" log="${LOGDIR}/env.log" user="root" time="0"
-	stage="2" name="cvs" exit="0" duration="358" log="${LOGDIR}/cvs.log" user="root" time="0"
-	stage="3" name="patch" exit="0" duration="0" log="${LOGDIR}/patch.log" user="root" time="0"
-	stage="4" name="end" exit="0" duration="3600" log="" user="root" time="0"
+	cat <<-EOF >${LOGDIR}/steps
+	step="1" name="env" exit="0" duration="0" log="${LOGDIR}/env.log" user="root" time="0"
+	step="2" name="cvs" exit="0" duration="358" log="${LOGDIR}/cvs.log" user="root" time="0"
+	step="3" name="patch" exit="0" duration="0" log="${LOGDIR}/patch.log" user="root" time="0"
+	step="4" name="end" exit="0" duration="3600" log="" user="root" time="0"
 	EOF
 	mkdir "${LOGDIR}/reldir"
 	genfile 2 "${LOGDIR}/reldir/bsd.rd"
 	genfile 1 "${LOGDIR}/reldir/base66.tgz"
 
 	# Create a previous release in order to report duration and sizes.
-	cat <<-EOF >${BUILDDIR}/2019-02-22/stages
-	stage="2" name="cvs" exit="0" duration="298" log="/dev/null" user="root" time="0"
+	cat <<-EOF >${BUILDDIR}/2019-02-22/steps
+	step="2" name="cvs" exit="0" duration="298" log="/dev/null" user="root" time="0"
 	EOF
 	mkdir "${BUILDDIR}/2019-02-22/reldir"
 	genfile 1 "${BUILDDIR}/2019-02-22/reldir/bsd.rd"
@@ -54,7 +54,7 @@ if testcase "basic"; then
 	cvs log
 	EOF
 
-	report -M -r "$REPORT" -s "${LOGDIR}/stages"
+	report -M -r "$REPORT" -s "${LOGDIR}/steps"
 
 	assert_file "$TMP1" "$REPORT"
 fi
@@ -62,9 +62,9 @@ fi
 if testcase "failure"; then
 	mkdir "$LOGDIR"
 	echo "cvs log" >"${LOGDIR}/cvs.log"
-	cat <<-EOF >$STAGES
-	stage="1" name="env" exit="0" duration="1" log="${LOGDIR}/env.log" user="root" time="0"
-	stage="2" name="cvs" exit="1" duration="10" log="${LOGDIR}/cvs.log" user="root" time="0"
+	cat <<-EOF >$STEPS
+	step="1" name="env" exit="0" duration="1" log="${LOGDIR}/env.log" user="root" time="0"
+	step="2" name="cvs" exit="1" duration="10" log="${LOGDIR}/cvs.log" user="root" time="0"
 	EOF
 	cat <<-EOF >$TMP1
 	> stats:
@@ -80,16 +80,16 @@ if testcase "failure"; then
 	cvs log
 	EOF
 
-	report -M -r "$REPORT" -s "$STAGES"
+	report -M -r "$REPORT" -s "$STEPS"
 
 	assert_file "$TMP1" "$REPORT"
 fi
 
-if testcase "failure in skipped stage"; then
+if testcase "failure in skipped step"; then
 	mkdir "$LOGDIR"
 	echo "env log" >"${LOGDIR}/env.log"
-	cat <<-EOF >$STAGES
-	stage="1" name="env" exit="1" duration="1" log="${LOGDIR}/env.log" user="root" time="0"
+	cat <<-EOF >$STEPS
+	step="1" name="env" exit="1" duration="1" log="${LOGDIR}/env.log" user="root" time="0"
 	EOF
 	cat <<-EOF >$TMP1
 	> stats:
@@ -105,11 +105,11 @@ if testcase "failure in skipped stage"; then
 	env log
 	EOF
 
-	report -M -r "$REPORT" -s "$STAGES"
+	report -M -r "$REPORT" -s "$STEPS"
 
 	assert_file "$TMP1" "$REPORT"
 fi
 
-if testcase "missing stages"; then
-	report -M -r "$REPORT" -s "$STAGES"
+if testcase "missing step"; then
+	report -M -r "$REPORT" -s "$STEPS"
 fi

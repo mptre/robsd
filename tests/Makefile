@@ -11,8 +11,8 @@ TESTS+=	report-duration.sh
 TESTS+=	report-size.sh
 TESTS+=	report-skip.sh
 TESTS+=	report.sh
-TESTS+=	stage-eval.sh
-TESTS+=	stage-next.sh
+TESTS+=	step-eval.sh
+TESTS+=	step-next.sh
 
 all: test
 

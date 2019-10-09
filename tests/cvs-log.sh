@@ -46,8 +46,8 @@ if testcase "basic"; then
 	mkdir "${TSHDIR}/.cvs"
 	LOGDIR="${BUILDDIR}/2019-07-21"
 	mkdir -p ${BUILDDIR}/2019-07-{20,21}
-	cat <<-EOF >${BUILDDIR}/2019-07-20/stages
-	stage="2" name="cvs" log="${BUILDDIR}/2019-07-20/cvs.log" time="1563616561"
+	cat <<-EOF >${BUILDDIR}/2019-07-20/steps
+	step="2" name="cvs" log="${BUILDDIR}/2019-07-20/cvs.log" time="1563616561"
 	EOF
 	cat <<-EOF >${BUILDDIR}/2019-07-20/cvs.log
 	Date: 2019/07/14 00:00:00
