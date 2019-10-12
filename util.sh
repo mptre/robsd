@@ -82,6 +82,7 @@ cvs_log() {
 
 	# Use the date from latest revision from the previous release.
 	_prev="$(prev_release)"
+	[ -z "$_prev" ] && return 0
 	step_eval -n cvs "${_prev}/steps"
 	_log="$(step_value log)"
 	_date="$(grep -m 1 '^Date:' "$_log" | sed -e 's/^[^:]*: *//')"

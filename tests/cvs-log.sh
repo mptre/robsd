@@ -93,3 +93,7 @@ if testcase "basic"; then
 	cvs_log -r "." -t "${TSHDIR}/.cvs" -u nobody <"$TMP1" >"${TSHDIR}/act"
 	assert_file "${TSHDIR}/exp" "${TSHDIR}/act"
 fi
+
+if testcase "previous build absent"; then
+	cvs_log -r . -t . -u nobody
+fi
