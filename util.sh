@@ -608,7 +608,7 @@ report_skip() {
 		grep -vq '^\+' "$_log" || return 0
 		;;
 	patch|revert)
-		[ -z "$SRCDIFF" ] && [ -z "$X11DIFF" ] && return 0
+		[ -z "$SRCDIFF" ] && [ -z "$XDIFF" ] && return 0
 		;;
 	esac
 

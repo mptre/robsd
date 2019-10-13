@@ -30,7 +30,7 @@ fi
 
 if testcase "diff src present"; then
 	SRCDIFF="src.diff"
-	X11DIFF=""
+	XDIFF=""
 
 	if report_skip "patch"; then
 		fail "expected patch to not be skipped"
@@ -42,7 +42,7 @@ fi
 
 if testcase "diff xenocara present"; then
 	SRCDIFF=""
-	X11DIFF="xenocara.diff"
+	XDIFF="xenocara.diff"
 
 	if report_skip "patch"; then
 		fail "expected patch to not be skipped"
@@ -54,7 +54,7 @@ fi
 
 if testcase "diff not present"; then
 	SRCDIFF=""
-	X11DIFF=""
+	XDIFF=""
 
 	if ! report_skip "patch"; then
 		fail "expected patch to be skipped"

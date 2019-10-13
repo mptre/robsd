@@ -6,8 +6,8 @@ if [ -n "$SRCDIFF" ]; then
 	su "$CVSUSER" -c "patch -Es" <"$SRCDIFF"
 fi
 
-if [ -n "$X11DIFF" ]; then
-	cd "$(diff_root -f "$X11SRCDIR" -r xenocara "$X11DIFF")"
-	su "$CVSUSER" -c "patch -Cs" <"$X11DIFF"
-	su "$CVSUSER" -c "patch -Es" <"$X11DIFF"
+if [ -n "$XDIFF" ]; then
+	cd "$(diff_root -f "$XSRCDIR" -r xenocara "$XDIFF")"
+	su "$CVSUSER" -c "patch -Cs" <"$XDIFF"
+	su "$CVSUSER" -c "patch -Es" <"$XDIFF"
 fi

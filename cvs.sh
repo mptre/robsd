@@ -1,6 +1,6 @@
 . "${EXECDIR}/util.sh"
 
-for d in "$BSDSRCDIR" "$X11SRCDIR"; do
+for d in "$BSDSRCDIR" "$XSRCDIR"; do
 	# Temporary directory used while generating logs. Intentionally not
 	# deleted in a trap handler since it's useful when something goes wrong.
 	WRKDIR="$(mktemp -d -t robsd.XXXXXX)"

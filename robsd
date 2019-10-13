@@ -247,9 +247,9 @@ export PATH; PATH="/bin:/sbin:/usr/bin:/usr/sbin:/usr/X11R6/bin"
 export RELEASEDIR
 export SIGNIFY; SIGNIFY=""
 export SRCDIFF; : "${SRCDIFF:=}"
-export X11DIFF; : "${X11DIFF:=}"
-export X11OBJDIR; X11OBJDIR="/usr/xobj"
-export X11SRCDIR; X11SRCDIR="/usr/xenocara"
+export XDIFF; : "${XDIFF:=}"
+export XOBJDIR; XOBJDIR="/usr/xobj"
+export XSRCDIR; XSRCDIR="/usr/xenocara"
 
 [ -e /etc/robsdrc ] && . /etc/robsdrc
 
@@ -261,7 +261,7 @@ export X11SRCDIR; X11SRCDIR="/usr/xenocara"
 : "${DISTRIBHOST:?}"
 : "${DISTRIBPATH:?}"
 : "${DISTRIBUSER:?}"
-: "${X11OBJDIR:?}"
+: "${XOBJDIR:?}"
 
 . "${EXECDIR}/util.sh"
 
@@ -270,9 +270,9 @@ if [ -n "$SRCDIFF" ] && ! [ -e "$SRCDIFF" ]; then
 	info "${SRCDIFF}: ignoring sticky src diff"
 	SRCDIFF=""
 fi
-if [ -n "$X11DIFF" ] && ! [ -e "$X11DIFF" ]; then
-	info "${X11DIFF}: ignoring sticky xenocara diff"
-	X11DIFF=""
+if [ -n "$XDIFF" ] && ! [ -e "$XDIFF" ]; then
+	info "${XDIFF}: ignoring sticky xenocara diff"
+	XDIFF=""
 fi
 
 COMMENT=""
@@ -289,10 +289,10 @@ while getopts "S:X:c:r:v" opt; do
 		SRCDIFF="$OPTARG"
 		;;
 	X)
-		if [ -n "$X11DIFF" ]; then
-			fatal "${X11DIFF}: xenocara diff already specified"
+		if [ -n "$XDIFF" ]; then
+			fatal "${XDIFF}: xenocara diff already specified"
 		fi
-		X11DIFF="$OPTARG"
+		XDIFF="$OPTARG"
 		;;
 	c)	COMMENT="$OPTARG";;
 	r)	LOGDIR="$OPTARG";;
@@ -327,7 +327,7 @@ fi
 
 SRCDIFF="$(diff_copy "$SRCDIFF" "${LOGDIR}/src.diff")" ||
 	fatal "src diff already specified"
-X11DIFF="$(diff_copy "$X11DIFF" "${LOGDIR}/xenocara.diff")" ||
+XDIFF="$(diff_copy "$XDIFF" "${LOGDIR}/xenocara.diff")" ||
 	fatal "xenocara diff already specified"
 
 if [ -n "$COMMENT" ]; then

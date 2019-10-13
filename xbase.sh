@@ -2,11 +2,11 @@
 
 unset DESTDIR RELEASEDIR
 
-cleandir "$X11OBJDIR"
-chown build:wobj "$X11OBJDIR"
-chmod 770 "$X11OBJDIR"
+cleandir "$XOBJDIR"
+chown build:wobj "$XOBJDIR"
+chmod 770 "$XOBJDIR"
 
-cd "$X11SRCDIR"
+cd "$XSRCDIR"
 make bootstrap
 make obj
 make build

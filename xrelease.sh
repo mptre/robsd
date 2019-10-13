@@ -8,6 +8,6 @@ cleandir "$DESTDIR"
 
 # Not suitable for parallelism.
 unset MAKEFLAGS
-cd "$X11SRCDIR"
+cd "$XSRCDIR"
 make release
 make checkdist

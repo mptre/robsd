@@ -13,7 +13,7 @@ genfile() {
 
 if testcase "basic"; then
 	SRCDIFF=""
-	X11DIFF=""
+	XDIFF=""
 	LOGDIR="${BUILDDIR}/2019-02-23"
 	mkdir -p ${BUILDDIR}/2019-02-{22,23}
 	echo "comment goes here" >"${LOGDIR}/comment"
