@@ -165,26 +165,11 @@ User to perform
 operations on behalf of.
 .It Ev KEEP
 Number of releases to keep in
-.Ev BUILDDIR .
+.Ev BUILDDIR ,
+see
+.Xr robsd-clean 8 .
 Defaults to keeping all releases.
 .Bq 0
-.Pp
-Old releases are moved to a directory named
-.Pa attic
-rooted in
-.Ev BUILDDIR .
-Only the following files are kept for old releases in order to reduce disk
-usage:
-.Pa comment ,
-.Pa cvs.log
-.Pa env.log
-.Pa reldir/index.txt ,
-.Pa report ,
-.Pa src.diff ,
-.Pa steps ,
-.Pa xenocara.diff ,
-and the log from the last failing step.
-Those files can be used to track various metrics over time.
 .It Ev MAKEFLAGS
 Options passed to
 .Xr make 1 .
@@ -233,6 +218,7 @@ DISTRIBUSER=anton
 .Sh DIAGNOSTICS
 .Ex -std
 .Sh SEE ALSO
-.Xr release 8
+.Xr release 8 ,
+.Xr robsd-clean 8
 .Sh AUTHORS
 .An Anton Lindqvist Aq Mt anton@basename.se

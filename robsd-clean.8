@@ -1,0 +1,53 @@
+.Dd $Mdocdate: October 14 2019$
+.Dt ROBSD-CLEAN 8
+.Os
+.Sh NAME
+.Nm robsd-clean
+.Nd clean releases
+.Sh SYNOPSIS
+.Nm robsd-clean
+.Op Ar keep
+.Sh DESCRIPTION
+The
+.Nm
+cleans out the
+.Ar keep
+number of oldest releases built by
+.Xr robsd 8 .
+If
+.Ar keep
+is omitted, it defaults to the value of
+.Ev KEEP .
+.Pp
+Old releases are moved to a directory named
+.Pa attic
+rooted in
+.Ev BUILDDIR .
+Only the following files are kept in order to reduce disk usage:
+.Pa comment ,
+.Pa cvs.log
+.Pa env.log
+.Pa reldir/index.txt ,
+.Pa report ,
+.Pa src.diff ,
+.Pa steps ,
+.Pa xenocara.diff ,
+and the log from the last failing step.
+Those files can be used to track various metrics over time.
+.Sh ENVIRONMENT
+The
+.Nm
+utility is configured using environment variables.
+Variables and can optionally be specified in
+.Pa /etc/robsdrc ,
+which is sourced during runtime.
+Where the latter takes higher precedence.
+See
+.Xr robsd 8
+for a description of the available variables.
+.Sh DIAGNOSTICS
+.Ex -std
+.Sh SEE ALSO
+.Xr robsd 8
+.Sh AUTHORS
+.An Anton Lindqvist Aq Mt anton@basename.se
