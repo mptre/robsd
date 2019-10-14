@@ -1,0 +1,107 @@
+.Dd $Mdocdate: October 14 2019$
+.Dt ROBSDRC 5
+.Os
+.Sh NAME
+.Nm robsdrc
+.Nd robsd configuration file
+.Sh DESCRIPTION
+.Nm
+is the configuration file for
+.Xr robsd 8 .
+By default,
+.Xr robsd 8
+is configured using environment variables.
+Variables and can optionally be specified in
+.Pa /etc/robsdrc ,
+which is sourced during runtime.
+Where the latter takes higher precedence.
+.Pp
+The following variables are recognized.
+Default values are displayed in brackets.
+.Bl -tag -width Ds
+.It Ev BSDOBJDIR
+Object directory for the src tree.
+.Bq Pa /usr/obj
+.It Ev BSDSRCDIR
+Source directory for the src tree.
+.Bq Pa /usr/src
+.It Ev BUILDDIR
+Directory to store releases.
+.It Ev CVSROOT
+Upstream
+.Xr cvs 1
+repository used to update sources from.
+.It Ev CVSUSER
+User to perform
+.Xr cvs 1
+and
+.Xr patch 1
+operations on behalf of.
+.It Ev DESTDIR
+Directory rooted on a filesystem mounted with the
+.Em noperm
+.Xr mount 8
+option, see
+.Xr release 8 .
+.It Ev DISTRIBHOST
+Host to upload the final release files to during the distribution step.
+.It Ev DISTRIBPATH
+Directory on
+.Ev DISTRIBHOST
+to upload the final release files to during the distribution step.
+.It Ev DISTRIBUSER
+User to perform
+.Xr scp 1
+operations on behalf of.
+.It Ev KEEP
+Number of releases to keep in
+.Ev BUILDDIR ,
+see
+.Xr robsd-clean 8 .
+Defaults to keeping all releases.
+.Bq 0
+.It Ev MAKEFLAGS
+Options passed to
+.Xr make 1 .
+Defaults to setting the maximum number of processes option to the value of
+.Va hw.ncpuonline ,
+see
+.Xr sysctl 8 .
+.It Ev SIGNIFY
+Private key used to optionally sign the final release files using
+.Xr signify 1 .
+.It Ev SRCDIFF
+Path to sticky diff to always apply to the src tree.
+The diff is ignored if the path does not exist.
+Otherwise, it cannot be combined with option
+.Fl S .
+.It Ev XDIFF
+Path to sticky diff to always apply to the xenocara tree.
+The diff is ignored if the path does not exist.
+Otherwise, it cannot be combined with option
+.Fl X .
+.It Ev XOBJDIR
+Object directory for the xenocara tree.
+.Bq /usr/xobj
+.It Ev XSRCDIR
+Source directory for the xenocara tree.
+.Bq /usr/xenocara
+.El
+.Sh EXAMPLES
+Example
+.Pa /etc/robsdrc
+configuration file with all mandatory variables present:
+.Bd -literal
+BUILDDIR=/home/snapshots
+CVSROOT=anoncvs@anoncvs.eu.openbsd.org:/cvs
+CVSUSER=anton
+DESTDIR=/home/noperm
+DISTRIBHOST=example.com
+DISTRIBPATH=/var/www/pub/OpenBSD/snapshots/`machine`
+DISTRIBUSER=anton
+.Ed
+.Sh SEE ALSO
+.Xr robsd 8 ,
+.Xr robsd-clean 8
+.Sh AUTHORS
+.An Anton Lindqvist Aq Mt anton@basename.se

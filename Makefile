@@ -39,10 +39,14 @@ install:
 	@mkdir -p ${DESTDIR}${MANDIR}/man8
 	${INSTALL_MAN} ${.CURDIR}/robsd.8 ${DESTDIR}${MANDIR}/man8
 	${INSTALL_MAN} ${.CURDIR}/robsd-clean.8 ${DESTDIR}${MANDIR}/man8
+	${INSTALL_MAN} ${.CURDIR}/robsdrc.5 ${DESTDIR}${MANDIR}/man5
 .PHONY: install
 
 lint:
-	mandoc -Tlint -Wstyle ${.CURDIR}/robsd.8 ${.CURDIR}/robsd-clean.8
+	mandoc -Tlint -Wstyle \
+		${.CURDIR}/robsd.8 \
+		${.CURDIR}/robsd-clean.8 \
+		${.CURDIR}/robsdrc.5
 	shellcheck ${SHELLCHECKFLAGS} \
 		${SCRIPTS:C/^/${.CURDIR}\//} \
 		${.CURDIR}/robsd \
