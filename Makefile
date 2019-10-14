@@ -1,5 +1,3 @@
-PROG=	 robsd
-
 SCRIPTS+=	base.sh
 SCRIPTS+=	checkflist.sh
 SCRIPTS+=	cvs.sh
@@ -32,10 +30,10 @@ all:
 
 install:
 	mkdir -p ${DESTDIR}${BINDIR}
-	${INSTALL} -m 0755 ${.CURDIR}/${PROG} ${DESTDIR}${BINDIR}
-	mkdir -p ${DESTDIR}${LIBEXECDIR}/${PROG}
+	${INSTALL} -m 0755 ${.CURDIR}/robsd ${DESTDIR}${BINDIR}
+	mkdir -p ${DESTDIR}${LIBEXECDIR}/robsd
 .for s in ${SCRIPTS}
-	${INSTALL} -m 0644 ${.CURDIR}/$s ${DESTDIR}${LIBEXECDIR}/${PROG}/$s
+	${INSTALL} -m 0644 ${.CURDIR}/$s ${DESTDIR}${LIBEXECDIR}/robsd/$s
 .endfor
 	@mkdir -p ${DESTDIR}${MANDIR}/man8
 	${INSTALL_MAN} ${.CURDIR}/robsd.8 ${DESTDIR}${MANDIR}/man8
@@ -44,7 +42,7 @@ install:
 lint:
 	mandoc -Tlint -Wstyle ${.CURDIR}/robsd.8
 	shellcheck ${SHELLCHECKFLAGS} \
-		${SCRIPTS:C/^/${.CURDIR}\//} ${.CURDIR}/${PROG}
+		${SCRIPTS:C/^/${.CURDIR}\//} ${.CURDIR}/robsd
 .PHONY: lint
 
 test:
