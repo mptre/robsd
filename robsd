@@ -15,7 +15,7 @@ usage() {
 }
 
 fatal() {
-	info "$@"
+	info "$*"
 	exit 1
 }
 
