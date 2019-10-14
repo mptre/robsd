@@ -49,8 +49,8 @@ comment() {
 # Load and validate the configuration.
 config_load() {
 	# Global variables with sensible defaults.
-	export BSDOBJDIR; BSDOBJDIR="/usr/obj"
-	export BSDSRCDIR; BSDSRCDIR="/usr/src"
+	export BSDOBJDIR; : "${BSDOBJDIR:="/usr/obj"}"
+	export BSDSRCDIR; : "${BSDSRCDIR:="/usr/src"}"
 	export BUILDDIR
 	export CVSROOT
 	export CVSUSER
@@ -58,17 +58,17 @@ config_load() {
 	export DISTRIBHOST
 	export DISTRIBPATH
 	export DISTRIBUSER
-	export EXECDIR; EXECDIR="/usr/local/libexec/robsd"
-	export KEEP; KEEP=0
+	export EXECDIR; : "${EXECDIR:="/usr/local/libexec/robsd"}"
+	export KEEP; : "${KEEP:=0}"
 	export LOGDIR
-	export MAKEFLAGS; MAKEFLAGS="-j$(sysctl -n hw.ncpuonline)"
+	export MAKEFLAGS; : "${MAKEFLAGS:="-j$(sysctl -n hw.ncpuonline)"}"
 	export PATH; PATH="/bin:/sbin:/usr/bin:/usr/sbin:/usr/X11R6/bin"
 	export RELEASEDIR
-	export SIGNIFY; SIGNIFY=""
+	export SIGNIFY; : "${SIGNIFY:=}"
 	export SRCDIFF; : "${SRCDIFF:=}"
 	export XDIFF; : "${XDIFF:=}"
-	export XOBJDIR; XOBJDIR="/usr/xobj"
-	export XSRCDIR; XSRCDIR="/usr/xenocara"
+	export XOBJDIR; : "${XOBJDIR="/usr/xobj"}"
+	export XSRCDIR; : "${XSRCDIR="/usr/xenocara"}"
 
 	[ -e /etc/robsdrc ] && . /etc/robsdrc
 
