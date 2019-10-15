@@ -3,7 +3,7 @@
 set -e
 
 usage() {
-	echo "usage: robsd-clean [keep]" 1>&2
+	echo "usage: robsd-clean count" 1>&2
 	exit 1
 }
 
@@ -17,14 +17,12 @@ info() {
 }
 
 [ "$(id -u)" -ne 0 ] && fatal "must be run as root"
-[ $# -gt 1 ] && usage
+[ $# -ne 1 ] && usage
 
 . "${EXECDIR:-/usr/local/libexec/robsd}/util.sh"
 
 config_load
 
-[ $# -eq 1 ] && KEEP="$1"
-
-purge "$BUILDDIR" "$KEEP" | while read -r _d; do
+purge "$BUILDDIR" "$1" | while read -r _d; do
 	info "moving ${_d} to the attic"
 done
