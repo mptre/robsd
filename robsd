@@ -26,7 +26,7 @@ info() {
 atexit() {
 	local _err=$?
 
-	lock_release "$LOGDIR"
+	lock_release "$BUILDDIR"
 
 	if [ $_err -ne 0 ] || must_report "$STEP"; then
 		report -r "${LOGDIR}/report" -s "${LOGDIR}/steps"
@@ -64,26 +64,30 @@ check_perf() {
 	return 1
 }
 
-# lock_acquire log-dir
+# lock_acquire build-dir log-dir
 #
-# Acquire the build lock.
+# Acquire the mutex lock.
 lock_acquire() {
 	local _owner
+	local _builddir="$1"; : "${_builddir:?}"
+	local _logdir="$2"; : "${_logdir:?}"
 
-	_owner="$(find "$BUILDDIR" -type f -name running)"
+	_owner="$(cat "${_builddir}/.running" 2>/dev/null || :)"
 	if [ -n "$_owner" ]; then
 		info "${_owner}: lock already acquired"
 		return 1
 	fi
 
-	touch "${1}/running"
+	echo "$_logdir" >"${_builddir}/.running"
 }
 
-# lock_release log-dir
+# lock_release build-dir
 #
-# Release the build lock.
+# Release the mutex lock.
 lock_release() {
-	rm -f "${1}/running"
+	local _builddir="$1"; : "${_builddir:?}"
+
+	rm -f "${_builddir}/.running"
 }
 
 # log_id step-id step-name
@@ -286,7 +290,7 @@ fi
 info "using directory ${LOGDIR}"
 RELEASEDIR="$(release_dir "$LOGDIR")"; export RELEASEDIR
 
-if ! lock_acquire "$LOGDIR"; then
+if ! lock_acquire "$BUILDDIR" "$LOGDIR"; then
 	# Do not leave an empty release around.
 	[ "$S" -eq 1 ] && rm -r "$LOGDIR"
 
