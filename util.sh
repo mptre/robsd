@@ -125,7 +125,7 @@ cvs_log() {
 	step_eval -n cvs "${_prev}/steps"
 	_log="$(step_value log)"
 	_date="$(grep -m 1 '^Date:' "$_log" | sed -e 's/^[^:]*: *//')"
-	: "${_date:?}"
+	[ -z "$_date" ] && return 0
 	_date="$(date -j -f '%Y/%m/%d %H:%M:%S' +'%F %T' "$_date")"
 
 	grep '^[MPU]\>' |

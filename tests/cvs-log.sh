@@ -95,5 +95,28 @@ if testcase "basic"; then
 fi
 
 if testcase "previous build absent"; then
-	cvs_log -r . -t . -u nobody
+	cvs_log -r /dev/null -t /dev/null -u nobody
+fi
+
+# If the previous build didn't update anything, there's no date header to use
+# as the threshold.
+if testcase "previous build no updates"; then
+	mkdir "${TSHDIR}/.cvs"
+	LOGDIR="${BUILDDIR}/2019-07-21"
+	mkdir -p ${BUILDDIR}/2019-07-{20,21}
+	cat <<-EOF >${BUILDDIR}/2019-07-20/steps
+	step="2" name="cvs" log="${BUILDDIR}/2019-07-20/cvs.log" time="1563616561"
+	EOF
+	cat <<-EOF >${BUILDDIR}/2019-07-20/cvs.log
+	missing date header
+	EOF
+
+	cat <<-EOF >$TMP1
+	P bin/ed/ed.1
+	P bin/ed/ed.c
+	P sbin/dhclient/clparse.c
+	EOF
+
+	cvs_log -r /dev/null -t /dev/null -u nobody <"$TMP1" >"${TSHDIR}/act"
+	assert_file "/dev/null" "${TSHDIR}/act"
 fi
