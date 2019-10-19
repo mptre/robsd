@@ -121,12 +121,28 @@ cvs_log() {
 
 	# Use the date from latest revision from the previous release.
 	_prev="$(prev_release)"
-	[ -z "$_prev" ] && return 0
+	if [ -z "$_prev" ]; then
+		echo "cvs_log: previous release not present" 1>&2
+		return 0
+	fi
+
+	# Find cvs date threshold. By default, try to use the date from the last
+	# revision from the previous release. Otherwise if the previous release
+	# didn't include any new revisions, use the execution date of the
+	# cvs step from the previous release.
 	step_eval -n cvs "${_prev}/steps"
 	_log="$(step_value log)"
 	_date="$(grep -m 1 '^Date:' "$_log" | sed -e 's/^[^:]*: *//')"
-	[ -z "$_date" ] && return 0
-	_date="$(date -j -f '%Y/%m/%d %H:%M:%S' +'%F %T' "$_date")"
+	if [ -n "$_date" ]; then
+		_date="$(date -j -f '%Y/%m/%d %H:%M:%S' +'%F %T' "$_date")"
+	else
+		_date="$(step_value time)"
+		_date="$(date -r "$_date" '+%F %T')"
+	fi
+	if [ -z "$_date" ]; then
+		echo "cvs_log: previous date not found" 1>&2
+		return 0
+	fi
 
 	grep '^[MPU]\>' |
 	cut -d ' ' -f 2 |

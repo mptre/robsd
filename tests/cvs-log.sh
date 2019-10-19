@@ -2,7 +2,9 @@
 su() {
 	local _file
 
-	if ! echo "$3" | grep -s "'>2019-07-14 00:00:00'"; then
+	if echo "$3" | grep -s "'>2019-07-20 11:56:01'"; then
+		return 0
+	elif ! echo "$3" | grep -s "'>2019-07-14 00:00:00'"; then
 		fail "invalid date: ${3}"
 		return 1
 	fi
@@ -95,7 +97,7 @@ if testcase "basic"; then
 fi
 
 if testcase "previous build absent"; then
-	cvs_log -r /dev/null -t /dev/null -u nobody
+	cvs_log -r /dev/null -t /dev/null -u nobody 2>/dev/null
 fi
 
 # If the previous build didn't update anything, there's no date header to use
