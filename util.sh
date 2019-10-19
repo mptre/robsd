@@ -442,7 +442,6 @@ reboot_commence() {
 	# Do not inherit standard file descriptors in order to let the boot
 	# process proceed.
 	cat <<-EOF >>/etc/rc.firsttime
-	echo /usr/local/sbin/robsd -r ${LOGDIR}
 	(
 	exec </dev/null >/dev/null 2>&1
 	/usr/local/sbin/robsd -r ${LOGDIR} &
