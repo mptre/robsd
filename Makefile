@@ -55,6 +55,6 @@ lint:
 
 test:
 	${MAKE} -C ${.CURDIR}/tests \
-		"RELEASEDIR=${.CURDIR}" \
+		"EXECDIR=${.CURDIR}" \
 		"TESTFLAGS=${TESTFLAGS}"
 .PHONY: test
