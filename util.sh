@@ -226,39 +226,43 @@ diff_copy() {
 	return 0
 }
 
-# diff_root [-f fallback] -r repo diff
+# diff_root -d directory diff
 #
-# Find the root directory for the given diff. Otherwise, use the given fallback.
+# Find the root directory for the given diff. Otherwise, use the given directory
+# as a fallback.
 diff_root() {
 	local _file _p _path
-	local _fallback="" _repo=""
+	local _err=1
+	local _root=""
 
 	while [ $# -gt 0 ]; do
 		case "$1" in
-		-f)	shift; _fallback="$1";;
-		-r)	shift; _repo="$1";;
+		-d)	shift; _root="$1";;
 		*)	break
 		esac
 		shift
 	done
-	: "${_repo:?}"
+	: "${_root:?}"
 
 	grep -e '^Index:' -e '^RCS file:' "$1" |
 	awk '{print $NF}' |
-	sed -e 's/,v$//' -e "s,/.*/${_repo}/,/usr/${_repo}/," |
+	sed -e 's/,v$//' |
 	head -2 |
 	xargs -r |
 	while read -r _file _path; do
 		_p="${_path%/${_file}}"
 		while [ -n "$_p" ]; do
-			[ -e "$_p" ] && break
+			if [ -e "${_root}${_p}" ]; then
+				echo "${_root}${_p}"
+				_err=0
+				break
+			fi
 
 			_p="$(path_strip "$_p")"
 		done
 
-		echo "$_p"
-		return 1
-	done && echo "$_fallback"
+		return "$_err"
+	done || echo "$_root"
 
 	return 0
 }
