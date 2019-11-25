@@ -248,7 +248,7 @@ diff_root() {
 	awk '{print $NF}' |
 	sed -e 's/,v$//' |
 	head -2 |
-	xargs -r |
+	xargs |
 	while read -r _file _path; do
 		_p="${_path%/${_file}}"
 		while [ -n "$_p" ]; do

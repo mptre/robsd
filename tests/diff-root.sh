@@ -49,3 +49,8 @@ if testcase "fallback"; then
 	EOF
 	assert_eq "$BSDSRCDIR" "$(diff_root -d "$BSDSRCDIR" "$TMP1")"
 fi
+
+if testcase "empty"; then
+	: >$TMP1
+	assert_eq "$BSDSRCDIR" "$(diff_root -d "$BSDSRCDIR" "$TMP1")"
+fi
