@@ -374,6 +374,13 @@ format_size() {
 	awk '{ printf("%.01f%s", $1 / $2, $3) }'
 }
 
+# info message ...
+#
+# Print the given message to stderr.
+info() {
+	echo "${_PROG}: ${*}" 1>&2
+}
+
 # path_strip path
 #
 # Strip of the first component of the given path.
@@ -679,6 +686,13 @@ report_skip() {
 # Writes the release directory with the given prefix applied.
 release_dir() {
 	echo "${1}/reldir"
+}
+
+# setprogname name
+#
+# Set the name of the program to be used during logging.
+setprogname() {
+	_PROG="$1"
 }
 
 # step_eval offset file

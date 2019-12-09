@@ -19,10 +19,6 @@ fatal() {
 	exit 1
 }
 
-info() {
-	echo "robsd: ${*}" 1>&2
-}
-
 atexit() {
 	local _err=$?
 
@@ -235,6 +231,7 @@ step_resolve() {
 
 . "${EXECDIR:-/usr/local/libexec/robsd}/util.sh"
 
+setprogname "robsd"
 config_load
 
 # Ignore sticky diff(s) if not present.
