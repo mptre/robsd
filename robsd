@@ -5,7 +5,7 @@ set -eu
 usage() {
 	cat <<-EOF | xargs 1>&2
 	usage: robsd
-	[-v]
+	[-Dv]
 	[-c file]
 	[-S src-diff]
 	[-X xenocara-diff]
@@ -26,6 +26,10 @@ atexit() {
 
 	if [ $_err -ne 0 ] || must_report "$STEP"; then
 		report -r "${LOGDIR}/report" -s "${LOGDIR}/steps"
+		# Do not send mail during interactive invocations.
+		if [ "$DETACH" -eq 1 ]; then
+			sendmail root <"${LOGDIR}/report"
+		fi
 	fi
 
 	if [ $_err -ne 0 ]; then
@@ -33,6 +37,39 @@ atexit() {
 	fi
 
 	return "$_err"
+}
+
+main() {
+	local _exit _log _t0 _t1
+
+	while :; do
+		STEP="$(step_resolve "$S")"
+		info "step ${STEP}"
+
+		if [ "$STEP" = "end" ]; then
+			# The duration of the end step is the accumulated
+			# duration.
+			step_end -d "$(duration_total "${LOGDIR}/steps")" \
+				-n "$STEP" -s "$S" "${LOGDIR}/steps"
+			return 0
+		fi
+
+		_log="${LOGDIR}/$(log_id "$S" "$STEP")"
+		_exit=0
+		_t0="$(date '+%s')"
+		step_begin -l "$_log" -n "$STEP" -s "$S" "${LOGDIR}/steps"
+		step_exec -f "${LOGDIR}/fail" -l "$_log" \
+			"${EXECDIR}/${STEP}.sh" || _exit="$?"
+		_t1="$(date '+%s')"
+		step_end -d "$((_t1 - _t0))" -e "$_exit" -l "$_log" -n "$STEP" \
+			-s "$S" "${LOGDIR}/steps"
+		[ $_exit -ne 0 ] && return 1
+
+		# Reboot in progress?
+		pgrep shutdown >/dev/null && return 0
+
+		S=$((S + 1))
+	done
 }
 
 # build_id directory
@@ -245,12 +282,14 @@ if [ -n "$XDIFF" ] && ! [ -e "$XDIFF" ]; then
 fi
 
 COMMENT=""
+DETACH=0
 LOGDIR=""
 S=1
 STEP=""
 
-while getopts "S:X:c:r:v" opt; do
+while getopts "DS:X:c:r:v" opt; do
 	case "$opt" in
+	D)	DETACH=1;;
 	S)
 		if [ -n "$SRCDIFF" ]; then
 			fatal "${SRCDIFF}: src diff already specified"
@@ -274,6 +313,10 @@ shift $((OPTIND - 1))
 
 trap 'atexit' EXIT
 trap 'info "caught SIGINT"' INT
+
+if [ "$DETACH" -eq 1 ]; then
+	exec </dev/null >"${LOGDIR}/robsd.log" 2>&1
+fi
 
 if [ -z "$LOGDIR" ]; then
 	check_perf || exit 1
@@ -309,30 +352,10 @@ if [ "$KEEP" -gt 0 ]; then
 	/usr/local/sbin/robsd-clean "$KEEP"
 fi
 
-while :; do
-	STEP="$(step_resolve "$S")"
-	info "step ${STEP}"
-
-	if [ "$STEP" = "end" ]; then
-		# The duration of the end step is the accumulated duration.
-		step_end -d "$(duration_total "${LOGDIR}/steps")" -n "$STEP" \
-			-s "$S" "${LOGDIR}/steps"
-		exit 0
-	fi
-
-	LOG="${LOGDIR}/$(log_id "$S" "$STEP")"
-	EXIT=0
-	T0="$(date '+%s')"
-	step_begin -l "$LOG" -n "$STEP" -s "$S" "${LOGDIR}/steps"
-	step_exec -f "${LOGDIR}/fail" -l "$LOG" "${EXECDIR}/${STEP}.sh" ||
-		EXIT="$?"
-	T1="$(date '+%s')"
-	step_end -d "$((T1 - T0))" -e "$EXIT" -l "$LOG" -n "$STEP" -s "$S" \
-		"${LOGDIR}/steps"
-	[ $EXIT -ne 0 ] && exit 1
-
-	# Reboot in progress?
-	pgrep shutdown >/dev/null && exit 0
-
-	S=$((S + 1))
-done
+if [ "$DETACH" -eq 1 ]; then
+	# Reinstall trap handler since they are not inherited by subprocesses.
+	trap '-' EXIT
+	{ trap 'atexit' EXIT; main; } &
+else
+	main
+fi

@@ -37,6 +37,8 @@ if testcase "basic"; then
 	genfile 1 "${BUILDDIR}/2019-02-22/reldir/base66.tgz"
 
 	cat <<-EOF >$TMP1
+	Subject: robsd: $(machine): ok
+
 	> comment:
 	comment goes here
 
@@ -54,7 +56,7 @@ if testcase "basic"; then
 	cvs log
 	EOF
 
-	report -M -r "$REPORT" -s "${LOGDIR}/steps"
+	report -r "$REPORT" -s "${LOGDIR}/steps"
 
 	assert_file "$TMP1" "$REPORT"
 fi
@@ -67,6 +69,8 @@ if testcase "failure"; then
 	step="2" name="cvs" exit="1" duration="10" log="${LOGDIR}/cvs.log" user="root" time="0"
 	EOF
 	cat <<-EOF >$TMP1
+	Subject: robsd: $(machine): failed in cvs
+
 	> stats:
 	Status: failed in cvs
 	Duration: 00:00:11
@@ -80,7 +84,7 @@ if testcase "failure"; then
 	cvs log
 	EOF
 
-	report -M -r "$REPORT" -s "$STEPS"
+	report -r "$REPORT" -s "$STEPS"
 
 	assert_file "$TMP1" "$REPORT"
 fi
@@ -92,6 +96,8 @@ if testcase "failure in skipped step"; then
 	step="1" name="env" exit="1" duration="1" log="${LOGDIR}/env.log" user="root" time="0"
 	EOF
 	cat <<-EOF >$TMP1
+	Subject: robsd: $(machine): failed in env
+
 	> stats:
 	Status: failed in env
 	Duration: 00:00:01
@@ -105,11 +111,11 @@ if testcase "failure in skipped step"; then
 	env log
 	EOF
 
-	report -M -r "$REPORT" -s "$STEPS"
+	report -r "$REPORT" -s "$STEPS"
 
 	assert_file "$TMP1" "$REPORT"
 fi
 
 if testcase "missing step"; then
-	report -M -r "$REPORT" -s "$STEPS"
+	report -r "$REPORT" -s "$STEPS"
 fi

@@ -450,32 +450,25 @@ purge() {
 #
 # Commence reboot and continue building the current release after boot.
 reboot_commence() {
-	# Do not inherit standard file descriptors in order to let the boot
-	# process proceed.
 	cat <<-EOF >>/etc/rc.firsttime
-	(
-	exec </dev/null >/dev/null 2>&1
-	/usr/local/sbin/robsd -r ${LOGDIR} &
-	)
+	/usr/local/sbin/robsd -D -r ${LOGDIR}
 	EOF
 
 	# Add some grace in order to let the script finish.
 	shutdown -r '+1' </dev/null >/dev/null 2>&1
 }
 
-# report [-M] -r report -s steps
+# report -r report -s steps
 #
 # Create a build report and save it to report.
 report() {
 	local _duration=0
 	local _i=1
-	local _mail=1
 	local _name=""
 	local _exit _f _log _report _steps _status _tmp
 
 	while [ $# -gt 0 ]; do
 		case "$1" in
-		-M)	_mail=0;;
 		-r)	shift; _report="$1";;
 		-s)	shift; _steps="$1";;
 		*)	break;;
@@ -489,16 +482,7 @@ report() {
 
 	_tmp="$(mktemp -t robsd.XXXXXX)"
 
-	# Add comment to the beginning of the report.
-	if [ -e "${LOGDIR}/comment" ]; then
-		cat <<-EOF >>"$_tmp"
-		> comment:
-		$(cat "${LOGDIR}/comment")
 
-		EOF
-	fi
-
-	# Add stats to the beginning of the report.
 	step_eval -1 "$_steps"
 	if [ "$(step_value exit)" -eq 0 ]; then
 		_status="ok"
@@ -509,6 +493,23 @@ report() {
 		_duration="$(duration_total "$_steps")"
 		_duration="$(report_duration "$_duration")"
 	fi
+
+	# Add headers.
+	cat <<-EOF >"$_tmp"
+	Subject: robsd: $(machine): ${_status}
+
+	EOF
+
+	# Add comment to the beginning of the report.
+	if [ -e "${LOGDIR}/comment" ]; then
+		cat <<-EOF >>"$_tmp"
+		> comment:
+		$(cat "${LOGDIR}/comment")
+
+		EOF
+	fi
+
+	# Add stats to the beginning of the report.
 	{
 		cat <<-EOF
 		> stats:
@@ -542,11 +543,6 @@ report() {
 	# returns.
 	vis "$_tmp" >"$_report"
 	rm "$_tmp"
-
-	# Do not send mail during interactive invocations.
-	{ [ -t 0 ] || [ "$_mail" -eq 0 ]; } && return 0
-
-	mail -s "robsd: $(machine): ${_status}" root <"$_report"
 }
 
 # report_duration [-d steps] [-t threshold] duration
