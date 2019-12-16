@@ -14,11 +14,6 @@ usage() {
 	exit 1
 }
 
-fatal() {
-	info "$*"
-	exit 1
-}
-
 atexit() {
 	local _err=$?
 
@@ -264,9 +259,9 @@ step_resolve() {
 	fi
 }
 
-[ "$(id -u)" -ne 0 ] && fatal "must be run as root"
-
 . "${EXECDIR:-/usr/local/libexec/robsd}/util.sh"
+
+[ "$(id -u)" -ne 0 ] && fatal "must be run as root"
 
 setprogname "robsd"
 config_load

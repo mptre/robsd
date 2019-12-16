@@ -7,15 +7,10 @@ usage() {
 	exit 1
 }
 
-fatal() {
-	info "$*"
-	exit 1
-}
+. "${EXECDIR:-/usr/local/libexec/robsd}/util.sh"
 
 [ "$(id -u)" -ne 0 ] && fatal "must be run as root"
 [ $# -ne 1 ] && usage
-
-. "${EXECDIR:-/usr/local/libexec/robsd}/util.sh"
 
 setprogname "robsd-clean"
 config_load

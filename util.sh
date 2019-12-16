@@ -313,6 +313,14 @@ duration_total() {
 	echo "$_tot"
 }
 
+# fatal message ...
+#
+# Print the given message to stderr and exit non-zero.
+fatal() {
+	info "$*"
+	exit 1
+}
+
 # format_duration duration
 #
 # Format the given duration to a human readable representation.
