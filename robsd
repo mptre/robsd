@@ -261,8 +261,6 @@ step_resolve() {
 
 . "${EXECDIR:-/usr/local/libexec/robsd}/util.sh"
 
-[ "$(id -u)" -ne 0 ] && fatal "must be run as root"
-
 setprogname "robsd"
 config_load
 

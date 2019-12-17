@@ -48,6 +48,9 @@ comment() {
 #
 # Load and validate the configuration.
 config_load() {
+	# A bit nasty but this check is applicable to all utilities.
+	[ "$(id -u)" -ne 0 ] && fatal "must be run as root"
+
 	# Global variables with sensible defaults.
 	export BSDOBJDIR; : "${BSDOBJDIR:="/usr/obj"}"
 	export BSDSRCDIR; : "${BSDSRCDIR:="/usr/src"}"
