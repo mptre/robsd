@@ -7,9 +7,9 @@ usage() {
 	usage: robsd
 	[-Dv]
 	[-c file]
+	[-r path]
 	[-S src-diff]
 	[-X xenocara-diff]
-	[-r path]
 	EOF
 	exit 1
 }
