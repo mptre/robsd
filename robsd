@@ -321,6 +321,9 @@ else
 	info "resume build from step ${S}"
 fi
 info "using directory ${LOGDIR}"
+
+# Redundant export since it's already done by config_load but
+# silence shellcheck.
 RELEASEDIR="$(release_dir "$LOGDIR")"; export RELEASEDIR
 
 if ! lock_acquire "$BUILDDIR" "$LOGDIR"; then
