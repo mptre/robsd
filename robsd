@@ -5,7 +5,7 @@ set -eu
 usage() {
 	cat <<-EOF | xargs 1>&2
 	usage: robsd
-	[-Dv]
+	[-D]
 	[-c file]
 	[-r path]
 	[-S src-diff]
@@ -278,7 +278,7 @@ LOGDIR=""
 S=1
 STEP=""
 
-while getopts "DS:X:c:r:v" opt; do
+while getopts "DS:X:c:r:" opt; do
 	case "$opt" in
 	D)	DETACH=1;;
 	S)
@@ -295,7 +295,6 @@ while getopts "DS:X:c:r:v" opt; do
 		;;
 	c)	COMMENT="$OPTARG";;
 	r)	LOGDIR="$OPTARG";;
-	v)	set -x;;
 	*)	usage;;
 	esac
 done

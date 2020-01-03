@@ -6,12 +6,12 @@
 .Nd build OpenBSD release
 .Sh SYNOPSIS
 .Nm robsd
-.Op Fl \&Dv
+.Op Fl D
 .Op Fl c Ar file
 .Op Fl S Ar src-diff
 .Op Fl X Ar xenocara-diff
 .Nm
-.Op Fl \&Dv
+.Op Fl D
 .Fl r Ar path
 .Sh DESCRIPTION
 The
@@ -118,8 +118,6 @@ The same diff will be reverted once the release is finished.
 In addition, a copy of the diff is saved to a file named
 .Pa src.diff
 in the release directory.
-.It Fl v
-Enable verbose output.
 .It Fl X Ar xenocara-diff
 Diff to apply to the xenocara tree.
 The same diff will be reverted once the release is finished.
