@@ -266,11 +266,9 @@ config_load
 
 # Ignore sticky diff(s) if not present.
 if [ -n "$SRCDIFF" ] && ! [ -e "$SRCDIFF" ]; then
-	info "${SRCDIFF}: ignoring sticky src diff"
 	SRCDIFF=""
 fi
 if [ -n "$XDIFF" ] && ! [ -e "$XDIFF" ]; then
-	info "${XDIFF}: ignoring sticky xenocara diff"
 	XDIFF=""
 fi
 
