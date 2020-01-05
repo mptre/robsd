@@ -49,7 +49,7 @@ main() {
 			return 0
 		fi
 
-		_log="${LOGDIR}/$(log_id "$S" "$STEP")"
+		_log="${LOGDIR}/$(log_id -l "$LOGDIR" -n "$STEP" -s "$S")"
 		_exit=0
 		_t0="$(date '+%s')"
 		step_begin -l "$_log" -n "$STEP" -s "$S" "${LOGDIR}/steps"
@@ -116,13 +116,6 @@ lock_release() {
 	local _builddir="$1"; : "${_builddir:?}"
 
 	rm -f "${_builddir}/.running"
-}
-
-# log_id step-id step-name
-#
-# Generate the corresponding log file name for the given step.
-log_id() {
-	printf '%02d-%s.log' "$1" "$2"
 }
 
 # must_report step-name

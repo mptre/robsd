@@ -392,6 +392,37 @@ info() {
 	echo "${_PROG}: ${*}" 1>&2
 }
 
+# log_id -l log-dir -n step-name -s step-id
+#
+# Generate the corresponding log file name for the given step.
+log_id() {
+	local _id
+	local _name=""
+	local _logdir=""
+	local _step=""
+
+	while [ $# -gt 0 ]; do
+		case "$1" in
+		-l)	shift; _logdir="$1";;
+		-n)	shift; _name="$1";;
+		-s)	shift; _step="$1";;
+		*)	break;;
+		esac
+		shift
+	done
+	: "${_name:?}"
+	: "${_logdir:?}"
+	: "${_step:?}"
+
+	_id="$(printf '%02d-%s.log' "$_step" "$_name")"
+	_dups="$(find "$_logdir" -name "${_id}*" | wc -l)"
+	if [ "$_dups" -gt 0 ]; then
+		printf '%s.%d' "$_id" "$_dups"
+	else
+		echo "$_id"
+	fi
+}
+
 # path_strip path
 #
 # Strip of the first component of the given path.
