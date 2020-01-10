@@ -10,8 +10,10 @@ mkdir -p "$DESTDIR"
 mkdir -p "$RELEASEDIR"
 chown build "$RELEASEDIR"
 chmod 755 "$RELEASEDIR"
-# Wipe release directory in case of resuming.
+
+# In case of resuming, wipe the release directory and remove vnd devices.
 cleandir "$RELEASEDIR"
+make -C "${BSDSRCDIR}/distrib/$(machine)" unconfig
 
 cd "${BSDSRCDIR}/etc"
 make release
