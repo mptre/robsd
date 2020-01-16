@@ -483,7 +483,8 @@ purge() {
 		# Transform: YYYY-MM-DD.X -> YYYY/MM/DD.X
 		_dst="${_attic}/$(echo "${_d##*/}" | tr '-' '/')"
 		mkdir -p "${_dst%/*}"
-		mv "$_d" "$_dst"
+		cp -pr "$_d" "$_dst"
+		rm -r "$_d"
 		echo "$_d"
 	done
 }
