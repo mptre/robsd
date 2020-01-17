@@ -453,7 +453,7 @@ prev_release() {
 # All purged directories are written to stdout.
 purge() {
 	local _attic="${BUILDDIR}/attic" _dir="$1" _log="" _n="$2"
-	local _d _dst
+	local _d _dst _tim
 
 	find "$_dir" -type d -mindepth 1 -maxdepth 1 |
 	grep -v "$_attic" |
@@ -462,6 +462,9 @@ purge() {
 	tail -n "+$((_n + 1))" |
 	while read -r _d; do
 		[ -d "$_attic" ] || mkdir "$_attic"
+
+		# Grab the modification time before removal of irrelevant files.
+		_tim="$(stat -f '%Sm' -t '%FT%T' "$_d")"
 
 		# If the last step failed, keep the log.
 		if step_eval -1 "${_d}/steps" 2>/dev/null &&
@@ -485,6 +488,7 @@ purge() {
 		# Create leading YYYY/MM directories.
 		mkdir -p "${_dst%/*}"
 		cp -pr "$_d" "$_dst"
+		touch -d "$_tim" "$_dst"
 		rm -r "$_d"
 		echo "$_d"
 	done

@@ -7,6 +7,7 @@ if testcase "basic"; then
 		cat <<-EOF >"${_d}/steps"
 		EOF
 	done
+	touch -t 201903012233.44 ${BUILDDIR}/2019-03-01
 
 	assert_eq "${BUILDDIR}/2019-03-01" "$(purge "$BUILDDIR" 1)"
 
@@ -25,6 +26,9 @@ if testcase "basic"; then
 		_p="${BUILDDIR}/attic/2019/03/01/${_f}"
 		[ -e "$_p" ] || fail "expected ${_p} to be left"
 	done
+
+	assert_eq "Mar  1 22:33:44 2019" \
+		"$(stat -f '%Sm' "${BUILDDIR}/attic/2019/03/01")"
 fi
 
 if testcase "last steps failure"; then
