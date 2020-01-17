@@ -482,6 +482,7 @@ purge() {
 
 		# Transform: YYYY-MM-DD.X -> YYYY/MM/DD.X
 		_dst="${_attic}/$(echo "${_d##*/}" | tr '-' '/')"
+		# Create leading YYYY/MM directories.
 		mkdir -p "${_dst%/*}"
 		cp -pr "$_d" "$_dst"
 		rm -r "$_d"
