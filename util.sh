@@ -720,6 +720,7 @@ report_skip() {
 	patch|revert)
 		[ -z "$SRCDIFF" ] && [ -z "$XDIFF" ] && return 0
 		;;
+	*)	;;
 	esac
 
 	return 1

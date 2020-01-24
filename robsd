@@ -19,7 +19,7 @@ atexit() {
 
 	lock_release "$BUILDDIR"
 
-	if [ $_err -ne 0 ] || must_report "$STEP"; then
+	if [ "$_err" -ne 0 ] || must_report "$STEP"; then
 		report -r "${LOGDIR}/report" -s "${LOGDIR}/steps"
 		# Do not send mail during interactive invocations.
 		if [ "$DETACH" -eq 1 ]; then
@@ -27,7 +27,7 @@ atexit() {
 		fi
 	fi
 
-	if [ $_err -ne 0 ]; then
+	if [ "$_err" -ne 0 ]; then
 		info "failed in step ${STEP:-unknown}"
 	fi
 
@@ -58,7 +58,7 @@ main() {
 		_t1="$(date '+%s')"
 		step_end -d "$((_t1 - _t0))" -e "$_exit" -l "$_log" -n "$STEP" \
 			-s "$S" "${LOGDIR}/steps"
-		[ $_exit -ne 0 ] && return 1
+		[ "$_exit" -ne 0 ] && return 1
 
 		# Reboot in progress?
 		pgrep shutdown >/dev/null && return 0
@@ -84,6 +84,7 @@ build_id() {
 check_perf() {
 	case "$(sysctl -n hw.perfpolicy)" in
 	auto|high)	return 0;;
+	*)		;;
 	esac
 
 	[ "$(sysctl -n hw.setperf)" -eq 100 ] && return 0
