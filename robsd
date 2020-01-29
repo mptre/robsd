@@ -259,14 +259,6 @@ setprogname "robsd"
 [ "$(id -u)" -ne 0 ] && fatal "must be run as root"
 config_load
 
-# Ignore sticky diff(s) if not present.
-if [ -n "$SRCDIFF" ] && ! [ -e "$SRCDIFF" ]; then
-	SRCDIFF=""
-fi
-if [ -n "$XDIFF" ] && ! [ -e "$XDIFF" ]; then
-	XDIFF=""
-fi
-
 COMMENT=""
 DETACH=0
 LOGDIR=""
@@ -325,9 +317,11 @@ if ! lock_acquire "$BUILDDIR" "$LOGDIR"; then
 	fatal "already running"
 fi
 
-SRCDIFF="$(diff_copy "$SRCDIFF" "${LOGDIR}/src.diff")" ||
+# shellcheck disable=SC2086
+SRCDIFF="$(diff_copy "${LOGDIR}/src.diff" $SRCDIFF)" ||
 	fatal "src diff already specified"
-XDIFF="$(diff_copy "$XDIFF" "${LOGDIR}/xenocara.diff")" ||
+# shellcheck disable=SC2086
+XDIFF="$(diff_copy "${LOGDIR}/xenocara.diff" $XDIFF)" ||
 	fatal "xenocara diff already specified"
 
 if [ -n "$COMMENT" ]; then

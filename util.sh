@@ -44,10 +44,15 @@ comment() {
 	fi
 }
 
-# config_load
+# config_load [path]
 #
 # Load and validate the configuration.
 config_load() {
+	local _path="/etc/robsdrc"
+	local _diff _tmp
+
+	[ "$#" -eq 1 ] && _path="$1"
+
 	# Global variables with sensible defaults.
 	export BSDOBJDIR; : "${BSDOBJDIR:="/usr/obj"}"
 	export BSDSRCDIR; : "${BSDSRCDIR:="/usr/src"}"
@@ -70,7 +75,7 @@ config_load() {
 	export XOBJDIR; : "${XOBJDIR="/usr/xobj"}"
 	export XSRCDIR; : "${XSRCDIR="/usr/xenocara"}"
 
-	[ -e /etc/robsdrc ] && . /etc/robsdrc
+	. "$_path"
 
 	# Ensure mandatory variables are defined.
 	: "${BUILDDIR:?}"
@@ -81,6 +86,24 @@ config_load() {
 	: "${DISTRIBPATH:?}"
 	: "${DISTRIBUSER:?}"
 	: "${XOBJDIR:?}"
+
+	# Filter out missing source diff(s).
+	_tmp=""
+	for _diff in $SRCDIFF; do
+		[ -e "$_diff" ] || continue
+
+		_tmp="${_tmp}${_tmp:+ }${_diff}"
+	done
+	SRCDIFF="$_tmp"
+
+	# Filter out xenocara diff(s).
+	_tmp=""
+	for _diff in $XDIFF; do
+		[ -e "$_diff" ] || continue
+
+		_tmp="${_tmp}${_tmp:+ }${_diff}"
+	done
+	XDIFF="$_tmp"
 }
 
 # cvs_field field log-line
@@ -204,25 +227,36 @@ diff_clean() {
 	xargs -0rt rm
 }
 
-# diff_copy src dst
+# diff_copy dst [src ...]
 #
-# Copy the given diff located at src to dst.
+# Copy the given diff(s) located at src to dst.
 # Exits non-zero if dst already exists.
 diff_copy() {
-	local _src="$1" _dst="$2"
+	local _i=1
+	local _base _dst _src
 
-	if [ -e "$_dst" ]; then
-		if [ -n "$_src" ] && ! cmp -s "$_src" "$_dst"; then
-			return 1
+	[ "$#" -eq 1 ] && return 0
+
+	_base="$1"; shift
+	for _src; do
+		_dst="${_base}.${_i}"
+
+		if [ -e "$_dst" ]; then
+			if ! cmp -s "$_src" "$_dst"; then
+				return 1
+			fi
+		else
+			cp "$_src" "$_dst"
+			chmod 644 "$_dst"
 		fi
-	elif [ -n "$_src" ]; then
-		cp "$_src" "$_dst"
-		chmod 644 "$_dst"
-	fi
+		# Try hard to output everything on a single line.
+		[ "$_i" -gt 1 ] && printf ' '
+		echo -n "$_dst"
 
-	if [ -e "$_dst" ]; then
-		echo "$_dst"
-	fi
+		_i=$((_i + 1))
+	done
+	printf '\n'
+
 	return 0
 }
 
@@ -471,7 +505,7 @@ purge() {
 		fi
 
 		find "$_d" -mindepth 1 -not \( \
-			-name '*.diff' -o \
+			-name '*.diff.*' -o \
 			-name '*cvs.log' -o \
 			-name '*env.log' -o \
 			-name 'comment' -o \
