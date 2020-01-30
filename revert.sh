@@ -1,10 +1,10 @@
 . "${EXECDIR}/util.sh"
 
-for _diff in $SRCDIFF; do
+for _diff in $BSDDIFF; do
 	cd "$(diff_root -d "$BSDSRCDIR" "$_diff")"
 	su "$CVSUSER" -c "patch -ERs" <"$_diff"
 done
-if [ -n "$SRCDIFF" ]; then
+if [ -n "$BSDDIFF" ]; then
 	diff_clean "$BSDSRCDIR"
 fi
 

@@ -1,6 +1,6 @@
 . "${EXECDIR}/util.sh"
 
-for _diff in $SRCDIFF; do
+for _diff in $BSDDIFF; do
 	cd "$(diff_root -d "$BSDSRCDIR" "$_diff")"
 	su "$CVSUSER" -c "patch -Cfs" <"$_diff"
 	su "$CVSUSER" -c "patch -Es" <"$_diff"

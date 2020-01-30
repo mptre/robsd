@@ -12,7 +12,7 @@ genfile() {
 }
 
 if testcase "basic"; then
-	SRCDIFF=""
+	BSDDIFF=""
 	XDIFF=""
 	LOGDIR="${BUILDDIR}/2019-02-23"
 	mkdir -p ${BUILDDIR}/2019-02-{22,23}

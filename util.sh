@@ -54,6 +54,7 @@ config_load() {
 	[ "$#" -eq 1 ] && _path="$1"
 
 	# Global variables with sensible defaults.
+	export BSDDIFF; : "${BSDDIFF:=}"
 	export BSDOBJDIR; : "${BSDOBJDIR:="/usr/obj"}"
 	export BSDSRCDIR; : "${BSDSRCDIR:="/usr/src"}"
 	export BUILDDIR
@@ -70,7 +71,6 @@ config_load() {
 	export PATH; PATH="/bin:/sbin:/usr/bin:/usr/sbin:/usr/X11R6/bin"
 	export RELEASEDIR
 	export SIGNIFY; : "${SIGNIFY:=}"
-	export SRCDIFF; : "${SRCDIFF:=}"
 	export XDIFF; : "${XDIFF:=}"
 	export XOBJDIR; : "${XOBJDIR="/usr/xobj"}"
 	export XSRCDIR; : "${XSRCDIR="/usr/xenocara"}"
@@ -89,12 +89,12 @@ config_load() {
 
 	# Filter out missing source diff(s).
 	_tmp=""
-	for _diff in $SRCDIFF; do
+	for _diff in $BSDDIFF; do
 		[ -e "$_diff" ] || continue
 
 		_tmp="${_tmp}${_tmp:+ }${_diff}"
 	done
-	SRCDIFF="$_tmp"
+	BSDDIFF="$_tmp"
 
 	# Filter out xenocara diff(s).
 	_tmp=""
@@ -749,7 +749,7 @@ report_skip() {
 		grep -vq '^\+' "$_log" || return 0
 		;;
 	patch|revert)
-		[ -z "$SRCDIFF" ] && [ -z "$XDIFF" ] && return 0
+		[ -z "$BSDDIFF" ] && [ -z "$XDIFF" ] && return 0
 		;;
 	*)	;;
 	esac

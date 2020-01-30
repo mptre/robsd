@@ -11,11 +11,11 @@ default_config() {
 if testcase "missing source diff"; then
 	{
 		default_config
-		echo "SRCDIFF=\"${TSHDIR}/src.diff.1 ${TSHDIR}/src.diff.2\""
+		echo "BSDDIFF=\"${TSHDIR}/src.diff.1 ${TSHDIR}/src.diff.2\""
 	} >"$TMP1"
 	touch "${TSHDIR}/src.diff.1"
 	config_load "$TMP1"
-	assert_eq "${TSHDIR}/src.diff.1" "$SRCDIFF"
+	assert_eq "${TSHDIR}/src.diff.1" "$BSDDIFF"
 fi
 
 if testcase "missing xenocara diff"; then
@@ -31,6 +31,6 @@ fi
 if testcase "no diffs"; then
 	default_config >"$TMP1"
 	config_load "$TMP1"
-	assert_eq "" "$SRCDIFF"
+	assert_eq "" "$BSDDIFF"
 	assert_eq "" "$XDIFF"
 fi

@@ -29,7 +29,7 @@ if testcase "checkflist not empty"; then
 fi
 
 if testcase "diff src present"; then
-	SRCDIFF="src.diff"
+	BSDDIFF="src.diff"
 	XDIFF=""
 
 	if report_skip "patch"; then
@@ -41,7 +41,7 @@ if testcase "diff src present"; then
 fi
 
 if testcase "diff xenocara present"; then
-	SRCDIFF=""
+	BSDDIFF=""
 	XDIFF="xenocara.diff"
 
 	if report_skip "patch"; then
@@ -53,7 +53,7 @@ if testcase "diff xenocara present"; then
 fi
 
 if testcase "diff not present"; then
-	SRCDIFF=""
+	BSDDIFF=""
 	XDIFF=""
 
 	if ! report_skip "patch"; then

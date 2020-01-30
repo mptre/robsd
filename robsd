@@ -269,10 +269,10 @@ while getopts "DS:X:c:r:" opt; do
 	case "$opt" in
 	D)	DETACH=1;;
 	S)
-		if [ -n "$SRCDIFF" ]; then
-			fatal "${SRCDIFF}: src diff already specified"
+		if [ -n "$BSDDIFF" ]; then
+			fatal "${BSDDIFF}: src diff already specified"
 		fi
-		SRCDIFF="$OPTARG"
+		BSDDIFF="$OPTARG"
 		;;
 	X)
 		if [ -n "$XDIFF" ]; then
@@ -318,7 +318,7 @@ if ! lock_acquire "$BUILDDIR" "$LOGDIR"; then
 fi
 
 # shellcheck disable=SC2086
-SRCDIFF="$(diff_copy "${LOGDIR}/src.diff" $SRCDIFF)" ||
+BSDDIFF="$(diff_copy "${LOGDIR}/src.diff" $BSDDIFF)" ||
 	fatal "src diff already specified"
 # shellcheck disable=SC2086
 XDIFF="$(diff_copy "${LOGDIR}/xenocara.diff" $XDIFF)" ||
