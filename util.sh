@@ -115,6 +115,8 @@ cvs_field() {
 	_field="$1"; : "${_field:?}"
 	_line="$2"; : "${_line:?}"
 
+	echo "$_line" | grep -q -F "$_field" || return 1
+
 	_line="${_line##*${_field}: }"; _line="${_line%%;*}"
 	echo "$_line"
 }
@@ -177,7 +179,7 @@ cvs_log() {
 			;;
 		date:*)
 			_date="$(cvs_field date "$_line")"
-			_id="$(cvs_field commitid "$_line")"
+			_id="$(cvs_field commitid "$_line")" || continue
 			if ! [ -d "${_tmp}/${_id}" ]; then
 				mkdir "${_tmp}/${_id}"
 				{

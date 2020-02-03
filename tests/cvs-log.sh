@@ -34,6 +34,7 @@ su() {
 			revision 1.1
 			date: 2019/07/15 05:00:00;  author: anton;  commitid: PmubCouD66EW1LlW;
 			2. oldest commit for dhclient
+			date: 2019/07/15 04:00:00;  author: anton;
 			============================
 			EOF
 			;;
