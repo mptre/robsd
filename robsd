@@ -22,7 +22,7 @@ atexit() {
 	if [ "$_err" -ne 0 ] || must_report "$STEP"; then
 		report -r "${LOGDIR}/report" -s "${LOGDIR}/steps"
 		# Do not send mail during interactive invocations.
-		if [ "$DETACH" -eq 1 ]; then
+		if ! [ -t 0 ]; then
 			sendmail root <"${LOGDIR}/report"
 		fi
 	fi
