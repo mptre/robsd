@@ -268,18 +268,8 @@ STEP=""
 while getopts "DS:X:c:r:" opt; do
 	case "$opt" in
 	D)	DETACH=1;;
-	S)
-		if [ -n "$BSDDIFF" ]; then
-			fatal "${BSDDIFF}: src diff already specified"
-		fi
-		BSDDIFF="$OPTARG"
-		;;
-	X)
-		if [ -n "$XDIFF" ]; then
-			fatal "${XDIFF}: xenocara diff already specified"
-		fi
-		XDIFF="$OPTARG"
-		;;
+	S)	BSDDIFF="${BSDDIFF}${BSDDIFF:+ }${OPTARG}";;
+	X)	XDIFF="${XDIFF}${XDIFF:+ }${OPTARG}";;
 	c)	COMMENT="$OPTARG";;
 	r)	LOGDIR="$OPTARG";;
 	*)	usage;;
