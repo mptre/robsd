@@ -117,5 +117,7 @@ if testcase "failure in skipped step"; then
 fi
 
 if testcase "missing step"; then
-	report -r "$REPORT" -s "$STEPS"
+	if report -r "$REPORT" -s "$STEPS"; then
+		fail "want exit 1, got 0"
+	fi
 fi

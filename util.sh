@@ -562,7 +562,7 @@ report() {
 
 	# The steps file could be absent when a build fails to start due to
 	# another already running build.
-	[ -e "$_steps" ] || return 0
+	[ -e "$_steps" ] || return 1
 
 	_tmp="$(mktemp -t robsd.XXXXXX)"
 
