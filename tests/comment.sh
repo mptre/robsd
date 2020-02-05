@@ -19,3 +19,12 @@ if testcase "destination present"; then
 		fail "want exit 1, got 0"
 	fi
 fi
+
+if testcase "empty comment is removed"; then
+	if ! comment "-" "$DST" </dev/null; then
+		fail "want exit 0, got 1"
+	fi
+	if [ -e "$DST" ]; then
+		fail "${DST}: destination present"
+	fi
+fi

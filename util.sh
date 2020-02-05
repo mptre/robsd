@@ -42,6 +42,9 @@ comment() {
 	else
 		cp "$_src" "$_dst"
 	fi
+	if ! [ -s "$_dst" ]; then
+		rm "$_dst"
+	fi
 }
 
 # config_load [path]

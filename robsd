@@ -307,18 +307,24 @@ if ! lock_acquire "$BUILDDIR" "$LOGDIR"; then
 	fatal "already running"
 fi
 
+if [ -n "$COMMENT" ]; then
+	if ! comment "$COMMENT" "${LOGDIR}/comment"; then
+		fatal "comment already specified"
+	fi
+else
+	# No comment specified, include a list of the diff(s).
+	{
+		[ -n "$BSDDIFF" ] && echo "$BSDDIFF" | xargs ls
+		[ -n "$XDIFF" ] && echo "$XDIFF" | xargs ls
+	} | comment "-" "${LOGDIR}/comment" || :
+fi
+
 # shellcheck disable=SC2086
 BSDDIFF="$(diff_copy "${LOGDIR}/src.diff" $BSDDIFF)" ||
 	fatal "src diff already specified"
 # shellcheck disable=SC2086
 XDIFF="$(diff_copy "${LOGDIR}/xenocara.diff" $XDIFF)" ||
 	fatal "xenocara diff already specified"
-
-if [ -n "$COMMENT" ]; then
-	if ! comment "$COMMENT" "${LOGDIR}/comment"; then
-		fatal "comment already specified"
-	fi
-fi
 
 if [ "$KEEP" -gt 0 ]; then
 	/usr/local/sbin/robsd-clean "$KEEP"
