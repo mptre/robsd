@@ -312,9 +312,10 @@ if [ -n "$COMMENT" ]; then
 	if ! comment "$COMMENT" "${LOGDIR}/comment"; then
 		fatal "comment already specified"
 	fi
-else
+elif [ -n "$BSDDIFF" ] || [ -n "$XDIFF" ]; then
 	# No comment specified, include a list of the diff(s).
 	{
+		echo 'Applied the following diff(s):'
 		[ -n "$BSDDIFF" ] && echo "$BSDDIFF" | xargs ls
 		[ -n "$XDIFF" ] && echo "$XDIFF" | xargs ls
 	} | comment "-" "${LOGDIR}/comment" || :
