@@ -1,5 +1,5 @@
 if testcase "step exit zero"; then
-	cat <<-EOF >$TMP1
+	cat <<-EOF >"$TMP1"
 	step="0" name="cvs" exit="0"
 	EOF
 
@@ -7,7 +7,7 @@ if testcase "step exit zero"; then
 fi
 
 if testcase "step exit non-zero"; then
-	cat <<-EOF >$TMP1
+	cat <<-EOF >"$TMP1"
 	step="0" exit="1"
 	EOF
 
@@ -15,7 +15,7 @@ if testcase "step exit non-zero"; then
 fi
 
 if testcase "step end"; then
-	cat <<-EOF >$TMP1
+	cat <<-EOF >"$TMP1"
 	step="0" name="end" exit="0"
 	EOF
 

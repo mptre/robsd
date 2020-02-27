@@ -16,6 +16,9 @@ TESTS+=	report.sh
 TESTS+=	step-eval.sh
 TESTS+=	step-next.sh
 
+SHLINT+=	${TESTS:C/^/${.CURDIR}\//}
+SHLINT+=	${.CURDIR}/util.sh
+
 all: test
 
 test: ${TESTS:.sh=.fake}

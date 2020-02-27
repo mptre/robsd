@@ -1,5 +1,5 @@
 if testcase "positive offset"; then
-	cat <<-EOF >$TMP1
+	cat <<-EOF >"$TMP1"
 	step="1" name="one"
 	name="two" step="2"
 	EOF
@@ -16,7 +16,7 @@ if testcase "positive offset"; then
 fi
 
 if testcase "negative offset"; then
-	cat <<-EOF >$TMP1
+	cat <<-EOF >"$TMP1"
 	step="1" name="one"
 	name="two" step="2"
 	EOF
@@ -33,12 +33,12 @@ if testcase "negative offset"; then
 fi
 
 if testcase "offset not found"; then
-	cat </dev/null >$TMP1
+	cat </dev/null >"$TMP1"
 	step_eval 1337 "$TMP1" && fail "bogus offset found"
 fi
 
 if testcase "name"; then
-	cat <<-EOF >$TMP1
+	cat <<-EOF >"$TMP1"
 	name="one" step="1"
 	EOF
 
@@ -49,7 +49,7 @@ if testcase "name"; then
 fi
 
 if testcase "name not found"; then
-	cat <<-EOF >$TMP1
+	cat <<-EOF >"$TMP1"
 	name="one" step="1"
 	EOF
 	if step_eval two "$TMP1" 2>/dev/null; then
@@ -58,7 +58,7 @@ if testcase "name not found"; then
 fi
 
 if testcase "unknown field"; then
-	cat <<-EOF >$TMP1
+	cat <<-EOF >"$TMP1"
 	bogus="bogus"
 	EOF
 	if step_eval 1 "$TMP1" 2>/dev/null; then

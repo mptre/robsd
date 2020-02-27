@@ -1,4 +1,5 @@
 if testcase "basic"; then
+	# shellcheck disable=SC2086
 	mkdir -p ${BUILDDIR}/2019-03-0{1,2}/reldir
 	for _d in ${BUILDDIR}/*; do
 		for _f in 01-base.log 01-base.log.1 02-cvs.log 03-env.log comment reldir/index.txt report src.diff.1; do
@@ -7,7 +8,7 @@ if testcase "basic"; then
 		cat <<-EOF >"${_d}/steps"
 		EOF
 	done
-	touch -t 201903012233.44 ${BUILDDIR}/2019-03-01
+	touch -t 201903012233.44 "${BUILDDIR}/2019-03-01"
 
 	assert_eq "${BUILDDIR}/2019-03-01" "$(purge "$BUILDDIR" 1)"
 
@@ -32,6 +33,7 @@ if testcase "basic"; then
 fi
 
 if testcase "last steps failure"; then
+	# shellcheck disable=SC2086
 	mkdir -p ${BUILDDIR}/2019-03-0{1,2}/reldir
 	_d="${BUILDDIR}/2019-03-01"
 	touch "${_d}/04-kernel.log"
@@ -47,6 +49,7 @@ if testcase "last steps failure"; then
 fi
 
 if testcase "missing log files"; then
+	# shellcheck disable=SC2086
 	mkdir -p ${BUILDDIR}/2019-03-0{1,2}/reldir
 
 	assert_eq "${BUILDDIR}/2019-03-01" "$(purge "$BUILDDIR" 1)"
@@ -54,8 +57,9 @@ if testcase "missing log files"; then
 fi
 
 if testcase "attic already present"; then
+	# shellcheck disable=SC2086
 	mkdir -p ${BUILDDIR}/2019-03-0{1,2}
-	mkdir -p ${BUILDDIR}/attic
+	mkdir -p "${BUILDDIR}/attic"
 
 	assert_eq "${BUILDDIR}/2019-03-01" "$(purge "$BUILDDIR" 1)"
 

@@ -8,7 +8,7 @@ if testcase "basic"; then
 fi
 
 if testcase "checkflist empty"; then
-	cat <<-EOF >$TMP1
+	cat <<-EOF >"$TMP1"
 	+ checkflist
 	EOF
 
@@ -18,7 +18,7 @@ if testcase "checkflist empty"; then
 fi
 
 if testcase "checkflist not empty"; then
-	cat <<-EOF >$TMP1
+	cat <<-EOF >"$TMP1"
 	+ checkflist
 	> ./usr/share/man/man1/ls.1
 	EOF
@@ -53,8 +53,8 @@ if testcase "diff xenocara present"; then
 fi
 
 if testcase "diff not present"; then
-	BSDDIFF=""
-	XDIFF=""
+	BSDDIFF=""; export BSDDIFF
+	XDIFF=""; export XDIFF
 
 	if ! report_skip "patch"; then
 		fail "expected patch to be skipped"

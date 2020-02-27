@@ -12,13 +12,14 @@ genfile() {
 }
 
 if testcase "basic"; then
-	BSDDIFF=""
-	XDIFF=""
+	BSDDIFF=""; export BSDDIFF
+	XDIFF=""; export XDIFF
 	LOGDIR="${BUILDDIR}/2019-02-23"
+	# shellcheck disable=SC2086
 	mkdir -p ${BUILDDIR}/2019-02-{22,23}
 	echo "comment goes here" >"${LOGDIR}/comment"
 	echo "cvs log" >"${LOGDIR}/cvs.log"
-	cat <<-EOF >${LOGDIR}/steps
+	cat <<-EOF >"${LOGDIR}/steps"
 	step="1" name="env" exit="0" duration="0" log="${LOGDIR}/env.log" user="root" time="0"
 	step="2" name="cvs" exit="0" duration="358" log="${LOGDIR}/cvs.log" user="root" time="0"
 	step="3" name="patch" exit="0" duration="0" log="${LOGDIR}/patch.log" user="root" time="0"
@@ -29,14 +30,14 @@ if testcase "basic"; then
 	genfile 1 "${LOGDIR}/reldir/base66.tgz"
 
 	# Create a previous release in order to report duration and sizes.
-	cat <<-EOF >${BUILDDIR}/2019-02-22/steps
+	cat <<-EOF >"${BUILDDIR}/2019-02-22/steps"
 	step="2" name="cvs" exit="0" duration="298" log="/dev/null" user="root" time="0"
 	EOF
 	mkdir "${BUILDDIR}/2019-02-22/reldir"
 	genfile 1 "${BUILDDIR}/2019-02-22/reldir/bsd.rd"
 	genfile 1 "${BUILDDIR}/2019-02-22/reldir/base66.tgz"
 
-	cat <<-EOF >$TMP1
+	cat <<-EOF >"$TMP1"
 	Subject: robsd: $(machine): ok
 
 	> comment:
@@ -64,11 +65,11 @@ fi
 if testcase "failure"; then
 	mkdir "$LOGDIR"
 	echo "cvs log" >"${LOGDIR}/cvs.log"
-	cat <<-EOF >$STEPS
+	cat <<-EOF >"$STEPS"
 	step="1" name="env" exit="0" duration="1" log="${LOGDIR}/env.log" user="root" time="0"
 	step="2" name="cvs" exit="1" duration="10" log="${LOGDIR}/cvs.log" user="root" time="0"
 	EOF
-	cat <<-EOF >$TMP1
+	cat <<-EOF >"$TMP1"
 	Subject: robsd: $(machine): failed in cvs
 
 	> stats:
@@ -92,10 +93,10 @@ fi
 if testcase "failure in skipped step"; then
 	mkdir "$LOGDIR"
 	echo "env log" >"${LOGDIR}/env.log"
-	cat <<-EOF >$STEPS
+	cat <<-EOF >"$STEPS"
 	step="1" name="env" exit="1" duration="1" log="${LOGDIR}/env.log" user="root" time="0"
 	EOF
-	cat <<-EOF >$TMP1
+	cat <<-EOF >"$TMP1"
 	Subject: robsd: $(machine): failed in env
 
 	> stats:

@@ -8,8 +8,8 @@ if testcase "destination not present"; then
 fi
 
 if testcase "destination present"; then
-	echo a >${TSHDIR}/src.diff
-	echo b >${TSHDIR}/dst.diff.1
+	echo a >"${TSHDIR}/src.diff"
+	echo b >"${TSHDIR}/dst.diff.1"
 	if diff_copy "${TSHDIR}/dst.diff" "${TSHDIR}/src.diff"; then
 		fail "expected diff_copy to exit non-zero"
 	fi
