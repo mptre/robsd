@@ -19,17 +19,15 @@ MANDIR?=	${PREFIX}/man
 INSTALL?=	install
 INSTALL_MAN?=	install
 
-SHELLCHECKFLAGS+=	-f gcc
-SHELLCHECKFLAGS+=	-e SC1090	# non-constant source
-SHELLCHECKFLAGS+=	-e SC1091	# constant source
-SHELLCHECKFLAGS+=	-e SC2012	# find instead of ls
-SHELLCHECKFLAGS+=	-e SC2148	# missing shebang
-SHELLCHECKFLAGS+=	-e SC2164	# cd failure
-.ifdef notyet
-SHELLCHECKFLAGS +=	-o add-default-case
-SHELLCHECKFLAGS +=	-o avoid-nullary-conditions
-SHELLCHECKFLAGS +=	-o quote-safe-variables
-.endif
+MANLINT+=	${.CURDIR}/robsd.8
+MANLINT+=	${.CURDIR}/robsd-clean.8
+MANLINT+=	${.CURDIR}/robsdrc.5
+
+SHLINT+=	${SCRIPTS:C/^/${.CURDIR}\//}
+SHLINT+=	${.CURDIR}/robsd
+SHLINT+=	${.CURDIR}/robsd-clean
+
+SUBDIR+=	tests
 
 all:
 
@@ -48,19 +46,10 @@ install:
 	${INSTALL_MAN} ${.CURDIR}/robsdrc.5 ${DESTDIR}${MANDIR}/man5
 .PHONY: install
 
-lint:
-	mandoc -Tlint -Wstyle \
-		${.CURDIR}/robsd.8 \
-		${.CURDIR}/robsd-clean.8 \
-		${.CURDIR}/robsdrc.5
-	shellcheck ${SHELLCHECKFLAGS} \
-		${SCRIPTS:C/^/${.CURDIR}\//} \
-		${.CURDIR}/robsd \
-		${.CURDIR}/robsd-clean
-.PHONY: lint
-
 test:
 	${MAKE} -C ${.CURDIR}/tests \
 		"EXECDIR=${.CURDIR}" \
 		"TESTFLAGS=${TESTFLAGS}"
 .PHONY: test
+
+.include "${.CURDIR}/Makefile.inc"
