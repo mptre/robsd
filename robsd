@@ -269,8 +269,8 @@ STEP=""
 while getopts "DS:X:c:r:" opt; do
 	case "$opt" in
 	D)	DETACH=1;;
-	S)	BSDDIFF="${BSDDIFF}${BSDDIFF:+ }${OPTARG}";;
-	X)	XDIFF="${XDIFF}${XDIFF:+ }${OPTARG}";;
+	S)	BSDDIFF="${BSDDIFF}${BSDDIFF:+ }$(readlink -f "${OPTARG}")";;
+	X)	XDIFF="${XDIFF}${XDIFF:+ }$(readlink -f "${OPTARG}")";;
 	c)	COMMENT="$OPTARG";;
 	r)	LOGDIR="$OPTARG";;
 	*)	usage;;
