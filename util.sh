@@ -488,7 +488,9 @@ prev_release() {
 # The older ones will be moved to the attic, keeping only the relevant files.
 # All purged directories are written to stdout.
 purge() {
-	local _attic="${BUILDDIR}/attic" _dir="$1" _log="" _n="$2"
+	local _attic="${BUILDDIR}/attic"
+	local _dir="$1"
+	local _n="$2"
 	local _d _dst _tim
 
 	find "$_dir" -type d -mindepth 1 -maxdepth 1 |
@@ -502,13 +504,6 @@ purge() {
 		# Grab the modification time before removal of irrelevant files.
 		_tim="$(stat -f '%Sm' -t '%FT%T' "$_d")"
 
-		# If the last step failed, keep the log.
-		if step_eval -1 "${_d}/steps" 2>/dev/null &&
-			[ "$(step_value exit)" -ne 0 ]
-		then
-			_log="$(basename "$(step_value log)")"
-		fi
-
 		find "$_d" -mindepth 1 -not \( \
 			-name '*.diff.*' -o \
 			-name '*cvs.log' -o \
@@ -516,8 +511,7 @@ purge() {
 			-name 'comment' -o \
 			-name 'index.txt' -o \
 			-name 'report' -o \
-			-name 'steps' -o \
-			-name "$_log" \) -delete
+			-name 'steps' \) -delete
 
 		# Transform: YYYY-MM-DD.X -> YYYY/MM/DD.X
 		_dst="${_attic}/$(echo "${_d##*/}" | tr '-' '/')"

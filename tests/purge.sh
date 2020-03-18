@@ -32,22 +32,6 @@ if testcase "basic"; then
 		"$(stat -f '%Sm' "${BUILDDIR}/attic/2019/03/01")"
 fi
 
-if testcase "last steps failure"; then
-	# shellcheck disable=SC2086
-	mkdir -p ${BUILDDIR}/2019-03-0{1,2}/reldir
-	_d="${BUILDDIR}/2019-03-01"
-	touch "${_d}/04-kernel.log"
-	cat <<-EOF >"${_d}/steps"
-	exit="1" log="${_d}/04-kernel.log"
-	EOF
-
-	assert_eq "${BUILDDIR}/2019-03-01" "$(purge "$BUILDDIR" 1)"
-
-	_d="${BUILDDIR}/attic/2019/03/01"
-	[ -e "${_d}/04-kernel.log" ] ||
-		fail "expected ${_d}/04-kernel.log to be left"
-fi
-
 if testcase "missing log files"; then
 	# shellcheck disable=SC2086
 	mkdir -p ${BUILDDIR}/2019-03-0{1,2}/reldir
