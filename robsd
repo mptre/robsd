@@ -283,7 +283,7 @@ trap 'atexit' EXIT
 trap 'info "caught SIGINT"' INT
 
 if [ "$DETACH" -eq 1 ]; then
-	exec </dev/null >"${LOGDIR}/robsd.log" 2>&1
+	exec </dev/null >>"${LOGDIR}/robsd.log" 2>&1
 fi
 
 if [ -z "$LOGDIR" ]; then
