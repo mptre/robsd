@@ -8,5 +8,5 @@ fi
 
 ls -nT -- * >index.txt
 
-su "$DISTRIBUSER" -c "ssh ${DISTRIBHOST} rm -f ${DISTRIBPATH}/*"
-su "$DISTRIBUSER" -c "scp ${RELEASEDIR}/* ${DISTRIBHOST}:${DISTRIBPATH}"
+su "$DISTRIBUSER" -c "exec ssh ${DISTRIBHOST} rm -f ${DISTRIBPATH}/*"
+su "$DISTRIBUSER" -c "exec scp ${RELEASEDIR}/* ${DISTRIBHOST}:${DISTRIBPATH}"
