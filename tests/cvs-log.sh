@@ -99,7 +99,7 @@ if testcase "basic"; then
 fi
 
 if testcase "previous build absent"; then
-	cvs_log -r /dev/null -t /dev/null -u nobody 2>/dev/null
+	cvs_log -r /dev/null -t "${TSHDIR}/.cvs" -u nobody 2>/dev/null
 fi
 
 # If the previous build didn't update anything, there's no date header to use
@@ -121,6 +121,6 @@ if testcase "previous build no updates"; then
 	P sbin/dhclient/clparse.c
 	EOF
 
-	cvs_log -r /dev/null -t /dev/null -u nobody <"$TMP1" >"${TSHDIR}/act"
+	cvs_log -r /dev/null -t "${TSHDIR}/.cvs" -u nobody <"$TMP1" >"${TSHDIR}/act"
 	assert_file "/dev/null" "${TSHDIR}/act"
 fi

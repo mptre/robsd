@@ -175,6 +175,7 @@ cvs_log() {
 	grep '^[MPU]\>' |
 	cut -d ' ' -f 2 |
 	su "$_user" -c "cd ${_repo} && xargs cvs -q log -N -l -d '>${_date}'" |
+	tee "${_tmp}/cvs-log" |
 	while read -r _line; do
 		case "$_line" in
 		Working\ file:*)
