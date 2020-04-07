@@ -321,12 +321,16 @@ elif [ -n "$BSDDIFF" ] || [ -n "$XDIFF" ]; then
 	} | comment "-" "${LOGDIR}/comment" || :
 fi
 
-# shellcheck disable=SC2086
-BSDDIFF="$(diff_copy "${LOGDIR}/src.diff" $BSDDIFF)" ||
-	fatal "src diff already specified"
-# shellcheck disable=SC2086
-XDIFF="$(diff_copy "${LOGDIR}/xenocara.diff" $XDIFF)" ||
-	fatal "xenocara diff already specified"
+# Copy the diff(s) initially, otherwise use the previously copied ones.
+if [ "$S" -eq 1 ]; then
+	# shellcheck disable=SC2086
+	BSDDIFF="$(diff_copy "${LOGDIR}/src.diff" $BSDDIFF)"
+	# shellcheck disable=SC2086
+	XDIFF="$(diff_copy "${LOGDIR}/xenocara.diff" $XDIFF)"
+else
+	BSDDIFF="$(diff_list "$LOGDIR" "src.diff")"
+	XDIFF="$(diff_list "$LOGDIR" "xenocara.diff")"
+fi
 
 if [ "$KEEP" -gt 0 ]; then
 	/usr/local/sbin/robsd-clean "$KEEP"

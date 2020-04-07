@@ -235,7 +235,6 @@ diff_clean() {
 # diff_copy dst [src ...]
 #
 # Copy the given diff(s) located at src to dst.
-# Exits non-zero if dst already exists.
 diff_copy() {
 	local _i=1
 	local _base _dst _src
@@ -246,14 +245,9 @@ diff_copy() {
 	for _src; do
 		_dst="${_base}.${_i}"
 
-		if [ -e "$_dst" ]; then
-			if ! cmp -s "$_src" "$_dst"; then
-				return 1
-			fi
-		else
-			cp "$_src" "$_dst"
-			chmod 644 "$_dst"
-		fi
+		cp "$_src" "$_dst"
+		chmod 644 "$_dst"
+
 		# Try hard to output everything on a single line.
 		[ "$_i" -gt 1 ] && printf ' '
 		echo -n "$_dst"
@@ -263,6 +257,17 @@ diff_copy() {
 	printf '\n'
 
 	return 0
+}
+
+# diff_list dir prefix
+#
+# List all diff in the given dir matching prefix.
+diff_list() {
+	local _dir _prefix
+
+	_dir="$1" ; : "${_dir:?}"
+	_prefix="$2" ; : "${_prefix:?}"
+	find "$_dir" \( -type f -name "${_prefix}.*" \) -print0 | xargs -0
 }
 
 # diff_root -d directory diff
