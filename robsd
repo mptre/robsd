@@ -282,10 +282,6 @@ shift $((OPTIND - 1))
 trap 'atexit' EXIT
 trap 'info "caught SIGINT"' INT
 
-if [ "$DETACH" -eq 1 ]; then
-	exec </dev/null >>"${LOGDIR}/robsd.log" 2>&1
-fi
-
 if [ -z "$LOGDIR" ]; then
 	check_perf || exit 1
 
@@ -293,9 +289,11 @@ if [ -z "$LOGDIR" ]; then
 	mkdir "$LOGDIR"
 else
 	S="$(step_next "${LOGDIR}/steps")"
-	info "resume build from step ${S}"
 fi
-info "using directory ${LOGDIR}"
+if [ "$DETACH" -eq 1 ]; then
+	exec </dev/null >>"${LOGDIR}/robsd.log" 2>&1
+fi
+info "using directory ${LOGDIR} at step ${S}"
 
 # Redundant export since it's already done by config_load but
 # silence shellcheck.
