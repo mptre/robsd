@@ -224,6 +224,31 @@ cvs_log() {
 	sed -e 's/^[[:space:]]*$//'
 }
 
+# diff_apply -u user diff
+#
+# Apply the given diff, operating as user.
+diff_apply() {
+	local _diff=""
+	local _user=""
+
+	while [ $# -gt 0 ]; do
+		case "$1" in
+		-u)	shift; _user="$1";;
+		*)	break;;
+		esac
+		shift
+	done
+	_diff="$1"
+	: "${_user:?}"
+	: "${_diff:?}"
+
+	# Try to revert the diff if dry run fails.
+	if ! su "$_user" -c "exec patch -Cfs" <"$_diff"; then
+		su "$_user" -c "exec patch -Rs" <"$_diff"
+	fi
+	su "$_user" -c "exec patch -Es" <"$_diff"
+}
+
 # diff_clean dir
 #
 # Remove leftovers from cvs and patch in dir.

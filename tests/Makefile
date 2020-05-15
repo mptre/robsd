@@ -2,6 +2,7 @@ TESTS+=	cleandir.sh
 TESTS+=	comment.sh
 TESTS+=	config-load.sh
 TESTS+=	cvs-log.sh
+TESTS+=	diff-apply.sh
 TESTS+=	diff-clean.sh
 TESTS+=	diff-copy.sh
 TESTS+=	diff-list.sh
