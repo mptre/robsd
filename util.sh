@@ -68,6 +68,7 @@ config_load() {
 	export DISTRIBPATH
 	export DISTRIBUSER
 	export EXECDIR; : "${EXECDIR:="/usr/local/libexec/robsd"}"
+	export HOOK; : "${HOOK:=}"
 	export KEEP; : "${KEEP:=0}"
 	export LOGDIR
 	export MAKEFLAGS; : "${MAKEFLAGS:="-j$(sysctl -n hw.ncpuonline)"}"

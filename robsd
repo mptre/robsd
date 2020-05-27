@@ -154,8 +154,11 @@ step_begin() {
 #
 # Mark the given step as ended by writing an entry to the given file.
 step_end() {
-	local _e=0 _l=""
-	local _d _n _s
+	local _d
+	local _e=0
+	local _l=""
+	local _n
+	local _s
 
 	while [ $# -gt 0 ]; do
 		case "$1" in
@@ -183,6 +186,13 @@ step_end() {
 		printf 'user="%s"\n' "$(logname)"
 		printf 'time="%d"\n' "$(date '+%s')"
 	} | paste -s -d ' ' - >>"$1"
+
+	# Only invoke the hook if the step has ended. A duration of -1 is a
+	# sentinel value indicating that the step has just begun.
+	if [ "$_d" -ne -1 ] && [ -n "$HOOK" ]; then
+		info "running hook ${HOOK}"
+		"$HOOK" "$LOGDIR" "$_n" "$_e"
+	fi
 }
 
 # step_exec -f fail -l log step
