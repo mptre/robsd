@@ -902,6 +902,20 @@ step_value() {
 	echo "${_STEP[$_i]}"
 }
 
+# step_name step-id
+#
+# Resolve the given numeric step to its corresponding name.
+step_name() {
+	local _step
+
+	_step="$(step_names | sed -n -e "${1}p")"
+	if [ -n "$_step" ]; then
+		echo "$_step"
+	else
+		return 1
+	fi
+}
+
 # step_names
 #
 # Writes the names of all steps in execution order.
@@ -942,19 +956,5 @@ step_next() {
 		echo "$_step"
 	else
 		echo $((_step + 1))
-	fi
-}
-
-# step_resolve step-id
-#
-# Resolve the given numeric step to its corresponding name.
-step_resolve() {
-	local _step
-
-	_step="$(step_names | sed -n -e "${1}p")"
-	if [ -n "$_step" ]; then
-		echo "$_step"
-	else
-		return 1
 	fi
 }

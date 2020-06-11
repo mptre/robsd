@@ -39,7 +39,7 @@ main() {
 	local _exit _log _t0 _t1
 
 	while :; do
-		STEP="$(step_resolve "$S")"
+		STEP="$(step_name "$S")"
 		info "step ${STEP}"
 
 		if [ "$STEP" = "end" ]; then
