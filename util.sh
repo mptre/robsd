@@ -887,19 +887,9 @@ step_field() {
 	log)		echo 4;;
 	time)		echo 5;;
 	user)		echo 6;;
+	skip)		echo 7;;
 	*)		echo -1;;
 	esac
-}
-
-# step_value name
-#
-# Get corresponding value for the given field name in the global _STEP array.
-step_value() {
-	local _i
-
-	_i="$(step_field "$1")"
-
-	echo "${_STEP[$_i]}"
 }
 
 # step_name step-id
@@ -957,4 +947,15 @@ step_next() {
 	else
 		echo $((_step + 1))
 	fi
+}
+
+# step_value name
+#
+# Get corresponding value for the given field name in the global _STEP array.
+step_value() {
+	local _i
+
+	_i="$(step_field "$1")"
+
+	echo "${_STEP[$_i]}"
 }
