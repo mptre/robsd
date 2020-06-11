@@ -157,6 +157,8 @@ cvs_log() {
 		# execution date of the cvs step from the previous release.
 		step_eval -n cvs "${_prev}/steps"
 
+		step_skip && continue
+
 		_log="$(step_value log)"
 		_date="$(grep -m 1 '^Date:' "$_log" | sed -e 's/^[^:]*: *//')"
 		if [ -n "$_date" ]; then
@@ -371,6 +373,8 @@ duration_total() {
 
 	while step_eval "$_i" "$_steps"; do
 		_i=$((_i + 1))
+
+		step_skip && continue
 
 		# Do not include the previous accumulated build duration.
 		# Could be present if the report is re-generated.
@@ -602,9 +606,12 @@ report() {
 	_tmp="$(mktemp -t robsd.XXXXXX)"
 
 
+	# The last none skipped step determines success or failure.
 	_i=1
 	while step_eval "-${_i}" "$_steps"; do
 		_i=$((_i + 1))
+
+		step_skip && continue
 
 		if [ "$(step_value exit)" -eq 0 ]; then
 			_status="ok"
@@ -645,8 +652,11 @@ report() {
 		report_sizes "$(release_dir "$LOGDIR")"
 	} >>"$_tmp"
 
+	_i=1
 	while step_eval "$_i" "$_steps"; do
 		_i=$((_i + 1))
+
+		step_skip && continue
 
 		_name="$(step_value name)"
 		_exit="$(step_value exit)"
@@ -1029,6 +1039,16 @@ step_next() {
 	else
 		echo $((_step + 1))
 	fi
+}
+
+# step_skip
+#
+# Exits zero if the step has been skipped.
+step_skip() {
+	local _skip
+
+	_skip="$(step_value skip 2>/dev/null)"
+	[ "$_skip" -eq 1 ]
 }
 
 # step_value name

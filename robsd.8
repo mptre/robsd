@@ -8,6 +8,7 @@
 .Nm robsd
 .Op Fl D
 .Op Fl c Ar file
+.Op Fl s Ar step
 .Op Fl S Ar src-diff
 .Op Fl X Ar xenocara-diff
 .Nm
@@ -112,6 +113,10 @@ Resume a release build located at
 .Ar path .
 If the last executed step failed, it will be executed again.
 Otherwise, the next step will be executed.
+.It Fl s Ar step
+Skip
+.Ar step ,
+may be given multiple times.
 .It Fl S Ar src-diff
 Diff to apply to the src tree.
 The same diff will be reverted once the release is finished.

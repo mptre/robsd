@@ -23,7 +23,8 @@ if testcase "basic"; then
 	step="1" name="env" exit="0" duration="0" log="${LOGDIR}/env.log" user="root" time="0"
 	step="2" name="cvs" exit="0" duration="358" log="${LOGDIR}/cvs.log" user="root" time="0"
 	step="3" name="patch" exit="0" duration="0" log="${LOGDIR}/patch.log" user="root" time="0"
-	step="4" name="end" exit="0" duration="3600" log="" user="root" time="0"
+	step="4" name="kernel" skip="1"
+	step="5" name="end" exit="0" duration="3600" log="" user="root" time="0"
 	EOF
 	mkdir "${LOGDIR}/reldir"
 	genfile 2 "${LOGDIR}/reldir/bsd.rd"
@@ -68,6 +69,7 @@ if testcase "failure"; then
 	cat <<-EOF >"$STEPS"
 	step="1" name="env" exit="0" duration="1" log="${LOGDIR}/env.log" user="root" time="0"
 	step="2" name="cvs" exit="1" duration="10" log="${LOGDIR}/cvs.log" user="root" time="0"
+	step="3" name="patch" skip="1"
 	EOF
 	cat <<-EOF >"$TMP1"
 	Subject: robsd: $(machine): failed in cvs
