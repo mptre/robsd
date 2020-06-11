@@ -131,9 +131,10 @@ cvs_field() {
 # given repository. Individual revisions are group by commit id and sorted by
 # date.
 cvs_log() {
+	local _date=""
 	local _indent="  "
 	local _message=0
-	local _date _id _line _log _path _prev _repo _user
+	local _id _line _log _path _prev _repo _user
 
 	while [ $# -gt 0 ]; do
 		case "$1" in
@@ -149,25 +150,23 @@ cvs_log() {
 	: "${_user:?}"
 
 	# Use the date from latest revision from the previous release.
-	_prev="$(prev_release)"
-	if [ -z "$_prev" ]; then
-		echo "cvs_log: previous release not present" 1>&2
-		return 0
-	fi
+	for _prev in $(prev_release 0); do
+		# Find cvs date threshold. By default, try to use the date from
+		# the last revision from the previous release. Otherwise if the
+		# previous release didn't include any new revisions, use the
+		# execution date of the cvs step from the previous release.
+		step_eval -n cvs "${_prev}/steps"
 
-	# Find cvs date threshold. By default, try to use the date from the last
-	# revision from the previous release. Otherwise if the previous release
-	# didn't include any new revisions, use the execution date of the
-	# cvs step from the previous release.
-	step_eval -n cvs "${_prev}/steps"
-	_log="$(step_value log)"
-	_date="$(grep -m 1 '^Date:' "$_log" | sed -e 's/^[^:]*: *//')"
-	if [ -n "$_date" ]; then
-		_date="$(date -j -f '%Y/%m/%d %H:%M:%S' +'%F %T' "$_date")"
-	else
-		_date="$(step_value time)"
-		_date="$(date -r "$_date" '+%F %T')"
-	fi
+		_log="$(step_value log)"
+		_date="$(grep -m 1 '^Date:' "$_log" | sed -e 's/^[^:]*: *//')"
+		if [ -n "$_date" ]; then
+			_date="$(date -j -f '%Y/%m/%d %H:%M:%S' +'%F %T' "$_date")"
+		else
+			_date="$(step_value time)"
+			_date="$(date -r "$_date" '+%F %T')"
+		fi
+		[ -n "$_date" ] && break
+	done
 	if [ -z "$_date" ]; then
 		echo "cvs_log: previous date not found" 1>&2
 		return 0

@@ -49,11 +49,14 @@ if testcase "basic"; then
 	mkdir "${TSHDIR}/.cvs"
 	LOGDIR="${BUILDDIR}/2019-07-21"; export LOGDIR
 	# shellcheck disable=SC2086
-	mkdir -p ${BUILDDIR}/2019-07-{20,21}
+	mkdir -p ${BUILDDIR}/2019-07-{19,20,21}
 	cat <<-EOF >"${BUILDDIR}/2019-07-20/steps"
-	step="2" name="cvs" log="${BUILDDIR}/2019-07-20/cvs.log" time="1563616561"
+	step="2" name="cvs" skip="1"
 	EOF
-	cat <<-EOF >"${BUILDDIR}/2019-07-20/cvs.log"
+	cat <<-EOF >"${BUILDDIR}/2019-07-19/steps"
+	step="2" name="cvs" log="${BUILDDIR}/2019-07-19/cvs.log" time="1563616561"
+	EOF
+	cat <<-EOF >"${BUILDDIR}/2019-07-19/cvs.log"
 	Date: 2019/07/14 00:00:00
 	Date: 2019/07/13 23:59:59
 	EOF
