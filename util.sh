@@ -892,6 +892,23 @@ step_field() {
 	esac
 }
 
+# step_id step-name
+#
+# Resolve the given step name to its corresponding numeric id.
+step_id() {
+	local _id
+	local _name
+
+	_name="$1"; : "${_name:?}"
+	_id="$(step_names | cat -n | grep -w "$_name" | awk '{print $1}')"
+	if [ -n "$_id" ]; then
+		echo "$_id"
+	else
+		echo "step_id: ${_name}: unknown step" 1>&2
+		return 1
+	fi
+}
+
 # step_name step-id
 #
 # Resolve the given numeric step to its corresponding name.

@@ -17,6 +17,7 @@ TESTS+=	report-size.sh
 TESTS+=	report-skip.sh
 TESTS+=	report.sh
 TESTS+=	step-eval.sh
+TESTS+=	step-id.sh
 TESTS+=	step-next.sh
 
 SHLINT+=	${TESTS:C/^/${.CURDIR}\//}
