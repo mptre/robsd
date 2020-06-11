@@ -582,7 +582,7 @@ reboot_commence() {
 # Create a build report and save it to report.
 report() {
 	local _duration=0
-	local _i=1
+	local _i
 	local _name=""
 	local _exit _f _log _report _steps _status _tmp
 
@@ -602,16 +602,21 @@ report() {
 	_tmp="$(mktemp -t robsd.XXXXXX)"
 
 
-	step_eval -1 "$_steps"
-	if [ "$(step_value exit)" -eq 0 ]; then
-		_status="ok"
-		_duration="$(step_value duration)"
-		_duration="$(report_duration -d end -t 60 "$_duration")"
-	else
-		_status="failed in $(step_value name)"
-		_duration="$(duration_total "$_steps")"
-		_duration="$(report_duration "$_duration")"
-	fi
+	_i=1
+	while step_eval "-${_i}" "$_steps"; do
+		_i=$((_i + 1))
+
+		if [ "$(step_value exit)" -eq 0 ]; then
+			_status="ok"
+			_duration="$(step_value duration)"
+			_duration="$(report_duration -d end -t 60 "$_duration")"
+		else
+			_status="failed in $(step_value name)"
+			_duration="$(duration_total "$_steps")"
+			_duration="$(report_duration "$_duration")"
+		fi
+		break
+	done
 
 	# Add headers.
 	cat <<-EOF >"$_tmp"
