@@ -150,7 +150,7 @@ step_begin() {
 	step_end -d -1 -e 0 -l "$_l" -n "$_n" -s "$_s" "$1"
 }
 
-# step_end [-e exit] [-l log] -d duration -n name -s step-name file
+# step_end [-e exit] [-l log] -d duration -n name -s step-id file
 #
 # Mark the given step as ended by writing an entry to the given file.
 step_end() {
