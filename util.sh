@@ -902,6 +902,30 @@ step_value() {
 	echo "${_STEP[$_i]}"
 }
 
+# step_names
+#
+# Writes the names of all steps in execution order.
+# The last step named end is a sentinel step without a corresponding step
+# script.
+step_names() {
+	cat <<-EOF
+	env
+	cvs
+	patch
+	kernel
+	env
+	base
+	release
+	checkflist
+	xbase
+	xrelease
+	image
+	revert
+	distrib
+	end
+	EOF
+}
+
 # step_next steps
 #
 # Get the next step to execute. If the last step failed, it will be executed
@@ -918,5 +942,19 @@ step_next() {
 		echo "$_step"
 	else
 		echo $((_step + 1))
+	fi
+}
+
+# step_resolve step-id
+#
+# Resolve the given numeric step to its corresponding name.
+step_resolve() {
+	local _step
+
+	_step="$(step_names | sed -n -e "${1}p")"
+	if [ -n "$_step" ]; then
+		echo "$_step"
+	else
+		return 1
 	fi
 }
