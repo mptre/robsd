@@ -874,8 +874,9 @@ step_end() {
 # Read the given step from file into the _STEP array. The offset argument
 # refers to a line in file. A negative offset starts from the end of file.
 step_eval() {
-	local _name=0
 	local _file _i _k _next _step _v
+	local _n
+	local _name=0
 
 	while [ $# -gt 0 ]; do
 		case "$1" in
@@ -899,6 +900,8 @@ step_eval() {
 	if [ "$_name" -eq 1 ]; then
 		_line="$(sed -n -e "/name=\"${_step}\"/p" "$_file")"
 	elif [ "$_step" -lt 0 ]; then
+		_n="$(wc -l "$_file" | awk '{print $1}')"
+		[ $((- _step)) -gt "$_n" ] && return 1
 		_line="$(tail "$_step" "$_file" | head -1)"
 	else
 		_line="$(sed -n -e "${_step}p" "$_file")"

@@ -30,6 +30,10 @@ if testcase "negative offset"; then
 	assert_eq "2" "${#_STEP[*]}" "one: array length"
 	assert_eq "1" "$(step_value step)" "one: id"
 	assert_eq "one" "$(step_value name)" "one: name"
+
+	if step_eval -3 "$TMP1"; then
+		fail "bogus negative offset found"
+	fi
 fi
 
 if testcase "offset not found"; then
