@@ -811,6 +811,63 @@ setprogname() {
 	_PROG="$1"
 }
 
+# step_end [-S] [-d duration] [-e exit] [-l log] -n name -s step-id file
+#
+# Mark the given step as ended by writing an entry to the given file.
+step_end() {
+	local _d=-1
+	local _e=0
+	local _l=""
+	local _n
+	local _s
+	local _skip=""
+
+	while [ $# -gt 0 ]; do
+		case "$1" in
+		-d)	shift; _d="$1";;
+		-e)	shift; _e="$1";;
+		-l)	shift; _l="$1";;
+		-n)	shift; _n="$1";;
+		-S)	_skip="1";;
+		-s)	shift; _s="$1";;
+		*)	break;;
+		esac
+		shift
+	done
+
+	# Remove any existing entry for the same step, could be present if a
+	# previous execution failed.
+	[ -e "$1" ] && sed -i -e "/step=\"${_s}\"/d" "$1"
+
+	# Caution: all values must be quoted and cannot contain spaces.
+	{
+		printf 'step="%d"\n' "$_s"
+		printf 'name="%s"\n' "$_n"
+
+		if [ "$_skip" -eq 1 ]; then
+			printf 'skip="1"\n'
+		else
+			printf 'exit="%d"\n' "$_e"
+			printf 'duration="%d"\n' "$_d"
+			printf 'log="%s"\n' "$_l"
+			printf 'user="%s"\n' "$(logname)"
+			printf 'time="%d"\n' "$(date '+%s')"
+		fi
+	} | paste -s -d ' ' - >>"$1"
+
+	# Sort steps as skipped steps are added at the begining.
+	mv "$1" "${1}.orig"
+	sort -V "${1}.orig" >"$1"
+	rm "${1}.orig"
+
+	# Only invoke the hook if the step has ended. A duration of -1 is a
+	# sentinel value indicating that the step has just begun.
+	if [ "$_d" -ne -1 ] && [ -n "$HOOK" ]; then
+		info "running hook ${HOOK}"
+		"$HOOK" "$LOGDIR" "$_n" "$_e"
+	fi
+}
+
 # step_eval offset file
 # step_eval -n step-name file
 #
