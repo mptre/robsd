@@ -348,7 +348,7 @@ duration_prev() {
 	_step="$1"
 	: "${_step:?}"
 
-	prev_release 8 |
+	prev_release 0 |
 	while read -r _prev; do
 		step_eval -n "$_step" "${_prev}/steps" || continue
 
@@ -506,12 +506,22 @@ path_strip() {
 # prev_release [count]
 #
 # Get the previous count number of release directories. Where count defaults
-# to 1.
+# to 1. If count is 0 means all previous release directories.
 prev_release() {
+	local _count
+
+	_count="${1:-1}"
+
 	find "$BUILDDIR" -type d -mindepth 1 -maxdepth 1 |
 	sort -nr |
 	grep -v -e "$LOGDIR" -e "${BUILDDIR}/attic" |
-	head "-${1:-1}"
+	{
+		if [ "$_count" -gt 0 ]; then
+			head "-${_count}"
+		else
+			cat
+		fi
+	}
 }
 
 # purge dir count

@@ -10,6 +10,7 @@ TESTS+=	diff-root.sh
 TESTS+=	duration-total.sh
 TESTS+=	format-duration.sh
 TESTS+=	log-id.sh
+TESTS+=	prev-release.sh
 TESTS+=	purge.sh
 TESTS+=	report-duration.sh
 TESTS+=	report-size.sh
