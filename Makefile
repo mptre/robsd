@@ -6,6 +6,7 @@ SCRIPTS+=	env.sh
 SCRIPTS+=	image.sh
 SCRIPTS+=	kernel.sh
 SCRIPTS+=	patch.sh
+SCRIPTS+=	reboot.sh
 SCRIPTS+=	release.sh
 SCRIPTS+=	revert.sh
 SCRIPTS+=	util.sh

@@ -14,5 +14,3 @@ make obj
 make config
 make
 make install
-
-reboot_commence

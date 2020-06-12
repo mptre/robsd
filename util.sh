@@ -729,7 +729,7 @@ report_log() {
 	[ -s "$2" ] && echo
 
 	case "$1" in
-	env|cvs|patch|checkflist|revert|distrib)
+	env|cvs|patch|checkflist|reboot|revert|distrib)
 		cat "$2"
 		;;
 	*)
@@ -795,7 +795,7 @@ report_skip() {
 	_name="$1"; : "${_name:?}"
 
 	case "$_name" in
-	env|end)
+	env|end|reboot)
 		return 0
 		;;
 	checkflist)
@@ -1009,6 +1009,7 @@ step_names() {
 	cvs
 	patch
 	kernel
+	reboot
 	env
 	base
 	release
