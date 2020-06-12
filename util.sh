@@ -75,6 +75,7 @@ config_load() {
 	export PATH; PATH="/bin:/sbin:/usr/bin:/usr/sbin:/usr/X11R6/bin"
 	export RELEASEDIR
 	export SIGNIFY; : "${SIGNIFY:=}"
+	export SKIP; : "${SKIP:=}"
 	export XDIFF; : "${XDIFF:=}"
 	export XOBJDIR; : "${XOBJDIR="/usr/xobj"}"
 	export XSRCDIR; : "${XSRCDIR="/usr/xenocara"}"

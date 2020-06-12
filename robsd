@@ -202,7 +202,6 @@ COMMENT=""
 DETACH=0
 LOGDIR=""
 S=1
-SKIP=""
 STEP=""
 
 while getopts "DS:X:c:r:s:" opt; do
