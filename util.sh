@@ -47,14 +47,15 @@ comment() {
 	fi
 }
 
-# config_load [path]
+# config_load path
 #
 # Load and validate the configuration.
 config_load() {
-	local _path="/etc/robsdrc"
-	local _diff _tmp
+	local _diff
+	local _path
+	local _tmp
 
-	[ "$#" -eq 1 ] && _path="$1"
+	_path="$1"; : "${_path:?}"
 
 	# Global variables with sensible defaults.
 	export BSDDIFF; : "${BSDDIFF:=}"
