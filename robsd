@@ -285,6 +285,8 @@ if [ "$DETACH" -eq 1 ]; then
 	# Reinstall trap handler since they are not inherited by subprocesses.
 	trap '-' EXIT
 	{ trap 'atexit' EXIT; main; } &
+	info "running in detach mode as pid ${!}"
 else
+	info "running as pid ${$}"
 	main
 fi
