@@ -6,7 +6,6 @@ usage() {
 	cat <<-EOF | xargs 1>&2
 	usage: robsd
 	[-D]
-	[-c file]
 	[-r path]
 	[-s step]
 	[-S src-diff]
@@ -198,18 +197,16 @@ setprogname "robsd"
 [ "$(id -u)" -ne 0 ] && fatal "must be run as root"
 config_load "/etc/robsdrc"
 
-COMMENT=""
 DETACH=0
 LOGDIR=""
 S=1
 STEP=""
 
-while getopts "DS:X:c:r:s:" opt; do
+while getopts "DS:X:r:s:" opt; do
 	case "$opt" in
 	D)	DETACH=1;;
 	S)	BSDDIFF="${BSDDIFF}${BSDDIFF:+ }$(readlink -f "${OPTARG}")";;
 	X)	XDIFF="${XDIFF}${XDIFF:+ }$(readlink -f "${OPTARG}")";;
-	c)	COMMENT="$OPTARG";;
 	r)	LOGDIR="$OPTARG";;
 	s)	SKIP="${SKIP} ${OPTARG}";;
 	*)	usage;;
@@ -246,12 +243,8 @@ if ! lock_acquire "$BUILDDIR" "$LOGDIR"; then
 	fatal "already running"
 fi
 
-if [ -n "$COMMENT" ]; then
-	if ! comment "$COMMENT" "${LOGDIR}/comment"; then
-		fatal "comment already specified"
-	fi
-elif [ -n "$BSDDIFF" ] || [ -n "$XDIFF" ]; then
-	# No comment specified, include a list of the diff(s).
+if [ -n "$BSDDIFF" ] || [ -n "$XDIFF" ]; then
+	# Generate comment including a list of the diff(s).
 	{
 		echo 'Applied the following diff(s):'
 		[ -n "$BSDDIFF" ] && echo "$BSDDIFF" | xargs ls
