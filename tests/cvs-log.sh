@@ -109,6 +109,7 @@ fi
 # as the threshold.
 if testcase "previous build no updates"; then
 	mkdir "${TSHDIR}/.cvs"
+	LOGDIR="${BUILDDIR}/2019-07-21"; export LOGDIR
 	# shellcheck disable=SC2086
 	mkdir -p ${BUILDDIR}/2019-07-{20,21}
 	cat <<-EOF >"${BUILDDIR}/2019-07-20/steps"

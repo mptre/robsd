@@ -161,12 +161,16 @@ cvs_log() {
 
 		step_skip && continue
 
-		_log="$(step_value log)"
+		if ! _log="$(step_value log 2>/dev/null)"; then
+			continue
+		fi
 		_date="$(grep -m 1 '^Date:' "$_log" | sed -e 's/^[^:]*: *//')"
 		if [ -n "$_date" ]; then
 			_date="$(date -j -f '%Y/%m/%d %H:%M:%S' +'%F %T' "$_date")"
 		else
-			_date="$(step_value time)"
+			if ! _date="$(step_value time 2>/dev/null)"; then
+				continue
+			fi
 			_date="$(date -r "$_date" '+%F %T')"
 		fi
 		[ -n "$_date" ] && break
@@ -1061,6 +1065,9 @@ step_value() {
 	local _i
 
 	_i="$(step_field "$1")"
-
+	if [ "$_i" -lt 0 ] || ! echo "${_STEP[$_i]}" >/dev/null 2>&1; then
+		echo "step_value: ${1}: unknown field" 1>&2
+		return 1
+	fi
 	echo "${_STEP[$_i]}"
 }

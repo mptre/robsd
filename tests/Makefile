@@ -20,6 +20,7 @@ TESTS+=	step-end.sh
 TESTS+=	step-eval.sh
 TESTS+=	step-id.sh
 TESTS+=	step-next.sh
+TESTS+=	step-value.sh
 
 SHLINT+=	${TESTS:C/^/${.CURDIR}\//}
 SHLINT+=	${.CURDIR}/util.sh
