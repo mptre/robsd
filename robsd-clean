@@ -1,6 +1,6 @@
 #!/bin/ksh
 
-set -e
+set -eu
 
 usage() {
 	echo "usage: robsd-clean count" 1>&2
