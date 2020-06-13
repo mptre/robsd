@@ -350,7 +350,9 @@ diff_root() {
 # Get the duration for the given step from the previous successful release.
 # Exits non-zero if no previous release exists or the previous one failed.
 duration_prev() {
-	local _prev _step
+	local _prev
+	local _step
+	local _v
 
 	_step="$1"
 	: "${_step:?}"
@@ -359,7 +361,8 @@ duration_prev() {
 	while read -r _prev; do
 		step_eval -n "$_step" "${_prev}/steps" || continue
 
-		step_value duration
+		_v="$(step_value duration 2>/dev/null)" || continue
+		echo "$_v"
 		return 1
 	done || return 0
 
