@@ -105,20 +105,22 @@ If the last executed step failed, it will be executed again.
 Otherwise, the next step will be executed.
 .It Fl s Ar step
 Skip
-.Ar step ,
-may be given multiple times.
+.Ar step .
+May be given multiple times.
 .It Fl S Ar src-diff
 Diff to apply to the src tree.
 The same diff will be reverted once the release is finished.
 In addition, a copy of the diff is saved to a file named
 .Pa src.diff
 in the release directory.
+May be given multiple times.
 .It Fl X Ar xenocara-diff
 Diff to apply to the xenocara tree.
 The same diff will be reverted once the release is finished.
 In addition, a copy of the diff is saved to a file named
 .Pa xenocara.diff
 in the release directory.
+May be given multiple times.
 .El
 .Sh FILES
 .Bl -tag -width Ds
