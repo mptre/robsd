@@ -740,6 +740,9 @@ report_log() {
 	env|cvs|patch|checkflist|reboot|revert|distrib)
 		cat "$2"
 		;;
+	kernel)
+		tail -n 11 "$2"
+		;;
 	*)
 		tail "$2"
 		;;
