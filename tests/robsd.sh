@@ -24,6 +24,11 @@ echo 0
 EOF
 chmod u+x "${WRKDIR}/bin/id"
 
+cat <<EOF >"${WRKDIR}/bin/sendmail"
+exit 0
+EOF
+chmod u+x "${WRKDIR}/bin/sendmail"
+
 cat <<EOF >"${WRKDIR}/bin/sysctl"
 if [ "\$2" = "hw.perfpolicy" ]; then
 	echo auto
