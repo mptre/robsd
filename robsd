@@ -207,7 +207,7 @@ while getopts "DS:X:r:s:" opt; do
 	D)	DETACH=1;;
 	S)	BSDDIFF="${BSDDIFF}${BSDDIFF:+ }$(readlink -f "${OPTARG}")";;
 	X)	XDIFF="${XDIFF}${XDIFF:+ }$(readlink -f "${OPTARG}")";;
-	r)	LOGDIR="$OPTARG";;
+	r)	LOGDIR="$(readlink -f "$OPTARG")";;
 	s)	SKIP="${SKIP} ${OPTARG}";;
 	*)	usage;;
 	esac
