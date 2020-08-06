@@ -250,7 +250,7 @@ diff_apply() {
 	: "${_diff:?}"
 
 	# Try to revert the diff if dry run fails.
-	if ! su "$_user" -c "exec patch -Cfs" <"$_diff"; then
+	if ! su "$_user" -c "exec patch -Cfs" <"$_diff" >/dev/null; then
 		su "$_user" -c "exec patch -Rs" <"$_diff"
 	fi
 	su "$_user" -c "exec patch -Es" <"$_diff"

@@ -49,7 +49,7 @@ if testcase "already applied"; then
 	}
 	EOF
 	create_diff >"$DIFF"
-	if ! (cd "$TSHDIR" && diff_apply -u nobody "$DIFF" >/dev/null); then
+	if ! (cd "$TSHDIR" && diff_apply -u nobody "$DIFF"); then
 		fail "failed to apply diff"
 	fi
 	assert_file - "${TSHDIR}/foo" <<-EOF
