@@ -73,6 +73,7 @@ config_load() {
 	export KEEP; : "${KEEP:=0}"
 	export LOGDIR
 	export MAKEFLAGS; : "${MAKEFLAGS:="-j$(sysctl -n hw.ncpuonline)"}"
+	export PATH; : "${PATH}:/usr/X11R6/bin"
 	export RELEASEDIR
 	export SIGNIFY; : "${SIGNIFY:=}"
 	export SKIP; : "${SKIP:=}"
