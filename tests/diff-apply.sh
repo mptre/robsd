@@ -1,18 +1,3 @@
-create_diff() {
-	cat <<-EOF
-diff --git a/foo b/foo
-index eca3934..c629ecf 100644
---- a/foo
-+++ b/foo
-@@ -1,4 +1,4 @@
- int main(void) {
--int x = 0;
-+int x = 1;
- return x;
- }
-	EOF
-}
-
 # Stub for su expected to call patch.
 su() (
 	shift 2 # strip of su $login
@@ -29,7 +14,7 @@ if testcase "basic"; then
 		return x;
 	}
 	EOF
-	create_diff >"$DIFF"
+	diff_create >"$DIFF"
 	if ! (cd "$TSHDIR" && diff_apply -u nobody "$DIFF"); then
 		fail "failed to apply diff"
 	fi
@@ -48,7 +33,7 @@ if testcase "already applied"; then
 		return x;
 	}
 	EOF
-	create_diff >"$DIFF"
+	diff_create >"$DIFF"
 	if ! (cd "$TSHDIR" && diff_apply -u nobody "$DIFF"); then
 		fail "failed to apply diff"
 	fi

@@ -1,0 +1,54 @@
+#!/bin/ksh
+
+set -eu
+
+usage() {
+	echo "usage: robsd-rescue" 1>&2
+	exit 1
+}
+
+last_release() {
+	find "$BUILDDIR" -type d -mindepth 1 -maxdepth 1 |
+	grep -v -e "${BUILDDIR}/attic" |
+	sort -nr |
+	head -1
+}
+
+. "${EXECDIR:-/usr/local/libexec/robsd}/util.sh"
+
+[ $# -ne 0 ] && usage
+
+setprogname "robsd-rescue"
+[ "$(id -u)" -ne 0 ] && fatal "must be run as root"
+config_load "${ROBSDRC:-/etc/robsdrc}"
+
+LOGDIR="$(last_release)"
+[ -z "$LOGDIR" ] && fatal "release directory not found"
+
+step_eval -n patch "${LOGDIR}/steps" || fatal "step patch not found"
+
+for _diff in $BSDDIFF; do
+	cd "$(diff_root -d "$BSDSRCDIR" "$_diff")"
+        if su "$CVSUSER" -c "exec patch -CRfs" <"$_diff" >/dev/null 2>&1; then
+		info "reverting diff ${_diff}"
+		su "$CVSUSER" -c "exec patch -ERs" <"$_diff"
+	else
+		info "diff already reverted ${_diff}"
+	fi
+done
+if [ -n "$BSDDIFF" ]; then
+	diff_clean "$BSDSRCDIR" 2>/dev/null
+fi
+
+for _diff in $XDIFF; do
+	cd "$(diff_root -d "$XSRCDIR" "$_diff")"
+        if su "$CVSUSER" -c "exec patch -CRfs" <"$_diff" >/dev/null 2>&1; then
+		info "reverting diff ${_diff}"
+		su "$CVSUSER" -c "exec patch -ERs" <"$_diff"
+	else
+		info "diff already reverted ${_diff}"
+	fi
+done
+if [ -n "$XDIFF" ]; then
+	diff_clean "$XSRCDIR" 2>/dev/null
+fi

@@ -2,19 +2,8 @@ WRKDIR="$(mktemp -d -t robsd.XXXXXX)"
 TSHCLEAN="${TSHCLEAN} ${WRKDIR}"
 
 BUILDDIR="${TSHDIR}/build"
-ROBSDRC="${WRKDIR}/robsdrc"; export ROBSDRC
 PATH="${WRKDIR}/bin:${PATH}"
 ROBSD="${EXECDIR}/robsd"
-
-# Default configuration.
-cat <<-EOF >"$ROBSDRC"
-CVSROOT=example.com:/cvs
-CVSUSER=nobody
-DESTDIR=/var/empty
-DISTRIBHOST=example.com
-DISTRIBPATH=/var/empty
-DISTRIBUSER=nobody
-EOF
 
 # Stub utilities.
 mkdir -p "${WRKDIR}/bin"
@@ -60,6 +49,7 @@ do
 done
 
 if testcase "basic"; then
+	config_stub
 	mkdir -p "$BUILDDIR"
 	EXECDIR="${WRKDIR}/exec" sh "$ROBSD" >/dev/null 2>&1
 fi

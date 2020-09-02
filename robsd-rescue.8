@@ -1,0 +1,35 @@
+.Dd $Mdocdate: September 2 2020$
+.Dt ROBSD-RESCUE 8
+.Os
+.Sh NAME
+.Nm robsd-rescue
+.Nd recover from failed release builds
+.Sh SYNOPSIS
+.Nm robsd-rescue
+.Sh DESCRIPTION
+The
+.Nm
+utility tries to recover from the last
+.Xr robsd 8
+release build
+by performing the actions as follows:
+.Bl -dash
+.It
+Reverting any diff applied to the
+.Ev BSDSRCDIR
+and
+.Ev XSRCDIR
+source directories.
+.El
+.Sh FILES
+.Bl -tag -width Ds
+.It Pa /etc/robsdrc
+The default configuration file.
+.El
+.Sh DIAGNOSTICS
+.Ex -std
+.Sh SEE ALSO
+.Xr robsdrc 5 ,
+.Xr robsd 8
+.Sh AUTHORS
+.An Anton Lindqvist Aq Mt anton@basename.se
