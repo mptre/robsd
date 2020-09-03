@@ -23,7 +23,11 @@ setprogname "robsd-rescue"
 config_load "${ROBSDRC:-/etc/robsdrc}"
 
 LOGDIR="$(last_release)"
-[ -z "$LOGDIR" ] && fatal "release directory not found"
+if [ -z "$LOGDIR" ]; then
+	fatal "release directory not found"
+else
+	info "using release directory ${LOGDIR}"
+fi
 
 step_eval -n patch "${LOGDIR}/steps" || fatal "step patch not found"
 

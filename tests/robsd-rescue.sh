@@ -44,6 +44,7 @@ if testcase "basic"; then
 
 	sh "$ROBSDRESCUE" >"$TMP1" 2>&1
 	assert_file - "$TMP1" <<-EOF
+	robsd-rescue: using release directory ${TSHDIR}/build/2020-09-02.1
 	robsd-rescue: reverting diff ${TSHDIR}/src.diff.1
 	EOF
 fi
@@ -52,6 +53,7 @@ if testcase "patch already reverted"; then
 	setup
 	sh "$ROBSDRESCUE" >"$TMP1" 2>&1
 	assert_file - "$TMP1" <<-EOF
+	robsd-rescue: using release directory ${TSHDIR}/build/2020-09-02.1
 	robsd-rescue: diff already reverted ${TSHDIR}/src.diff.1
 	EOF
 fi
@@ -63,6 +65,7 @@ if testcase "patch step absent"; then
 		fail "want exit 1, got 0"
 	fi
 	assert_file - "$TMP1" <<-EOF
+	robsd-rescue: using release directory ${TSHDIR}/build/2020-09-02.1
 	robsd-rescue: step patch not found
 	EOF
 fi
