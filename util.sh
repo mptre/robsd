@@ -263,7 +263,10 @@ diff_apply() {
 diff_clean() {
 	find "$1" -type f \( \
 		-name '*.orig' -o -name '*.rej' -o -name '.#*' \) -print0 |
-	xargs -0rt rm
+	xargs -0rt rm 2>&1 |
+	while read -r _cmd; do
+		info "$_cmd"
+	done
 }
 
 # diff_copy dst [src ...]
@@ -302,6 +305,34 @@ diff_list() {
 	_dir="$1" ; : "${_dir:?}"
 	_prefix="$2" ; : "${_prefix:?}"
 	find "$_dir" \( -type f -name "${_prefix}.*" \) -print0 | xargs -0
+}
+
+# diff_revert dir diff ...
+#
+# Revert the given diff(s).
+diff_revert() {
+	local _diff
+	local _dir
+	local _revert=0
+	local _root
+
+	_dir="$1"; : "${_dir:?}"; shift
+	for _diff; do
+		_root="$(diff_root -d "${_dir}" "$_diff")"
+		cd "$_root"
+		if su "$CVSUSER" -c "exec patch -CRfs" \
+			<"$_diff" >/dev/null 2>&1
+		then
+			info "reverting diff ${_diff}"
+			su "$CVSUSER" -c "exec patch -ERs" <"$_diff"
+			_revert=1
+		else
+			info "diff already reverted ${_diff}"
+		fi
+	done
+	if [ "$_revert" -eq 1 ]; then
+		diff_clean "$_dir"
+	fi
 }
 
 # diff_root -d directory diff
