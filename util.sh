@@ -866,7 +866,7 @@ release_dir() {
 #
 # Set the name of the program to be used during logging.
 setprogname() {
-	_PROG="$1"
+	_PROG="$1"; export _PROG
 }
 
 # step_end [-S] [-d duration] [-e exit] [-l log] -n name -s step-id file
