@@ -1072,17 +1072,30 @@ step_names() {
 # again. The exception also applies to the end step, this is useful since it
 # allows the report to be regenerated for a finished release.
 step_next() {
+	local _i=1
 	local _step
 
-	step_eval -1 "$1"
-	_step="$(step_value step)"
-	if [ "$(step_value exit)" -ne 0 ]; then
-		echo "$_step"
-	elif [ "$(step_value name)" = "end" ]; then
-		echo "$_step"
-	else
-		echo $((_step + 1))
-	fi
+	while step_eval "-${_i}" "$1"; do
+		_i="$((_i + 1))"
+
+		# The skip field is optional, suppress errors.
+		if [ "$(step_value skip 2>/dev/null)" -eq 1 ]; then
+			continue
+		fi
+
+		_step="$(step_value step)"
+		if [ "$(step_value exit)" -ne 0 ]; then
+			echo "$_step"
+		elif [ "$(step_value name)" = "end" ]; then
+			echo "$_step"
+		else
+			echo $((_step + 1))
+		fi
+		return 0
+	done
+
+	echo "step_next: cannot find next step" 1>&2
+	return 1
 }
 
 # step_skip
