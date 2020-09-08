@@ -1104,6 +1104,7 @@ step_next() {
 step_skip() {
 	local _skip
 
+	# The skip field is optional, suppress errors.
 	_skip="$(step_value skip 2>/dev/null)"
 	[ "$_skip" -eq 1 ]
 }
