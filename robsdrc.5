@@ -76,7 +76,10 @@ Defaults to setting the maximum number of processes option to the value of
 see
 .Xr sysctl 8 .
 .It Ev SKIP
-Steps to skip.
+Steps to skip,
+see
+.Xr robsd-steps 8
+for a list of all available steps.
 May contain multiple steps separated by whitespace.
 .It Ev SIGNIFY
 Private key used to optionally sign the final release files using
@@ -108,6 +111,7 @@ DISTRIBUSER=anton
 .Sh SEE ALSO
 .Xr robsd 8 ,
 .Xr robsd-clean 8 ,
-.Xr robsd-rescue 8
+.Xr robsd-rescue 8 ,
+.Xr robsd-steps 8
 .Sh AUTHORS
 .An Anton Lindqvist Aq Mt anton@basename.se

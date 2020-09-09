@@ -17,6 +17,7 @@ TESTS+=	report-size.sh
 TESTS+=	report-skip.sh
 TESTS+=	report.sh
 TESTS+=	robsd-rescue.sh
+TESTS+=	robsd-steps.sh
 TESTS+=	robsd.sh
 TESTS+=	step-end.sh
 TESTS+=	step-eval.sh

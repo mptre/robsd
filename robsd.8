@@ -105,7 +105,10 @@ If the last executed step failed, it will be executed again.
 Otherwise, the next step will be executed.
 .It Fl s Ar step
 Skip
-.Ar step .
+.Ar step ,
+see
+.Xr robsd-steps 8
+for a list of all available steps.
 May be given multiple times.
 .It Fl S Ar src-diff
 Diff to apply to the src tree.
@@ -133,6 +136,7 @@ The default configuration file.
 .Xr robsdrc 5 ,
 .Xr release 8 ,
 .Xr robsd-clean 8 ,
-.Xr robsd-rescue 8
+.Xr robsd-rescue 8 ,
+.Xr robsd-steps 8
 .Sh AUTHORS
 .An Anton Lindqvist Aq Mt anton@basename.se
