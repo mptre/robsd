@@ -17,7 +17,7 @@ usage() {
 atexit() {
 	local _err=$?
 
-	lock_release "$BUILDDIR"
+	lock_release "$BUILDDIR" "$LOGDIR"
 
 	if [ "$_err" -ne 0 ] || must_report "$STEP"; then
 		if report -r "${LOGDIR}/report" -s "${LOGDIR}/steps"; then
@@ -121,13 +121,16 @@ lock_acquire() {
 	echo "$_logdir" >"${_builddir}/.running"
 }
 
-# lock_release build-dir
+# lock_release build-dir log-dir
 #
-# Release the mutex lock.
+# Release the mutex lock if we did acquire it.
 lock_release() {
 	local _builddir="$1"; : "${_builddir:?}"
+	local _logdir="$2"; : "${_logdir:?}"
 
-	rm -f "${_builddir}/.running"
+	if echo "$_logdir" | cmp -s - "${_builddir}/.running"; then
+		rm -f "${_builddir}/.running"
+	fi
 }
 
 # must_report step-name
