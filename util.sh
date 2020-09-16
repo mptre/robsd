@@ -65,6 +65,7 @@ config_load() {
 	export CVSROOT
 	export CVSUSER
 	export DESTDIR
+	export DETACH; : "${DETACH:=0}"
 	export DISTRIBHOST
 	export DISTRIBPATH
 	export DISTRIBUSER
@@ -500,7 +501,13 @@ format_size() {
 #
 # Print the given message to stderr.
 info() {
-	echo "${_PROG}: ${*}" 1>&2
+	local _log="/dev/null"
+
+	if [ "$DETACH" -eq 1 ]; then
+		# Not fully detached yet, write all entries to robsd.log.
+		_log="${LOGDIR}/robsd.log"
+	fi
+	echo "${_PROG}: ${*}" | tee -a "$_log" 1>&2
 }
 
 # log_id -l log-dir -n step-name -s step-id

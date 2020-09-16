@@ -34,6 +34,7 @@ EOF
 }
 
 BUILDDIR="$TSHDIR"; export BUILDDIR
+DETACH=0; export DETACH
 HOOK=""; export HOOK
 PATH="/bin:/sbin:/usr/bin:/usr/sbin:/usr/X11R6/bin"; export PATH
 TMP1="${TSHDIR}/tmp1"; export TMP1

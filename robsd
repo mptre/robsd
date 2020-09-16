@@ -200,7 +200,6 @@ setprogname "robsd"
 [ "$(id -u)" -ne 0 ] && fatal "must be run as root"
 config_load "${ROBSDRC:-/etc/robsdrc}"
 
-DETACH=0
 LOGDIR=""
 S=1
 STEP=""
@@ -230,9 +229,7 @@ if [ -z "$LOGDIR" ]; then
 else
 	S="$(step_next "${LOGDIR}/steps")"
 fi
-if [ "$DETACH" -eq 1 ]; then
-	exec </dev/null >>"${LOGDIR}/robsd.log" 2>&1
-fi
+touch "${LOGDIR}/robsd.log"
 info "using directory ${LOGDIR} at step ${S}"
 
 # Redundant export since it's already done by config_load but
@@ -240,6 +237,10 @@ info "using directory ${LOGDIR} at step ${S}"
 RELEASEDIR="$(release_dir "$LOGDIR")"; export RELEASEDIR
 
 if ! lock_acquire "$BUILDDIR" "$LOGDIR"; then
+	# Signal to info() that no further output should be written to robsd.log
+	# as we're about the remove the directory where the same log resides.
+	DETACH=0
+
 	# Do not leave an empty release around.
 	[ "$S" -eq 1 ] && rm -r "$LOGDIR"
 
@@ -278,6 +279,11 @@ if [ -n "$SKIP" ]; then
 fi
 
 if [ "$DETACH" -eq 1 ]; then
+	# Signal to info() that no further output should be written to robsd.log
+	# as we're about redirect all output to the same log.
+	DETACH=2
+	exec </dev/null >>"${LOGDIR}/robsd.log" 2>&1
+
 	# Reinstall trap handler since they are not inherited by subprocesses.
 	trap '-' EXIT
 	{ trap 'atexit' EXIT; main; } &
