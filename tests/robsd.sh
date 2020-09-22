@@ -42,6 +42,7 @@ for _stage in \
         xbase \
         xrelease \
         image \
+	hash \
         revert \
         distrib
 do

@@ -232,10 +232,6 @@ fi
 touch "${LOGDIR}/robsd.log"
 info "using directory ${LOGDIR} at step ${S}"
 
-# Redundant export since it's already done by config_load but
-# silence shellcheck.
-RELEASEDIR="$(release_dir "$LOGDIR")"; export RELEASEDIR
-
 if ! lock_acquire "$BUILDDIR" "$LOGDIR"; then
 	# Signal to info() that no further output should be written to robsd.log
 	# as we're about the remove the directory where the same log resides.

@@ -1,6 +1,9 @@
+. "${EXECDIR}/util.sh"
+
+# At this point, all release artifacts are present in the rel directory as the
+# hash step merges the relx directory into rel.
+RELEASEDIR="$(release_dir "$LOGDIR")"
 cd "$RELEASEDIR"
-rm -f index.txt SHA256{,.sig}
-sha256 -h SHA256 -- *
 
 if [ -n "$SIGNIFY" ]; then
 	signify -Se -s "$SIGNIFY" -m SHA256

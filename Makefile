@@ -3,6 +3,7 @@ SCRIPTS+=	checkflist.sh
 SCRIPTS+=	cvs.sh
 SCRIPTS+=	distrib.sh
 SCRIPTS+=	env.sh
+SCRIPTS+=	hash.sh
 SCRIPTS+=	image.sh
 SCRIPTS+=	kernel.sh
 SCRIPTS+=	patch.sh

@@ -1,4 +1,4 @@
-unset DESTDIR RELEASEDIR
+unset DESTDIR
 
 chown build:wobj "$BSDOBJDIR"
 chmod 770 "$BSDOBJDIR"

@@ -75,7 +75,6 @@ config_load() {
 	export LOGDIR
 	export MAKEFLAGS; : "${MAKEFLAGS:="-j$(sysctl -n hw.ncpuonline)"}"
 	export PATH; PATH="${PATH}:/usr/X11R6/bin"
-	export RELEASEDIR
 	export SIGNIFY; : "${SIGNIFY:=}"
 	export SKIP; : "${SKIP:=}"
 	export XDIFF; : "${XDIFF:=}"
@@ -862,11 +861,19 @@ report_skip() {
 	return 1
 }
 
-# release_dir prefix
+# release_dir [-x] prefix
 #
-# Writes the release directory with the given prefix applied.
+# Get the release directory with the given prefix applied.
 release_dir() {
-	echo "${1}/reldir"
+	local _suffix
+
+	if [ "$#" -eq 2 ] && [ "$1" = "-x" ]; then
+		shift
+		_suffix="relx"
+	else
+		_suffix="rel"
+	fi
+	echo "${1}/${_suffix}"
 }
 
 # setprogname name
@@ -1067,6 +1074,7 @@ step_names() {
 	xbase
 	xrelease
 	image
+	hash
 	revert
 	distrib
 	end

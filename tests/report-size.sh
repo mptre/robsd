@@ -15,7 +15,7 @@ fi
 if testcase "previous release missing file"; then
 	zero 1K "$TMP1"
 	# shellcheck disable=SC2086
-	mkdir -p ${BUILDDIR}/2019-02-{22,23}/reldir
+	mkdir -p ${BUILDDIR}/2019-02-{22,23}/rel
 
 	assert_eq "" "$(report_size "$TMP1")"
 fi
@@ -23,8 +23,8 @@ fi
 if testcase "previous delta too small"; then
 	zero 1K "$TMP1"
 	# shellcheck disable=SC2086
-	mkdir -p ${BUILDDIR}/2019-02-{22,23}/reldir
-	zero 1K "${BUILDDIR}/2019-02-22/reldir/${FILE}"
+	mkdir -p ${BUILDDIR}/2019-02-{22,23}/rel
+	zero 1K "${BUILDDIR}/2019-02-22/rel/${FILE}"
 
 	assert_eq "" "$(report_size "$TMP1")"
 fi
@@ -32,8 +32,8 @@ fi
 if testcase "previous delta megabytes"; then
 	zero "$((1024 * 1024 + 438902))" "$TMP1"
 	# shellcheck disable=SC2086
-	mkdir -p ${BUILDDIR}/2019-02-{22,23}/reldir
-	zero "$((1024 * 1024))" "${BUILDDIR}/2019-02-22/reldir/${FILE}"
+	mkdir -p ${BUILDDIR}/2019-02-{22,23}/rel
+	zero "$((1024 * 1024))" "${BUILDDIR}/2019-02-22/rel/${FILE}"
 
 	assert_eq "${FILE} 1.4M (+0.4M)" "$(report_size "$TMP1")"
 fi
@@ -41,8 +41,8 @@ fi
 if testcase "previous delta negative"; then
 	zero 1K "$TMP1"
 	# shellcheck disable=SC2086
-	mkdir -p ${BUILDDIR}/2019-02-{22,23}/reldir
-	zero 2M "${BUILDDIR}/2019-02-22/reldir/${FILE}"
+	mkdir -p ${BUILDDIR}/2019-02-{22,23}/rel
+	zero 2M "${BUILDDIR}/2019-02-22/rel/${FILE}"
 
 	assert_eq "${FILE} 1.0K (-2.0M)" "$(report_size "$TMP1")"
 fi

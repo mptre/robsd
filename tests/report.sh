@@ -26,17 +26,17 @@ if testcase "basic"; then
 	step="4" name="kernel" skip="1"
 	step="5" name="end" exit="0" duration="3600" log="" user="root" time="0"
 	EOF
-	mkdir "${LOGDIR}/reldir"
-	genfile 2 "${LOGDIR}/reldir/bsd.rd"
-	genfile 1 "${LOGDIR}/reldir/base66.tgz"
+	mkdir "${LOGDIR}/rel"
+	genfile 2 "${LOGDIR}/rel/bsd.rd"
+	genfile 1 "${LOGDIR}/rel/base66.tgz"
 
 	# Create a previous release in order to report duration and sizes.
 	cat <<-EOF >"${BUILDDIR}/2019-02-22/steps"
 	step="2" name="cvs" exit="0" duration="298" log="/dev/null" user="root" time="0"
 	EOF
-	mkdir "${BUILDDIR}/2019-02-22/reldir"
-	genfile 1 "${BUILDDIR}/2019-02-22/reldir/bsd.rd"
-	genfile 1 "${BUILDDIR}/2019-02-22/reldir/base66.tgz"
+	mkdir "${BUILDDIR}/2019-02-22/rel"
+	genfile 1 "${BUILDDIR}/2019-02-22/rel/bsd.rd"
+	genfile 1 "${BUILDDIR}/2019-02-22/rel/base66.tgz"
 
 	cat <<-EOF >"$TMP1"
 	Subject: robsd: $(machine): ok

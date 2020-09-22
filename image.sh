@@ -1,8 +1,8 @@
-DESTDIR="${DESTDIR}/src"
-[ -e "$DESTDIR" ] || exit 1
+. "${EXECDIR}/util.sh"
 
-RELDIR="$RELEASEDIR"; export RELDIR
-RELXDIR="$RELEASEDIR"; export RELXDIR
+DESTDIR="${DESTDIR}/src"
+RELDIR="$(release_dir "$LOGDIR")"; export RELDIR
+RELXDIR="$(release_dir -x "$LOGDIR")"; export RELXDIR
 
 cd "${BSDSRCDIR}/distrib/$(machine)/iso"
 make

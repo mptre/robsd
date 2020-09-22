@@ -1,6 +1,6 @@
 . "${EXECDIR}/util.sh"
 
-unset DESTDIR RELEASEDIR
+unset DESTDIR
 
 cleandir "$XOBJDIR"
 chown build:wobj "$XOBJDIR"
