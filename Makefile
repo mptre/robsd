@@ -14,12 +14,12 @@ SCRIPTS+=	util.sh
 SCRIPTS+=	xbase.sh
 SCRIPTS+=	xrelease.sh
 
-PREFIX?=	/usr/local
-BINDIR?=	${PREFIX}/sbin
-LIBEXECDIR?=	${PREFIX}/libexec
-MANDIR?=	${PREFIX}/man
+PREFIX=		/usr/local
+BINDIR=		${PREFIX}/sbin
+LIBEXECDIR=	${PREFIX}/libexec
+MANDIR=		${PREFIX}/man
 INSTALL?=	install
-INSTALL_MAN?=	install
+INSTALL_MAN?=	${INSTALL}
 
 MANLINT+=	${.CURDIR}/robsd.8
 MANLINT+=	${.CURDIR}/robsd-clean.8
