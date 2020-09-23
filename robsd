@@ -74,7 +74,7 @@ main() {
 		[ "$_exit" -ne 0 ] && return 1
 
 		# Reboot in progress?
-		pgrep shutdown >/dev/null && return 0
+		[ "$STEP" = "reboot" ] && return 0
 	done
 }
 
