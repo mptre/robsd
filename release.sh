@@ -1,5 +1,9 @@
 . "${EXECDIR}/util.sh"
 
+# Required by $BSDSRCDIR/etc/Makefile.
+chown build "$DESTDIR"
+chmod 700 "$DESTDIR"
+
 DESTDIR="${DESTDIR}/src"
 mkdir -p "$DESTDIR"
 cleandir "$DESTDIR"
