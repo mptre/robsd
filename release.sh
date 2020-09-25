@@ -7,8 +7,6 @@ chmod 700 "$DESTDIR"
 DESTDIR="${DESTDIR}/src"
 mkdir -p "$DESTDIR"
 cleandir "$DESTDIR"
-chown build "$DESTDIR"
-chmod 700 "$DESTDIR"
 
 RELEASEDIR="$(release_dir "$LOGDIR")"; export RELEASEDIR
 mkdir -p "$RELEASEDIR"
