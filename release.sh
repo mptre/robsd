@@ -1,6 +1,5 @@
 . "${EXECDIR}/util.sh"
 
-# Required by $BSDSRCDIR/etc/Makefile.
 chown build "$DESTDIR"
 chmod 700 "$DESTDIR"
 
