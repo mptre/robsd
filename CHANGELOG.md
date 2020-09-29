@@ -1,3 +1,11 @@
+# v1.1.0 - 2020-09-29
+
+## News
+
+- Make distrib configuration optional.
+  (c0d651a)
+  (Anton Lindqvist)
+
 # v1.0.1 - 2020-09-25
 
 ## Bug fixes
