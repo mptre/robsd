@@ -66,9 +66,9 @@ config_load() {
 	export CVSUSER
 	export DESTDIR
 	export DETACH; : "${DETACH:=0}"
-	export DISTRIBHOST
-	export DISTRIBPATH
-	export DISTRIBUSER
+	export DISTRIBHOST; : "${DISTRIBHOST:=}"
+	export DISTRIBPATH; : "${DISTRIBPATH:=}"
+	export DISTRIBUSER; : "${DISTRIBUSER:=}"
 	export EXECDIR; : "${EXECDIR:="/usr/local/libexec/robsd"}"
 	export HOOK; : "${HOOK:=}"
 	export KEEP; : "${KEEP:=0}"
@@ -88,9 +88,6 @@ config_load() {
 	: "${CVSROOT:?}"
 	: "${CVSUSER:?}"
 	: "${DESTDIR:?}"
-	: "${DISTRIBHOST:?}"
-	: "${DISTRIBPATH:?}"
-	: "${DISTRIBUSER:?}"
 	: "${XOBJDIR:?}"
 
 	# Filter out missing source diff(s).

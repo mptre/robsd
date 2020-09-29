@@ -3,9 +3,6 @@ default_config() {
 	CVSROOT=example.com:/cvs
 	CVSUSER=nobody
 	DESTDIR=/var/empty
-	DISTRIBHOST=example.com
-	DISTRIBPATH=/var/empty
-	DISTRIBUSER=nobody
 	EOF
 }
 

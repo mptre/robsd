@@ -9,9 +9,6 @@ config_stub() {
 		CVSROOT=example.com:/cvs
 		CVSUSER=nobody
 		DESTDIR=/var/empty
-		DISTRIBHOST=example.com
-		DISTRIBPATH=/var/empty
-		DISTRIBUSER=nobody
 		EOF
 		[ "$#" -eq 1 ] && [ "$1" = "-" ] && cat
 	} >"$ROBSDRC"

@@ -1,5 +1,9 @@
 . "${EXECDIR}/util.sh"
 
+if [ -z "$DISTRIBHOST" ] || [ -z "$DISTRIBPATH" ] || [ -z "$DISTRIBUSER" ]; then
+	exit 0
+fi
+
 # At this point, all release artifacts are present in the rel directory as the
 # hash step merges the relx directory into rel.
 RELEASEDIR="$(release_dir "$LOGDIR")"
