@@ -1,9 +1,5 @@
 . "${EXECDIR}/util.sh"
 
-if [ -z "$DISTRIBHOST" ] || [ -z "$DISTRIBPATH" ] || [ -z "$DISTRIBUSER" ]; then
-	exit 0
-fi
-
 # At this point, all release artifacts are present in the rel directory as the
 # hash step merges the relx directory into rel.
 RELEASEDIR="$(release_dir "$LOGDIR")"
@@ -14,6 +10,10 @@ if [ -n "$SIGNIFY" ]; then
 fi
 
 ls -nT -- * >index.txt
+
+if [ -z "$DISTRIBHOST" ] || [ -z "$DISTRIBPATH" ] || [ -z "$DISTRIBUSER" ]; then
+	exit 0
+fi
 
 su "$DISTRIBUSER" -c "exec ssh ${DISTRIBHOST} rm -f ${DISTRIBPATH}/*"
 su "$DISTRIBUSER" -c "exec scp ${RELEASEDIR}/* ${DISTRIBHOST}:${DISTRIBPATH}"
