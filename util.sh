@@ -428,7 +428,7 @@ duration_total() {
 #
 # Print the given message to stderr and exit non-zero.
 fatal() {
-	info "$*"
+	info "$*" 1>&2
 	exit 1
 }
 
@@ -495,7 +495,7 @@ format_size() {
 
 # info message ...
 #
-# Print the given message to stderr.
+# Print the given message to stdout.
 info() {
 	local _log="/dev/null"
 
@@ -503,7 +503,7 @@ info() {
 		# Not fully detached yet, write all entries to robsd.log.
 		_log="${LOGDIR}/robsd.log"
 	fi
-	echo "${_PROG}: ${*}" | tee -a "$_log" 1>&2
+	echo "${_PROG}: ${*}" | tee -a "$_log"
 }
 
 # log_id -l log-dir -n step-name -s step-id
@@ -617,7 +617,7 @@ purge() {
 # Commence reboot and continue building the current release after boot.
 reboot_commence() {
 	cat <<-EOF >>/etc/rc.firsttime
-	/usr/local/sbin/robsd -D -r ${LOGDIR}
+	/usr/local/sbin/robsd -D -r ${LOGDIR} >/dev/null
 	EOF
 
 	# Add some grace in order to let the script finish.
