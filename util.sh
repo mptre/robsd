@@ -648,7 +648,6 @@ report() {
 
 	_tmp="$(mktemp -t robsd.XXXXXX)"
 
-
 	# The last none skipped step determines success or failure.
 	_i=1
 	while step_eval "-${_i}" "$_steps"; do
