@@ -46,7 +46,6 @@ if testcase "basic"; then
 	assert_file - "$TMP1" <<-EOF
 	robsd-rescue: using release directory ${TSHDIR}/build/2020-09-02.1
 	robsd-rescue: reverting diff ${BUILDDIR}/2020-09-02.1/src.diff.1
-	robsd-rescue: rm ${TSHDIR}/foo.orig
 	EOF
 fi
 

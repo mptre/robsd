@@ -260,10 +260,7 @@ diff_apply() {
 diff_clean() {
 	find "$1" -type f \( \
 		-name '*.orig' -o -name '*.rej' -o -name '.#*' \) -print0 |
-	xargs -0rt rm 2>&1 |
-	while read -r _cmd; do
-		info "$_cmd"
-	done
+	xargs -0r rm
 }
 
 # diff_copy dst [src ...]

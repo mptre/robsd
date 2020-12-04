@@ -2,8 +2,7 @@ if testcase "basic"; then
 	mkdir "${TSHDIR}/diff"
 	(cd "${TSHDIR}/diff" && touch a.c a.c.orig a.c.rej .#a.c.1.1)
 
-	# Suppress xargs(1) output.
-	diff_clean "${TSHDIR}/diff" >/dev/null
+	diff_clean "${TSHDIR}/diff"
 
 	if ! [ -e "${TSHDIR}/diff/a.c" ]; then
 		fail "expected a.c to be present"
