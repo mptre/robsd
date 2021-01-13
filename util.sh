@@ -386,6 +386,11 @@ duration_prev() {
 	while read -r _prev; do
 		step_eval -n "$_step" "${_prev}/steps" || continue
 
+		if step_skip; then
+			echo "0"
+			return 1
+		fi
+
 		_v="$(step_value duration 2>/dev/null)" || continue
 		echo "$_v"
 		return 1
