@@ -115,6 +115,9 @@ config_load() {
 		: "${CVSROOT:?}"
 		: "${CVSUSER:?}"
 		: "${DESTDIR:?}"
+	elif [ "$_MODE" = "robsd-regress" ]; then
+		: "${REGRESSUSER:?}"
+		: "${TESTS:?}"
 	fi
 
 	# Filter out missing source diff(s).
@@ -693,7 +696,8 @@ report() {
 	local _duration=0
 	local _i
 	local _name=""
-	local _exit _f _log _report _steps _status _tmp
+	local _status="unknown"
+	local _exit _f _log _report _steps _tmp
 
 	while [ $# -gt 0 ]; do
 		case "$1" in
@@ -978,8 +982,8 @@ robsd() {
 		_exit=0
 		_t0="$(date '+%s')"
 		step_begin -l "$_log" -n "$STEP" -s "$_s" "${LOGDIR}/steps"
-		step_exec -f "${LOGDIR}/fail" -l "$_log" \
-			"${EXECDIR}/${_MODE}-${STEP}.sh" || _exit="$?"
+		step_exec -f "${LOGDIR}/fail" -l "$_log" -s "$STEP" || \
+			_exit="$?"
 		_t1="$(date '+%s')"
 		step_end -d "$((_t1 - _t0))" -e "$_exit" -l "$_log" -n "$STEP" \
 			-s "$_s" "${LOGDIR}/steps"
@@ -1148,30 +1152,42 @@ step_eval() {
 	fi
 }
 
-# step_exec -f fail -l log step
+# step_exec -f fail -l log -s step
 #
-# Execute the given step and redirect any output to log.
+# Execute the given script and redirect any output to log.
 step_exec() (
-	local _fail _log _step
+	local _fail
+	local _log
+	local _exec
+	local _step
 
 	while [ $# -gt 0 ]; do
 		case "$1" in
 		-f)	shift; _fail="$1";;
 		-l)	shift; _log="$1";;
+		-s)	shift; _step="$1";;
 		*)	break;;
 		esac
 		shift
 	done
-	_step="$1"
 	: "${_fail:?}"
 	: "${_log:?}"
 	: "${_step:?}"
+
+	_exec="${EXECDIR}/${_MODE}-${_step}.sh"
 
 	[ -t 0 ] || exec >/dev/null 2>&1
 
 	trap ': >$_fail' INT
 
-	{ sh -eux "$_step" </dev/null 2>&1 || : >"$_fail"; } | tee "$_log"
+	{
+		if [ "$_MODE" = "robsd-regress" ] && ! [ -e "$_exec" ]; then
+			sh -eux "${EXECDIR}/${_MODE}-exec.sh" "$_step" ||
+				: >"$_fail"
+		else
+			sh -eux "$_exec" || : >"$_fail"
+		fi
+	} </dev/null 2>&1 | tee "$_log"
 	if [ -e "$_fail" ]; then
 		rm -f "$_fail"
 		return 1
@@ -1233,24 +1249,32 @@ step_name() {
 # The last step named end is a sentinel step without a corresponding step
 # script.
 step_names() {
-	cat <<-EOF
-	env
-	cvs
-	patch
-	kernel
-	reboot
-	env
-	base
-	release
-	checkflist
-	xbase
-	xrelease
-	image
-	hash
-	revert
-	distrib
-	end
-	EOF
+	if [ "$_MODE" = "robsd" ]; then
+		cat <<-EOF
+		env
+		cvs
+		patch
+		kernel
+		reboot
+		env
+		base
+		release
+		checkflist
+		xbase
+		xrelease
+		image
+		hash
+		revert
+		distrib
+		end
+		EOF
+	elif [ "$_MODE" = "robsd-regress" ]; then
+		cat <<-EOF | xargs printf '%s\n'
+		env
+		${TESTS}
+		end
+		EOF
+	fi
 }
 
 # step_next steps
