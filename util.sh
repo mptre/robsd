@@ -586,6 +586,10 @@ log_id() {
 	: "${_logdir:?}"
 	: "${_step:?}"
 
+	if [ "$_MODE" = "robsd-regress" ]; then
+		_name="$(echo "$_name" | tr '/' '-')"
+	fi
+
 	_id="$(printf '%02d-%s.log' "$_step" "$_name")"
 	_dups="$(find "$_logdir" -name "${_id}*" | wc -l)"
 	if [ "$_dups" -gt 0 ]; then
