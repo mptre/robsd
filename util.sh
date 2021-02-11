@@ -85,10 +85,12 @@ config_load() {
 
 	# Ensure mandatory variables are defined.
 	: "${BUILDDIR:?}"
-	: "${CVSROOT:?}"
-	: "${CVSUSER:?}"
-	: "${DESTDIR:?}"
-	: "${XOBJDIR:?}"
+	if [ "$_MODE" = "robsd" ]; then
+		: "${CVSROOT:?}"
+		: "${CVSUSER:?}"
+		: "${DESTDIR:?}"
+		: "${XOBJDIR:?}"
+	fi
 
 	# Filter out missing source diff(s).
 	_tmp=""
@@ -913,6 +915,13 @@ release_dir() {
 	echo "${1}/${_suffix}"
 }
 
+# setmode mode
+#
+# Set the execution mode.
+setmode() {
+	_MODE="$1"; export _MODE
+}
+
 # setprogname name
 #
 # Set the name of the program to be used during logging.
@@ -1214,3 +1223,6 @@ trap_exit() {
 
 	return "$_err"
 }
+
+# The default execution mode is always robsd.
+setmode "robsd"
