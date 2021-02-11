@@ -731,7 +731,7 @@ report() {
 
 	# Add headers.
 	cat <<-EOF >"$_tmp"
-	Subject: robsd: $(machine): ${_status}
+	Subject: ${_MODE}: $(machine): ${_status}
 
 	EOF
 
