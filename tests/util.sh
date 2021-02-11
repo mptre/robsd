@@ -2,7 +2,7 @@ set -u
 
 # config_stub [-]
 config_stub() {
-	ROBSDRC="${TSHDIR}/robsdrc"; export ROBSDRC
+	ROBSDCONF="${TSHDIR}/robsd.conf"; export ROBSDCONF
 	{
 		cat <<-EOF
 		BSDSRCDIR=${TSHDIR}
@@ -11,7 +11,7 @@ config_stub() {
 		DESTDIR=/var/empty
 		EOF
 		[ "$#" -eq 1 ] && [ "$1" = "-" ] && cat
-	} >"$ROBSDRC"
+	} >"$ROBSDCONF"
 }
 
 # diff_create

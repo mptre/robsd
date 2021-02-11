@@ -138,7 +138,7 @@ step_exec() (
 
 setprogname "robsd"
 [ "$(id -u)" -ne 0 ] && fatal "must be run as root"
-config_load "${ROBSDRC:-/etc/robsdrc}"
+config_load "${ROBSDCONF:-/etc/robsd.conf}"
 
 LOGDIR=""
 S=1

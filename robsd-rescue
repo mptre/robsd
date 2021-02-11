@@ -21,7 +21,7 @@ last_release() {
 
 setprogname "robsd-rescue"
 [ "$(id -u)" -ne 0 ] && fatal "must be run as root"
-config_load "${ROBSDRC:-/etc/robsdrc}"
+config_load "${ROBSDCONF:-/etc/robsd.conf}"
 
 LOGDIR="$(last_release)"
 if [ -z "$LOGDIR" ]; then

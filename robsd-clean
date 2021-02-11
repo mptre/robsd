@@ -13,7 +13,7 @@ usage() {
 
 setprogname "robsd-clean"
 [ "$(id -u)" -ne 0 ] && fatal "must be run as root"
-config_load "${ROBSDRC:-/etc/robsdrc}"
+config_load "${ROBSDCONF:-/etc/robsd.conf}"
 
 purge "$BUILDDIR" "$1" | while read -r _d; do
 	info "moving ${_d} to the attic"

@@ -1,8 +1,8 @@
 .Dd $Mdocdate: October 14 2019$
-.Dt ROBSDRC 5
+.Dt ROBSD.CONF 5
 .Os
 .Sh NAME
-.Nm robsdrc
+.Nm robsd.conf
 .Nd robsd configuration file
 .Sh DESCRIPTION
 The shell script
@@ -13,7 +13,7 @@ By default,
 .Xr robsd 8
 is configured using environment variables.
 Variables and can optionally be specified in
-.Pa /etc/robsdrc ,
+.Pa /etc/robsd.conf ,
 which is sourced during runtime.
 Where the latter takes higher precedence.
 .Pp
@@ -98,7 +98,7 @@ Source directory for the xenocara tree.
 .El
 .Sh EXAMPLES
 Example
-.Pa /etc/robsdrc
+.Pa /etc/robsd.conf
 configuration file with all mandatory variables present:
 .Bd -literal
 BUILDDIR=/home/snapshots
