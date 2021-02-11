@@ -101,6 +101,7 @@ config_load() {
 	export LOGDIR
 	export MAKEFLAGS; : "${MAKEFLAGS:="-j$(sysctl -n hw.ncpuonline)"}"
 	export PATH; PATH="${PATH}:/usr/X11R6/bin"
+	export REGRESSUSER
 	export SIGNIFY; : "${SIGNIFY:=}"
 	export SKIP; : "${SKIP:=}"
 	export XDIFF; : "${XDIFF:=}"
