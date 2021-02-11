@@ -975,7 +975,7 @@ robsd() {
 		_t0="$(date '+%s')"
 		step_begin -l "$_log" -n "$STEP" -s "$_s" "${LOGDIR}/steps"
 		step_exec -f "${LOGDIR}/fail" -l "$_log" \
-			"${EXECDIR}/${STEP}.sh" || _exit="$?"
+			"${EXECDIR}/${_MODE}-${STEP}.sh" || _exit="$?"
 		_t1="$(date '+%s')"
 		step_end -d "$((_t1 - _t0))" -e "$_exit" -l "$_log" -n "$STEP" \
 			-s "$_s" "${LOGDIR}/steps"

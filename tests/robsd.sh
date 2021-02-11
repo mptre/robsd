@@ -46,7 +46,7 @@ for _stage in \
         revert \
         distrib
 do
-	: >"${WRKDIR}/exec/${_stage}.sh"
+	: >"${WRKDIR}/exec/robsd-${_stage}.sh"
 done
 
 if testcase "basic"; then
