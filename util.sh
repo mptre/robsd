@@ -89,7 +89,6 @@ config_load() {
 		: "${CVSROOT:?}"
 		: "${CVSUSER:?}"
 		: "${DESTDIR:?}"
-		: "${XOBJDIR:?}"
 	fi
 
 	# Filter out missing source diff(s).
