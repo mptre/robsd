@@ -501,7 +501,7 @@ format_size() {
 info() {
 	local _log="/dev/null"
 
-	if [ "$DETACH" -eq 1 ]; then
+	if [ "${DETACH:-0}" -eq 1 ]; then
 		# Not fully detached yet, write all entries to robsd.log.
 		_log="${LOGDIR}/robsd.log"
 	fi
