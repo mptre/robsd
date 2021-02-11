@@ -1107,7 +1107,7 @@ step_eval() {
 	fi
 
 	if [ "$_name" -eq 1 ]; then
-		_line="$(sed -n -e "/name=\"${_step}\"/p" "$_file")"
+		_line="$(grep -e "name=\"${_step}\"" "$_file" || :)"
 	elif [ "$_step" -lt 0 ]; then
 		_n="$(wc -l "$_file" | awk '{print $1}')"
 		[ $((- _step)) -gt "$_n" ] && return 1

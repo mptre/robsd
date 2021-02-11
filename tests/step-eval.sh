@@ -52,6 +52,17 @@ if testcase "name"; then
 	assert_eq "one" "$(step_value name)" "one: name"
 fi
 
+if testcase "name with slashes"; then
+	cat <<-EOF >"$TMP1"
+	name="one/two" step="1"
+	EOF
+
+	step_eval -n one/two "$TMP1"
+	assert_eq "2" "${#_STEP[*]}" "one: array length"
+	assert_eq "1" "$(step_value step)" "one: id"
+	assert_eq "one/two" "$(step_value name)" "one: name"
+fi
+
 if testcase "name not found"; then
 	cat <<-EOF >"$TMP1"
 	name="one" step="1"
