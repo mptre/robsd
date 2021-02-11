@@ -1,23 +1,7 @@
-WRKDIR="$(mktemp -d -t robsd.XXXXXX)"
-TSHCLEAN="${TSHCLEAN} ${WRKDIR}"
+export WRKDIR
+utility_setup >"$TMP1"; read -r WRKDIR BUILDDIR <"$TMP1"
 
-BUILDDIR="${TSHDIR}/build"
-PATH="${WRKDIR}/bin:${PATH}"
 ROBSDRESCUE="${EXECDIR}/robsd-rescue"
-
-# Stub utilities.
-mkdir -p "${WRKDIR}/bin"
-
-cat <<EOF >"${WRKDIR}/bin/id"
-echo 0
-EOF
-chmod u+x "${WRKDIR}/bin/id"
-
-cat <<EOF >"${WRKDIR}/bin/su"
-shift 2 # strip of su login
-\$@
-EOF
-chmod u+x "${WRKDIR}/bin/su"
 
 setup() {
 	config_stub - <<-EOF
