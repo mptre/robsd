@@ -508,6 +508,35 @@ info() {
 	echo "${_PROG}: ${*}" | tee -a "$_log"
 }
 
+# lock_acquire build-dir log-dir
+#
+# Acquire the mutex lock.
+lock_acquire() {
+	local _owner
+	local _builddir="$1"; : "${_builddir:?}"
+	local _logdir="$2"; : "${_logdir:?}"
+
+	_owner="$(cat "${_builddir}/.running" 2>/dev/null || :)"
+	if [ -n "$_owner" ]; then
+		info "${_owner}: lock already acquired"
+		return 1
+	fi
+
+	echo "$_logdir" >"${_builddir}/.running"
+}
+
+# lock_release build-dir log-dir
+#
+# Release the mutex lock if we did acquire it.
+lock_release() {
+	local _builddir="$1"; : "${_builddir:?}"
+	local _logdir="$2"; : "${_logdir:?}"
+
+	if echo "$_logdir" | cmp -s - "${_builddir}/.running"; then
+		rm -f "${_builddir}/.running"
+	fi
+}
+
 # log_id -l log-dir -n step-name -s step-id
 #
 # Generate the corresponding log file name for the given step.
@@ -782,6 +811,16 @@ report_log() {
 	*)
 		tail "$2"
 		;;
+	esac
+}
+
+# report_must step-name
+#
+# Exits 0 if a report must be generated.
+report_must() {
+	case "$1" in
+	end)	return 0;;
+	*)	return 1;;
 	esac
 }
 
@@ -1134,4 +1173,44 @@ step_value() {
 		return 1
 	fi
 	echo "${_STEP[$_i]}"
+}
+
+# trap_exit -b build-dir -l log-dir -s step
+#
+# Exit trap handler.
+trap_exit() {
+	local _err="$?"
+	local _logdir=""
+	local _builddir=""
+	local _step=""
+
+	while [ $# -gt 0 ]; do
+		case "$1" in
+		-b)	shift; _builddir="$1";;
+		-l)	shift; _logdir="$1";;
+		-s)	shift; _step="$1";;
+		*)	break;;
+		esac
+		shift
+	done
+	: "${_logdir:?}"
+	: "${_builddir:?}"
+	: "${_step:=unknown}"
+
+	lock_release "$_builddir" "$_logdir"
+
+	if [ "$_err" -ne 0 ] || report_must "$_step"; then
+		if report -r "${_logdir}/report" -s "${_logdir}/steps"; then
+			# Do not send mail during interactive invocations.
+			if ! [ -t 0 ]; then
+				sendmail root <"${_logdir}/report"
+			fi
+		fi
+	fi
+
+	if [ "$_err" -ne 0 ]; then
+		info "failed in step ${_step:-unknown}"
+	fi
+
+	return "$_err"
 }

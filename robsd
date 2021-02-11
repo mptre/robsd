@@ -14,27 +14,6 @@ usage() {
 	exit 1
 }
 
-atexit() {
-	local _err=$?
-
-	lock_release "$BUILDDIR" "$LOGDIR"
-
-	if [ "$_err" -ne 0 ] || must_report "$STEP"; then
-		if report -r "${LOGDIR}/report" -s "${LOGDIR}/steps"; then
-			# Do not send mail during interactive invocations.
-			if ! [ -t 0 ]; then
-				sendmail root <"${LOGDIR}/report"
-			fi
-		fi
-	fi
-
-	if [ "$_err" -ne 0 ]; then
-		info "failed in step ${STEP:-unknown}"
-	fi
-
-	return "$_err"
-}
-
 main() {
 	local _exit
 	local _log
@@ -102,45 +81,6 @@ check_perf() {
 
 	info "non-optimal performance detected, check hw.perfpolicy and hw.setperf"
 	return 1
-}
-
-# lock_acquire build-dir log-dir
-#
-# Acquire the mutex lock.
-lock_acquire() {
-	local _owner
-	local _builddir="$1"; : "${_builddir:?}"
-	local _logdir="$2"; : "${_logdir:?}"
-
-	_owner="$(cat "${_builddir}/.running" 2>/dev/null || :)"
-	if [ -n "$_owner" ]; then
-		info "${_owner}: lock already acquired"
-		return 1
-	fi
-
-	echo "$_logdir" >"${_builddir}/.running"
-}
-
-# lock_release build-dir log-dir
-#
-# Release the mutex lock if we did acquire it.
-lock_release() {
-	local _builddir="$1"; : "${_builddir:?}"
-	local _logdir="$2"; : "${_logdir:?}"
-
-	if echo "$_logdir" | cmp -s - "${_builddir}/.running"; then
-		rm -f "${_builddir}/.running"
-	fi
-}
-
-# must_report step-name
-#
-# Exits 0 if a report must be generated.
-must_report() {
-	case "$1" in
-	end)	return 0;;
-	*)	return 1;;
-	esac
 }
 
 # step_begin -l log -n name -s step-name
@@ -217,7 +157,7 @@ done
 shift $((OPTIND - 1))
 [ $# -ne 0 ] && usage
 
-trap 'atexit' EXIT
+trap 'trap_exit -b "$BUILDDIR" -l "$LOGDIR" -s "$STEP"' EXIT
 trap 'info "caught SIGINT"' INT
 
 if [ -z "$LOGDIR" ]; then
@@ -282,7 +222,10 @@ if [ "$DETACH" -eq 1 ]; then
 
 	# Reinstall trap handler since they are not inherited by subprocesses.
 	trap '-' EXIT
-	{ trap 'atexit' EXIT; main; } &
+	{
+		trap 'trap_exit -b "$BUILDDIR" -l "$LOGDIR" -s "$STEP"' EXIT
+		main
+	} &
 	info "running in detach mode as pid ${!}"
 else
 	info "running as pid ${$}"
