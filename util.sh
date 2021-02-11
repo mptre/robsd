@@ -13,6 +13,32 @@ abs() {
 	fi
 }
 
+# build_id directory
+#
+# Generate a new build directory path.
+build_id() {
+	local _c _d
+
+	_d="$(date '+%Y-%m-%d')"
+	_c="$(find "$1" -type d -name "${_d}*" | wc -l)"
+	printf '%s.%d\n' "$_d" "$((_c + 1))"
+}
+
+# check_perf
+#
+# Sanity check performance parameters.
+check_perf() {
+	case "$(sysctl -n hw.perfpolicy)" in
+	auto|high)	return 0;;
+	*)		;;
+	esac
+
+	[ "$(sysctl -n hw.setperf)" -eq 100 ] && return 0
+
+	info "non-optimal performance detected, check hw.perfpolicy and hw.setperf"
+	return 1
+}
+
 # cleandir dir ...
 #
 # Remove all entries in the given directory without removing the actual
@@ -914,6 +940,52 @@ release_dir() {
 	echo "${1}/${_suffix}"
 }
 
+# robsd
+#
+# Main loop shared between utilities.
+robsd() {
+	local _exit
+	local _log
+	local _s
+	local _t0
+	local _t1
+
+	while :; do
+		STEP="$(step_name "$S")"
+		_s="$S"
+		S=$((S + 1))
+
+		if step_eval -n "$STEP" "${LOGDIR}/steps" && step_skip; then
+			info "skipping step ${STEP}"
+			continue
+		else
+			info "step ${STEP}"
+		fi
+
+		if [ "$STEP" = "end" ]; then
+			# The duration of the end step is the accumulated
+			# duration.
+			step_end -d "$(duration_total "${LOGDIR}/steps")" \
+				-n "$STEP" -s "$_s" "${LOGDIR}/steps"
+			return 0
+		fi
+
+		_log="${LOGDIR}/$(log_id -l "$LOGDIR" -n "$STEP" -s "$_s")"
+		_exit=0
+		_t0="$(date '+%s')"
+		step_begin -l "$_log" -n "$STEP" -s "$_s" "${LOGDIR}/steps"
+		step_exec -f "${LOGDIR}/fail" -l "$_log" \
+			"${EXECDIR}/${STEP}.sh" || _exit="$?"
+		_t1="$(date '+%s')"
+		step_end -d "$((_t1 - _t0))" -e "$_exit" -l "$_log" -n "$STEP" \
+			-s "$_s" "${LOGDIR}/steps"
+		[ "$_exit" -ne 0 ] && return 1
+
+		# Reboot in progress?
+		[ "$STEP" = "reboot" ] && return 0
+	done
+}
+
 # setmode mode
 #
 # Set the execution mode.
@@ -926,6 +998,26 @@ setmode() {
 # Set the name of the program to be used during logging.
 setprogname() {
 	_PROG="$1"; export _PROG
+}
+
+# step_begin -l log -n name -s step-name
+#
+# Mark the given step as about to execute by writing an entry to the given
+# file. The same entry will be overwritten once the step has ended.
+step_begin() {
+	local _l _n _s
+
+	while [ $# -gt 0 ]; do
+		case "$1" in
+		-l)	shift; _l="$1";;
+		-n)	shift; _n="$1";;
+		-s)	shift; _s="$1";;
+		*)	break;;
+		esac
+		shift
+	done
+
+	step_end -d -1 -e 0 -l "$_l" -n "$_n" -s "$_s" "$1"
 }
 
 # step_end [-S] [-d duration] [-e exit] [-l log] -n name -s step-id file
@@ -1051,6 +1143,37 @@ step_eval() {
 		return 0
 	fi
 }
+
+# step_exec -f fail -l log step
+#
+# Execute the given step and redirect any output to log.
+step_exec() (
+	local _fail _log _step
+
+	while [ $# -gt 0 ]; do
+		case "$1" in
+		-f)	shift; _fail="$1";;
+		-l)	shift; _log="$1";;
+		*)	break;;
+		esac
+		shift
+	done
+	_step="$1"
+	: "${_fail:?}"
+	: "${_log:?}"
+	: "${_step:?}"
+
+	[ -t 0 ] || exec >/dev/null 2>&1
+
+	trap ': >$_fail' INT
+
+	{ sh -eux "$_step" </dev/null 2>&1 || : >"$_fail"; } | tee "$_log"
+	if [ -e "$_fail" ]; then
+		rm -f "$_fail"
+		return 1
+	fi
+	return 0
+)
 
 # step_field name
 #
