@@ -35,6 +35,8 @@ DISTFILES+=	revert.sh
 DISTFILES+=	robsd
 DISTFILES+=	robsd-clean
 DISTFILES+=	robsd-clean.8
+DISTFILES+=	robsd-regress
+DISTFILES+=	robsd-regress.8
 DISTFILES+=	robsd-rescue
 DISTFILES+=	robsd-rescue.8
 DISTFILES+=	robsd-steps
@@ -81,15 +83,17 @@ MANDIR=		${PREFIX}/man
 INSTALL?=	install
 INSTALL_MAN?=	${INSTALL}
 
-MANLINT+=	${.CURDIR}/robsd.8
 MANLINT+=	${.CURDIR}/robsd-clean.8
+MANLINT+=	${.CURDIR}/robsd-regress.8
 MANLINT+=	${.CURDIR}/robsd-rescue.8
 MANLINT+=	${.CURDIR}/robsd-steps.8
+MANLINT+=	${.CURDIR}/robsd.8
 MANLINT+=	${.CURDIR}/robsdrc.5
 
 SHLINT+=	${SCRIPTS:C/^/${.CURDIR}\//}
 SHLINT+=	${.CURDIR}/robsd
 SHLINT+=	${.CURDIR}/robsd-clean
+SHLINT+=	${.CURDIR}/robsd-regress
 SHLINT+=	${.CURDIR}/robsd-rescue
 SHLINT+=	${.CURDIR}/robsd-steps
 
@@ -120,6 +124,7 @@ install:
 	mkdir -p ${DESTDIR}${BINDIR}
 	${INSTALL} -m 0755 ${.CURDIR}/robsd ${DESTDIR}${BINDIR}
 	${INSTALL} -m 0755 ${.CURDIR}/robsd-clean ${DESTDIR}${BINDIR}
+	${INSTALL} -m 0755 ${.CURDIR}/robsd-regress ${DESTDIR}${BINDIR}
 	${INSTALL} -m 0755 ${.CURDIR}/robsd-rescue ${DESTDIR}${BINDIR}
 	${INSTALL} -m 0755 ${.CURDIR}/robsd-steps ${DESTDIR}${BINDIR}
 	mkdir -p ${DESTDIR}${LIBEXECDIR}/robsd
@@ -129,6 +134,7 @@ install:
 	@mkdir -p ${DESTDIR}${MANDIR}/man8
 	${INSTALL_MAN} ${.CURDIR}/robsd.8 ${DESTDIR}${MANDIR}/man8
 	${INSTALL_MAN} ${.CURDIR}/robsd-clean.8 ${DESTDIR}${MANDIR}/man8
+	${INSTALL_MAN} ${.CURDIR}/robsd-regress.8 ${DESTDIR}${MANDIR}/man8
 	${INSTALL_MAN} ${.CURDIR}/robsd-rescue.8 ${DESTDIR}${MANDIR}/man8
 	${INSTALL_MAN} ${.CURDIR}/robsd-steps.8 ${DESTDIR}${MANDIR}/man8
 	@mkdir -p ${DESTDIR}${MANDIR}/man5
