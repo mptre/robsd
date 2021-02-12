@@ -1338,9 +1338,9 @@ step_value() {
 	echo "${_STEP[$_i]}"
 }
 
-# trap_exit -b build-dir -l log-dir
+# trap_exit -b build-dir [-l log-dir]
 #
-# Exit trap handler.
+# Exit trap handler. The log dir may not be present if we failed very early on.
 trap_exit() {
 	local _err="$?"
 	local _logdir=""
@@ -1354,10 +1354,11 @@ trap_exit() {
 		esac
 		shift
 	done
-	: "${_logdir:?}"
 	: "${_builddir:?}"
 
-	lock_release "$_builddir" "$_logdir"
+	if [ -n "$_logdir" ]; then
+		lock_release "$_builddir" "$_logdir"
+	fi
 
 	if [ "$_err" -ne 0 ] || report_must "$_STEPNAME"; then
 		if report -r "${_logdir}/report" -s "${_logdir}/steps"; then

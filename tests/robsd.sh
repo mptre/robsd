@@ -62,3 +62,16 @@ if testcase "already running detached"; then
 	robsd: failed in step unknown
 	EOF
 fi
+
+if testcase "early failure"; then
+	config_stub
+	echo 'exit 0' >"${WRKDIR}/bin/sysctl"
+	mkdir -p "$BUILDDIR"
+	if EXECDIR="${WRKDIR}/exec" sh "$ROBSD" >"$TMP1" 2>&1; then
+		fail - "expected non-zero exit" <"$TMP1"
+	fi
+	assert_file - "$TMP1" <<-EOF
+	robsd: non-optimal performance detected, check hw.perfpolicy and hw.setperf
+	robsd: failed in step unknown
+	EOF
+fi
