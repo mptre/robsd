@@ -37,8 +37,6 @@ trap 'trap_exit -b "$BUILDDIR" -l "$LOGDIR" -s "$STEP"' EXIT
 trap 'info "caught SIGINT"' INT
 
 if [ -z "$LOGDIR" ]; then
-	check_perf || exit 1
-
 	LOGDIR="${BUILDDIR}/$(build_id "$BUILDDIR")"
 	mkdir "$LOGDIR"
 	: >"${LOGDIR}/steps"
