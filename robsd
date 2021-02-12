@@ -21,8 +21,7 @@ setprogname "robsd"
 config_load "${ROBSDCONF:-/etc/robsd.conf}"
 
 LOGDIR=""
-S=1
-STEP=""
+STEP=1
 
 while getopts "DS:X:r:s:" opt; do
 	case "$opt" in
@@ -37,7 +36,7 @@ done
 shift $((OPTIND - 1))
 [ $# -ne 0 ] && usage
 
-trap 'trap_exit -b "$BUILDDIR" -l "$LOGDIR" -s "$STEP"' EXIT
+trap 'trap_exit -b "$BUILDDIR" -l "$LOGDIR"' EXIT
 trap 'info "caught SIGINT"' INT
 
 if [ -z "$LOGDIR" ]; then
@@ -47,10 +46,10 @@ if [ -z "$LOGDIR" ]; then
 	mkdir "$LOGDIR"
 	: >"${LOGDIR}/steps"
 else
-	S="$(step_next "${LOGDIR}/steps")"
+	STEP="$(step_next "${LOGDIR}/steps")"
 fi
 touch "${LOGDIR}/robsd.log"
-info "using directory ${LOGDIR} at step ${S}"
+info "using directory ${LOGDIR} at step ${STEP}"
 
 if ! lock_acquire "$BUILDDIR" "$LOGDIR"; then
 	# Signal to info() that no further output should be written to robsd.log
@@ -58,7 +57,7 @@ if ! lock_acquire "$BUILDDIR" "$LOGDIR"; then
 	DETACH=0
 
 	# Do not leave an empty release around.
-	[ "$S" -eq 1 ] && rm -r "$LOGDIR"
+	[ "$STEP" -eq 1 ] && rm -r "$LOGDIR"
 
 	fatal "already running"
 fi
@@ -73,7 +72,7 @@ if [ -n "$BSDDIFF" ] || [ -n "$XDIFF" ]; then
 fi
 
 # Copy the diff(s) initially, otherwise use the previously copied ones.
-if [ "$S" -eq 1 ]; then
+if [ "$STEP" -eq 1 ]; then
 	# shellcheck disable=SC2086
 	BSDDIFF="$(diff_copy "${LOGDIR}/src.diff" $BSDDIFF)"
 	# shellcheck disable=SC2086
@@ -103,11 +102,11 @@ if [ "$DETACH" -eq 1 ]; then
 	# Reinstall trap handler since they are not inherited by subprocesses.
 	trap '-' EXIT
 	{
-		trap 'trap_exit -b "$BUILDDIR" -l "$LOGDIR" -s "$STEP"' EXIT
-		robsd
+		trap 'trap_exit -b "$BUILDDIR" -l "$LOGDIR"' EXIT
+		robsd "$STEP"
 	} &
 	info "running in detach mode as pid ${!}"
 else
 	info "running as pid ${$}"
-	robsd
+	robsd "$STEP"
 fi

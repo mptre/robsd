@@ -949,49 +949,52 @@ release_dir() {
 	echo "${1}/${_suffix}"
 }
 
-# robsd
+# robsd step
 #
 # Main loop shared between utilities.
 robsd() {
 	local _exit
 	local _log
 	local _s
+	local _step
 	local _t0
 	local _t1
 
-	while :; do
-		STEP="$(step_name "$S")"
-		_s="$S"
-		S=$((S + 1))
+	_step="$1"; : "${_step:?}"
 
-		if step_eval -n "$STEP" "${LOGDIR}/steps" && step_skip; then
-			info "skipping step ${STEP}"
+	while :; do
+		_STEPNAME="$(step_name "$_step")"
+		_s="$_step"
+		_step=$((_step + 1))
+
+		if step_eval -n "$_STEPNAME" "${LOGDIR}/steps" && step_skip; then
+			info "skipping step ${_STEPNAME}"
 			continue
 		else
-			info "step ${STEP}"
+			info "step ${_STEPNAME}"
 		fi
 
-		if [ "$STEP" = "end" ]; then
+		if [ "$_STEPNAME" = "end" ]; then
 			# The duration of the end step is the accumulated
 			# duration.
 			step_end -d "$(duration_total "${LOGDIR}/steps")" \
-				-n "$STEP" -s "$_s" "${LOGDIR}/steps"
+				-n "$_STEPNAME" -s "$_s" "${LOGDIR}/steps"
 			return 0
 		fi
 
-		_log="${LOGDIR}/$(log_id -l "$LOGDIR" -n "$STEP" -s "$_s")"
+		_log="${LOGDIR}/$(log_id -l "$LOGDIR" -n "$_STEPNAME" -s "$_s")"
 		_exit=0
 		_t0="$(date '+%s')"
-		step_begin -l "$_log" -n "$STEP" -s "$_s" "${LOGDIR}/steps"
-		step_exec -f "${LOGDIR}/fail" -l "$_log" -s "$STEP" || \
+		step_begin -l "$_log" -n "$_STEPNAME" -s "$_s" "${LOGDIR}/steps"
+		step_exec -f "${LOGDIR}/fail" -l "$_log" -s "$_STEPNAME" || \
 			_exit="$?"
 		_t1="$(date '+%s')"
-		step_end -d "$((_t1 - _t0))" -e "$_exit" -l "$_log" -n "$STEP" \
-			-s "$_s" "${LOGDIR}/steps"
+		step_end -d "$((_t1 - _t0))" -e "$_exit" -l "$_log" \
+			-n "$_STEPNAME" -s "$_s" "${LOGDIR}/steps"
 		[ "$_exit" -ne 0 ] && return 1
 
 		# Reboot in progress?
-		[ "$STEP" = "reboot" ] && return 0
+		[ "$_STEPNAME" = "reboot" ] && return 0
 	done
 }
 
@@ -1335,31 +1338,28 @@ step_value() {
 	echo "${_STEP[$_i]}"
 }
 
-# trap_exit -b build-dir -l log-dir -s step
+# trap_exit -b build-dir -l log-dir
 #
 # Exit trap handler.
 trap_exit() {
 	local _err="$?"
 	local _logdir=""
 	local _builddir=""
-	local _step=""
 
 	while [ $# -gt 0 ]; do
 		case "$1" in
 		-b)	shift; _builddir="$1";;
 		-l)	shift; _logdir="$1";;
-		-s)	shift; _step="$1";;
 		*)	break;;
 		esac
 		shift
 	done
 	: "${_logdir:?}"
 	: "${_builddir:?}"
-	: "${_step:=unknown}"
 
 	lock_release "$_builddir" "$_logdir"
 
-	if [ "$_err" -ne 0 ] || report_must "$_step"; then
+	if [ "$_err" -ne 0 ] || report_must "$_STEPNAME"; then
 		if report -r "${_logdir}/report" -s "${_logdir}/steps"; then
 			# Do not send mail during interactive invocations.
 			if ! [ -t 0 ]; then
@@ -1369,11 +1369,13 @@ trap_exit() {
 	fi
 
 	if [ "$_err" -ne 0 ]; then
-		info "failed in step ${_step:-unknown}"
+		info "failed in step ${_STEPNAME}"
 	fi
 
 	return "$_err"
 }
 
-# The default execution mode is always robsd.
-setmode "robsd"
+# Global locals only used in this file.
+_MODE="robsd"
+_PROG=""
+_STEPNAME="unknown"

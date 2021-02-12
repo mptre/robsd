@@ -20,8 +20,7 @@ setprogname "robsd-regress"
 config_load "${ROBSDCONF:-/etc/robsd-regress.conf}"
 
 LOGDIR=""
-S=1
-STEP=""
+STEP=1
 
 while getopts "Dr:s:" opt; do
 	case "$opt" in
@@ -44,10 +43,10 @@ if [ -z "$LOGDIR" ]; then
 	mkdir "$LOGDIR"
 	: >"${LOGDIR}/steps"
 else
-	S="$(step_next "${LOGDIR}/steps")"
+	STEP="$(step_next "${LOGDIR}/steps")"
 fi
 touch "${LOGDIR}/robsd.log"
-info "using directory ${LOGDIR} at step ${S}"
+info "using directory ${LOGDIR} at step ${STEP}"
 
 if ! lock_acquire "$BUILDDIR" "$LOGDIR"; then
 	# Signal to info() that no further output should be written to robsd.log
@@ -55,7 +54,7 @@ if ! lock_acquire "$BUILDDIR" "$LOGDIR"; then
 	DETACH=0
 
 	# Do not leave an empty release around.
-	[ "$S" -eq 1 ] && rm -r "$LOGDIR"
+	[ "$STEP" -eq 1 ] && rm -r "$LOGDIR"
 
 	fatal "already running"
 fi
@@ -77,10 +76,10 @@ if [ "$DETACH" -eq 1 ]; then
 	trap '-' EXIT
 	{
 		trap 'trap_exit -b "$BUILDDIR" -l "$LOGDIR" -s "$STEP"' EXIT
-		robsd
+		robsd "$STEP"
 	} &
 	info "running in detach mode as pid ${!}"
 else
 	info "running as pid ${$}"
-	robsd
+	robsd "$STEP"
 fi
