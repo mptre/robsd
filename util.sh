@@ -1380,7 +1380,8 @@ trap_exit() {
 	return "$_err"
 }
 
-# Global locals only used in this file.
-_MODE="robsd"
-_PROG=""
-_STEPNAME="unknown"
+# Global locals only used in this file. Since this file is source by step
+# scripts, preserve any existing value.
+: "${_MODE:="robsd"}"
+: "${_PROG:=""}"
+: "${_STEPNAME:="unknown"}"
