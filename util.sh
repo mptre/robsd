@@ -914,6 +914,10 @@ report_sizes() {
 report_skip() {
 	local _name _log
 
+	if [ "$_MODE" = "robsd-regress" ]; then
+		return 0
+	fi
+
 	_name="$1"; : "${_name:?}"
 
 	case "$_name" in

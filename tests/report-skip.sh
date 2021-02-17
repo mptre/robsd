@@ -63,3 +63,9 @@ if testcase "diff not present"; then
 		fail "expected revert to be skipped"
 	fi
 fi
+
+if testcase "regress"; then
+	if ! (setmode "robsd-regress" && report_skip "bin/cat"); then
+		fail "expected step to be skipped"
+	fi
+fi
