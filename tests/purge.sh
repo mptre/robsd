@@ -1,9 +1,9 @@
 if testcase "basic"; then
 	# shellcheck disable=SC2086
 	mkdir -p ${BUILDDIR}/2019-03-0{1,2}/rel
-	for _d in ${BUILDDIR}/*; do
+	for _d in "$BUILDDIR"/*; do
 		for _f in 01-base.log 01-base.log.1 02-cvs.log 03-env.log comment rel/index.txt report src.diff.1; do
-			(cd "$_d" && echo "$_f" >$_f)
+			(cd "$_d" && echo "$_f" >"$_f")
 		done
 		cat <<-EOF >"${_d}/steps"
 		EOF
