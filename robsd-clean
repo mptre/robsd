@@ -11,6 +11,7 @@ usage() {
 
 [ $# -ne 1 ] && usage
 
+setmode
 setprogname "robsd-clean"
 [ "$(id -u)" -ne 0 ] && fatal "must be run as root"
 config_load "${ROBSDCONF:-/etc/robsd.conf}"
