@@ -57,6 +57,10 @@ if ! lock_acquire "$BUILDDIR" "$LOGDIR"; then
 	fatal "already running"
 fi
 
+if [ "$KEEP" -gt 0 ]; then
+	/usr/local/sbin/robsd-regress-clean "$KEEP"
+fi
+
 if [ -n "$SKIP" ]; then
 	for _step in $SKIP; do
 		_id="$(step_id "$_step")"
