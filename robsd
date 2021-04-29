@@ -66,16 +66,18 @@ if [ -n "$BSDDIFF" ] || [ -n "$XDIFF" ]; then
 	# Generate comment including a list of the diff(s).
 	{
 		echo 'Applied the following diff(s):'
+		# shellcheck disable=SC2030
 		[ -n "$BSDDIFF" ] && echo "$BSDDIFF" | xargs ls
+		# shellcheck disable=SC2030
 		[ -n "$XDIFF" ] && echo "$XDIFF" | xargs ls
 	} | comment "-" "${LOGDIR}/comment" || :
 fi
 
 # Copy the diff(s) initially, otherwise use the previously copied ones.
 if [ "$STEP" -eq 1 ]; then
-	# shellcheck disable=SC2086
+	# shellcheck disable=SC2086,SC2031
 	BSDDIFF="$(diff_copy "${LOGDIR}/src.diff" $BSDDIFF)"
-	# shellcheck disable=SC2086
+	# shellcheck disable=SC2086,SC2031
 	XDIFF="$(diff_copy "${LOGDIR}/xenocara.diff" $XDIFF)"
 else
 	BSDDIFF="$(diff_list "$LOGDIR" "src.diff")"
