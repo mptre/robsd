@@ -307,7 +307,10 @@ diff_copy() {
 	for _src; do
 		_dst="${_base}.${_i}"
 
-		cp "$_src" "$_dst"
+		{
+			echo "# ${_src}"
+			cat "$_src"
+		} >"$_dst"
 		chmod 644 "$_dst"
 
 		# Try hard to output everything on a single line.

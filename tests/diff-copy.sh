@@ -27,3 +27,11 @@ if testcase "many sources"; then
 		fail "expected dst.diff.2 to be present"
 	fi
 fi
+
+if testcase "comment"; then
+	touch "${TSHDIR}/src.diff.1"
+	diff_copy "${TSHDIR}/dst.diff" "${TSHDIR}/src.diff.1" >/dev/null
+	assert_file - "${TSHDIR}/dst.diff.1" <<-EOF
+	# ${TSHDIR}/src.diff.1
+	EOF
+fi
