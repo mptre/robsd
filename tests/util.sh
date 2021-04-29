@@ -21,6 +21,7 @@ config_stub() {
 		CVSROOT=example.com:/cvs
 		CVSUSER=nobody
 		DESTDIR=/var/empty
+		XSRCDIR=${TSHDIR}
 		EOF
 		[ "$_stdin" -eq 1 ] && cat
 	} >"$ROBSDCONF"

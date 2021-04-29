@@ -27,10 +27,27 @@ done
 if testcase "basic"; then
 	config_stub
 	mkdir -p "$BUILDDIR"
-	EXECDIR="${WRKDIR}/exec" sh "$ROBSD" >"$TMP1" 2>&1
+	echo "Index: dir/file.c" >"${TSHDIR}/src.diff"
+	echo "Index: dir/file.c" >"${TSHDIR}/xenocara.diff"
+	EXECDIR="${WRKDIR}/exec" sh "$ROBSD" \
+		-S "${TSHDIR}/src.diff" -X "${TSHDIR}/xenocara.diff" \
+		>"$TMP1" 2>&1
 	if [ -e "${BUILDDIR}/.running" ]; then
 		fail - "lock not removed" <"$TMP1"
 	fi
+
+	# Remove non stable output.
+	sed -i -e '/running as pid/d' "$TMP1"
+	assert_file - "$TMP1" <<-EOF
+	robsd: using directory ${BUILDDIR}/$(date '+%Y-%m-%d').1 at step 1
+	robsd: using diff ${TSHDIR}/src.diff rooted at ${TSHDIR}
+	robsd: using diff ${TSHDIR}/xenocara.diff rooted at ${TSHDIR}
+	robsd: step env
+	robsd: step cvs
+	robsd: step patch
+	robsd: step kernel
+	robsd: step reboot
+	EOF
 fi
 
 if testcase "already running"; then

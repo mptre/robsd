@@ -294,18 +294,35 @@ diff_clean() {
 	xargs -0r rm
 }
 
-# diff_copy dst [src ...]
+# diff_copy -d directory dst [src ...]
 #
-# Copy the given diff(s) located at src to dst.
+# Copy the given diff(s) located at src to dst. The directory argument is the
+# fallback argument to diff_root.
 diff_copy() {
+	local _base
+	local _dst
 	local _i=1
-	local _base _dst _src
+	local _root
+	local _src
 
+	while [ $# -gt 0 ]; do
+		case "$1" in
+		-d)	shift; _root="$1";;
+		*)	break;;
+		esac
+		shift
+	done
 	[ "$#" -eq 1 ] && return 0
+	: "${_root:?}"
 
 	_base="$1"; shift
 	for _src; do
 		_dst="${_base}.${_i}"
+
+		# Redirection to stderr needed since stdout must only contain
+		# the paths to the copied diffs.
+		_r="$(diff_root -d "$_root" "$_src")"
+		info "using diff ${_src} rooted at ${_r}" 1>&2
 
 		{
 			echo "# ${_src}"
