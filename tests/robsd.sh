@@ -31,6 +31,7 @@ if testcase "basic"; then
 	echo "Index: dir/file.c" >"${TSHDIR}/xenocara.diff"
 	EXECDIR="${WRKDIR}/exec" sh "$ROBSD" \
 		-S "${TSHDIR}/src.diff" -X "${TSHDIR}/xenocara.diff" \
+		-s reboot \
 		>"$TMP1" 2>&1
 	if [ -e "${BUILDDIR}/.running" ]; then
 		fail - "lock not removed" <"$TMP1"
@@ -46,7 +47,18 @@ if testcase "basic"; then
 	robsd: step cvs
 	robsd: step patch
 	robsd: step kernel
-	robsd: step reboot
+	robsd: skipping step reboot
+	robsd: step env
+	robsd: step base
+	robsd: step release
+	robsd: step checkflist
+	robsd: step xbase
+	robsd: step xrelease
+	robsd: step image
+	robsd: step hash
+	robsd: step revert
+	robsd: step distrib
+	robsd: step end
 	EOF
 fi
 
