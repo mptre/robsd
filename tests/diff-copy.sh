@@ -35,5 +35,6 @@ if testcase "comment"; then
 		"${TSHDIR}/src.diff.1" >/dev/null 2>/dev/null
 	assert_file - "${TSHDIR}/dst.diff.1" <<-EOF
 	# ${TSHDIR}/src.diff.1
+
 	EOF
 fi

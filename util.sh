@@ -325,7 +325,7 @@ diff_copy() {
 		info "using diff ${_src} rooted at ${_r}" 1>&2
 
 		{
-			echo "# ${_src}"
+			printf '# %s\n\n' "$_src"
 			cat "$_src"
 		} >"$_dst"
 		chmod 644 "$_dst"
