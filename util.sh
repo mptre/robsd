@@ -1022,21 +1022,11 @@ robsd() {
 	done
 }
 
-# setmode [mode]
+# setmode mode
 #
-# Determine or set the execution mode.
+# Set the execution mode.
 setmode() {
-	local _mode="robsd"
-
-	if [ $# -eq 1 ]; then
-		_mode="$1"
-	else
-		case "${0##*/}" in
-		robsd-regress*)	_mode="robsd-regress";;
-		*)		;;
-		esac
-	fi
-	_MODE="$_mode"; export _MODE
+	_MODE="$1"; export _MODE
 }
 
 # setprogname name

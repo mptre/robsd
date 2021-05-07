@@ -7,6 +7,14 @@ usage() {
 	exit 1
 }
 
+# getmode path
+getmode() {
+	case "${1##*/}" in
+	robsd-regress-clean)	echo "robsd-regress";;
+	*)			echo "robsd";;
+	esac
+}
+
 # config_path
 config_path() {
 	case "$_MODE" in
@@ -26,7 +34,7 @@ config_path() {
 
 [ $# -ne 1 ] && usage
 
-setmode "$@"
+setmode "$(getmode "$0")"
 setprogname "robsd-clean"
 [ "$(id -u)" -ne 0 ] && fatal "must be run as root"
 config_load "$(config_path)"
