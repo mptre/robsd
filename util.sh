@@ -1106,9 +1106,9 @@ step_end() {
 	rm "${1}.orig"
 
 	# Only invoke the hook if the step has ended. A duration of -1 is a
-	# sentinel value indicating that the step has just begun.
+	# sentinel indicating that the step has just begun.
 	if [ "$_d" -ne -1 ] && [ -n "$HOOK" ]; then
-		info "running hook ${HOOK}"
+		info "invoking hook: ${HOOK} ${LOGDIR} ${_n} ${_e}"
 		"$HOOK" "$LOGDIR" "$_n" "$_e"
 	fi
 }
