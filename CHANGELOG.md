@@ -1,3 +1,26 @@
+# 1.2.0 2021-05-17
+
+## News
+
+- Suppress stdout output during resume.
+  Gets rid of the informative messages delivered as a mail from rc.firsttime.
+  (f892545)
+  (Anton Lindqvist)
+
+- Make it possible to optionally sign the release artifacts and generate
+  index.txt without distributing the same artifacts to another host during the
+  distrib step.
+  (30e3309)
+  (Anton Lindqvist)
+
+- Add robsd-regress, used to run regress test suite.
+  (bba1ef1)
+  (Anton Lindqvist)
+
+- Add a comment with the original path to each diff.
+  (9b7d376)
+  (Anton Lindqvist)
+
 # v1.1.0 - 2020-09-29
 
 ## News
