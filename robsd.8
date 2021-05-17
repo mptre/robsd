@@ -114,15 +114,15 @@ May be given multiple times.
 Diff to apply to the src tree.
 The same diff will be reverted once the release is finished.
 In addition, a copy of the diff is saved to a file named
-.Pa src.diff
-in the release directory.
+.Pa src.diff.N
+in the release directory where N is incremented for every given diff.
 May be given multiple times.
 .It Fl X Ar xenocara-diff
 Diff to apply to the xenocara tree.
 The same diff will be reverted once the release is finished.
 In addition, a copy of the diff is saved to a file named
-.Pa xenocara.diff
-in the release directory.
+.Pa xenocara.diff.N
+in the release directory where N is incremented for every given diff.
 May be given multiple times.
 .El
 .Sh FILES
