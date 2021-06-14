@@ -39,7 +39,7 @@ if testcase "basic"; then
 	genfile 1 "${BUILDDIR}/2019-02-22/rel/base66.tgz"
 
 	cat <<-EOF >"$TMP1"
-	Subject: robsd: $(machine): ok
+	Subject: robsd: $(hostname -s): ok
 
 	> comment:
 	comment goes here
@@ -72,7 +72,7 @@ if testcase "failure"; then
 	step="3" name="patch" skip="1"
 	EOF
 	cat <<-EOF >"$TMP1"
-	Subject: robsd: $(machine): failed in cvs
+	Subject: robsd: $(hostname -s): failed in cvs
 
 	> stats:
 	Status: failed in cvs
@@ -99,7 +99,7 @@ if testcase "failure in skipped step"; then
 	step="1" name="env" exit="1" duration="1" log="${LOGDIR}/env.log" user="root" time="0"
 	EOF
 	cat <<-EOF >"$TMP1"
-	Subject: robsd: $(machine): failed in env
+	Subject: robsd: $(hostname -s): failed in env
 
 	> stats:
 	Status: failed in env

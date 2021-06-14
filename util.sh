@@ -756,7 +756,7 @@ report() {
 
 	# Add headers.
 	cat <<-EOF >"$_tmp"
-	Subject: ${_MODE}: $(machine): ${_status}
+	Subject: ${_MODE}: $(hostname -s): ${_status}
 
 	EOF
 
