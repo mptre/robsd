@@ -1053,7 +1053,7 @@ step_begin() {
 		shift
 	done
 
-	step_end -d -1 -e 0 -l "$_l" -n "$_n" -s "$_s" "$1"
+	step_end -d -1 -e -1 -l "$_l" -n "$_n" -s "$_s" "$1"
 }
 
 # step_end [-S] [-d duration] [-e exit] [-l log] -n name -s step-id file
@@ -1311,6 +1311,7 @@ step_names() {
 # executed again. The exception also applies to the end step, this is useful
 # since it allows the report to be regenerated for a finished release.
 step_next() {
+	local _exit
 	local _i=1
 	local _step
 
@@ -1323,9 +1324,8 @@ step_next() {
 		fi
 
 		_step="$(step_value step)"
-		if [ "$(step_value duration)" -eq -1 ]; then
-			echo "$_step"
-		elif [ "$(step_value exit)" -ne 0 ]; then
+		_exit="$(step_value exit)"
+		if [ "$_exit" -ne 0 ]; then
 			echo "$_step"
 		elif [ "$(step_value name)" = "end" ]; then
 			echo "$_step"
