@@ -61,6 +61,7 @@ DISTFILES+=	tests/diff-list.sh
 DISTFILES+=	tests/diff-root.sh
 DISTFILES+=	tests/duration-total.sh
 DISTFILES+=	tests/format-duration.sh
+DISTFILES+=	tests/lock-acquire.sh
 DISTFILES+=	tests/log-id.sh
 DISTFILES+=	tests/prev-release.sh
 DISTFILES+=	tests/purge.sh

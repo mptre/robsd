@@ -567,8 +567,10 @@ lock_acquire() {
 	local _builddir="$1"; : "${_builddir:?}"
 	local _logdir="$2"; : "${_logdir:?}"
 
+	# We could already be owning the lock if the previous run was aborted
+	# prematurely.
 	_owner="$(cat "${_builddir}/.running" 2>/dev/null || :)"
-	if [ -n "$_owner" ]; then
+	if [ -n "$_owner" ] && [ "$_owner" != "$_logdir" ]; then
 		info "${_owner}: lock already acquired"
 		return 1
 	fi

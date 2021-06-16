@@ -9,6 +9,7 @@ TESTS+=	diff-list.sh
 TESTS+=	diff-root.sh
 TESTS+=	duration-total.sh
 TESTS+=	format-duration.sh
+TESTS+=	lock-acquire.sh
 TESTS+=	log-id.sh
 TESTS+=	prev-release.sh
 TESTS+=	purge.sh
