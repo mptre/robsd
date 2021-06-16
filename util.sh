@@ -1307,9 +1307,9 @@ step_names() {
 
 # step_next steps
 #
-# Get the next step to execute. If the last step failed, it will be executed
-# again. The exception also applies to the end step, this is useful since it
-# allows the report to be regenerated for a finished release.
+# Get the next step to execute. If the last step failed or aborted, it will be
+# executed again. The exception also applies to the end step, this is useful
+# since it allows the report to be regenerated for a finished release.
 step_next() {
 	local _i=1
 	local _step
@@ -1323,7 +1323,9 @@ step_next() {
 		fi
 
 		_step="$(step_value step)"
-		if [ "$(step_value exit)" -ne 0 ]; then
+		if [ "$(step_value duration)" -eq -1 ]; then
+			echo "$_step"
+		elif [ "$(step_value exit)" -ne 0 ]; then
 			echo "$_step"
 		elif [ "$(step_value name)" = "end" ]; then
 			echo "$_step"
