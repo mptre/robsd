@@ -29,7 +29,7 @@ while getopts "DS:X:r:s:" opt; do
 	S)	BSDDIFF="${BSDDIFF}${BSDDIFF:+ }$(readlink -f "${OPTARG}")";;
 	X)	XDIFF="${XDIFF}${XDIFF:+ }$(readlink -f "${OPTARG}")";;
 	r)	LOGDIR="$(readlink -f "$OPTARG")";;
-	s)	SKIP="${SKIP} ${OPTARG}";;
+	s)	SKIP="${SKIP}${SKIP:+ }${OPTARG}";;
 	*)	usage;;
 	esac
 done
@@ -84,15 +84,18 @@ else
 	XDIFF="$(diff_list "$LOGDIR" "xenocara.diff")"
 fi
 
-if [ "$KEEP" -gt 0 ]; then
-	/usr/local/sbin/robsd-clean "$KEEP"
-fi
+# Take note of skipped steps initially.
+if [ "$STEP" -eq 1 ] && [ -n "$SKIP" ]; then
+	info "skipping steps: ${SKIP}"
 
-if [ -n "$SKIP" ]; then
 	for _step in $SKIP; do
 		_id="$(step_id "$_step")"
 		step_end -S -n "$_step" -s "$_id" "${LOGDIR}/steps"
 	done
+fi
+
+if [ "$KEEP" -gt 0 ]; then
+	/usr/local/sbin/robsd-clean "$KEEP"
 fi
 
 if [ "$DETACH" -eq 1 ]; then

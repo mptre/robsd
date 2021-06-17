@@ -43,6 +43,7 @@ if testcase "basic"; then
 	robsd: using directory ${BUILDDIR}/$(date '+%Y-%m-%d').1 at step 1
 	robsd: using diff ${TSHDIR}/src.diff rooted at ${TSHDIR}
 	robsd: using diff ${TSHDIR}/xenocara.diff rooted at ${TSHDIR}
+	robsd: skipping steps: reboot
 	robsd: step env
 	robsd: step cvs
 	robsd: step patch
