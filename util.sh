@@ -1190,6 +1190,7 @@ step_exec() (
 	local _log
 	local _exec
 	local _step
+	local _robsdexec="${ROBSDEXEC:-${EXECDIR}/robsd-exec}"
 
 	while [ $# -gt 0 ]; do
 		case "$1" in
@@ -1208,14 +1209,12 @@ step_exec() (
 
 	[ -t 0 ] || exec >/dev/null 2>&1
 
-	trap ': >$_fail' INT
-
 	{
 		if [ "$_MODE" = "robsd-regress" ] && ! [ -e "$_exec" ]; then
-			sh -eux "${EXECDIR}/${_MODE}-exec.sh" "$_step" ||
-				: >"$_fail"
+			"$_robsdexec" sh -eux "${EXECDIR}/${_MODE}-exec.sh" \
+				"$_step" || : >"$_fail"
 		else
-			sh -eux "$_exec" || : >"$_fail"
+			"$_robsdexec" sh -eux "$_exec" || : >"$_fail"
 		fi
 	} </dev/null 2>&1 | tee "$_log"
 	if [ -e "$_fail" ]; then

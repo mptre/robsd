@@ -1,5 +1,12 @@
 VERSION=	1.2.0
 
+PROG_robsd-exec=	robsd-exec
+SRCS_robsd-exec=	robsd-exec.c
+OBJS_robsd-exec=	${SRCS_robsd-exec:.c=.o}
+DEPS_robsd-exec=	${SRCS_robsd-exec:.c=.d}
+
+CFLAGS+=	-Wall -Wextra -MD -MP
+
 SCRIPTS+=	robsd-base.sh
 SCRIPTS+=	robsd-checkflist.sh
 SCRIPTS+=	robsd-cvs.sh
@@ -30,6 +37,7 @@ DISTFILES+=	robsd-clean.8
 DISTFILES+=	robsd-cvs.sh
 DISTFILES+=	robsd-distrib.sh
 DISTFILES+=	robsd-env.sh
+DISTFILES+=	robsd-exec.c
 DISTFILES+=	robsd-hash.sh
 DISTFILES+=	robsd-image.sh
 DISTFILES+=	robsd-kernel.sh
@@ -105,7 +113,14 @@ SHLINT+=	${.CURDIR}/robsd-steps
 
 SUBDIR+=	tests
 
-all:
+all: ${PROG_robsd-exec}
+
+${PROG_robsd-exec}: ${OBJS_robsd-exec}
+	${CC} ${DEBUG} -o ${PROG_robsd-exec} ${OBJS_robsd-exec} ${LDFLAGS}
+
+clean:
+	rm -f ${DEPS_robsd-exec} ${OBJS_robsd-exec} ${PROG_robsd-exec}
+.PHONY: clean
 
 dist:
 	set -e; \
@@ -126,7 +141,7 @@ distclean: clean
 		${.CURDIR}/robsd-${VERSION}.sha256
 .PHONY: distclean
 
-install:
+install: all
 	mkdir -p ${DESTDIR}${BINDIR}
 	${INSTALL} -m 0755 ${.CURDIR}/robsd ${DESTDIR}${BINDIR}
 	${INSTALL} -m 0755 ${.CURDIR}/robsd-clean ${DESTDIR}${BINDIR}
@@ -135,6 +150,7 @@ install:
 	${INSTALL} -m 0755 ${.CURDIR}/robsd-rescue ${DESTDIR}${BINDIR}
 	${INSTALL} -m 0755 ${.CURDIR}/robsd-steps ${DESTDIR}${BINDIR}
 	mkdir -p ${DESTDIR}${LIBEXECDIR}/robsd
+	${INSTALL} ${PROG_robsd-exec} ${DESTDIR}${LIBEXECDIR}/robsd
 .for s in ${SCRIPTS}
 	${INSTALL} -m 0644 ${.CURDIR}/$s ${DESTDIR}${LIBEXECDIR}/robsd/$s
 .endfor
@@ -148,10 +164,12 @@ install:
 	${INSTALL_MAN} ${.CURDIR}/robsd-steps.8 ${DESTDIR}${MANDIR}/man8
 .PHONY: install
 
-test:
+test: all
 	${MAKE} -C ${.CURDIR}/tests \
 		"EXECDIR=${.CURDIR}" \
+		"ROBSDEXEC=${.OBJDIR}/${PROG_robsd-exec}" \
 		"TESTFLAGS=${TESTFLAGS}"
 .PHONY: test
 
 .include "${.CURDIR}/Makefile.inc"
+-include ${DEPS_robsd-exec}

@@ -38,7 +38,7 @@ if testcase "basic"; then
 	fi
 
 	# Remove non stable output.
-	sed -i -e '/running as pid/d' "$TMP1"
+	sed -i -e '/running as pid/d' -e '/robsd-exec:/d' "$TMP1"
 	assert_file - "$TMP1" <<-EOF
 	robsd: using directory ${BUILDDIR}/$(date '+%Y-%m-%d').1 at step 1
 	robsd: using diff ${TSHDIR}/src.diff rooted at ${TSHDIR}
