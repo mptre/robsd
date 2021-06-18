@@ -26,15 +26,14 @@ while getopts "Dr:s:" opt; do
 	case "$opt" in
 	D)	DETACH=1;;
 	r)	LOGDIR="$(readlink -f "$OPTARG")";;
-	s)	SKIP="${SKIP} ${OPTARG}";;
+	s)	SKIP="${SKIP}${SKIP:+ }${OPTARG}";;
 	*)	usage;;
 	esac
 done
 shift $((OPTIND - 1))
 [ $# -ne 0 ] && usage
 
-trap 'trap_exit -b "$BUILDDIR" -l "$LOGDIR" -s "$STEP"' EXIT
-trap 'info "caught SIGINT"' INT
+trap 'trap_exit -b "$BUILDDIR" -l "$LOGDIR"' EXIT
 
 if [ -z "$LOGDIR" ]; then
 	LOGDIR="${BUILDDIR}/$(build_id "$BUILDDIR")"
@@ -57,15 +56,18 @@ if ! lock_acquire "$BUILDDIR" "$LOGDIR"; then
 	fatal "already running"
 fi
 
-if [ "$KEEP" -gt 0 ]; then
-	/usr/local/sbin/robsd-regress-clean "$KEEP"
-fi
+# Take note of skipped steps initially.
+if [ "$STEP" -eq 1 ] && [ -n "$SKIP" ]; then
+	info "skipping steps: ${SKIP}"
 
-if [ -n "$SKIP" ]; then
 	for _step in $SKIP; do
 		_id="$(step_id "$_step")"
 		step_end -S -n "$_step" -s "$_id" "${LOGDIR}/steps"
 	done
+fi
+
+if [ "$KEEP" -gt 0 ]; then
+	/usr/local/sbin/robsd-regress-clean "$KEEP"
 fi
 
 if [ "$DETACH" -eq 1 ]; then
@@ -77,7 +79,7 @@ if [ "$DETACH" -eq 1 ]; then
 	# Reinstall trap handler since they are not inherited by subprocesses.
 	trap '-' EXIT
 	{
-		trap 'trap_exit -b "$BUILDDIR" -l "$LOGDIR" -s "$STEP"' EXIT
+		trap 'trap_exit -b "$BUILDDIR" -l "$LOGDIR"' EXIT
 		robsd "$STEP"
 	} &
 	info "running in detach mode as pid ${!}"
