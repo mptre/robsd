@@ -97,6 +97,21 @@ Object directory for the xenocara tree.
 Source directory for the xenocara tree.
 .Bq /usr/xenocara
 .El
+.Pp
+In addition, the following variables are recognized by
+.Xr robsd-regress 8 .
+Default values are displayed in brackets.
+.Bl -tag -width Ds
+.It Ev REGRESSUSER
+User to execute regression tests as.
+.It Ev SUDO
+Command used to elevate privilegies, needed by certain regression tests.
+.Bq doas
+.It Ev TESTS
+Regression tests to execute, separated by whitespace.
+All entries must be relative to
+.Pa ${BSDSRCDIR}/regress .
+.El
 .Sh EXAMPLES
 Example
 .Pa /etc/robsd.conf
@@ -106,6 +121,15 @@ BUILDDIR=/home/snapshots
 CVSROOT=anoncvs@anoncvs.eu.openbsd.org:/cvs
 CVSUSER=anton
 DESTDIR=/home/noperm
+.Ed
+.Pp
+Example
+.Pa /etc/robsd-regress.conf
+configuration file with all mandatory variables present:
+.Bd -literal
+BUILDDIR=/home/regress
+REGRESSUSER=anton
+TESTS="etc bin include lib libexec sbin sys usr.bin usr.sbin misc gnu"
 .Ed
 .Sh SEE ALSO
 .Xr robsd 8 ,

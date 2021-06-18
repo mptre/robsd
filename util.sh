@@ -104,6 +104,7 @@ config_load() {
 	export REGRESSUSER
 	export SIGNIFY; : "${SIGNIFY:=}"
 	export SKIP; : "${SKIP:=}"
+	export SUDO
 	export XDIFF; : "${XDIFF:=}"
 	export XOBJDIR; : "${XOBJDIR="/usr/xobj"}"
 	export XSRCDIR; : "${XSRCDIR="/usr/xenocara"}"
