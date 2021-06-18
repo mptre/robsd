@@ -13,8 +13,15 @@ if [ -d "$RELXDIR" ]; then
 	rm -r "$RELXDIR"
 fi
 
-# Compute missing SHA for install*.{img,iso}.
 cd "$RELDIR"
+
+# Adjust the build date to the start of the release build.
+date -u -r "$(build_date)" "+Build date: %s - %+" >BUILDINFO
+
+# Compute missing checksums.
 mv SHA256 SHA256.orig
-{ grep -v 'install.*' SHA256.orig; sha256 install*; } | sort >SHA256
+{
+	grep -v -e 'install.*' -e BUILDINFO SHA256.orig
+	sha256 install* BUILDINFO
+} | sort >SHA256
 rm SHA256.orig

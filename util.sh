@@ -13,6 +13,15 @@ abs() {
 	fi
 }
 
+# build_date
+#
+# Get the release build start date.
+build_date() {
+	set -x
+	step_eval 1 "${LOGDIR}/steps"
+	step_value time
+}
+
 # build_id directory
 #
 # Generate a new build directory path.
