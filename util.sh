@@ -17,7 +17,6 @@ abs() {
 #
 # Get the release build start date.
 build_date() {
-	set -x
 	step_eval 1 "${LOGDIR}/steps"
 	step_value time
 }
