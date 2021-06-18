@@ -30,9 +30,15 @@ else
 	info "using release directory ${LOGDIR}"
 fi
 
-step_eval -n patch "${LOGDIR}/steps" || fatal "step patch not found"
+if step_eval -n patch "${LOGDIR}/steps"; then
+	# shellcheck disable=SC2046
+	diff_revert "$BSDSRCDIR" $(diff_list "$LOGDIR" "src.diff")
+	# shellcheck disable=SC2046
+	diff_revert "$XSRCDIR" $(diff_list "$LOGDIR" "xenocara.diff")
+else
+	info "step patch not found, cannot revert diff(s)"
+fi
 
-# shellcheck disable=SC2046
-diff_revert "$BSDSRCDIR" $(diff_list "$LOGDIR" "src.diff")
-# shellcheck disable=SC2046
-diff_revert "$XSRCDIR" $(diff_list "$LOGDIR" "xenocara.diff")
+if lock_release "$BUILDDIR" "$LOGDIR"; then
+	info "released lock"
+fi

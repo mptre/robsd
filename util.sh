@@ -587,6 +587,8 @@ lock_release() {
 
 	if echo "$_logdir" | cmp -s - "${_builddir}/.running"; then
 		rm -f "${_builddir}/.running"
+	else
+		return 1
 	fi
 }
 
@@ -1384,7 +1386,7 @@ trap_exit() {
 	: "${_builddir:?}"
 
 	if [ -n "$_logdir" ]; then
-		lock_release "$_builddir" "$_logdir"
+		lock_release "$_builddir" "$_logdir" || :
 	fi
 
 	if [ "$_err" -ne 0 ] || report_must "$_STEPNAME"; then
