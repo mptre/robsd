@@ -35,7 +35,7 @@ config_path() {
 [ $# -ne 1 ] && usage
 
 setmode "$(getmode "$0")"
-setprogname "robsd-clean"
+setprogname "$(getmode "$0")-clean"
 [ "$(id -u)" -ne 0 ] && fatal "must be run as root"
 config_load "$(config_path)"
 
