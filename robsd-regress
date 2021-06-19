@@ -7,7 +7,6 @@ usage() {
 	usage: robsd-regress
 	[-D]
 	[-r path]
-	[-s step]
 	EOF
 	exit 1
 }
@@ -22,11 +21,10 @@ config_load "${ROBSDCONF:-/etc/robsd-regress.conf}"
 LOGDIR=""
 STEP=1
 
-while getopts "Dr:s:" opt; do
+while getopts "Dr:" opt; do
 	case "$opt" in
 	D)	DETACH=1;;
 	r)	LOGDIR="$(readlink -f "$OPTARG")";;
-	s)	SKIP="${SKIP}${SKIP:+ }${OPTARG}";;
 	*)	usage;;
 	esac
 done
@@ -54,16 +52,6 @@ if ! lock_acquire "$BUILDDIR" "$LOGDIR"; then
 	[ "$STEP" -eq 1 ] && rm -r "$LOGDIR"
 
 	fatal "already running"
-fi
-
-# Take note of skipped steps initially.
-if [ "$STEP" -eq 1 ] && [ -n "$SKIP" ]; then
-	info "skipping steps: ${SKIP}"
-
-	for _step in $SKIP; do
-		_id="$(step_id "$_step")"
-		step_end -S -n "$_step" -s "$_id" "${LOGDIR}/steps"
-	done
 fi
 
 if [ "$KEEP" -gt 0 ]; then
