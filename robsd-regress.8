@@ -3,7 +3,61 @@
 .Os
 .Sh NAME
 .Nm robsd-regress
-.Nd run OpenBSD regress suite
+.Nd execute OpenBSD regression tests
+.Sh SYNOPSIS
+.Nm robsd-regress
+.Op Fl D
+.Op Fl r Ar path
+.Sh DESCRIPTION
+The
+.Nm
+utility executes regression tests.
+The regression tests to execute are configured using
+.Xr robsd-regress.conf 5 ,
+Each run is identified by a directory created by
+.Nm
+rooted in
+.Ev BUILDDIR
+and is named after the current date.
+The directory contains the entries as follows.
+In addition, each regression test has a corresponding log file in the same
+directory.
+.Bl -tag -width Ds
+.It Pa report
+A summary of the run which is delivered as a mail to root once
+.Nm
+exits.
+.It Pa robsd.log
+Standard output and error from
+.Nm
+when running in detached mode.
+.It Pa steps
+Internal representation of the executed regression tests.
+This file should never be edited manually.
+.El
+.Pp
+.Nm
+is configured using
+.Xr robsd-regress.conf 5
+and must be run as root.
+Some steps can however operate on behalf of another user using
+.Xr su 1 ,
+see
+.Xr robsd-regress.conf 5 .
+.Pp
+The options are as follows:
+.Bl -tag -width Ds
+.It Fl D
+Detach
+.Nm
+into the background.
+.It Fl r Ar path
+Resume a run located at
+.Ar path .
+If the last executed regression test failed or aborted, it will be executed
+again.
+Otherwise, the next regression test will be executed.
+.El
 .Sh FILES
 .Bl -tag -width Ds
 .It Pa /etc/robsd-regress.conf
@@ -13,6 +67,7 @@ The default configuration file.
 .Ex -std
 .Sh SEE ALSO
 .Xr robsd-regress.conf 5 ,
-.Xr robsd 8
+.Xr robsd 8 ,
+.Xr robsd-regress-clean 8
 .Sh AUTHORS
 .An Anton Lindqvist Aq Mt anton@basename.se
