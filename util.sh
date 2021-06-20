@@ -2,7 +2,9 @@
 #
 # Get the absolute value of the given number.
 abs() {
-	local _n="$1"
+	local _n
+
+	_n="$1"; : "{$_n:?}"
 
 	: "${_n:?}"
 
@@ -25,7 +27,8 @@ build_date() {
 #
 # Generate a new build directory path.
 build_id() {
-	local _c _d
+	local _c
+	local _d
 
 	_d="$(date '+%Y-%m-%d')"
 	_c="$(find "$1" -type d -name "${_d}*" | wc -l)"
@@ -64,7 +67,8 @@ cleandir() {
 # Copy the comment file src to dst. If src is `-', stdin is used.
 # Exits non-zero if dst already exists.
 comment() {
-	local _dst _src
+	local _dst
+	local _src
 
 	_src="$1"; : "${_src:?}"
 	_dst="$2"; : "${_dst:?}"
@@ -153,7 +157,8 @@ config_load() {
 #
 # Extract the given field from a cvs log line.
 cvs_field() {
-	local _field _line
+	local _field
+	local _line
 
 	_field="$1"; : "${_field:?}"
 	_line="$2"; : "${_line:?}"
@@ -171,9 +176,15 @@ cvs_field() {
 # date.
 cvs_log() {
 	local _date=""
+	local _id
 	local _indent="  "
+	local _line
+	local _log
 	local _message=0
-	local _id _line _log _path _prev _repo _user
+	local _path
+	local _prev
+	local _repo
+	local _user
 
 	while [ $# -gt 0 ]; do
 		case "$1" in
@@ -273,8 +284,8 @@ cvs_log() {
 #
 # Apply the given diff, operating as user.
 diff_apply() {
-	local _diff=""
-	local _user=""
+	local _diff
+	local _user
 
 	while [ $# -gt 0 ]; do
 		case "$1" in
@@ -354,10 +365,12 @@ diff_copy() {
 #
 # List all diff in the given dir matching prefix.
 diff_list() {
-	local _dir _prefix
+	local _dir
+	local _prefix
 
 	_dir="$1" ; : "${_dir:?}"
 	_prefix="$2" ; : "${_prefix:?}"
+
 	find "$_dir" \( -type f -name "${_prefix}.*" \) -print0 | xargs -0
 }
 
@@ -371,6 +384,7 @@ diff_revert() {
 	local _root
 
 	_dir="$1"; : "${_dir:?}"; shift
+
 	for _diff; do
 		_root="$(diff_root -d "${_dir}" "$_diff")"
 		cd "$_root"
@@ -394,9 +408,11 @@ diff_revert() {
 # Find the root directory for the given diff. Otherwise, use the given directory
 # as a fallback.
 diff_root() {
-	local _file _p _path
 	local _err=1
-	local _root=""
+	local _file
+	local _p
+	local _path
+	local _root
 
 	while [ $# -gt 0 ]; do
 		case "$1" in
@@ -463,9 +479,10 @@ duration_prev() {
 #
 # Calculate the accumulated build duration.
 duration_total() {
+	local _d
 	local _i=1
+	local _steps
 	local _tot=0
-	local _d _steps
 
 	_steps="$1"
 	: "${_steps:?}"
@@ -498,7 +515,12 @@ fatal() {
 #
 # Format the given duration to a human readable representation.
 format_duration() {
-	local _d="$1" _h="" _m="" _s=""
+	local _d
+	local _h=""
+	local _m=""
+	local _s=""
+
+	_d="$1"; : "${_d:?}"
 
 	[ "$_d" -eq 0 ] && { echo 0; return 0; }
 
@@ -524,8 +546,12 @@ format_duration() {
 # Format the given size into a human readable representation.
 # Optionally include the sign if the size is a delta.
 format_size() {
-	local _d=1 _mega=0 _p="" _sign=0
-	local _abs _size
+	local _abs
+	local _d=1
+	local _mega=0
+	local _p=""
+	local _sign=0
+	local _size
 
 	while [ $# -gt 0 ]; do
 		case "$1" in
@@ -535,8 +561,7 @@ format_size() {
 		esac
 		shift
 	done
-	_size="$1"
-	: "${_size:?}"
+	_size="$1"; : "${_size:?}"
 
 	_abs="$(abs "$_size")"
 	if [ "$_mega" -eq 1 ] || [ "$_abs" -ge "$((1024 * 1024))" ]; then
@@ -572,9 +597,12 @@ info() {
 #
 # Acquire the mutex lock.
 lock_acquire() {
+	local _builddir
+	local _logdir
 	local _owner
-	local _builddir="$1"; : "${_builddir:?}"
-	local _logdir="$2"; : "${_logdir:?}"
+
+	_builddir="$1"; : "${_builddir:?}"
+	_logdir="$2"; : "${_logdir:?}"
 
 	# We could already be owning the lock if the previous run was aborted
 	# prematurely.
@@ -591,8 +619,11 @@ lock_acquire() {
 #
 # Release the mutex lock if we did acquire it.
 lock_release() {
-	local _builddir="$1"; : "${_builddir:?}"
-	local _logdir="$2"; : "${_logdir:?}"
+	local _builddir
+	local _logdir
+
+	_builddir="$1"; : "${_builddir:?}"
+	_logdir="$2"; : "${_logdir:?}"
 
 	if echo "$_logdir" | cmp -s - "${_builddir}/.running"; then
 		rm -f "${_builddir}/.running"
@@ -640,7 +671,10 @@ log_id() {
 #
 # Strip of the first component of the given path.
 path_strip() {
-	local _src="$1" _dst
+	local _dst
+	local _src
+
+	_src="$1"; : "${_src:?}"
 
 	_dst="${_src#/}"
 	[ "${_dst#*/}" = "$_dst" ] && return 0
@@ -676,9 +710,14 @@ prev_release() {
 # All purged directories are written to stdout.
 purge() {
 	local _attic="${BUILDDIR}/attic"
-	local _dir="$1"
-	local _n="$2"
-	local _d _dst _tim
+	local _d
+	local _dir
+	local _dst
+	local _n
+	local _tim
+
+	_dir="$1"; : "${_dir:?}"
+	_n="$2"; : "${_n:?}"
 
 	find "$_dir" -type d -mindepth 1 -maxdepth 1 |
 	grep -v "$_attic" |
@@ -728,10 +767,15 @@ reboot_commence() {
 # Create a build report and save it to report.
 report() {
 	local _duration=0
+	local _exit
+	local _f
 	local _i
-	local _name=""
+	local _log
+	local _name
+	local _report
 	local _status="unknown"
-	local _exit _f _log _report _steps _tmp
+	local _steps
+	local _tmp
 
 	while [ $# -gt 0 ]; do
 		case "$1" in
@@ -741,6 +785,8 @@ report() {
 		esac
 		shift
 	done
+	: "${_report:?}"
+	: "${_steps:?}"
 
 	# The steps file could be absent when a build fails to start due to
 	# another already running build.
@@ -828,9 +874,11 @@ report() {
 # to the previous succesful release is also formatted if the delta is greater
 # than the given threshold.
 report_duration() {
+	local _d
 	local _delta=""
+	local _prev
+	local _sign
 	local _threshold=0
-	local _d _prev _sign
 
 	while [ $# -gt 0 ]; do
 		case "$1" in
@@ -840,7 +888,7 @@ report_duration() {
 		esac
 		shift
 	done
-	_d="$1"
+	_d="$1"; : "${_d:?}"
 
 	if [ -z "$_delta" ] || ! _prev="$(duration_prev "$_delta")"; then
 		format_duration "$_d"
@@ -864,21 +912,27 @@ report_duration() {
 		"$(format_duration "$_delta")"
 }
 
-# report_log step log
+# report_log step-name step-log
 #
-# Writes an excerpt of the given log.
+# Writes an excerpt of the given step log.
 report_log() {
-	[ -s "$2" ] && echo
+	local _name
+	local _log
 
-	case "$1" in
+	_name="$1"; : "${_name:?}"
+	_log="$2"; : "${_log:?}"
+
+	[ -s "$_log" ] && echo
+
+	case "$_name" in
 	env|cvs|patch|checkflist|reboot|revert|distrib)
-		cat "$2"
+		cat "$_log"
 		;;
 	kernel)
-		tail -n 11 "$2"
+		tail -n 11 "$_log"
 		;;
 	*)
-		tail "$2"
+		tail "$_log"
 		;;
 	esac
 }
@@ -887,7 +941,11 @@ report_log() {
 #
 # Exits 0 if a report must be generated.
 report_must() {
-	case "$1" in
+	local _name
+
+	_name="$1"; : "${_name:?}"
+
+	case "$_name" in
 	end)	return 0;;
 	*)	return 1;;
 	esac
@@ -898,10 +956,15 @@ report_must() {
 # If the given file is significantly larger than the same file in the previous
 # release, a human readable representation of the size and delta is reported.
 report_size() {
-	local _f="$1"
-	local _delta _name _path _prev _s1 _s2
+	local _delta
+	local _f
+	local _name
+	local _path
+	local _prev
+	local _s1
+	local _s2
 
-	: "${_f:?}"
+	_f="$1"; : "${_f:?}"
 
 	_name="$(basename "$_f")"
 
@@ -922,14 +985,15 @@ report_size() {
 		"($(format_size -M -s "$_delta"))"
 }
 
-# report_sizes release_dir
+# report_sizes release-dir
 #
 # Report significant growth of any file present in the given release directory.
 report_sizes() {
-	local _dir="$1"
-	local _f _siz
+	local _dir
+	local _f
+	local _siz
 
-	: "${_dir:?}"
+	_dir="$1"; : "${_dir:?}"
 
 	[ -d "$_dir" ] || return 0
 
@@ -945,7 +1009,8 @@ report_sizes() {
 #
 # Exits zero if the given step should not be included in the report.
 report_skip() {
-	local _name _log
+	local _name
+	local _log
 
 	if [ "$_MODE" = "robsd-regress" ]; then
 		return 0
@@ -975,15 +1040,19 @@ report_skip() {
 #
 # Get the release directory with the given prefix applied.
 release_dir() {
-	local _suffix
+	local _prefix
+	local _suffix="rel"
 
-	if [ "$#" -eq 2 ] && [ "$1" = "-x" ]; then
+	while [ $# -gt 0 ]; do
+		case "$1" in
+		-x)	_suffix="relx";;
+		*)	break;;
+		esac
 		shift
-		_suffix="relx"
-	else
-		_suffix="rel"
-	fi
-	echo "${1}/${_suffix}"
+	done
+	_prefix="$1"; : "${_prefix:?}"
+
+	echo "${_prefix}/${_suffix}"
 }
 
 # robsd step
@@ -1049,34 +1118,41 @@ setprogname() {
 	_PROG="$1"; export _PROG
 }
 
-# step_begin -l log -n name -s step-name
+# step_begin -l step-log -n step-name -s step-id file
 #
 # Mark the given step as about to execute by writing an entry to the given
 # file. The same entry will be overwritten once the step has ended.
 step_begin() {
-	local _l _n _s
+	local _file
+	local _log
+	local _name
+	local _s
 
 	while [ $# -gt 0 ]; do
 		case "$1" in
-		-l)	shift; _l="$1";;
-		-n)	shift; _n="$1";;
+		-l)	shift; _log="$1";;
+		-n)	shift; _name="$1";;
 		-s)	shift; _s="$1";;
 		*)	break;;
 		esac
 		shift
 	done
+	: "${_log:?}"
+	: "${_name:?}"
+	: "${_s:?}"
+	_file="$1"; : "${_file:?}"
 
-	step_end -d -1 -e -1 -l "$_l" -n "$_n" -s "$_s" "$1"
+	step_end -d -1 -e -1 -l "$_log" -n "$_name" -s "$_s" "$_file"
 }
 
-# step_end [-S] [-d duration] [-e exit] [-l log] -n name -s step-id file
+# step_end [-S] [-d duration] [-e exit] [-l step-log] -n step-name -s step-id file
 #
 # Mark the given step as ended by writing an entry to the given file.
 step_end() {
 	local _d=-1
 	local _e=0
-	local _l=""
-	local _n
+	local _log=""
+	local _name
 	local _s
 	local _skip=""
 
@@ -1084,45 +1160,48 @@ step_end() {
 		case "$1" in
 		-d)	shift; _d="$1";;
 		-e)	shift; _e="$1";;
-		-l)	shift; _l="$1";;
-		-n)	shift; _n="$1";;
+		-l)	shift; _log="$1";;
+		-n)	shift; _name="$1";;
 		-S)	_skip="1";;
 		-s)	shift; _s="$1";;
 		*)	break;;
 		esac
 		shift
 	done
+	: "${_name:?}"
+	: "${_s:?}"
+	_file="$1"; : "${_file:?}"
 
 	# Remove any existing entry for the same step, could be present if a
 	# previous execution failed.
-	[ -e "$1" ] && sed -i -e "/step=\"${_s}\"/d" "$1"
+	[ -e "$_file" ] && sed -i -e "/step=\"${_s}\"/d" "$_file"
 
 	# Caution: all values must be quoted and cannot contain spaces.
 	{
 		printf 'step="%d"\n' "$_s"
-		printf 'name="%s"\n' "$_n"
+		printf 'name="%s"\n' "$_name"
 
 		if [ "$_skip" -eq 1 ]; then
 			printf 'skip="1"\n'
 		else
 			printf 'exit="%d"\n' "$_e"
 			printf 'duration="%d"\n' "$_d"
-			printf 'log="%s"\n' "$_l"
+			printf 'log="%s"\n' "$_log"
 			printf 'user="%s"\n' "$(logname)"
 			printf 'time="%d"\n' "$(date '+%s')"
 		fi
-	} | paste -s -d ' ' - >>"$1"
+	} | paste -s -d ' ' - >>"$_file"
 
 	# Sort steps as skipped steps are added at the begining.
-	mv "$1" "${1}.orig"
-	sort -V "${1}.orig" >"$1"
-	rm "${1}.orig"
+	mv "$_file" "${_file}.orig"
+	sort -V "${_file}.orig" >"$_file"
+	rm "${_file}.orig"
 
 	# Only invoke the hook if the step has ended. A duration of -1 is a
 	# sentinel indicating that the step has just begun.
 	if [ "$_d" -ne -1 ] && [ -n "$HOOK" ]; then
-		info "invoking hook: ${HOOK} ${LOGDIR} ${_n} ${_e}"
-		"$HOOK" "$LOGDIR" "$_n" "$_e"
+		info "invoking hook: ${HOOK} ${LOGDIR} ${_name} ${_e}"
+		"$HOOK" "$LOGDIR" "$_name" "$_e"
 	fi
 }
 
@@ -1132,9 +1211,14 @@ step_end() {
 # Read the given step from file into the _STEP array. The offset argument
 # refers to a line in file. A negative offset starts from the end of file.
 step_eval() {
-	local _file _i _k _next _step _v
+	local _file
+	local _i
+	local _k
 	local _n
 	local _name=0
+	local _next
+	local _step
+	local _v
 
 	while [ $# -gt 0 ]; do
 		case "$1" in
@@ -1143,10 +1227,8 @@ step_eval() {
 		esac
 		shift
 	done
-	_step="$1"
-	: "${_step:?}"
-	_file="$2"
-	: "${_file:?}"
+	_step="$1"; : "${_step:?}"
+	_file="$2"; : "${_file:?}"
 
 	set -A _STEP
 
@@ -1235,11 +1317,15 @@ step_exec() (
 	return 0
 )
 
-# step_field name
+# step_field step-name
 #
 # Get the corresponding _STEP array index for the given field name.
 step_field() {
-	case "$1" in
+	local _name
+
+	_name="$1"; : "${_name:?}"
+
+	case "$_name" in
 	step)		echo 0;;
 	name)		echo 1;;
 	exit)		echo 2;;
@@ -1260,6 +1346,7 @@ step_id() {
 	local _name
 
 	_name="$1"; : "${_name:?}"
+
 	_id="$(step_names | cat -n | grep -w "$_name" | awk '{print $1}')"
 	if [ -n "$_id" ]; then
 		echo "$_id"
@@ -1317,17 +1404,20 @@ step_names() {
 	fi
 }
 
-# step_next steps
+# step_next file
 #
 # Get the next step to execute. If the last step failed or aborted, it will be
 # executed again. The exception also applies to the end step, this is useful
 # since it allows the report to be regenerated for a finished release.
 step_next() {
 	local _exit
+	local _file
 	local _i=1
 	local _step
 
-	while step_eval "-${_i}" "$1"; do
+	_file="$1"; : "${_file:?}"
+
+	while step_eval "-${_i}" "$_file"; do
 		_i="$((_i + 1))"
 
 		# The skip field is optional, suppress errors.
@@ -1362,15 +1452,18 @@ step_skip() {
 	[ "$_skip" -eq 1 ]
 }
 
-# step_value name
+# step_value field-name
 #
 # Get corresponding value for the given field name in the global _STEP array.
 step_value() {
+	local _name
 	local _i
 
-	_i="$(step_field "$1")"
+	_name="$1"; : "${_name:?}"
+
+	_i="$(step_field "$_name")"
 	if [ "$_i" -lt 0 ] || ! echo "${_STEP[$_i]}" >/dev/null 2>&1; then
-		echo "step_value: ${1}: unknown field" 1>&2
+		echo "step_value: ${_name}: unknown field" 1>&2
 		return 1
 	fi
 	echo "${_STEP[$_i]}"
