@@ -30,7 +30,7 @@ else
 	info "using release directory ${LOGDIR}"
 fi
 
-if step_eval -n patch "${LOGDIR}/steps"; then
+if step_eval -n patch "${LOGDIR}/steps" 2>/dev/null; then
 	# shellcheck disable=SC2046
 	diff_revert "$BSDSRCDIR" $(diff_list "$LOGDIR" "src.diff")
 	# shellcheck disable=SC2046

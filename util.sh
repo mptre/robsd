@@ -460,7 +460,7 @@ duration_prev() {
 
 	prev_release 0 |
 	while read -r _prev; do
-		step_eval -n "$_step" "${_prev}/steps" || continue
+		step_eval -n "$_step" "${_prev}/steps" 2>/dev/null || continue
 
 		if step_skip; then
 			echo "0"
@@ -487,7 +487,7 @@ duration_total() {
 	_steps="$1"
 	: "${_steps:?}"
 
-	while step_eval "$_i" "$_steps"; do
+	while step_eval "$_i" "$_steps" 2>/dev/null; do
 		_i=$((_i + 1))
 
 		step_skip && continue
@@ -773,7 +773,7 @@ report() {
 	local _log
 	local _name
 	local _report
-	local _status="unknown"
+	local _status=""
 	local _steps
 	local _tmp
 
@@ -794,24 +794,26 @@ report() {
 
 	_tmp="$(mktemp -t robsd.XXXXXX)"
 
-	# The last none skipped step determines success or failure.
+	# If any step failed, the build failed.
 	_i=1
-	while step_eval "-${_i}" "$_steps"; do
+	while step_eval "-${_i}" "$_steps" 2>/dev/null; do
 		_i=$((_i + 1))
 
 		step_skip && continue
 
-		if [ "$(step_value exit)" -eq 0 ]; then
-			_status="ok"
-			_duration="$(step_value duration)"
-			_duration="$(report_duration -d end -t 60 "$_duration")"
-		else
+		if [ "$(step_value exit)" -ne 0 ]; then
 			_status="failed in $(step_value name)"
 			_duration="$(duration_total "$_steps")"
 			_duration="$(report_duration "$_duration")"
+			break
 		fi
-		break
 	done
+	if [ -z "$_status" ]; then
+		step_eval -n end "$_steps"
+		_status="ok"
+		_duration="$(step_value duration)"
+		_duration="$(report_duration -d end -t 60 "$_duration")"
+	fi
 
 	# Add headers.
 	cat <<-EOF >"$_tmp"
@@ -841,7 +843,7 @@ report() {
 	} >>"$_tmp"
 
 	_i=1
-	while step_eval "$_i" "$_steps"; do
+	while step_eval "$_i" "$_steps" 2>/dev/null; do
 		_i=$((_i + 1))
 
 		step_skip && continue
@@ -1073,7 +1075,7 @@ robsd() {
 		_s="$_step"
 		_step=$((_step + 1))
 
-		if step_eval -n "$_STEPNAME" "${LOGDIR}/steps" && step_skip; then
+		if step_eval -n "$_STEPNAME" "${LOGDIR}/steps" 2>/dev/null && step_skip; then
 			info "skipping step ${_STEPNAME}"
 			continue
 		else
@@ -1246,7 +1248,10 @@ step_eval() {
 	else
 		_line="$(sed -n -e "${_step}p" "$_file")"
 	fi
-	[ -z "$_line" ] && return 1
+	if [ -z "$_line" ]; then
+		echo "step_eval: ${_file}: step ${_step} not found" 1>&2
+		return 1
+	fi
 
 	while :; do
 		_next="${_line%% *}"

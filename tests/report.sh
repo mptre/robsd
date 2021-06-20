@@ -65,23 +65,31 @@ fi
 
 if testcase "failure"; then
 	mkdir "$LOGDIR"
+	echo "env log" >"${LOGDIR}/env.log"
 	echo "cvs log" >"${LOGDIR}/cvs.log"
 	cat <<-EOF >"$STEPS"
-	step="1" name="env" exit="0" duration="1" log="${LOGDIR}/env.log" user="root" time="0"
-	step="2" name="cvs" exit="1" duration="10" log="${LOGDIR}/cvs.log" user="root" time="0"
+	step="1" name="env" exit="1" duration="10" log="${LOGDIR}/env.log" user="root" time="0"
+	step="2" name="cvs" exit="0" duration="11" log="${LOGDIR}/cvs.log" user="root" time="0"
 	step="3" name="patch" skip="1"
 	EOF
 	cat <<-EOF >"$TMP1"
-	Subject: robsd: $(hostname -s): failed in cvs
+	Subject: robsd: $(hostname -s): failed in env
 
 	> stats:
-	Status: failed in cvs
-	Duration: 00:00:11
+	Status: failed in env
+	Duration: 00:00:21
 	Build: ${LOGDIR}
 
-	> cvs:
+	> env:
 	Exit: 1
 	Duration: 00:00:10
+	Log: env.log
+
+	env log
+
+	> cvs:
+	Exit: 0
+	Duration: 00:00:11
 	Log: cvs.log
 
 	cvs log

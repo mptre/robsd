@@ -37,8 +37,9 @@ if testcase "negative offset"; then
 fi
 
 if testcase "offset not found"; then
-	cat </dev/null >"$TMP1"
-	step_eval 1337 "$TMP1" && fail "bogus offset found"
+	if step_eval 1337 /dev/null >"$TMP1" 2>&1; then
+		fail - "bogus offset found" <"$TMP1"
+	fi
 fi
 
 if testcase "name"; then
