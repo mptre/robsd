@@ -3,7 +3,7 @@
 .Os
 .Sh NAME
 .Nm robsd-regress
-.Nd execute OpenBSD regression tests
+.Nd run OpenBSD regression tests
 .Sh SYNOPSIS
 .Nm robsd-regress
 .Op Fl D
@@ -11,8 +11,10 @@
 .Sh DESCRIPTION
 The
 .Nm
-utility executes regression tests.
-The regression tests to execute are configured using
+utility runs
+.Ox
+regression tests.
+The regression tests to run are configured using
 .Xr robsd-regress.conf 5 ,
 Each run is identified by a directory created by
 .Nm
@@ -52,8 +54,7 @@ into the background.
 .It Fl r Ar path
 Resume a run located at
 .Ar path .
-If the last executed regression test failed or aborted, it will be executed
-again.
+If the last regression test failed or aborted, it will be executed again.
 Otherwise, the next regression test will be executed.
 .El
 .Sh FILES
