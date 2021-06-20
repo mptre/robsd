@@ -113,13 +113,17 @@ config_load() {
 	export LOGDIR
 	export MAKEFLAGS; : "${MAKEFLAGS:="-j$(sysctl -n hw.ncpuonline)"}"
 	export PATH; PATH="${PATH}:/usr/X11R6/bin"
-	export REGRESSUSER
 	export SIGNIFY; : "${SIGNIFY:=}"
 	export SKIP; : "${SKIP:=}"
-	export SUDO
 	export XDIFF; : "${XDIFF:=}"
 	export XOBJDIR; : "${XOBJDIR="/usr/xobj"}"
 	export XSRCDIR; : "${XSRCDIR="/usr/xenocara"}"
+
+	# Variables only honored by robsd-regress.
+	if [ "$_MODE" = "robsd-regress" ]; then
+		export REGRESSUSER
+		export SUDO; : "${SUDO:="doas -n"}"
+	fi
 
 	. "$_path"
 
