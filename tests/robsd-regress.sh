@@ -1,14 +1,18 @@
-export WRKDIR
-utility_setup >"$TMP1"; read -r WRKDIR BUILDDIR <"$TMP1"
+utility_setup >"$TMP1"; read -r _ BUILDDIR <"$TMP1"
 
 ROBSDREGRESS="${EXECDIR}/robsd-regress"
 
 if testcase "basic"; then
 	config_stub - "robsd-regress" <<-EOF
 	REGRESSUSER=nobody
-	TESTS=hello
+	TESTS="fail hello"
 	EOF
 	mkdir "$BUILDDIR"
+	mkdir -p "${TSHDIR}/regress/fail"
+	cat <<EOF >"${TSHDIR}/regress/fail/Makefile"
+all:
+	exit 1
+EOF
 	mkdir -p "${TSHDIR}/regress/hello"
 	cat <<EOF >"${TSHDIR}/regress/hello/Makefile"
 all:

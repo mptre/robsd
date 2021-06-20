@@ -1103,7 +1103,9 @@ robsd() {
 		_t1="$(date '+%s')"
 		step_end -d "$((_t1 - _t0))" -e "$_exit" -l "$_log" \
 			-n "$_STEPNAME" -s "$_s" "${LOGDIR}/steps"
-		[ "$_exit" -ne 0 ] && return 1
+		# The robsd steps are dependant on each other as opposed of
+		# robsd-regress where it's desirable to continue despite failure.
+		[ "$_MODE" = "robsd" ] && [ "$_exit" -ne 0 ] && return 1
 
 		# Reboot in progress?
 		[ "$_STEPNAME" = "reboot" ] && return 0
