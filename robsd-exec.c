@@ -49,8 +49,6 @@ main(int argc, char *argv[])
 		err(1, "%s", argv[1]);
 	}
 
-	warnx("pid %d, pgid %d", getpid(), pid);
-
 	/* Wait for the process group to become present. */
 	close(pip[1]);
 	if (waiteof(pip[0], 1000)) {
