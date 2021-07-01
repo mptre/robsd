@@ -97,12 +97,12 @@ MANDIR=		${PREFIX}/man
 INSTALL?=	install
 INSTALL_MAN?=	${INSTALL}
 
-MANLINT+=	${.CURDIR}/robsd-clean.8
-MANLINT+=	${.CURDIR}/robsd-regress.8
-MANLINT+=	${.CURDIR}/robsd-rescue.8
-MANLINT+=	${.CURDIR}/robsd-steps.8
-MANLINT+=	${.CURDIR}/robsd.8
-MANLINT+=	${.CURDIR}/robsd.conf.5
+MANLINT+=	robsd-clean.8
+MANLINT+=	robsd-regress.8
+MANLINT+=	robsd-rescue.8
+MANLINT+=	robsd-steps.8
+MANLINT+=	robsd.8
+MANLINT+=	robsd.conf.5
 
 SHLINT+=	${SCRIPTS:C/^/${.CURDIR}\//}
 SHLINT+=	${.CURDIR}/robsd

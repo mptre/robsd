@@ -10,7 +10,7 @@ SHELLCHECKFLAGS +=	-o quote-safe-variables
 
 lint: _SUBDIRUSE
 .if defined(MANLINT)
-	mandoc -Tlint -Wstyle ${MANLINT}
+	cd ${.CURDIR} && mandoc -Tlint -Wstyle ${MANLINT}
 .endif
 .if defined(SHLINT)
 	shellcheck ${SHELLCHECKFLAGS} ${SHLINT}
