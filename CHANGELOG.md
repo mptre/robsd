@@ -1,3 +1,31 @@
+# 1.3.0 2021-07-01
+
+## Bug fixes
+
+- Execute aborted steps again upon resume.
+  (1189f76, ed4eec0, 9120b78)
+  (Anton Lindqvist)
+
+## News
+
+- Describe diff file name convention in manual.
+  (e51b7a7)
+  (Anton Lindqvist)
+
+- Use host name as opposed of machine architecture in mail subject.
+  (8d7e35e)
+  (Anton Lindqvist)
+
+- Let robsd-rescue release the build lock, allowing a new release to be
+  built.
+  (382d58b)
+  (Anton Lindqvist)
+
+- Adjust the build date in BUILDINFO to the start of the release build.
+  To be used by robsd-regress at some point.
+  (79a27fe)
+  (Anton Lindqvist)
+
 # 1.2.0 2021-05-17
 
 ## News
