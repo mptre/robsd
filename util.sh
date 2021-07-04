@@ -129,6 +129,7 @@ config_load() {
 
 	# Ensure mandatory variables are defined.
 	: "${BUILDDIR:?}"
+	ls "$BUILDDIR" >/dev/null
 	if [ "$_MODE" = "robsd" ]; then
 		: "${CVSROOT:?}"
 		: "${CVSUSER:?}"

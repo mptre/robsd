@@ -105,3 +105,13 @@ if testcase "early failure"; then
 	robsd: failed in step unknown
 	EOF
 fi
+
+if testcase "missing build directory"; then
+	config_stub
+	if EXECDIR="${WRKDIR}/exec" sh "$ROBSD" >"$TMP1" 2>&1; then
+		fail - "expected non-zero exit" <"$TMP1"
+	fi
+	assert_file - "$TMP1" <<-EOF
+	ls: ${BUILDDIR}: No such file or directory
+	EOF
+fi
