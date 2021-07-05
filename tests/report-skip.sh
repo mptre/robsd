@@ -32,10 +32,10 @@ if testcase "diff src present"; then
 	BSDDIFF="src.diff"
 	XDIFF=""
 
-	if report_skip "patch"; then
+	if report_skip "patch" "/dev/null"; then
 		fail "expected patch to not be skipped"
 	fi
-	if report_skip "revert"; then
+	if report_skip "revert" "/dev/null"; then
 		fail "expected revert to not be skipped"
 	fi
 fi
@@ -44,10 +44,10 @@ if testcase "diff xenocara present"; then
 	BSDDIFF=""
 	XDIFF="xenocara.diff"
 
-	if report_skip "patch"; then
+	if report_skip "patch" "/dev/null"; then
 		fail "expected patch to not be skipped"
 	fi
-	if report_skip "revert"; then
+	if report_skip "revert" "/dev/null"; then
 		fail "expected revert to not be skipped"
 	fi
 fi
@@ -56,16 +56,16 @@ if testcase "diff not present"; then
 	BSDDIFF=""; export BSDDIFF
 	XDIFF=""; export XDIFF
 
-	if ! report_skip "patch"; then
+	if ! report_skip "patch" "/dev/null"; then
 		fail "expected patch to be skipped"
 	fi
-	if ! report_skip "revert"; then
+	if ! report_skip "revert" "/dev/null"; then
 		fail "expected revert to be skipped"
 	fi
 fi
 
 if testcase "regress"; then
-	if ! (setmode "robsd-regress" && report_skip "bin/cat"); then
+	if ! (setmode "robsd-regress" && report_skip "bin/cat" "/dev/null"); then
 		fail "expected step to be skipped"
 	fi
 fi

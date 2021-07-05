@@ -856,7 +856,8 @@ report() {
 		_name="$(step_value name)"
 		_exit="$(step_value exit)"
 		_log="$(step_value log)"
-		[ "$_exit" -eq 0 ] && report_skip "$_name" "$_log" && continue
+		# The end step lacks a log.
+		[ "$_exit" -eq 0 ] && report_skip "$_name" "${_log:-/dev/null}" && continue
 
 		_duration="$(step_value duration)"
 
@@ -1012,18 +1013,19 @@ report_sizes() {
 	done
 }
 
-# report_skip step-name [step-log]
+# report_skip step-name step-log
 #
 # Exits zero if the given step should not be included in the report.
 report_skip() {
 	local _name
 	local _log
 
+	_name="$1"; : "${_name:?}"
+	_log="$2"; : "${_log:?}"
+
 	if [ "$_MODE" = "robsd-regress" ]; then
 		return 0
 	fi
-
-	_name="$1"; : "${_name:?}"
 
 	case "$_name" in
 	env|end|reboot)
@@ -1031,7 +1033,6 @@ report_skip() {
 		;;
 	checkflist)
 		# Skip if the log only contains PS4 traces.
-		_log="$2"
 		grep -vq '^\+' "$_log" || return 0
 		;;
 	patch|revert)
