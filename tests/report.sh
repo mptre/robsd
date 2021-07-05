@@ -132,3 +132,46 @@ if testcase "missing step"; then
 		fail "want exit 1, got 0"
 	fi
 fi
+
+if testcase "regress skipped and failed"; then
+	LOGDIR="${BUILDDIR}/2019-02-23"
+	mkdir -p "$LOGDIR"
+	echo nein >"${LOGDIR}/nein.log"
+	cat <<-EOF >"${LOGDIR}/skipped.log"
+	discard me...
+
+	===> test
+	SKIPPED
+	EOF
+	cat <<-EOF >"$STEPS"
+	step="1" name="skipped" exit="0" duration="10" log="${LOGDIR}/skipped.log" user="root" time="0"
+	step="2" name="nein" exit="1" duration="1" log="${LOGDIR}/nein.log" user="root" time="0"
+	step="3" name="end" exit="0" duration="11" log="" user="root" time="0"
+	EOF
+
+	(setmode "robsd-regress" && report -r "$REPORT" -s "$STEPS")
+
+	assert_file - "$REPORT" <<-EOF
+	Subject: robsd-regress: $(hostname -s): failed in nein
+
+	> stats:
+	Status: failed in nein
+	Duration: 00:00:11
+	Build: ${LOGDIR}
+
+	> skipped:
+	Exit: 0
+	Duration: 00:00:10
+	Log: skipped.log
+
+	===> test
+	SKIPPED
+
+	> nein:
+	Exit: 1
+	Duration: 00:00:01
+	Log: nein.log
+
+	nein
+	EOF
+fi

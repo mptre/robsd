@@ -767,6 +767,20 @@ reboot_commence() {
 	shutdown -r '+1' </dev/null >/dev/null 2>&1
 }
 
+# regress_skipped step-log
+#
+# Extract all skipped regress tests from the given step log.
+regress_skipped() {
+	local _log
+
+	_log="$1"; : "${_log:?}"
+	awk '
+	/^$/ { buf = ""; next }
+	{ buf = buf "\n" $0 }
+	/^SKIPPED/ { printf("%s\n", buf) }
+	' "$_log" | tail -n +2
+}
+
 # report -r report -s steps
 #
 # Create a build report and save it to report.
@@ -865,7 +879,7 @@ report() {
 		printf 'Exit: %d\n' "$_exit"
 		printf 'Duration: %s\n' "$(report_duration -d "$_name" "$_duration")"
 		printf 'Log: %s\n' "$(basename "$_log")"
-		report_log "$_name" "$(step_value log)"
+		report_log -e "$_exit" -n "$_name" -l "$(step_value log)"
 	done >>"$_tmp"
 
 	# smtpd(8) rejects messages with carriage return not followed by a
@@ -920,17 +934,33 @@ report_duration() {
 		"$(format_duration "$_delta")"
 }
 
-# report_log step-name step-log
+# report_log -e step-exit -n step-name -l step-log
 #
 # Writes an excerpt of the given step log.
 report_log() {
+	local _exit
 	local _name
 	local _log
 
-	_name="$1"; : "${_name:?}"
-	_log="$2"; : "${_log:?}"
+	while [ $# -gt 0 ]; do
+		case "$1" in
+		-e)	shift; _exit="$1";;
+		-n)	shift; _name="$1";;
+		-l)	shift; _log="$1";;
+		*)	break;;
+		esac
+		shift
+	done
+	: "${_exit:?}"
+	: "${_name:?}"
+	: "${_log:?}"
 
 	[ -s "$_log" ] && echo
+
+	if [ "$_MODE" = "robsd-regress" ] && [ "$_exit" -eq 0 ]; then
+		regress_skipped "$_log"
+		return 0
+	fi
 
 	case "$_name" in
 	env|cvs|patch|checkflist|reboot|revert|distrib)
@@ -1024,6 +1054,10 @@ report_skip() {
 	_log="$2"; : "${_log:?}"
 
 	if [ "$_MODE" = "robsd-regress" ]; then
+		# Do not skip if one or many tests where skipped.
+		if ! regress_skipped "$_log" | cmp -s - /dev/null; then
+			return 1
+		fi
 		return 0
 	fi
 

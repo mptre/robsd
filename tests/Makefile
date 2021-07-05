@@ -17,6 +17,7 @@ TESTS+=	report-duration.sh
 TESTS+=	report-size.sh
 TESTS+=	report-skip.sh
 TESTS+=	report.sh
+TESTS+=	robsd-regress-skipped.sh
 TESTS+=	robsd-regress.sh
 TESTS+=	robsd-rescue.sh
 TESTS+=	robsd-steps.sh
