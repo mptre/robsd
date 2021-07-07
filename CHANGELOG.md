@@ -1,3 +1,11 @@
+# 1.4.0 - 2021-07-07
+
+## News
+
+- Include skipped regress tests in report.
+  (c1cb6b9)
+  (Anton Lindqvist)
+
 # 1.3.0 - 2021-07-01
 
 ## Bug fixes
