@@ -32,9 +32,6 @@ main(int argc, char *argv[])
 	if (pipe2(pip, O_NONBLOCK) == -1)
 		err(1, "pipe2");
 
-	siginstall(SIGPIPE, SIG_IGN, 0);
-	siginstall(SIGTERM, sighandler, SA_RESTART);
-
 	pid = fork();
 	if (pid == -1)
 		err(1, "fork");
@@ -48,6 +45,9 @@ main(int argc, char *argv[])
 		execvp(argv[1], &argv[1]);
 		err(1, "%s", argv[1]);
 	}
+
+	siginstall(SIGPIPE, SIG_IGN, 0);
+	siginstall(SIGTERM, sighandler, SA_RESTART);
 
 	/* Wait for the process group to become present. */
 	close(pip[1]);
