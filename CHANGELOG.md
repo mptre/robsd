@@ -1,3 +1,12 @@
+# 1.4.1 - 2021-07-07
+
+## Bug fixes
+
+- Install signal handlers after fork in robsd-exec preveting SIGPIPE
+  from being ignored by the child.
+  (a82b872)
+  (Anton Lindqvist)
+
 # 1.4.0 - 2021-07-07
 
 ## News
