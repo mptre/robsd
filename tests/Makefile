@@ -13,6 +13,7 @@ TESTS+=	lock-acquire.sh
 TESTS+=	log-id.sh
 TESTS+=	prev-release.sh
 TESTS+=	purge.sh
+TESTS+=	regress-failed.sh
 TESTS+=	regress-skipped.sh
 TESTS+=	report-duration.sh
 TESTS+=	report-size.sh

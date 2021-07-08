@@ -767,6 +767,16 @@ reboot_commence() {
 	shutdown -r '+1' </dev/null >/dev/null 2>&1
 }
 
+# regress_failed step-log
+#
+# Exits zero if the given regress step log indicate failure.
+regress_failed() {
+	local _log
+
+	_log="$1"; : "${_log:?}"
+	grep -q '^FAILED$' "$_log"
+}
+
 # regress_skipped step-log
 #
 # Extract all skipped regress tests from the given step log.
@@ -1353,6 +1363,10 @@ step_exec() (
 		if [ "$_MODE" = "robsd-regress" ] && ! [ -e "$_exec" ]; then
 			"$_robsdexec" sh -eux "${EXECDIR}/${_MODE}-exec.sh" \
 				"$_step" || : >"$_fail"
+
+			# Regress tests can fail but still exit zero, check the
+			# log for failures.
+			regress_failed "$_log" && : >"$_fail"
 		else
 			"$_robsdexec" sh -eux "$_exec" || : >"$_fail"
 		fi
