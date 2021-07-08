@@ -29,8 +29,8 @@ TESTS+=	step-id.sh
 TESTS+=	step-next.sh
 TESTS+=	step-value.sh
 
-SHLINT+=	${TESTS:C/^/${.CURDIR}\//}
-SHLINT+=	${.CURDIR}/util.sh
+SHLINT+=	${TESTS}
+SHLINT+=	util.sh
 
 all: test
 

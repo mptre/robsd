@@ -8,12 +8,15 @@ SHELLCHECKFLAGS +=	-o add-default-case
 SHELLCHECKFLAGS +=	-o avoid-nullary-conditions
 SHELLCHECKFLAGS +=	-o quote-safe-variables
 
+# Get rid of annoying white space.
+SHELLCHECKFLAGS!=	echo ${SHELLCHECKFLAGS}
+
 lint: _SUBDIRUSE
 .if defined(MANLINT)
 	cd ${.CURDIR} && mandoc -Tlint -Wstyle ${MANLINT}
 .endif
 .if defined(SHLINT)
-	shellcheck ${SHELLCHECKFLAGS} ${SHLINT}
+	cd ${.CURDIR} && shellcheck ${SHELLCHECKFLAGS} ${SHLINT}
 .endif
 .PHONY: lint
 

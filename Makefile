@@ -106,12 +106,12 @@ MANLINT+=	robsd-steps.8
 MANLINT+=	robsd.8
 MANLINT+=	robsd.conf.5
 
-SHLINT+=	${SCRIPTS:C/^/${.CURDIR}\//}
-SHLINT+=	${.CURDIR}/robsd
-SHLINT+=	${.CURDIR}/robsd-clean
-SHLINT+=	${.CURDIR}/robsd-regress
-SHLINT+=	${.CURDIR}/robsd-rescue
-SHLINT+=	${.CURDIR}/robsd-steps
+SHLINT+=	${SCRIPTS}
+SHLINT+=	robsd
+SHLINT+=	robsd-clean
+SHLINT+=	robsd-regress
+SHLINT+=	robsd-rescue
+SHLINT+=	robsd-steps
 
 SUBDIR+=	tests
 
