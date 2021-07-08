@@ -1,3 +1,12 @@
+# 1.4.2 - 2021-07-08
+
+## Bug fixes
+
+- Detect regress test failures by examining the log as tests can exit zero
+  despite failure.
+  (296f9ea)
+  (Anton Lindqvist)
+
 # 1.4.1 - 2021-07-07
 
 ## Bug fixes
