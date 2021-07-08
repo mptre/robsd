@@ -84,6 +84,6 @@ fi
 
 if testcase "steps file not found"; then
 	if step_eval 1 empty >/dev/null 2>&1; then
-		fail "expected non-zero return"
+		fail "expected exit non-zero"
 	fi
 fi

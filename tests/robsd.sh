@@ -98,7 +98,7 @@ if testcase "early failure"; then
 	echo 'exit 0' >"${WRKDIR}/bin/sysctl"
 	mkdir -p "$BUILDDIR"
 	if EXECDIR="${WRKDIR}/exec" sh "$ROBSD" >"$TMP1" 2>&1; then
-		fail - "expected non-zero exit" <"$TMP1"
+		fail - "expected exit non-zero" <"$TMP1"
 	fi
 	assert_file - "$TMP1" <<-EOF
 	robsd: non-optimal performance detected, check hw.perfpolicy and hw.setperf
@@ -109,7 +109,7 @@ fi
 if testcase "missing build directory"; then
 	config_stub
 	if EXECDIR="${WRKDIR}/exec" sh "$ROBSD" >"$TMP1" 2>&1; then
-		fail - "expected non-zero exit" <"$TMP1"
+		fail - "expected exit non-zero" <"$TMP1"
 	fi
 	assert_file - "$TMP1" <<-EOF
 	ls: ${BUILDDIR}: No such file or directory
