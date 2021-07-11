@@ -1,3 +1,11 @@
+# 1.4.3 - 2021-07-11
+
+## Bug fixes
+
+- Include all failing regress tests in the report.
+  (f96be5c)
+  (Anton Lindqvist)
+
 # 1.4.2 - 2021-07-08
 
 ## Bug fixes
