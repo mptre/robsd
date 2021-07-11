@@ -11,7 +11,7 @@ if testcase "basic"; then
 	===> second
 	SKIPPED
 	EOF
-	regress_skipped "$LOG" >"$TMP1"
+	regress_tests SKIPPED "$LOG" >"$TMP1"
 	assert_file - "$TMP1" <<-EOF
 	===> x509
 	missing package p5-IO-Socket-SSL
@@ -31,7 +31,7 @@ if testcase "basic"; then
 	lie on nosuid filesystems, so we cannot run doas there.
 	SKIPPED
 	EOF
-	regress_skipped "$LOG" >"$TMP1"
+	regress_tests SKIPPED "$LOG" >"$TMP1"
 	assert_file - "$TMP1" <<-EOF
 	==== t-run-keepenv-path ====
 	All of directories we are allowed to use for temporary data
@@ -44,7 +44,7 @@ if testcase "basic"; then
 	==== test
 	SKIPPED
 	EOF
-	regress_skipped "$LOG" >"$TMP1"
+	regress_tests SKIPPED "$LOG" >"$TMP1"
 	assert_file - "$TMP1" <<-EOF
 	==== test
 	SKIPPED

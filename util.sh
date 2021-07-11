@@ -777,17 +777,20 @@ regress_failed() {
 	grep -q '^FAILED$' "$_log"
 }
 
-# regress_skipped step-log
+# regress_tests outcome step-log
 #
-# Extract all skipped regress tests from the given step log.
-regress_skipped() {
+# Extract all regress tests from the log with the given outcome.
+regress_tests() {
+	local _outcome
 	local _log
 
-	_log="$1"; : "${_log:?}"
+	_outcome="$1"; : "${_outcome:?}"
+	_log="$2"; : "${_log:?}"
+
 	awk '
 	/^$/ { buf = ""; next }
 	{ buf = buf "\n" $0 }
-	/^SKIPPED/ { printf("%s\n", buf) }
+	/^'"$_outcome"'/ { printf("%s\n", buf) }
 	' "$_log" | tail -n +2
 }
 
@@ -968,7 +971,7 @@ report_log() {
 	[ -s "$_log" ] && echo
 
 	if [ "$_MODE" = "robsd-regress" ] && [ "$_exit" -eq 0 ]; then
-		regress_skipped "$_log"
+		regress_tests SKIPPED "$_log"
 		return 0
 	fi
 
@@ -1065,7 +1068,7 @@ report_skip() {
 
 	if [ "$_MODE" = "robsd-regress" ]; then
 		# Do not skip if one or many tests where skipped.
-		if ! regress_skipped "$_log" | cmp -s - /dev/null; then
+		if ! regress_tests SKIPPED "$_log" | cmp -s - /dev/null; then
 			return 1
 		fi
 		return 0
