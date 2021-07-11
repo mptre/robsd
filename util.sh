@@ -777,9 +777,9 @@ regress_failed() {
 	grep -q '^FAILED$' "$_log"
 }
 
-# regress_tests outcome step-log
+# regress_tests outcome-pattern step-log
 #
-# Extract all regress tests from the log with the given outcome.
+# Extract all regress tests from the log matching the given outcome pattern.
 regress_tests() {
 	local _outcome
 	local _log
@@ -970,8 +970,8 @@ report_log() {
 
 	[ -s "$_log" ] && echo
 
-	if [ "$_MODE" = "robsd-regress" ] && [ "$_exit" -eq 0 ]; then
-		regress_tests SKIPPED "$_log"
+	if [ "$_MODE" = "robsd-regress" ]; then
+		regress_tests 'FAILED|SKIPPED' "$_log"
 		return 0
 	fi
 

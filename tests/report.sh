@@ -136,7 +136,18 @@ fi
 if testcase "regress skipped and failed"; then
 	LOGDIR="${BUILDDIR}/2019-02-23"
 	mkdir -p "$LOGDIR"
-	echo nein >"${LOGDIR}/nein.log"
+	cat <<-EOF >"${LOGDIR}/nein.log"
+	==== t0 ====
+	skip
+	SKIPPED
+
+	==== t1 ====
+	failure
+	FAILED
+
+	==== t2 ====
+	success
+	EOF
 	cat <<-EOF >"${LOGDIR}/skipped.log"
 	discard me...
 
@@ -172,6 +183,12 @@ if testcase "regress skipped and failed"; then
 	Duration: 00:00:01
 	Log: nein.log
 
-	nein
+	==== t0 ====
+	skip
+	SKIPPED
+
+	==== t1 ====
+	failure
+	FAILED
 	EOF
 fi
