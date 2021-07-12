@@ -74,7 +74,7 @@ if testcase "already running"; then
 	assert_file - "$TMP1" <<-EOF
 	robsd: /var/empty: lock already acquired
 	robsd: already running
-	robsd: failed in step unknown
+	robsd: failed in step unknown, exit 1
 	EOF
 fi
 
@@ -89,7 +89,7 @@ if testcase "already running detached"; then
 	assert_file - "$TMP1" <<-EOF
 	robsd: /var/empty: lock already acquired
 	robsd: already running
-	robsd: failed in step unknown
+	robsd: failed in step unknown, exit 1
 	EOF
 fi
 
@@ -102,7 +102,7 @@ if testcase "early failure"; then
 	fi
 	assert_file - "$TMP1" <<-EOF
 	robsd: non-optimal performance detected, check hw.perfpolicy and hw.setperf
-	robsd: failed in step unknown
+	robsd: failed in step unknown, exit 1
 	EOF
 fi
 

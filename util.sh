@@ -1538,8 +1538,12 @@ step_value() {
 # Exit trap handler. The log dir may not be present if we failed very early on.
 trap_exit() {
 	local _err="$?"
+	local _builddir
 	local _logdir=""
-	local _builddir=""
+
+	if [ "$_err" -ne 0 ]; then
+		info "failed in step ${_STEPNAME}, exit ${_err}"
+	fi
 
 	while [ $# -gt 0 ]; do
 		case "$1" in
@@ -1562,10 +1566,6 @@ trap_exit() {
 				sendmail root <"${_logdir}/report"
 			fi
 		fi
-	fi
-
-	if [ "$_err" -ne 0 ]; then
-		info "failed in step ${_STEPNAME}"
 	fi
 
 	return "$_err"
