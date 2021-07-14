@@ -1,1 +1,3 @@
-su "$REGRESSUSER" -c "exec make -C ${BSDSRCDIR}/regress/${1}"
+. "${EXECDIR}/util.sh"
+
+unpriv "$REGRESSUSER" "exec make -C ${BSDSRCDIR}/regress/${1}"

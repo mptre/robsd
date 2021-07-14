@@ -235,7 +235,7 @@ cvs_log() {
 
 	grep '^[MPU]\>' |
 	cut -d ' ' -f 2 |
-	su "$_user" -c "cd ${_repo} && xargs cvs -q log -N -l -d '>${_date}'" |
+	unpriv "$_user" "cd ${_repo} && xargs cvs -q log -N -l -d '>${_date}'" |
 	tee "${_tmp}/cvs-log" |
 	while read -r _line; do
 		case "$_line" in
@@ -304,10 +304,10 @@ diff_apply() {
 	: "${_diff:?}"
 
 	# Try to revert the diff if dry run fails.
-	if ! su "$_user" -c "exec patch -Cfs" <"$_diff" >/dev/null; then
-		su "$_user" -c "exec patch -Rs" <"$_diff"
+	if ! unpriv "$_user" "exec patch -Cfs" <"$_diff" >/dev/null; then
+		unpriv "$_user" "exec patch -Rs" <"$_diff"
 	fi
-	su "$_user" -c "exec patch -Es" <"$_diff"
+	unpriv "$_user" "exec patch -Es" <"$_diff"
 }
 
 # diff_clean dir
@@ -393,11 +393,11 @@ diff_revert() {
 	for _diff; do
 		_root="$(diff_root -d "${_dir}" "$_diff")"
 		cd "$_root"
-		if su "$CVSUSER" -c "exec patch -CRfs" \
+		if unpriv "$CVSUSER" "exec patch -CRfs" \
 			<"$_diff" >/dev/null 2>&1
 		then
 			info "reverting diff ${_diff}"
-			su "$CVSUSER" -c "exec patch -ERs" <"$_diff"
+			unpriv "$CVSUSER" "exec patch -ERs" <"$_diff"
 			_revert=1
 		else
 			info "diff already reverted ${_diff}"
@@ -1569,6 +1569,16 @@ trap_exit() {
 	fi
 
 	return "$_err"
+}
+
+# unpriv user utility argument ...
+#
+# Run utility as the given user.
+unpriv() {
+	local _user
+
+	_user="$1"; : "${_user:?}"; shift
+	su "$_user" -c "$@"
 }
 
 # Global locals only used in this file. Since this file is source by step
