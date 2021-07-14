@@ -1574,12 +1574,18 @@ trap_exit() {
 # unpriv user utility argument ...
 #
 # Run utility as the given user.
-unpriv() {
+unpriv() (
 	local _user
 
 	_user="$1"; : "${_user:?}"; shift
+
+	# Since robsd is running as root, su(1) will preserve the following
+	# environment variables which is unwanted by especially some regress
+	# tests.
+	LOGNAME="$_user"
+	USER="$_user"
 	su "$_user" -c "$@"
-}
+)
 
 # Global locals only used in this file. Since this file is source by step
 # scripts, preserve any existing value.
