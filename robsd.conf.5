@@ -102,6 +102,12 @@ In addition, the following variables are recognized by
 .Xr robsd-regress 8 .
 Default values are displayed in brackets.
 .Bl -tag -width Ds
+.It Ev NOTPARALLEL
+Disable
+.Xr make 1
+parallelism for the given regression tests, separated by whitespace.
+All entries must be relative to
+.Pa ${BSDSRCDIR}/regress .
 .It Ev REGRESSUSER
 User to execute regression tests as.
 .It Ev SUDO

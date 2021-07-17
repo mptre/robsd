@@ -121,6 +121,7 @@ config_load() {
 
 	# Variables only honored by robsd-regress.
 	if [ "$_MODE" = "robsd-regress" ]; then
+		export NOTPARALLEL; : "${NOTPARALLEL:=""}"
 		export REGRESSUSER
 		export SUDO; : "${SUDO:="doas -n"}"
 	fi
@@ -775,6 +776,16 @@ regress_failed() {
 
 	_log="$1"; : "${_log:?}"
 	grep -q '^FAILED$' "$_log"
+}
+
+# regress_parallel test
+#
+# Exits zero if the given regress test is suitable for make parallelism.
+regress_parallel() {
+	local _test
+
+	_test="$1"; : "${_test:?}"
+	! echo "$NOTPARALLEL" | grep -q "\<${_test}\>"
 }
 
 # regress_tests outcome-pattern step-log
