@@ -1,3 +1,19 @@
+# 1.5.0 - 2021-07-17
+
+## News
+
+- Optionally disable make parallelism for certain regress tests.
+  The configuration now honors a list of such tests named NOTPARALLEL.
+  (4749a59)
+  (Anton Lindqvist)
+
+## Bug fixes
+
+- Adjust environment variables preserved by su(1).
+  Required by some regress tests
+  (0c4d1fa)
+  (Anton Lindqvist)
+
 # 1.4.3 - 2021-07-11
 
 ## Bug fixes
