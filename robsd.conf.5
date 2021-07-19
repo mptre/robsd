@@ -61,8 +61,18 @@ User to perform
 operations on behalf of.
 .It Ev HOOK
 Command to invoke after each step.
-The command will be given the following arguments: build directory, name of
-the step and the exit status of the step.
+The command will be given the following arguments:
+.Pp
+.Bl -enum -compact
+.It
+Release build directory rooted in
+.Ev BUILDDIR .
+.It
+Name of the step.
+.It
+Exit status of the step,
+0 if the step succeeded and non-zero otherwise.
+.El
 .It Ev KEEP
 Number of releases to keep in
 .Ev BUILDDIR ,
