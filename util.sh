@@ -1267,9 +1267,10 @@ step_end() {
 
 	# Only invoke the hook if the step has ended. A duration of -1 is a
 	# sentinel indicating that the step has just begun.
-	if [ "$_d" -ne -1 ] && [ -n "$HOOK" ]; then
+	if [ "$_d" -ne -1 ] && [ "$_name" != "env" ] && [ -n "$HOOK" ]; then
 		info "invoking hook: ${HOOK} ${LOGDIR} ${_name} ${_e}"
-		"$HOOK" "$LOGDIR" "$_name" "$_e"
+		# Ignore non-zero exit.
+		"$HOOK" "$LOGDIR" "$_name" "$_e" 2>&1 | sed -e 's/^/hook: /' || :
 	fi
 }
 
