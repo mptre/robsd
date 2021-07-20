@@ -1140,7 +1140,7 @@ robsd() {
 		_step=$((_step + 1))
 
 		if step_eval -n "$_STEPNAME" "${LOGDIR}/steps" 2>/dev/null && step_skip; then
-			info "skipping step ${_STEPNAME}"
+			info "step ${_STEPNAME} skipped"
 			continue
 		else
 			info "step ${_STEPNAME}"

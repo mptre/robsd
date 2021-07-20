@@ -48,7 +48,7 @@ if testcase "basic"; then
 	robsd: step cvs
 	robsd: step patch
 	robsd: step kernel
-	robsd: skipping step reboot
+	robsd: step reboot skipped
 	robsd: step env
 	robsd: step base
 	robsd: step release
