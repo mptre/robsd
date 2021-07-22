@@ -87,8 +87,9 @@ if testcase "basic"; then
 	robsd: invoking hook: ${_hook} ${_logdir} distrib 0
 	robsd: step end
 	robsd: invoking hook: ${_hook} ${_logdir} end 0
-	hook: stdout
-	hook: stderr
+	stdout
+	stderr
+	robsd: trap at step end, exit 0
 	EOF
 fi
 
@@ -103,7 +104,7 @@ if testcase "already running"; then
 	assert_file - "$TMP1" <<-EOF
 	robsd: /var/empty: lock already acquired
 	robsd: already running
-	robsd: failed in step unknown, exit 1
+	robsd: trap at step unknown, exit 1
 	EOF
 fi
 
@@ -118,7 +119,7 @@ if testcase "already running detached"; then
 	assert_file - "$TMP1" <<-EOF
 	robsd: /var/empty: lock already acquired
 	robsd: already running
-	robsd: failed in step unknown, exit 1
+	robsd: trap at step unknown, exit 1
 	EOF
 fi
 
@@ -131,7 +132,7 @@ if testcase "early failure"; then
 	fi
 	assert_file - "$TMP1" <<-EOF
 	robsd: non-optimal performance detected, check hw.perfpolicy and hw.setperf
-	robsd: failed in step unknown, exit 1
+	robsd: trap at step unknown, exit 1
 	EOF
 fi
 

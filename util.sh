@@ -1270,7 +1270,7 @@ step_end() {
 	if [ -n "$HOOK" ] && [ "$_d" -ne -1 ] && [ "$_name" != "env" ]; then
 		info "invoking hook: ${HOOK} ${LOGDIR} ${_name} ${_e}"
 		# Ignore non-zero exit.
-		"$HOOK" "$LOGDIR" "$_name" "$_e" 2>&1 | sed -e 's/^/hook: /' || :
+		"$HOOK" "$LOGDIR" "$_name" "$_e" || :
 	fi
 }
 
@@ -1553,9 +1553,7 @@ trap_exit() {
 	local _builddir
 	local _logdir=""
 
-	if [ "$_err" -ne 0 ]; then
-		info "failed in step ${_STEPNAME}, exit ${_err}"
-	fi
+	info "trap at step ${_STEPNAME}, exit ${_err}"
 
 	while [ $# -gt 0 ]; do
 		case "$1" in
