@@ -138,11 +138,6 @@ dist:
 	rm -r $$d
 .PHONY: dist
 
-distclean: clean
-	rm -f ${.CURDIR}/robsd-${VERSION}.tar.gz \
-		${.CURDIR}/robsd-${VERSION}.sha256
-.PHONY: distclean
-
 install: all
 	mkdir -p ${DESTDIR}${BINDIR}
 	${INSTALL} -m 0755 ${.CURDIR}/robsd ${DESTDIR}${BINDIR}
