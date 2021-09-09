@@ -69,3 +69,14 @@ if testcase "regress"; then
 		fail "expected step to be skipped"
 	fi
 fi
+
+if testcase "regress skip"; then
+	cat <<-EOF >"$TMP1"
+	==== t0 ====
+	SKIPPED
+	EOF
+
+	if ! (setmode "robsd-regress" && SKIPIGNORE="bin/cat" report_skip "bin/cat" "$TMP1"); then
+		fail "expected step to be skipped"
+	fi
+fi

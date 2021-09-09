@@ -123,6 +123,7 @@ config_load() {
 	if [ "$_MODE" = "robsd-regress" ]; then
 		export NOTPARALLEL; : "${NOTPARALLEL:=""}"
 		export REGRESSUSER
+		export SKIPIGNORE; : "${SKIPIGNORE:=""}"
 		export SUDO; : "${SUDO:="doas -n"}"
 	fi
 
@@ -788,6 +789,17 @@ regress_parallel() {
 	! echo "$NOTPARALLEL" | grep -q "\<${_test}\>"
 }
 
+# regress_skip test
+#
+# Exits zero if the given regress test should be omitted from the report even if
+# some tests where skipped.
+regress_skip() {
+	local _test
+
+	_test="$1"; : "${_test:?}"
+	echo "$SKIPIGNORE" | grep -q "\<${_test}\>"
+}
+
 # regress_tests outcome-pattern step-log
 #
 # Extract all regress tests from the log matching the given outcome pattern.
@@ -1079,7 +1091,8 @@ report_skip() {
 
 	if [ "$_MODE" = "robsd-regress" ]; then
 		# Do not skip if one or many tests where skipped.
-		if ! regress_tests SKIPPED "$_log" | cmp -s - /dev/null; then
+		if ! regress_skip "$_name" &&
+		   ! regress_tests SKIPPED "$_log" | cmp -s - /dev/null; then
 			return 1
 		fi
 		return 0

@@ -120,6 +120,10 @@ All entries must be relative to
 .Pa ${BSDSRCDIR}/regress .
 .It Ev REGRESSUSER
 User to execute regression tests as.
+.It Ev SKIPIGNORE
+Do not report skipped targets for the given regression tests.
+All entries must be relative to
+.Pa ${BSDSRCDIR}/regress .
 .It Ev SUDO
 Command used to elevate privilegies, needed by certain regression tests.
 .Bq doas -n
