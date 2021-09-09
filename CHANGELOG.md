@@ -1,3 +1,12 @@
+# 1.6.0 - 2021-09-09
+
+## News
+
+- Optionally omit skipped regress targets from report using the SKIPIGNORE
+  configuration variable.
+  (ebcb35d)
+  (Anton Lindqvist)
+
 # 1.5.0 - 2021-07-17
 
 ## News
