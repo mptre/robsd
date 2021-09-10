@@ -1485,7 +1485,7 @@ step_names() {
 		end
 		EOF
 	elif [ "$_MODE" = "robsd-regress" ]; then
-		cat <<-EOF | xargs printf '%s\n'
+		xargs printf '%s\n' <<-EOF
 		env
 		${TESTS}
 		end
