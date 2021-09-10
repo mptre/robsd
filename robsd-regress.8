@@ -26,13 +26,14 @@ In addition, each regression test has a corresponding log file in the same
 directory.
 .Bl -tag -width Ds
 .It Pa report
-A summary of the run which is delivered as a mail to root once
+A summary of the run.
+Delivered as a mail to root while running in detached mode once
 .Nm
 exits.
 .It Pa robsd.log
 Standard output and error from
 .Nm
-when running in detached mode.
+while running in detached mode.
 .It Pa steps
 Internal representation of the executed regression tests.
 This file should never be edited manually.

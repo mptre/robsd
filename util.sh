@@ -1585,7 +1585,7 @@ trap_exit() {
 	if [ "$_err" -ne 0 ] || report_must "$_STEPNAME"; then
 		if report -r "${_logdir}/report" -s "${_logdir}/steps"; then
 			# Do not send mail during interactive invocations.
-			if ! [ -t 0 ]; then
+			if [ "$DETACH" -eq 1 ]; then
 				sendmail root <"${_logdir}/report"
 			fi
 		fi
