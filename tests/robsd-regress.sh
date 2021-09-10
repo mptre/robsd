@@ -5,7 +5,7 @@ ROBSDREGRESS="${EXECDIR}/robsd-regress"
 if testcase "basic"; then
 	config_stub - "robsd-regress" <<-EOF
 	REGRESSUSER=nobody
-	TESTS="fail hello"
+	TESTS="fail hello:P"
 	EOF
 	mkdir "$BUILDDIR"
 	mkdir -p "${TSHDIR}/regress/fail"

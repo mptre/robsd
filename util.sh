@@ -141,6 +141,11 @@ config_load() {
 		: "${TESTS:?}"
 	fi
 
+	# Handle robsd-regress specific configuration.
+	if [ "$_MODE" = "robsd-regress" ]; then
+		regress_config_load
+	fi
+
 	# Filter out missing source diff(s).
 	_tmp=""
 	for _diff in $BSDDIFF; do
@@ -767,6 +772,36 @@ reboot_commence() {
 
 	# Add some grace in order to let the script finish.
 	shutdown -r '+1' </dev/null >/dev/null 2>&1
+}
+
+# regress_config_load
+#
+# Parse the configured regression tests and handle any associated flags.
+regress_config_load() {
+	local _f
+	local _flags
+	local _t
+	local _tests=""
+
+	for _t in ${TESTS:-}; do
+		_flags="${_t##*:}"
+		_t="${_t%:*}"
+
+		[ "$_flags" = "$_t" ] && _flags=""
+
+		# shellcheck disable=SC2001
+		for _f in $(echo "$_flags" | sed -e 's/\(.\)/\1 /g'); do
+			case "$_f" in
+			P)	NOTPARALLEL="${NOTPARALLEL}${NOTPARALLEL:+ }${_t}";;
+			S)	SKIPIGNORE="${SKIPIGNORE}${SKIPIGNORE:+ }${_t}";;
+			*)	fatal "unknown regress test flag '${_f}'";;
+			esac
+		done
+
+		_tests="${_tests}${_tests:+ }${_t}"
+	done
+
+	TESTS="$_tests"
 }
 
 # regress_failed step-log

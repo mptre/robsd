@@ -73,6 +73,7 @@ DISTFILES+=	tests/lock-acquire.sh
 DISTFILES+=	tests/log-id.sh
 DISTFILES+=	tests/prev-release.sh
 DISTFILES+=	tests/purge.sh
+DISTFILES+=	tests/regress-config-load.sh
 DISTFILES+=	tests/regress-failed.sh
 DISTFILES+=	tests/regress-tests.sh
 DISTFILES+=	tests/report-duration.sh

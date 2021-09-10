@@ -112,19 +112,8 @@ In addition, the following variables are recognized by
 .Xr robsd-regress 8 .
 Default values are displayed in brackets.
 .Bl -tag -width Ds
-.It Ev NOTPARALLEL
-Disable
-.Xr make 1
-parallelism for the given regression tests, separated by whitespace.
-All entries must be relative to
-.Pa ${BSDSRCDIR}/regress .
 .It Ev REGRESSUSER
 User to execute regression tests as.
-.It Ev SKIPIGNORE
-Do not report skipped targets for the given regression tests, separated by
-whitespace.
-All entries must be relative to
-.Pa ${BSDSRCDIR}/regress .
 .It Ev SUDO
 Command used to elevate privilegies, needed by certain regression tests.
 .Bq doas -n
@@ -132,6 +121,17 @@ Command used to elevate privilegies, needed by certain regression tests.
 Regression tests to execute, separated by whitespace.
 All entries must be relative to
 .Pa ${BSDSRCDIR}/regress .
+An entry can optionally be followed by a colon
+.Pq Sq \&:
+and one or many of the following flags:
+.Bl -tag -width Ds -offset indent
+.It P
+Disable
+.Xr make 1
+parallelism for the given regression test.
+.It S
+Do not report skipped targets for the given regression test.
+.El
 .El
 .Sh EXAMPLES
 Example
