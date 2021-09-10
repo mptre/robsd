@@ -1,3 +1,16 @@
+# 2.0.0 - 2021-09-10
+
+## Changes
+
+- Consolidate regress test configuration.
+  Instead using three different configuration variables for declaring regress
+  tests, add the ability to annotate each test as part of the TESTS configuration
+  variable.
+  This is a breaking change since NOTPARALLEL and SKIPIGNORE are no longer
+  honored.
+  (9ceac51)
+  (Anton Lindqvist)
+
 # 1.6.0 - 2021-09-09
 
 ## News
