@@ -34,6 +34,8 @@ shift $((OPTIND - 1))
 trap 'trap_exit -b "$BUILDDIR" -l "$LOGDIR"' EXIT
 
 if [ -z "$LOGDIR" ]; then
+	check_perf || exit 1
+
 	LOGDIR="${BUILDDIR}/$(build_id "$BUILDDIR")"
 	mkdir "$LOGDIR"
 	: >"${LOGDIR}/steps"
