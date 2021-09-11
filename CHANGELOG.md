@@ -1,3 +1,13 @@
+# 2.0.1 - 2021-09-11
+
+## Bug fixes
+
+- If a regress log does not contain any FAILED nor SKIPPED markers, include the
+  tail of the log instead of showing nothing in the report. Can happen if
+  something for instance fails to build.
+  (e225eaa)
+  (Anton Lindqvist)
+
 # 2.0.0 - 2021-09-10
 
 ## Changes
