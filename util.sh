@@ -866,6 +866,7 @@ report() {
 	local _status=""
 	local _steps
 	local _tmp
+	local _wrkdir
 
 	while [ $# -gt 0 ]; do
 		case "$1" in
@@ -882,7 +883,8 @@ report() {
 	# another already running build.
 	[ -e "$_steps" ] || return 1
 
-	_tmp="$(mktemp -t robsd.XXXXXX)"
+	_wrkdir="$(mktemp -d -t robsd.XXXXXX)"
+	_tmp="${_wrkdir}/report"
 
 	# If any step failed, the build failed.
 	_i=1
@@ -950,14 +952,15 @@ report() {
 		printf 'Exit: %d\n' "$_exit"
 		printf 'Duration: %s\n' "$(report_duration -d "$_name" "$_duration")"
 		printf 'Log: %s\n' "$(basename "$_log")"
-		report_log -e "$_exit" -n "$_name" -l "$(step_value log)"
+		report_log -e "$_exit" -n "$_name" -l "$(step_value log)" \
+			-t "$_wrkdir"
 	done >>"$_tmp"
 
 	# smtpd(8) rejects messages with carriage return not followed by a
 	# newline. Play it safe and let vis(1) encode potential carriage
 	# returns.
 	vis "$_tmp" >"$_report"
-	rm "$_tmp"
+	rm -r "$_wrkdir"
 }
 
 # report_duration [-d steps] [-t threshold] duration
@@ -1005,19 +1008,21 @@ report_duration() {
 		"$(format_duration "$_delta")"
 }
 
-# report_log -e step-exit -n step-name -l step-log
+# report_log -e step-exit -n step-name -l step-log -t tmp-dir
 #
 # Writes an excerpt of the given step log.
 report_log() {
 	local _exit
 	local _name
 	local _log
+	local _tmp
 
 	while [ $# -gt 0 ]; do
 		case "$1" in
 		-e)	shift; _exit="$1";;
 		-n)	shift; _name="$1";;
 		-l)	shift; _log="$1";;
+		-t)	shift; _tmp="${1}/report_log";;
 		*)	break;;
 		esac
 		shift
@@ -1025,11 +1030,13 @@ report_log() {
 	: "${_exit:?}"
 	: "${_name:?}"
 	: "${_log:?}"
+	: "${_tmp:?}"
 
 	[ -s "$_log" ] && echo
 
 	if [ "$_MODE" = "robsd-regress" ]; then
-		regress_tests 'FAILED|SKIPPED' "$_log"
+		regress_tests 'FAILED|SKIPPED' "$_log" | tee "$_tmp"
+		[ -s "$_tmp" ] || tail "$_log"
 		return 0
 	fi
 

@@ -133,7 +133,7 @@ if testcase "missing step"; then
 	fi
 fi
 
-if testcase "regress skipped and failed"; then
+if testcase "regress"; then
 	LOGDIR="${BUILDDIR}/2019-02-23"
 	mkdir -p "$LOGDIR"
 	cat <<-EOF >"${LOGDIR}/nein.log"
@@ -154,20 +154,25 @@ if testcase "regress skipped and failed"; then
 	===> test
 	SKIPPED
 	EOF
+	cat <<-EOF >"${LOGDIR}/error.log"
+	cc -O2 -pipe  -Wall  -MD -MP  -c log.c
+	error: unable to open output file 'log.o': 'Read-only file system'
+	EOF
 	cat <<-EOF >"$STEPS"
 	step="1" name="skipped" exit="0" duration="10" log="${LOGDIR}/skipped.log" user="root" time="0"
 	step="2" name="nein" exit="1" duration="1" log="${LOGDIR}/nein.log" user="root" time="0"
-	step="3" name="end" exit="0" duration="11" log="" user="root" time="0"
+	step="3" name="error" exit="1" duration="1" log="${LOGDIR}/error.log" user="root" time="0"
+	step="4" name="end" exit="0" duration="11" log="" user="root" time="0"
 	EOF
 
 	(setmode "robsd-regress" && report -r "$REPORT" -s "$STEPS")
 
 	assert_file - "$REPORT" <<-EOF
-	Subject: robsd-regress: $(hostname -s): failed in nein
+	Subject: robsd-regress: $(hostname -s): failed in error
 
 	> stats:
-	Status: failed in nein
-	Duration: 00:00:11
+	Status: failed in error
+	Duration: 00:00:12
 	Build: ${LOGDIR}
 
 	> skipped:
@@ -190,5 +195,13 @@ if testcase "regress skipped and failed"; then
 	==== t1 ====
 	failure
 	FAILED
+
+	> error:
+	Exit: 1
+	Duration: 00:00:01
+	Log: error.log
+
+	cc -O2 -pipe  -Wall  -MD -MP  -c log.c
+	error: unable to open output file 'log.o': 'Read-only file system'
 	EOF
 fi
