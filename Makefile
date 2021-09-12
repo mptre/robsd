@@ -7,6 +7,8 @@ DEPS_robsd-exec=	${SRCS_robsd-exec:.c=.d}
 
 CFLAGS+=	-Wall -Wextra -MD -MP
 
+KNFMT+=	robsd-exec.c
+
 SCRIPTS+=	robsd-base.sh
 SCRIPTS+=	robsd-checkflist.sh
 SCRIPTS+=	robsd-cvs.sh

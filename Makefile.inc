@@ -12,6 +12,9 @@ SHELLCHECKFLAGS+=	-o quote-safe-variables
 SHELLCHECKFLAGS!=	echo ${SHELLCHECKFLAGS}
 
 lint: _SUBDIRUSE
+.if defined(KNFMT)
+	cd ${.CURDIR} && knfmt -d ${KNFMT}
+.endif
 .if defined(MANLINT)
 	cd ${.CURDIR} && mandoc -Tlint -Wstyle ${MANLINT}
 .endif
