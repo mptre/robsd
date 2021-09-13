@@ -146,7 +146,7 @@ config_load() {
 		regress_config_load
 	fi
 
-	# Filter out missing source diff(s).
+	# Filter out missing sticky src diff(s).
 	_tmp=""
 	for _diff in $BSDDIFF; do
 		[ -e "$_diff" ] || continue
@@ -155,7 +155,7 @@ config_load() {
 	done
 	BSDDIFF="$_tmp"
 
-	# Filter out xenocara diff(s).
+	# Filter out missing sticky xenocara diff(s).
 	_tmp=""
 	for _diff in $XDIFF; do
 		[ -e "$_diff" ] || continue
