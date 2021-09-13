@@ -1,5 +1,6 @@
 default_config() {
 	cat <<-EOF
+	BUILDDIR=${TSHDIR}
 	CVSROOT=example.com:/cvs
 	CVSUSER=nobody
 	DESTDIR=/var/empty

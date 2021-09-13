@@ -18,6 +18,7 @@ config_stub() {
 	{
 		cat <<-EOF
 		BSDSRCDIR=${TSHDIR}
+		BUILDDIR=${TSHDIR}
 		CVSROOT=example.com:/cvs
 		CVSUSER=nobody
 		DESTDIR=/var/empty
@@ -29,43 +30,46 @@ config_stub() {
 
 # utility_setup
 utility_setup() {
+	local _bindir
 	local _tmpdir
 
 	_tmpdir="$(mktemp -d -t robsd.XXXXXX)"
 	TSHCLEAN="${TSHCLEAN} ${_tmpdir}"
 
-	mkdir "${_tmpdir}/bin"
-	PATH="${_tmpdir}/bin:${PATH}"
+	_bindir="${_tmpdir}/bin"
+	mkdir "$_bindir"
 
 	cat <<-EOF >"${_tmpdir}/bin/id"
 	echo 0
 	EOF
-	chmod u+x "${_tmpdir}/bin/id"
+	chmod u+x "${_bindir}/id"
 
-	cat <<-EOF >"${_tmpdir}/bin/sendmail"
+	cat <<-EOF >"${_bindir}/sendmail"
 	exit 0
 	EOF
-	chmod u+x "${_tmpdir}/bin/sendmail"
+	chmod u+x "${_bindir}/sendmail"
 
-	cat <<-EOF >"${_tmpdir}/bin/sysctl"
+	cat <<-EOF >"${_bindir}/sysctl"
 	if [ "\$2" = "hw.perfpolicy" ]; then
 		echo auto
+	elif [ "\$2" = "hw.ncpuonline" ]; then
+		echo 2
 	else
-		/usr/sbin/sysctl "$@"
+		/usr/sbin/sysctl "\$@"
 	fi
 	EOF
-	chmod u+x "${_tmpdir}/bin/sysctl"
+	chmod u+x "${_bindir}/sysctl"
 
-	cat <<-EOF >"${_tmpdir}/bin/su"
+	cat <<-EOF >"${_bindir}/su"
 	shift 2 # strip of su login
 	\$@
 	EOF
-	chmod u+x "${_tmpdir}/bin/su"
+	chmod u+x "${_bindir}/su"
 
 	BUILDDIR="${TSHDIR}/build"
 	mkdir "$BUILDDIR"
 
-	echo "$_tmpdir" "$BUILDDIR"
+	echo "$_tmpdir" "$_bindir" "$BUILDDIR"
 }
 
 # diff_create

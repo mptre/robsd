@@ -96,35 +96,40 @@ config_load() {
 	_path="$1"; : "${_path:?}"
 
 	# Global variables with sensible defaults.
-	export BSDDIFF; : "${BSDDIFF:=}"
-	export BSDOBJDIR; : "${BSDOBJDIR:="/usr/obj"}"
-	export BSDSRCDIR; : "${BSDSRCDIR:="/usr/src"}"
-	export BUILDDIR
-	export CVSROOT
-	export CVSUSER
-	export DESTDIR
-	export DETACH; : "${DETACH:=0}"
-	export DISTRIBHOST; : "${DISTRIBHOST:=}"
-	export DISTRIBPATH; : "${DISTRIBPATH:=}"
-	export DISTRIBUSER; : "${DISTRIBUSER:=}"
-	export EXECDIR; : "${EXECDIR:="/usr/local/libexec/robsd"}"
-	export HOOK; : "${HOOK:=}"
-	export KEEP; : "${KEEP:=0}"
-	export LOGDIR
-	export MAKEFLAGS; : "${MAKEFLAGS:="-j$(sysctl -n hw.ncpuonline)"}"
-	export PATH; PATH="${PATH}:/usr/X11R6/bin"
-	export SIGNIFY; : "${SIGNIFY:=}"
-	export SKIP; : "${SKIP:=}"
-	export XDIFF; : "${XDIFF:=}"
-	export XOBJDIR; : "${XOBJDIR="/usr/xobj"}"
-	export XSRCDIR; : "${XSRCDIR="/usr/xenocara"}"
+	BSDDIFF=""; export BSDDIFF
+	BSDOBJDIR="/usr/obj"; export BSDOBJDIR
+	BSDSRCDIR="/usr/src"; export BSDSRCDIR
+	BUILDDIR=""; export BUILDDIR
+	CVSROOT=""; export CVSROOT
+	CVSUSER=""; export CVSUSER
+	DESTDIR=""; export DESTDIR
+	DETACH=0
+	DISTRIBHOST=""; export DISTRIBHOST
+	DISTRIBPATH=""; export DISTRIBPATH
+	DISTRIBUSER=""; export DISTRIBUSER
+	EXECDIR="/usr/local/libexec/robsd"; export EXECDIR
+	HOOK=""
+	# shellcheck disable=SC2034
+	KEEP=0
+	LOGDIR=""; export LOGDIR
+	MAKEFLAGS="-j$(sysctl -n hw.ncpuonline)"; export MAKEFLAGS
+	PATH="${PATH}:/usr/X11R6/bin"; export PATH
+	SIGNIFY=""; export SIGNIFY
+	# shellcheck disable=SC2034
+	SKIP=""
+	# shellcheck disable=SC2034
+	STEP=1
+	XDIFF=""; export XDIFF
+	XOBJDIR="/usr/xobj"; export XOBJDIR
+	XSRCDIR="/usr/xenocara"; export XSRCDIR
 
 	# Variables only honored by robsd-regress.
 	if [ "$_MODE" = "robsd-regress" ]; then
-		export NOTPARALLEL; : "${NOTPARALLEL:=""}"
-		export REGRESSUSER
-		export SKIPIGNORE; : "${SKIPIGNORE:=""}"
-		export SUDO; : "${SUDO:="doas -n"}"
+		NOTPARALLEL=""; export NOTPARALLEL
+		REGRESSUSER=""; export REGRESSUSER
+		SKIPIGNORE=""
+		SUDO="doas -n"; export SUDO
+		TESTS=""
 	fi
 
 	. "$_path"

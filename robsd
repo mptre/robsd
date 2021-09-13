@@ -20,9 +20,6 @@ setprogname "robsd"
 [ "$(id -u)" -ne 0 ] && fatal "must be run as root"
 config_load "${ROBSDCONF:-/etc/robsd.conf}"
 
-LOGDIR=""
-STEP=1
-
 while getopts "DS:X:r:s:" opt; do
 	case "$opt" in
 	D)	DETACH=1;;

@@ -18,9 +18,6 @@ setprogname "robsd-regress"
 [ "$(id -u)" -ne 0 ] && fatal "must be run as root"
 config_load "${ROBSDCONF:-/etc/robsd-regress.conf}"
 
-LOGDIR=""
-STEP=1
-
 while getopts "Dr:" opt; do
 	case "$opt" in
 	D)	DETACH=1;;

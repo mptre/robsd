@@ -1,5 +1,5 @@
 export WRKDIR
-utility_setup >"$TMP1"; read -r WRKDIR BUILDDIR <"$TMP1"
+utility_setup >"$TMP1"; read -r WRKDIR BINDIR BUILDDIR <"$TMP1"
 
 ROBSDRESCUE="${EXECDIR}/robsd-rescue"
 
@@ -16,6 +16,7 @@ setup() {
 	done
 
 	config_stub - <<-EOF
+	BUILDDIR=${BUILDDIR}
 	BSDDIFF=/var/empty
 	EOF
 
@@ -41,7 +42,9 @@ if testcase "basic"; then
 	setup
 	(cd "$TSHDIR" && patch -s <"${BUILDDIR}/2020-09-02.1/src.diff.1")
 
-	sh "$ROBSDRESCUE" >"$TMP1" 2>&1
+	if ! PATH="${BINDIR}:${PATH}" sh "$ROBSDRESCUE" >"$TMP1" 2>&1; then
+		fail - "expected exit zero" <"$TMP1"
+	fi
 	assert_file - "$TMP1" <<-EOF
 	robsd-rescue: using release directory ${BUILDDIR}/2020-09-02.1
 	robsd-rescue: reverting diff ${BUILDDIR}/2020-09-02.1/src.diff.1
@@ -50,7 +53,9 @@ fi
 
 if testcase "patch already reverted"; then
 	setup
-	sh "$ROBSDRESCUE" >"$TMP1" 2>&1
+	if ! PATH="${BINDIR}:${PATH}" sh "$ROBSDRESCUE" >"$TMP1" 2>&1; then
+		fail - "expected exit zero" <"$TMP1"
+	fi
 	assert_file - "$TMP1" <<-EOF
 	robsd-rescue: using release directory ${BUILDDIR}/2020-09-02.1
 	robsd-rescue: diff already reverted ${BUILDDIR}/2020-09-02.1/src.diff.1
@@ -59,8 +64,8 @@ fi
 
 if testcase "patch step absent"; then
 	setup -P
-	if ! sh "$ROBSDRESCUE" >"$TMP1" 2>&1; then
-		fail "want exit 0, got 1"
+	if ! PATH="${BINDIR}:${PATH}" sh "$ROBSDRESCUE" >"$TMP1" 2>&1; then
+		fail - "expected exit zero" <"$TMP1"
 	fi
 	assert_file - "$TMP1" <<-EOF
 	robsd-rescue: using release directory ${BUILDDIR}/2020-09-02.1
@@ -71,8 +76,8 @@ fi
 if testcase "release lock"; then
 	setup -P
 	echo "${BUILDDIR}/2020-09-02.1" >"${BUILDDIR}/.running"
-	if ! sh "$ROBSDRESCUE" >"$TMP1" 2>&1; then
-		fail "want exit 0, got 1"
+	if ! PATH="${BINDIR}:${PATH}" sh "$ROBSDRESCUE" >"$TMP1" 2>&1; then
+		fail - "expected exit zero" <"$TMP1"
 	fi
 	assert_file - "$TMP1" <<-EOF
 	robsd-rescue: using release directory ${BUILDDIR}/2020-09-02.1

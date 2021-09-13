@@ -1,4 +1,4 @@
-utility_setup >"$TMP1"; read -r WRKDIR BUILDDIR <"$TMP1"
+utility_setup >"$TMP1"; read -r WRKDIR BINDIR BUILDDIR <"$TMP1"
 
 ROBSD="${EXECDIR}/robsd"
 
@@ -25,7 +25,7 @@ do
 done
 
 if testcase "basic"; then
-	# Ensure hook output is prefixed and exit status ignored.
+	# Ensure hook exit status is ignored.
 	_hook="${TSHDIR}/hook.sh"
 	cat <<-EOF >"$_hook"
 	if [ "\$2" = "end" ]; then
@@ -37,15 +37,22 @@ if testcase "basic"; then
 	chmod u+x "$_hook"
 
 	config_stub - <<-EOF
+	BUILDDIR=${BUILDDIR}
+	EXECDIR=${WRKDIR}/exec
 	HOOK=${_hook}
 	EOF
 	mkdir -p "$BUILDDIR"
 	echo "Index: dir/file.c" >"${TSHDIR}/src.diff"
 	echo "Index: dir/file.c" >"${TSHDIR}/xenocara.diff"
-	EXECDIR="${WRKDIR}/exec" sh "$ROBSD" \
+
+	_fail="${TSHDIR}/fail"
+	PATH="${BINDIR}:${PATH}" sh "$ROBSD" \
 		-S "${TSHDIR}/src.diff" -X "${TSHDIR}/xenocara.diff" \
 		-s reboot \
-		>"$TMP1" 2>&1
+		>"$TMP1" 2>&1 || : >"$_fail"
+	if [ -e "$_fail" ]; then
+		fail - "expected exit zero" <"$TMP1"
+	fi
 	if [ -e "${BUILDDIR}/.running" ]; then
 		fail - "lock not removed" <"$TMP1"
 	fi
@@ -94,10 +101,12 @@ if testcase "basic"; then
 fi
 
 if testcase "already running"; then
-	config_stub
+	config_stub - <<-EOF
+	BUILDDIR=${BUILDDIR}
+	EOF
 	mkdir -p "$BUILDDIR"
 	echo /var/empty >"${BUILDDIR}/.running"
-	EXECDIR="${WRKDIR}/exec" sh "$ROBSD" 2>&1 | grep -v 'using ' >"$TMP1"
+	PATH="${BINDIR}:${PATH}" sh "$ROBSD" 2>&1 | grep -v 'using ' >"$TMP1"
 	if ! [ -e "${BUILDDIR}/.running" ]; then
 		fail - "lock not preserved" <"$TMP1"
 	fi
@@ -109,10 +118,12 @@ if testcase "already running"; then
 fi
 
 if testcase "already running detached"; then
-	config_stub
+	config_stub - <<-EOF
+	BUILDDIR=${BUILDDIR}
+	EOF
 	mkdir -p "$BUILDDIR"
 	echo /var/empty >"${BUILDDIR}/.running"
-	EXECDIR="${WRKDIR}/exec" sh "$ROBSD" -D 2>&1 | grep -v 'using ' >"$TMP1"
+	PATH="${BINDIR}:${PATH}" sh "$ROBSD" -D 2>&1 | grep -v 'using ' >"$TMP1"
 	if ! [ -e "${BUILDDIR}/.running" ]; then
 		fail - "lock not preserved" <"$TMP1"
 	fi
@@ -124,10 +135,12 @@ if testcase "already running detached"; then
 fi
 
 if testcase "early failure"; then
-	config_stub
-	echo 'exit 0' >"${WRKDIR}/bin/sysctl"
+	config_stub - <<-EOF
+	BUILDDIR=${BUILDDIR}
+	EOF
+	echo 'exit 0' >"${BINDIR}/sysctl"
 	mkdir -p "$BUILDDIR"
-	if EXECDIR="${WRKDIR}/exec" sh "$ROBSD" >"$TMP1" 2>&1; then
+	if PATH="${BINDIR}:${PATH}" sh "$ROBSD" >"$TMP1" 2>&1; then
 		fail - "expected exit non-zero" <"$TMP1"
 	fi
 	assert_file - "$TMP1" <<-EOF
@@ -137,8 +150,10 @@ if testcase "early failure"; then
 fi
 
 if testcase "missing build directory"; then
-	config_stub
-	if EXECDIR="${WRKDIR}/exec" sh "$ROBSD" >"$TMP1" 2>&1; then
+	config_stub - <<-EOF
+	BUILDDIR=${BUILDDIR}
+	EOF
+	if PATH="${BINDIR}:${PATH}" sh "$ROBSD" >"$TMP1" 2>&1; then
 		fail - "expected exit non-zero" <"$TMP1"
 	fi
 	assert_file - "$TMP1" <<-EOF
