@@ -51,11 +51,9 @@ if ! lock_acquire "$BUILDDIR" "$LOGDIR"; then
 	# Signal to info() that no further output should be written to robsd.log
 	# as we're about the remove the directory where the same log resides.
 	DETACH=0
-
 	# Do not leave an empty release around.
 	[ "$STEP" -eq 1 ] && rm -r "$LOGDIR"
-
-	fatal "already running"
+	exit 1
 fi
 
 if [ -n "$BSDDIFF" ] || [ -n "$XDIFF" ]; then

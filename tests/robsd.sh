@@ -112,7 +112,6 @@ if testcase "already running"; then
 	fi
 	assert_file - "$TMP1" <<-EOF
 	robsd: /var/empty: lock already acquired
-	robsd: already running
 	robsd: trap at step unknown, exit 1
 	EOF
 fi
@@ -129,7 +128,6 @@ if testcase "already running detached"; then
 	fi
 	assert_file - "$TMP1" <<-EOF
 	robsd: /var/empty: lock already acquired
-	robsd: already running
 	robsd: trap at step unknown, exit 1
 	EOF
 fi
