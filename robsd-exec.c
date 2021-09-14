@@ -40,6 +40,9 @@ main(int argc, char *argv[])
 		if (setsid() == -1)
 			err(1, "setsid");
 
+		/* Unblock common signals. */
+		siginstall(SIGINT, SIG_DFL, 0);
+
 		/* Signal to the parent that the process group is present. */
 		close(pip[1]);
 		execvp(argv[1], &argv[1]);
