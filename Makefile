@@ -61,7 +61,6 @@ DISTFILES+=	robsd.8
 DISTFILES+=	robsd.conf.5
 DISTFILES+=	tests/Makefile
 DISTFILES+=	tests/cleandir.sh
-DISTFILES+=	tests/comment.sh
 DISTFILES+=	tests/config-load.sh
 DISTFILES+=	tests/cvs-log.sh
 DISTFILES+=	tests/diff-apply.sh

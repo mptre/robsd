@@ -62,29 +62,6 @@ cleandir() {
 	done
 }
 
-# comment src dst
-#
-# Copy the comment file src to dst. If src is `-', stdin is used.
-# Exits non-zero if dst already exists.
-comment() {
-	local _dst
-	local _src
-
-	_src="$1"; : "${_src:?}"
-	_dst="$2"; : "${_dst:?}"
-
-	[ -e "$_dst" ] && return 1
-
-	if [ "$_src" = "-" ]; then
-		cat >"$_dst"
-	else
-		cp "$_src" "$_dst"
-	fi
-	if ! [ -s "$_dst" ]; then
-		rm "$_dst"
-	fi
-}
-
 # config_load path
 #
 # Load and validate the configuration.
