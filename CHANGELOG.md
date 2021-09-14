@@ -1,4 +1,10 @@
-# 2.0.1 - 2021-09-11
+# 2.0.2 - 2021-09-14
+
+## Bug fixes
+
+- Unblock common signals in robsd-exec.
+  (13b1ca8)
+  (Anton Lindqvist)
 
 ## Bug fixes
 
