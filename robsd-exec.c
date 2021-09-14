@@ -47,7 +47,7 @@ main(int argc, char *argv[])
 	}
 
 	siginstall(SIGPIPE, SIG_IGN, 0);
-	siginstall(SIGTERM, sighandler, SA_RESTART);
+	siginstall(SIGTERM, sighandler, ~SA_RESTART);
 
 	/* Wait for the process group to become present. */
 	close(pip[1]);
@@ -162,15 +162,15 @@ killwaitpg1(int pgid, int signo, int timoms, int *status)
 }
 
 static void
-siginstall(int signo, void (*handler)(int), int noflags)
+siginstall(int signo, void (*handler)(int), int rmflags)
 {
 	struct sigaction sa;
 
 	if (sigaction(signo, NULL, &sa) == -1)
 		err(1, "sigaction");
 	sa.sa_handler = handler;
-	if (noflags)
-		sa.sa_flags &= ~noflags;
+	if (rmflags)
+		sa.sa_flags &= rmflags;
 	if (sigaction(signo, &sa, NULL) == -1)
 		err(1, "sigaction");
 }
