@@ -35,11 +35,11 @@ if [ -z "$LOGDIR" ]; then
 
 	LOGDIR="${BUILDDIR}/$(build_id "$BUILDDIR")"
 	mkdir "$LOGDIR"
+	: >"${LOGDIR}/robsd.log"
 	: >"${LOGDIR}/steps"
 else
 	STEP="$(step_next "${LOGDIR}/steps")"
 fi
-touch "${LOGDIR}/robsd.log"
 info "using directory ${LOGDIR} at step ${STEP}"
 
 if ! lock_acquire "$BUILDDIR" "$LOGDIR"; then
