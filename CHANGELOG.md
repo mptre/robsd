@@ -1,3 +1,11 @@
+# 2.0.3 2021-09-15
+
+## Bug fixes
+
+- Clarify that diff path names can be relative to any directory.
+  (f253311)
+  (Anton Lindqvist)
+
 # 2.0.2 - 2021-09-14
 
 ## Bug fixes
