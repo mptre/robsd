@@ -112,6 +112,7 @@ for a list of all available steps.
 May be given multiple times.
 .It Fl S Ar src-diff
 Diff to apply to the src tree.
+The diff path names can be relative to any directory in the src tree.
 The same diff will be reverted once the release is finished.
 In addition, a copy of the diff is saved to a file named
 .Pa src.diff.N
@@ -119,6 +120,7 @@ in the release directory where N is incremented for every given diff.
 May be given multiple times.
 .It Fl X Ar xenocara-diff
 Diff to apply to the xenocara tree.
+The diff path names can be relative to any directory in the xenocara tree.
 The same diff will be reverted once the release is finished.
 In addition, a copy of the diff is saved to a file named
 .Pa xenocara.diff.N
