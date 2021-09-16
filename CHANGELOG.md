@@ -1,3 +1,12 @@
+# 2.0.4 2021-09-16
+
+## Bug fixes
+
+- Unset DESTDIR in robsd-regress, preventing some tests from picking up compiler
+  flags in bsd.sys.mk.
+  (cc6f743)
+  (Anton Lindqvist)
+
 # 2.0.3 2021-09-15
 
 ## Bug fixes
