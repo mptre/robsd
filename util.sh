@@ -103,6 +103,7 @@ config_load() {
 	# Variables only honored by robsd-regress.
 	if [ "$_MODE" = "robsd-regress" ]; then
 		NOTPARALLEL=""; export NOTPARALLEL
+		REGRESSROOT=""; export REGRESSROOT
 		REGRESSUSER=""; export REGRESSUSER
 		SKIPIGNORE=""
 		SUDO="doas -n"; export SUDO
@@ -775,6 +776,7 @@ regress_config_load() {
 		for _f in $(echo "$_flags" | sed -e 's/\(.\)/\1 /g'); do
 			case "$_f" in
 			P)	NOTPARALLEL="${NOTPARALLEL}${NOTPARALLEL:+ }${_t}";;
+			R)	REGRESSROOT="${REGRESSROOT}${REGRESSROOT:+ }${_t}";;
 			S)	SKIPIGNORE="${SKIPIGNORE}${SKIPIGNORE:+ }${_t}";;
 			*)	fatal "unknown regress test flag '${_f}'";;
 			esac
@@ -804,6 +806,16 @@ regress_parallel() {
 
 	_test="$1"; : "${_test:?}"
 	! echo "$NOTPARALLEL" | grep -q "\<${_test}\>"
+}
+
+# regress_root test
+#
+# Exits zero if the given regress test must be executed as root.
+regress_root() {
+	local _test
+
+	_test="$1"; : "${_test:?}"
+	echo "$REGRESSROOT" | grep -q "\<${_test}\>"
 }
 
 # regress_skip test
