@@ -65,7 +65,9 @@ if testcase "diff not present"; then
 fi
 
 if testcase "regress"; then
-	if ! (setmode "robsd-regress" && report_skip "bin/cat" "/dev/null"); then
+	if ! (setmode "robsd-regress" &&
+		report_skip "bin/cat" "/dev/null")
+	then
 		fail "expected step to be skipped"
 	fi
 fi
@@ -76,7 +78,9 @@ if testcase "regress skip"; then
 	SKIPPED
 	EOF
 
-	if ! (setmode "robsd-regress" && SKIPIGNORE="bin/cat" report_skip "bin/cat" "$TMP1"); then
+	if ! (setmode "robsd-regress" &&
+		SKIPIGNORE="bin/cat" report_skip "bin/cat" "$TMP1")
+	then
 		fail "expected step to be skipped"
 	fi
 fi
