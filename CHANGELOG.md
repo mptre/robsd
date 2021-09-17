@@ -1,4 +1,12 @@
-# 2.0.4 2021-09-16
+# 2.1.0 - 2021-09-17
+
+## News
+
+- Add support for run as root robsd-regress regression test flag.
+  (ee42152)
+  (Anton Lindqvist)
+
+# 2.0.4 - 2021-09-16
 
 ## Bug fixes
 
@@ -7,7 +15,7 @@
   (cc6f743)
   (Anton Lindqvist)
 
-# 2.0.3 2021-09-15
+# 2.0.3 - 2021-09-15
 
 ## Bug fixes
 
