@@ -23,8 +23,6 @@
   (13b1ca8)
   (Anton Lindqvist)
 
-## Bug fixes
-
 - If a regress log does not contain any FAILED nor SKIPPED markers, include the
   tail of the log instead of showing nothing in the report. Can happen if
   something for instance fails to build.
@@ -105,12 +103,6 @@
 
 # 1.3.0 - 2021-07-01
 
-## Bug fixes
-
-- Execute aborted steps again upon resume.
-  (1189f76, ed4eec0, 9120b78)
-  (Anton Lindqvist)
-
 ## News
 
 - Describe diff file name convention in manual.
@@ -129,6 +121,12 @@
 - Adjust the build date in BUILDINFO to the start of the release build.
   To be used by robsd-regress at some point.
   (79a27fe)
+  (Anton Lindqvist)
+
+## Bug fixes
+
+- Execute aborted steps again upon resume.
+  (1189f76, ed4eec0, 9120b78)
   (Anton Lindqvist)
 
 # 1.2.0 - 2021-05-17
