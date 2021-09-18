@@ -19,7 +19,7 @@ abs() {
 #
 # Get the release build start date.
 build_date() {
-	step_eval 1 "${LOGDIR}/steps"
+	step_eval 1 "${BUILDDIR}/steps"
 	step_value time
 }
 
@@ -87,7 +87,7 @@ config_load() {
 	HOOK=""
 	# shellcheck disable=SC2034
 	KEEP=0
-	LOGDIR=""; export LOGDIR
+	BUILDDIR=""; export BUILDDIR
 	MAKEFLAGS="-j$(sysctl -n hw.ncpuonline)"; export MAKEFLAGS
 	PATH="${PATH}:/usr/X11R6/bin"; export PATH
 	ROBSDDIR=""; export ROBSDDIR
@@ -583,62 +583,62 @@ info() {
 
 	if [ "${DETACH:-0}" -eq 1 ]; then
 		# Not fully detached yet, write all entries to robsd.log.
-		_log="${LOGDIR}/robsd.log"
+		_log="${BUILDDIR}/robsd.log"
 	fi
 	echo "${_PROG}: ${*}" | tee -a "$_log"
 }
 
-# lock_acquire root-dir log-dir
+# lock_acquire root-dir build-dir
 #
 # Acquire the mutex lock.
 lock_acquire() {
-	local _logdir
+	local _builddir
 	local _owner
 	local _rootdir
 
 	_rootdir="$1"; : "${_rootdir:?}"
-	_logdir="$2"; : "${_logdir:?}"
+	_builddir="$2"; : "${_builddir:?}"
 
 	# We could already be owning the lock if the previous run was aborted
 	# prematurely.
 	_owner="$(cat "${_rootdir}/.running" 2>/dev/null || :)"
-	if [ -n "$_owner" ] && [ "$_owner" != "$_logdir" ]; then
+	if [ -n "$_owner" ] && [ "$_owner" != "$_builddir" ]; then
 		info "${_owner}: lock already acquired"
 		return 1
 	fi
 
-	echo "$_logdir" >"${_rootdir}/.running"
+	echo "$_builddir" >"${_rootdir}/.running"
 }
 
-# lock_release root-dir log-dir
+# lock_release root-dir build-dir
 #
 # Release the mutex lock if we did acquire it.
 lock_release() {
+	local _builddir
 	local _rootdir
-	local _logdir
 
 	_rootdir="$1"; : "${_rootdir:?}"
-	_logdir="$2"; : "${_logdir:?}"
+	_builddir="$2"; : "${_builddir:?}"
 
-	if echo "$_logdir" | cmp -s - "${_rootdir}/.running"; then
+	if echo "$_builddir" | cmp -s - "${_rootdir}/.running"; then
 		rm -f "${_rootdir}/.running"
 	else
 		return 1
 	fi
 }
 
-# log_id -l log-dir -n step-name -s step-id
+# log_id -b build-dir -n step-name -s step-id
 #
 # Generate the corresponding log file name for the given step.
 log_id() {
 	local _id
 	local _name=""
-	local _logdir=""
+	local _builddir=""
 	local _step=""
 
 	while [ $# -gt 0 ]; do
 		case "$1" in
-		-l)	shift; _logdir="$1";;
+		-b)	shift; _builddir="$1";;
 		-n)	shift; _name="$1";;
 		-s)	shift; _step="$1";;
 		*)	break;;
@@ -646,7 +646,7 @@ log_id() {
 		shift
 	done
 	: "${_name:?}"
-	: "${_logdir:?}"
+	: "${_builddir:?}"
 	: "${_step:?}"
 
 	if [ "$_MODE" = "robsd-regress" ]; then
@@ -654,7 +654,7 @@ log_id() {
 	fi
 
 	_id="$(printf '%02d-%s.log' "$_step" "$_name")"
-	_dups="$(find "$_logdir" -name "${_id}*" | wc -l)"
+	_dups="$(find "$_builddir" -name "${_id}*" | wc -l)"
 	if [ "$_dups" -gt 0 ]; then
 		printf '%s.%d' "$_id" "$_dups"
 	else
@@ -688,7 +688,7 @@ prev_release() {
 
 	find "$ROBSDDIR" -type d -mindepth 1 -maxdepth 1 |
 	sort -nr |
-	grep -v -e "$LOGDIR" -e "${ROBSDDIR}/attic" |
+	grep -v -e "$BUILDDIR" -e "${ROBSDDIR}/attic" |
 	{
 		if [ "$_count" -gt 0 ]; then
 			head "-${_count}"
@@ -750,7 +750,7 @@ purge() {
 # Commence reboot and continue building the current release after boot.
 reboot_commence() {
 	cat <<-EOF >>/etc/rc.firsttime
-	/usr/local/sbin/robsd -D -r ${LOGDIR} >/dev/null
+	/usr/local/sbin/robsd -D -r ${BUILDDIR} >/dev/null
 	EOF
 
 	# Add some grace in order to let the script finish.
@@ -908,10 +908,10 @@ report() {
 	EOF
 
 	# Add comment to the beginning of the report.
-	if [ -e "${LOGDIR}/comment" ]; then
+	if [ -e "${BUILDDIR}/comment" ]; then
 		cat <<-EOF >>"$_tmp"
 		> comment:
-		$(cat "${LOGDIR}/comment")
+		$(cat "${BUILDDIR}/comment")
 
 		EOF
 	fi
@@ -922,10 +922,10 @@ report() {
 		> stats:
 		Status: ${_status}
 		Duration: ${_duration}
-		Build: ${LOGDIR}
+		Build: ${BUILDDIR}
 		EOF
 
-		report_sizes "$(release_dir "$LOGDIR")"
+		report_sizes "$(release_dir "$BUILDDIR")"
 	} >>"$_tmp"
 
 	_i=1
@@ -1188,7 +1188,7 @@ robsd() {
 		_s="$_step"
 		_step=$((_step + 1))
 
-		if step_eval -n "$_STEPNAME" "${LOGDIR}/steps" 2>/dev/null && step_skip; then
+		if step_eval -n "$_STEPNAME" "${BUILDDIR}/steps" 2>/dev/null && step_skip; then
 			info "step ${_STEPNAME} skipped"
 			continue
 		else
@@ -1198,20 +1198,20 @@ robsd() {
 		if [ "$_STEPNAME" = "end" ]; then
 			# The duration of the end step is the accumulated
 			# duration.
-			step_end -d "$(duration_total "${LOGDIR}/steps")" \
-				-n "$_STEPNAME" -s "$_s" "${LOGDIR}/steps"
+			step_end -d "$(duration_total "${BUILDDIR}/steps")" \
+				-n "$_STEPNAME" -s "$_s" "${BUILDDIR}/steps"
 			return 0
 		fi
 
-		_log="${LOGDIR}/$(log_id -l "$LOGDIR" -n "$_STEPNAME" -s "$_s")"
+		_log="${BUILDDIR}/$(log_id -b "$BUILDDIR" -n "$_STEPNAME" -s "$_s")"
 		_exit=0
 		_t0="$(date '+%s')"
-		step_begin -l "$_log" -n "$_STEPNAME" -s "$_s" "${LOGDIR}/steps"
-		step_exec -f "${LOGDIR}/fail" -l "$_log" -s "$_STEPNAME" || \
+		step_begin -l "$_log" -n "$_STEPNAME" -s "$_s" "${BUILDDIR}/steps"
+		step_exec -f "${BUILDDIR}/fail" -l "$_log" -s "$_STEPNAME" || \
 			_exit="$?"
 		_t1="$(date '+%s')"
 		step_end -d "$((_t1 - _t0))" -e "$_exit" -l "$_log" \
-			-n "$_STEPNAME" -s "$_s" "${LOGDIR}/steps"
+			-n "$_STEPNAME" -s "$_s" "${BUILDDIR}/steps"
 		# The robsd steps are dependant on each other as opposed of
 		# robsd-regress where it's desirable to continue despite failure.
 		[ "$_MODE" = "robsd" ] && [ "$_exit" -ne 0 ] && return 1
@@ -1317,9 +1317,9 @@ step_end() {
 	# Only invoke the hook if the step has ended. A duration of -1 is a
 	# sentinel indicating that the step has just begun.
 	if [ -n "$HOOK" ] && [ "$_d" -ne -1 ] && [ "$_name" != "env" ]; then
-		info "invoking hook: ${HOOK} ${LOGDIR} ${_name} ${_e}"
+		info "invoking hook: ${HOOK} ${BUILDDIR} ${_name} ${_e}"
 		# Ignore non-zero exit.
-		"$HOOK" "$LOGDIR" "$_name" "$_e" || :
+		"$HOOK" "$BUILDDIR" "$_name" "$_e" || :
 	fi
 }
 
@@ -1594,12 +1594,12 @@ step_value() {
 	echo "${_STEP[$_i]}"
 }
 
-# trap_exit -r root-dir [-l log-dir]
+# trap_exit -r root-dir [-b build-dir]
 #
 # Exit trap handler. The log dir may not be present if we failed very early on.
 trap_exit() {
 	local _err="$?"
-	local _logdir=""
+	local _builddir=""
 	local _rootdir=""
 
 	info "trap at step ${_STEPNAME}, exit ${_err}"
@@ -1607,22 +1607,22 @@ trap_exit() {
 	while [ $# -gt 0 ]; do
 		case "$1" in
 		-r)	shift; _rootdir="$1";;
-		-l)	shift; _logdir="$1";;
+		-b)	shift; _builddir="$1";;
 		*)	break;;
 		esac
 		shift
 	done
 	: "${_rootdir:?}"
 
-	if [ -n "$_logdir" ]; then
-		lock_release "$_rootdir" "$_logdir" || :
+	if [ -n "$_builddir" ]; then
+		lock_release "$_rootdir" "$_builddir" || :
 	fi
 
 	if [ "$_err" -ne 0 ] || report_must "$_STEPNAME"; then
-		if report -r "${_logdir}/report" -s "${_logdir}/steps"; then
+		if report -r "${_builddir}/report" -s "${_builddir}/steps"; then
 			# Do not send mail during interactive invocations.
 			if [ "$DETACH" -ne 0 ]; then
-				sendmail root <"${_logdir}/report"
+				sendmail root <"${_builddir}/report"
 			fi
 		fi
 	fi

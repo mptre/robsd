@@ -4,7 +4,7 @@ DESTDIR="${DESTDIR}/xenocara"
 mkdir -p "$DESTDIR"
 cleandir "$DESTDIR"
 
-RELEASEDIR="$(release_dir -x "$LOGDIR")"; export RELEASEDIR
+RELEASEDIR="$(release_dir -x "$BUILDDIR")"; export RELEASEDIR
 mkdir -p "$RELEASEDIR"
 cleandir "$RELEASEDIR"
 chown build "$RELEASEDIR"

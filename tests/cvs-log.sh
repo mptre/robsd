@@ -47,7 +47,7 @@ su() {
 
 if testcase "basic"; then
 	mkdir "${TSHDIR}/.cvs"
-	LOGDIR="${ROBSDDIR}/2019-07-21"; export LOGDIR
+	BUILDDIR="${ROBSDDIR}/2019-07-21"; export BUILDDIR
 	# shellcheck disable=SC2086
 	mkdir -p ${ROBSDDIR}/2019-07-{19,20,21}
 	cat <<-EOF >"${ROBSDDIR}/2019-07-20/steps"
@@ -109,7 +109,7 @@ fi
 # as the threshold.
 if testcase "previous build no updates"; then
 	mkdir "${TSHDIR}/.cvs"
-	LOGDIR="${ROBSDDIR}/2019-07-21"; export LOGDIR
+	BUILDDIR="${ROBSDDIR}/2019-07-21"; export BUILDDIR
 	# shellcheck disable=SC2086
 	mkdir -p ${ROBSDDIR}/2019-07-{20,21}
 	cat <<-EOF >"${ROBSDDIR}/2019-07-20/steps"

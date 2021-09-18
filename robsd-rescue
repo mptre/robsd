@@ -23,22 +23,22 @@ setprogname "robsd-rescue"
 [ "$(id -u)" -ne 0 ] && fatal "must be run as root"
 config_load "${ROBSDCONF:-/etc/robsd.conf}"
 
-LOGDIR="$(last_release)"
-if [ -z "$LOGDIR" ]; then
+BUILDDIR="$(last_release)"
+if [ -z "$BUILDDIR" ]; then
 	fatal "release directory not found"
 else
-	info "using release directory ${LOGDIR}"
+	info "using release directory ${BUILDDIR}"
 fi
 
-if step_eval -n patch "${LOGDIR}/steps" 2>/dev/null; then
+if step_eval -n patch "${BUILDDIR}/steps" 2>/dev/null; then
 	# shellcheck disable=SC2046
-	diff_revert "$BSDSRCDIR" $(diff_list "$LOGDIR" "src.diff")
+	diff_revert "$BSDSRCDIR" $(diff_list "$BUILDDIR" "src.diff")
 	# shellcheck disable=SC2046
-	diff_revert "$XSRCDIR" $(diff_list "$LOGDIR" "xenocara.diff")
+	diff_revert "$XSRCDIR" $(diff_list "$BUILDDIR" "xenocara.diff")
 else
 	info "step patch not found, cannot revert diff(s)"
 fi
 
-if lock_release "$ROBSDDIR" "$LOGDIR"; then
+if lock_release "$ROBSDDIR" "$BUILDDIR"; then
 	info "released lock"
 fi

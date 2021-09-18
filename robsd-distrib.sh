@@ -2,7 +2,7 @@
 
 # At this point, all release artifacts are present in the rel directory as the
 # hash step merges the relx directory into rel.
-RELEASEDIR="$(release_dir "$LOGDIR")"
+RELEASEDIR="$(release_dir "$BUILDDIR")"
 cd "$RELEASEDIR"
 
 if [ -n "$SIGNIFY" ]; then

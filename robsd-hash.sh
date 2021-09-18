@@ -1,7 +1,7 @@
 . "${EXECDIR}/util.sh"
 
-RELDIR="$(release_dir "$LOGDIR")"
-RELXDIR="$(release_dir -x "$LOGDIR")"
+RELDIR="$(release_dir "$BUILDDIR")"
+RELXDIR="$(release_dir -x "$BUILDDIR")"
 
 if [ -e "${RELXDIR}/SHA256" ]; then
 	cat "${RELXDIR}/SHA256" >>"${RELDIR}/SHA256"

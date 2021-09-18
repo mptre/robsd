@@ -25,7 +25,7 @@ while getopts "DS:X:r:s:" opt; do
 	D)	DETACH=1;;
 	S)	BSDDIFF="${BSDDIFF}${BSDDIFF:+ }$(readlink -f "${OPTARG}")";;
 	X)	XDIFF="${XDIFF}${XDIFF:+ }$(readlink -f "${OPTARG}")";;
-	r)	LOGDIR="$(readlink -f "$OPTARG")";;
+	r)	BUILDDIR="$(readlink -f "$OPTARG")";;
 	s)	SKIP="${SKIP}${SKIP:+ }${OPTARG}";;
 	*)	usage;;
 	esac
@@ -33,26 +33,26 @@ done
 shift $((OPTIND - 1))
 [ $# -ne 0 ] && usage
 
-trap 'trap_exit -r "$ROBSDDIR" -l "$LOGDIR"' EXIT
+trap 'trap_exit -r "$ROBSDDIR" -b "$BUILDDIR"' EXIT
 
-if [ -z "$LOGDIR" ]; then
+if [ -z "$BUILDDIR" ]; then
 	check_perf || exit 1
 
-	LOGDIR="${ROBSDDIR}/$(build_id "$ROBSDDIR")"
-	mkdir "$LOGDIR"
-	: >"${LOGDIR}/robsd.log"
-	: >"${LOGDIR}/steps"
+	BUILDDIR="${ROBSDDIR}/$(build_id "$ROBSDDIR")"
+	mkdir "$BUILDDIR"
+	: >"${BUILDDIR}/robsd.log"
+	: >"${BUILDDIR}/steps"
 else
-	STEP="$(step_next "${LOGDIR}/steps")"
+	STEP="$(step_next "${BUILDDIR}/steps")"
 fi
-info "using directory ${LOGDIR} at step ${STEP}"
+info "using directory ${BUILDDIR} at step ${STEP}"
 
-if ! lock_acquire "$ROBSDDIR" "$LOGDIR"; then
+if ! lock_acquire "$ROBSDDIR" "$BUILDDIR"; then
 	# Signal to info() that no further output should be written to robsd.log
 	# as we're about the remove the directory where the same log resides.
 	DETACH=0
 	# Do not leave an empty release around.
-	[ "$STEP" -eq 1 ] && rm -r "$LOGDIR"
+	[ "$STEP" -eq 1 ] && rm -r "$BUILDDIR"
 	exit 1
 fi
 
@@ -64,18 +64,18 @@ if [ "$STEP" -eq 1 ] && { [ -n "$BSDDIFF" ] || [ -n "$XDIFF" ]; }; then
 		[ -n "$BSDDIFF" ] && echo "$BSDDIFF" | xargs ls
 		# shellcheck disable=SC2030
 		[ -n "$XDIFF" ] && echo "$XDIFF" | xargs ls
-	} >"${LOGDIR}/comment"
+	} >"${BUILDDIR}/comment"
 fi
 
 # Copy the diff(s) initially, otherwise use the previously copied ones.
 if [ "$STEP" -eq 1 ]; then
 	# shellcheck disable=SC2086,SC2031
-	BSDDIFF="$(diff_copy -d "$BSDSRCDIR" "${LOGDIR}/src.diff" $BSDDIFF)"
+	BSDDIFF="$(diff_copy -d "$BSDSRCDIR" "${BUILDDIR}/src.diff" $BSDDIFF)"
 	# shellcheck disable=SC2086,SC2031
-	XDIFF="$(diff_copy -d "$XSRCDIR" "${LOGDIR}/xenocara.diff" $XDIFF)"
+	XDIFF="$(diff_copy -d "$XSRCDIR" "${BUILDDIR}/xenocara.diff" $XDIFF)"
 else
-	BSDDIFF="$(diff_list "$LOGDIR" "src.diff")"
-	XDIFF="$(diff_list "$LOGDIR" "xenocara.diff")"
+	BSDDIFF="$(diff_list "$BUILDDIR" "src.diff")"
+	XDIFF="$(diff_list "$BUILDDIR" "xenocara.diff")"
 fi
 
 # Take note of skipped steps initially.
@@ -84,7 +84,7 @@ if [ "$STEP" -eq 1 ] && [ -n "$SKIP" ]; then
 
 	for _step in $SKIP; do
 		_id="$(step_id "$_step")"
-		step_end -S -n "$_step" -s "$_id" "${LOGDIR}/steps"
+		step_end -S -n "$_step" -s "$_id" "${BUILDDIR}/steps"
 	done
 fi
 
@@ -96,12 +96,12 @@ if [ "$DETACH" -eq 1 ]; then
 	# Signal to info() that no further output should be written to robsd.log
 	# as we're about redirect all output to the same log.
 	DETACH=2
-	exec </dev/null >>"${LOGDIR}/robsd.log" 2>&1
+	exec </dev/null >>"${BUILDDIR}/robsd.log" 2>&1
 
 	# Reinstall trap handler since they are not inherited by subprocesses.
 	trap '-' EXIT
 	{
-		trap 'trap_exit -r "$ROBSDDIR" -l "$LOGDIR"' EXIT
+		trap 'trap_exit -r "$ROBSDDIR" -b "$BUILDDIR"' EXIT
 		robsd "$STEP"
 	} &
 	info "running in detach mode as pid ${!}"

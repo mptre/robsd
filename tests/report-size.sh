@@ -6,7 +6,7 @@ zero() {
 
 FILE="$(basename "$TMP1")"
 # Used by prev_release.
-LOGDIR="${ROBSDDIR}/2019-02-23"; export LOGDIR
+BUILDDIR="${ROBSDDIR}/2019-02-23"; export BUILDDIR
 
 if testcase "previous release missing"; then
 	assert_eq "" "$(report_size "$TMP1")"

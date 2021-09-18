@@ -1,5 +1,5 @@
 # Used by prev_release.
-LOGDIR="${ROBSDDIR}/2019-02-23"; export LOGDIR
+BUILDDIR="${ROBSDDIR}/2019-02-23"; export BUILDDIR
 
 if testcase "basic"; then
 	# shellcheck disable=SC2086

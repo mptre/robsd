@@ -1,4 +1,4 @@
-LOGDIR="${TSHDIR}/logdir"
+BUILDDIR="${TSHDIR}/builddir"
 STEPS="${TSHDIR}/steps"
 REPORT="${TSHDIR}/report"
 
@@ -14,21 +14,21 @@ genfile() {
 if testcase "basic"; then
 	BSDDIFF=""; export BSDDIFF
 	XDIFF=""; export XDIFF
-	LOGDIR="${ROBSDDIR}/2019-02-23"
+	BUILDDIR="${ROBSDDIR}/2019-02-23"
 	# shellcheck disable=SC2086
 	mkdir -p ${ROBSDDIR}/2019-02-{22,23}
-	echo "comment goes here" >"${LOGDIR}/comment"
-	echo "cvs log" >"${LOGDIR}/cvs.log"
-	cat <<-EOF >"${LOGDIR}/steps"
-	step="1" name="env" exit="0" duration="0" log="${LOGDIR}/env.log" user="root" time="0"
-	step="2" name="cvs" exit="0" duration="358" log="${LOGDIR}/cvs.log" user="root" time="0"
-	step="3" name="patch" exit="0" duration="0" log="${LOGDIR}/patch.log" user="root" time="0"
+	echo "comment goes here" >"${BUILDDIR}/comment"
+	echo "cvs log" >"${BUILDDIR}/cvs.log"
+	cat <<-EOF >"${BUILDDIR}/steps"
+	step="1" name="env" exit="0" duration="0" log="${BUILDDIR}/env.log" user="root" time="0"
+	step="2" name="cvs" exit="0" duration="358" log="${BUILDDIR}/cvs.log" user="root" time="0"
+	step="3" name="patch" exit="0" duration="0" log="${BUILDDIR}/patch.log" user="root" time="0"
 	step="4" name="kernel" skip="1"
 	step="5" name="end" exit="0" duration="3600" log="" user="root" time="0"
 	EOF
-	mkdir "${LOGDIR}/rel"
-	genfile 2 "${LOGDIR}/rel/bsd.rd"
-	genfile 1 "${LOGDIR}/rel/base66.tgz"
+	mkdir "${BUILDDIR}/rel"
+	genfile 2 "${BUILDDIR}/rel/bsd.rd"
+	genfile 1 "${BUILDDIR}/rel/base66.tgz"
 
 	# Create a previous release in order to report duration and sizes.
 	cat <<-EOF >"${ROBSDDIR}/2019-02-22/steps"
@@ -47,7 +47,7 @@ if testcase "basic"; then
 	> stats:
 	Status: ok
 	Duration: 01:00:00
-	Build: ${LOGDIR}
+	Build: ${BUILDDIR}
 	Size: bsd.rd 2.0M (+1.0M)
 
 	> cvs:
@@ -58,18 +58,18 @@ if testcase "basic"; then
 	cvs log
 	EOF
 
-	report -r "$REPORT" -s "${LOGDIR}/steps"
+	report -r "$REPORT" -s "${BUILDDIR}/steps"
 
 	assert_file "$TMP1" "$REPORT"
 fi
 
 if testcase "failure"; then
-	mkdir "$LOGDIR"
-	echo "env log" >"${LOGDIR}/env.log"
-	echo "cvs log" >"${LOGDIR}/cvs.log"
+	mkdir "$BUILDDIR"
+	echo "env log" >"${BUILDDIR}/env.log"
+	echo "cvs log" >"${BUILDDIR}/cvs.log"
 	cat <<-EOF >"$STEPS"
-	step="1" name="env" exit="1" duration="10" log="${LOGDIR}/env.log" user="root" time="0"
-	step="2" name="cvs" exit="0" duration="11" log="${LOGDIR}/cvs.log" user="root" time="0"
+	step="1" name="env" exit="1" duration="10" log="${BUILDDIR}/env.log" user="root" time="0"
+	step="2" name="cvs" exit="0" duration="11" log="${BUILDDIR}/cvs.log" user="root" time="0"
 	step="3" name="patch" skip="1"
 	EOF
 	cat <<-EOF >"$TMP1"
@@ -78,7 +78,7 @@ if testcase "failure"; then
 	> stats:
 	Status: failed in env
 	Duration: 00:00:21
-	Build: ${LOGDIR}
+	Build: ${BUILDDIR}
 
 	> env:
 	Exit: 1
@@ -101,10 +101,10 @@ if testcase "failure"; then
 fi
 
 if testcase "failure in skipped step"; then
-	mkdir "$LOGDIR"
-	echo "env log" >"${LOGDIR}/env.log"
+	mkdir "$BUILDDIR"
+	echo "env log" >"${BUILDDIR}/env.log"
 	cat <<-EOF >"$STEPS"
-	step="1" name="env" exit="1" duration="1" log="${LOGDIR}/env.log" user="root" time="0"
+	step="1" name="env" exit="1" duration="1" log="${BUILDDIR}/env.log" user="root" time="0"
 	EOF
 	cat <<-EOF >"$TMP1"
 	Subject: robsd: $(hostname -s): failed in env
@@ -112,7 +112,7 @@ if testcase "failure in skipped step"; then
 	> stats:
 	Status: failed in env
 	Duration: 00:00:01
-	Build: ${LOGDIR}
+	Build: ${BUILDDIR}
 
 	> env:
 	Exit: 1
@@ -134,9 +134,9 @@ if testcase "missing step"; then
 fi
 
 if testcase "regress"; then
-	LOGDIR="${ROBSDDIR}/2019-02-23"
-	mkdir -p "$LOGDIR"
-	cat <<-EOF >"${LOGDIR}/nein.log"
+	BUILDDIR="${ROBSDDIR}/2019-02-23"
+	mkdir -p "$BUILDDIR"
+	cat <<-EOF >"${BUILDDIR}/nein.log"
 	==== t0 ====
 	skip
 	SKIPPED
@@ -148,20 +148,20 @@ if testcase "regress"; then
 	==== t2 ====
 	success
 	EOF
-	cat <<-EOF >"${LOGDIR}/skipped.log"
+	cat <<-EOF >"${BUILDDIR}/skipped.log"
 	discard me...
 
 	===> test
 	SKIPPED
 	EOF
-	cat <<-EOF >"${LOGDIR}/error.log"
+	cat <<-EOF >"${BUILDDIR}/error.log"
 	cc -O2 -pipe  -Wall  -MD -MP  -c log.c
 	error: unable to open output file 'log.o': 'Read-only file system'
 	EOF
 	cat <<-EOF >"$STEPS"
-	step="1" name="skipped" exit="0" duration="10" log="${LOGDIR}/skipped.log" user="root" time="0"
-	step="2" name="nein" exit="1" duration="1" log="${LOGDIR}/nein.log" user="root" time="0"
-	step="3" name="error" exit="1" duration="1" log="${LOGDIR}/error.log" user="root" time="0"
+	step="1" name="skipped" exit="0" duration="10" log="${BUILDDIR}/skipped.log" user="root" time="0"
+	step="2" name="nein" exit="1" duration="1" log="${BUILDDIR}/nein.log" user="root" time="0"
+	step="3" name="error" exit="1" duration="1" log="${BUILDDIR}/error.log" user="root" time="0"
 	step="4" name="end" exit="0" duration="11" log="" user="root" time="0"
 	EOF
 
@@ -173,7 +173,7 @@ if testcase "regress"; then
 	> stats:
 	Status: failed in error
 	Duration: 00:00:12
-	Build: ${LOGDIR}
+	Build: ${BUILDDIR}
 
 	> skipped:
 	Exit: 0

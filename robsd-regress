@@ -21,33 +21,33 @@ config_load "${ROBSDCONF:-/etc/robsd-regress.conf}"
 while getopts "Dr:" opt; do
 	case "$opt" in
 	D)	DETACH=1;;
-	r)	LOGDIR="$(readlink -f "$OPTARG")";;
+	r)	BUILDDIR="$(readlink -f "$OPTARG")";;
 	*)	usage;;
 	esac
 done
 shift $((OPTIND - 1))
 [ $# -ne 0 ] && usage
 
-trap 'trap_exit -r "$ROBSDDIR" -l "$LOGDIR"' EXIT
+trap 'trap_exit -r "$ROBSDDIR" -b "$BUILDDIR"' EXIT
 
-if [ -z "$LOGDIR" ]; then
+if [ -z "$BUILDDIR" ]; then
 	check_perf || exit 1
 
-	LOGDIR="${ROBSDDIR}/$(build_id "$ROBSDDIR")"
-	mkdir "$LOGDIR"
-	: >"${LOGDIR}/robsd.log"
-	: >"${LOGDIR}/steps"
+	BUILDDIR="${ROBSDDIR}/$(build_id "$ROBSDDIR")"
+	mkdir "$BUILDDIR"
+	: >"${BUILDDIR}/robsd.log"
+	: >"${BUILDDIR}/steps"
 else
-	STEP="$(step_next "${LOGDIR}/steps")"
+	STEP="$(step_next "${BUILDDIR}/steps")"
 fi
-info "using directory ${LOGDIR} at step ${STEP}"
+info "using directory ${BUILDDIR} at step ${STEP}"
 
-if ! lock_acquire "$ROBSDDIR" "$LOGDIR"; then
+if ! lock_acquire "$ROBSDDIR" "$BUILDDIR"; then
 	# Signal to info() that no further output should be written to robsd.log
 	# as we're about the remove the directory where the same log resides.
 	DETACH=0
 	# Do not leave an empty release around.
-	[ "$STEP" -eq 1 ] && rm -r "$LOGDIR"
+	[ "$STEP" -eq 1 ] && rm -r "$BUILDDIR"
 	exit 1
 fi
 
@@ -59,12 +59,12 @@ if [ "$DETACH" -eq 1 ]; then
 	# Signal to info() that no further output should be written to robsd.log
 	# as we're about redirect all output to the same log.
 	DETACH=2
-	exec </dev/null >>"${LOGDIR}/robsd.log" 2>&1
+	exec </dev/null >>"${BUILDDIR}/robsd.log" 2>&1
 
 	# Reinstall trap handler since they are not inherited by subprocesses.
 	trap '-' EXIT
 	{
-		trap 'trap_exit -r "$ROBSDDIR" -l "$LOGDIR"' EXIT
+		trap 'trap_exit -r "$ROBSDDIR" -b "$BUILDDIR"' EXIT
 		robsd "$STEP"
 	} &
 	info "running in detach mode as pid ${!}"

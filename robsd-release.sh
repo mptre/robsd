@@ -7,7 +7,7 @@ DESTDIR="${DESTDIR}/src"
 mkdir -p "$DESTDIR"
 cleandir "$DESTDIR"
 
-RELEASEDIR="$(release_dir "$LOGDIR")"; export RELEASEDIR
+RELEASEDIR="$(release_dir "$BUILDDIR")"; export RELEASEDIR
 mkdir -p "$RELEASEDIR"
 cleandir "$RELEASEDIR"
 chown build "$RELEASEDIR"
