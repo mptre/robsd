@@ -23,7 +23,7 @@ build_date() {
 	step_value time
 }
 
-# build_id directory
+# build_id root-dir
 #
 # Generate a new build directory path.
 build_id() {
@@ -76,7 +76,6 @@ config_load() {
 	BSDDIFF=""; export BSDDIFF
 	BSDOBJDIR="/usr/obj"; export BSDOBJDIR
 	BSDSRCDIR="/usr/src"; export BSDSRCDIR
-	BUILDDIR=""; export BUILDDIR
 	CVSROOT=""; export CVSROOT
 	CVSUSER=""; export CVSUSER
 	DESTDIR=""; export DESTDIR
@@ -91,6 +90,7 @@ config_load() {
 	LOGDIR=""; export LOGDIR
 	MAKEFLAGS="-j$(sysctl -n hw.ncpuonline)"; export MAKEFLAGS
 	PATH="${PATH}:/usr/X11R6/bin"; export PATH
+	ROBSDDIR=""; export ROBSDDIR
 	SIGNIFY=""; export SIGNIFY
 	# shellcheck disable=SC2034
 	SKIP=""
@@ -113,8 +113,8 @@ config_load() {
 	. "$_path"
 
 	# Ensure mandatory variables are defined.
-	: "${BUILDDIR:?}"
-	ls "$BUILDDIR" >/dev/null
+	: "${ROBSDDIR:?}"
+	ls "$ROBSDDIR" >/dev/null
 	if [ "$_MODE" = "robsd" ]; then
 		: "${CVSROOT:?}"
 		: "${CVSUSER:?}"
@@ -588,40 +588,40 @@ info() {
 	echo "${_PROG}: ${*}" | tee -a "$_log"
 }
 
-# lock_acquire build-dir log-dir
+# lock_acquire root-dir log-dir
 #
 # Acquire the mutex lock.
 lock_acquire() {
-	local _builddir
 	local _logdir
 	local _owner
+	local _rootdir
 
-	_builddir="$1"; : "${_builddir:?}"
+	_rootdir="$1"; : "${_rootdir:?}"
 	_logdir="$2"; : "${_logdir:?}"
 
 	# We could already be owning the lock if the previous run was aborted
 	# prematurely.
-	_owner="$(cat "${_builddir}/.running" 2>/dev/null || :)"
+	_owner="$(cat "${_rootdir}/.running" 2>/dev/null || :)"
 	if [ -n "$_owner" ] && [ "$_owner" != "$_logdir" ]; then
 		info "${_owner}: lock already acquired"
 		return 1
 	fi
 
-	echo "$_logdir" >"${_builddir}/.running"
+	echo "$_logdir" >"${_rootdir}/.running"
 }
 
-# lock_release build-dir log-dir
+# lock_release root-dir log-dir
 #
 # Release the mutex lock if we did acquire it.
 lock_release() {
-	local _builddir
+	local _rootdir
 	local _logdir
 
-	_builddir="$1"; : "${_builddir:?}"
+	_rootdir="$1"; : "${_rootdir:?}"
 	_logdir="$2"; : "${_logdir:?}"
 
-	if echo "$_logdir" | cmp -s - "${_builddir}/.running"; then
-		rm -f "${_builddir}/.running"
+	if echo "$_logdir" | cmp -s - "${_rootdir}/.running"; then
+		rm -f "${_rootdir}/.running"
 	else
 		return 1
 	fi
@@ -686,9 +686,9 @@ prev_release() {
 
 	_count="${1:-1}"
 
-	find "$BUILDDIR" -type d -mindepth 1 -maxdepth 1 |
+	find "$ROBSDDIR" -type d -mindepth 1 -maxdepth 1 |
 	sort -nr |
-	grep -v -e "$LOGDIR" -e "${BUILDDIR}/attic" |
+	grep -v -e "$LOGDIR" -e "${ROBSDDIR}/attic" |
 	{
 		if [ "$_count" -gt 0 ]; then
 			head "-${_count}"
@@ -704,7 +704,7 @@ prev_release() {
 # The older ones will be moved to the attic, keeping only the relevant files.
 # All purged directories are written to stdout.
 purge() {
-	local _attic="${BUILDDIR}/attic"
+	local _attic="${ROBSDDIR}/attic"
 	local _d
 	local _dir
 	local _dst
@@ -1594,28 +1594,28 @@ step_value() {
 	echo "${_STEP[$_i]}"
 }
 
-# trap_exit -b build-dir [-l log-dir]
+# trap_exit -r root-dir [-l log-dir]
 #
 # Exit trap handler. The log dir may not be present if we failed very early on.
 trap_exit() {
 	local _err="$?"
-	local _builddir
 	local _logdir=""
+	local _rootdir=""
 
 	info "trap at step ${_STEPNAME}, exit ${_err}"
 
 	while [ $# -gt 0 ]; do
 		case "$1" in
-		-b)	shift; _builddir="$1";;
+		-r)	shift; _rootdir="$1";;
 		-l)	shift; _logdir="$1";;
 		*)	break;;
 		esac
 		shift
 	done
-	: "${_builddir:?}"
+	: "${_rootdir:?}"
 
 	if [ -n "$_logdir" ]; then
-		lock_release "$_builddir" "$_logdir" || :
+		lock_release "$_rootdir" "$_logdir" || :
 	fi
 
 	if [ "$_err" -ne 0 ] || report_must "$_STEPNAME"; then

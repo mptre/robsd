@@ -28,12 +28,12 @@ done
 shift $((OPTIND - 1))
 [ $# -ne 0 ] && usage
 
-trap 'trap_exit -b "$BUILDDIR" -l "$LOGDIR"' EXIT
+trap 'trap_exit -r "$ROBSDDIR" -l "$LOGDIR"' EXIT
 
 if [ -z "$LOGDIR" ]; then
 	check_perf || exit 1
 
-	LOGDIR="${BUILDDIR}/$(build_id "$BUILDDIR")"
+	LOGDIR="${ROBSDDIR}/$(build_id "$ROBSDDIR")"
 	mkdir "$LOGDIR"
 	: >"${LOGDIR}/robsd.log"
 	: >"${LOGDIR}/steps"
@@ -42,7 +42,7 @@ else
 fi
 info "using directory ${LOGDIR} at step ${STEP}"
 
-if ! lock_acquire "$BUILDDIR" "$LOGDIR"; then
+if ! lock_acquire "$ROBSDDIR" "$LOGDIR"; then
 	# Signal to info() that no further output should be written to robsd.log
 	# as we're about the remove the directory where the same log resides.
 	DETACH=0
@@ -64,7 +64,7 @@ if [ "$DETACH" -eq 1 ]; then
 	# Reinstall trap handler since they are not inherited by subprocesses.
 	trap '-' EXIT
 	{
-		trap 'trap_exit -b "$BUILDDIR" -l "$LOGDIR"' EXIT
+		trap 'trap_exit -r "$ROBSDDIR" -l "$LOGDIR"' EXIT
 		robsd "$STEP"
 	} &
 	info "running in detach mode as pid ${!}"

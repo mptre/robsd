@@ -18,7 +18,7 @@ config_stub() {
 	{
 		cat <<-EOF
 		BSDSRCDIR=${TSHDIR}
-		BUILDDIR=${TSHDIR}
+		ROBSDDIR=${TSHDIR}
 		CVSROOT=example.com:/cvs
 		CVSUSER=nobody
 		DESTDIR=/var/empty
@@ -66,10 +66,10 @@ utility_setup() {
 	EOF
 	chmod u+x "${_bindir}/su"
 
-	BUILDDIR="${TSHDIR}/build"
-	mkdir "$BUILDDIR"
+	ROBSDDIR="${TSHDIR}/build"
+	mkdir "$ROBSDDIR"
 
-	echo "$_tmpdir" "$_bindir" "$BUILDDIR"
+	echo "$_tmpdir" "$_bindir" "$ROBSDDIR"
 }
 
 # diff_create
@@ -88,7 +88,7 @@ index eca3934..c629ecf 100644
 EOF
 }
 
-BUILDDIR="$TSHDIR"; export BUILDDIR
+ROBSDDIR="$TSHDIR"; export ROBSDDIR
 DETACH=0; export DETACH
 HOOK=""; export HOOK
 PATH="/bin:/sbin:/usr/bin:/usr/sbin:/usr/X11R6/bin"; export PATH

@@ -1,10 +1,10 @@
 # Used by prev_release.
-LOGDIR="${BUILDDIR}/2019-02-23"; export LOGDIR
+LOGDIR="${ROBSDDIR}/2019-02-23"; export LOGDIR
 
 if testcase "basic"; then
 	# shellcheck disable=SC2086
-	mkdir -p ${BUILDDIR}/2019-02-{22,23}
-	cat <<-EOF >"${BUILDDIR}/2019-02-22/steps"
+	mkdir -p ${ROBSDDIR}/2019-02-{22,23}
+	cat <<-EOF >"${ROBSDDIR}/2019-02-22/steps"
 	name="end" step="1" duration="1800"
 	EOF
 
@@ -13,8 +13,8 @@ fi
 
 if testcase "delta negative"; then
 	# shellcheck disable=SC2086
-	mkdir -p ${BUILDDIR}/2019-02-{22,23}
-	cat <<-EOF >"${BUILDDIR}/2019-02-22/steps"
+	mkdir -p ${ROBSDDIR}/2019-02-{22,23}
+	cat <<-EOF >"${ROBSDDIR}/2019-02-22/steps"
 	name="end" step="1" duration="3600"
 	EOF
 
@@ -23,8 +23,8 @@ fi
 
 if testcase "delta below threshold"; then
 	# shellcheck disable=SC2086
-	mkdir -p ${BUILDDIR}/2019-02-{22,23}
-	cat <<-EOF >"${BUILDDIR}/2019-02-22/steps"
+	mkdir -p ${ROBSDDIR}/2019-02-{22,23}
+	cat <<-EOF >"${ROBSDDIR}/2019-02-22/steps"
 	name="end" step="1" duration="30"
 	EOF
 
@@ -33,8 +33,8 @@ fi
 
 if testcase "previous build failed"; then
 	# shellcheck disable=SC2086
-	mkdir -p ${BUILDDIR}/2019-02-{22,23}
-	cat <<-EOF >"${BUILDDIR}/2019-02-22/steps"
+	mkdir -p ${ROBSDDIR}/2019-02-{22,23}
+	cat <<-EOF >"${ROBSDDIR}/2019-02-22/steps"
 	name="kernel" step="1" exit="1" duration="3600"
 	EOF
 
@@ -43,11 +43,11 @@ fi
 
 if testcase "previous failed and successful"; then
 	# shellcheck disable=SC2086
-	mkdir -p ${BUILDDIR}/2019-02-{21,22,23}
-	cat <<-EOF >"${BUILDDIR}/2019-02-22/steps"
+	mkdir -p ${ROBSDDIR}/2019-02-{21,22,23}
+	cat <<-EOF >"${ROBSDDIR}/2019-02-22/steps"
 	name="kernel" step="1" exit="1" duration="3600"
 	EOF
-	cat <<-EOF >"${BUILDDIR}/2019-02-21/steps"
+	cat <<-EOF >"${ROBSDDIR}/2019-02-21/steps"
 	name="end" step="1" exit="0" duration="3600"
 	EOF
 

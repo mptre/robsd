@@ -9,8 +9,8 @@ usage() {
 
 # last_release
 last_release() {
-	find "$BUILDDIR" -type d -mindepth 1 -maxdepth 1 |
-	grep -v -e "${BUILDDIR}/attic" |
+	find "$ROBSDDIR" -type d -mindepth 1 -maxdepth 1 |
+	grep -v -e "${ROBSDDIR}/attic" |
 	sort -nr |
 	head -1
 }
@@ -39,6 +39,6 @@ else
 	info "step patch not found, cannot revert diff(s)"
 fi
 
-if lock_release "$BUILDDIR" "$LOGDIR"; then
+if lock_release "$ROBSDDIR" "$LOGDIR"; then
 	info "released lock"
 fi

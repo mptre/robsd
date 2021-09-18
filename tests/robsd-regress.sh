@@ -1,16 +1,16 @@
-utility_setup >"$TMP1"; read -r _ BINDIR BUILDDIR <"$TMP1"
+utility_setup >"$TMP1"; read -r _ BINDIR ROBSDDIR <"$TMP1"
 
 ROBSDREGRESS="${EXECDIR}/robsd-regress"
 
 if testcase "basic"; then
 	config_stub - "robsd-regress" <<-EOF
-	BUILDDIR=${BUILDDIR}
+	ROBSDDIR=${ROBSDDIR}
 	EXECDIR=${EXECDIR}
 	REGRESSUSER=nobody
 	SUDO=doas
 	TESTS="fail hello:P root:R"
 	EOF
-	mkdir "$BUILDDIR"
+	mkdir "$ROBSDDIR"
 	mkdir -p "${TSHDIR}/regress/fail"
 	cat <<EOF >"${TSHDIR}/regress/fail/Makefile"
 all:

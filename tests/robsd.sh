@@ -1,4 +1,4 @@
-utility_setup >"$TMP1"; read -r WRKDIR BINDIR BUILDDIR <"$TMP1"
+utility_setup >"$TMP1"; read -r WRKDIR BINDIR ROBSDDIR <"$TMP1"
 
 ROBSD="${EXECDIR}/robsd"
 
@@ -37,11 +37,11 @@ if testcase "basic"; then
 	chmod u+x "$_hook"
 
 	config_stub - <<-EOF
-	BUILDDIR=${BUILDDIR}
+	ROBSDDIR=${ROBSDDIR}
 	EXECDIR=${WRKDIR}/exec
 	HOOK=${_hook}
 	EOF
-	mkdir -p "$BUILDDIR"
+	mkdir -p "$ROBSDDIR"
 	echo "Index: dir/file.c" >"${TSHDIR}/src.diff"
 	echo "Index: dir/file.c" >"${TSHDIR}/xenocara.diff"
 
@@ -53,13 +53,13 @@ if testcase "basic"; then
 	if [ -e "$_fail" ]; then
 		fail - "expected exit zero" <"$TMP1"
 	fi
-	if [ -e "${BUILDDIR}/.running" ]; then
+	if [ -e "${ROBSDDIR}/.running" ]; then
 		fail - "lock not removed" <"$TMP1"
 	fi
 
 	# Remove non stable output.
 	sed -i -e '/running as pid/d' -e '/robsd-exec:/d' "$TMP1"
-	_logdir="${BUILDDIR}/$(date '+%Y-%m-%d').1"
+	_logdir="${ROBSDDIR}/$(date '+%Y-%m-%d').1"
 	assert_file - "$TMP1" <<-EOF
 	robsd: using directory ${_logdir} at step 1
 	robsd: using diff ${TSHDIR}/src.diff rooted at ${TSHDIR}
@@ -102,12 +102,12 @@ fi
 
 if testcase "already running"; then
 	config_stub - <<-EOF
-	BUILDDIR=${BUILDDIR}
+	ROBSDDIR=${ROBSDDIR}
 	EOF
-	mkdir -p "$BUILDDIR"
-	echo /var/empty >"${BUILDDIR}/.running"
+	mkdir -p "$ROBSDDIR"
+	echo /var/empty >"${ROBSDDIR}/.running"
 	PATH="${BINDIR}:${PATH}" sh "$ROBSD" 2>&1 | grep -v 'using ' >"$TMP1"
-	if ! [ -e "${BUILDDIR}/.running" ]; then
+	if ! [ -e "${ROBSDDIR}/.running" ]; then
 		fail - "lock not preserved" <"$TMP1"
 	fi
 	assert_file - "$TMP1" <<-EOF
@@ -118,12 +118,12 @@ fi
 
 if testcase "already running detached"; then
 	config_stub - <<-EOF
-	BUILDDIR=${BUILDDIR}
+	ROBSDDIR=${ROBSDDIR}
 	EOF
-	mkdir -p "$BUILDDIR"
-	echo /var/empty >"${BUILDDIR}/.running"
+	mkdir -p "$ROBSDDIR"
+	echo /var/empty >"${ROBSDDIR}/.running"
 	PATH="${BINDIR}:${PATH}" sh "$ROBSD" -D 2>&1 | grep -v 'using ' >"$TMP1"
-	if ! [ -e "${BUILDDIR}/.running" ]; then
+	if ! [ -e "${ROBSDDIR}/.running" ]; then
 		fail - "lock not preserved" <"$TMP1"
 	fi
 	assert_file - "$TMP1" <<-EOF
@@ -134,10 +134,10 @@ fi
 
 if testcase "early failure"; then
 	config_stub - <<-EOF
-	BUILDDIR=${BUILDDIR}
+	ROBSDDIR=${ROBSDDIR}
 	EOF
 	echo 'exit 0' >"${BINDIR}/sysctl"
-	mkdir -p "$BUILDDIR"
+	mkdir -p "$ROBSDDIR"
 	if PATH="${BINDIR}:${PATH}" sh "$ROBSD" >"$TMP1" 2>&1; then
 		fail - "expected exit non-zero" <"$TMP1"
 	fi
@@ -149,12 +149,12 @@ fi
 
 if testcase "missing build directory"; then
 	config_stub - <<-EOF
-	BUILDDIR=${BUILDDIR}
+	ROBSDDIR=${ROBSDDIR}
 	EOF
 	if PATH="${BINDIR}:${PATH}" sh "$ROBSD" >"$TMP1" 2>&1; then
 		fail - "expected exit non-zero" <"$TMP1"
 	fi
 	assert_file - "$TMP1" <<-EOF
-	ls: ${BUILDDIR}: No such file or directory
+	ls: ${ROBSDDIR}: No such file or directory
 	EOF
 fi

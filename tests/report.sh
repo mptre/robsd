@@ -14,9 +14,9 @@ genfile() {
 if testcase "basic"; then
 	BSDDIFF=""; export BSDDIFF
 	XDIFF=""; export XDIFF
-	LOGDIR="${BUILDDIR}/2019-02-23"
+	LOGDIR="${ROBSDDIR}/2019-02-23"
 	# shellcheck disable=SC2086
-	mkdir -p ${BUILDDIR}/2019-02-{22,23}
+	mkdir -p ${ROBSDDIR}/2019-02-{22,23}
 	echo "comment goes here" >"${LOGDIR}/comment"
 	echo "cvs log" >"${LOGDIR}/cvs.log"
 	cat <<-EOF >"${LOGDIR}/steps"
@@ -31,12 +31,12 @@ if testcase "basic"; then
 	genfile 1 "${LOGDIR}/rel/base66.tgz"
 
 	# Create a previous release in order to report duration and sizes.
-	cat <<-EOF >"${BUILDDIR}/2019-02-22/steps"
+	cat <<-EOF >"${ROBSDDIR}/2019-02-22/steps"
 	step="2" name="cvs" exit="0" duration="298" log="/dev/null" user="root" time="0"
 	EOF
-	mkdir "${BUILDDIR}/2019-02-22/rel"
-	genfile 1 "${BUILDDIR}/2019-02-22/rel/bsd.rd"
-	genfile 1 "${BUILDDIR}/2019-02-22/rel/base66.tgz"
+	mkdir "${ROBSDDIR}/2019-02-22/rel"
+	genfile 1 "${ROBSDDIR}/2019-02-22/rel/bsd.rd"
+	genfile 1 "${ROBSDDIR}/2019-02-22/rel/base66.tgz"
 
 	cat <<-EOF >"$TMP1"
 	Subject: robsd: $(hostname -s): ok
@@ -134,7 +134,7 @@ if testcase "missing step"; then
 fi
 
 if testcase "regress"; then
-	LOGDIR="${BUILDDIR}/2019-02-23"
+	LOGDIR="${ROBSDDIR}/2019-02-23"
 	mkdir -p "$LOGDIR"
 	cat <<-EOF >"${LOGDIR}/nein.log"
 	==== t0 ====
