@@ -842,7 +842,7 @@ regress_tests() {
 	awk '
 	/^$/ { buf = ""; next }
 	{ buf = buf "\n" $0 }
-	/^'"$_outcome"'/ { printf("%s\n", buf) }
+	/^'"$_outcome"'/ { printf("%s\n", buf); buf = "" }
 	' "$_log" | tail -n +2
 }
 

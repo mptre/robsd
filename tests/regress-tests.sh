@@ -7,7 +7,6 @@ if testcase "basic"; then
 	===> x509
 	missing package p5-IO-Socket-SSL
 	SKIPPED
-
 	===> second
 	SKIPPED
 	EOF
