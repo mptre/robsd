@@ -1,3 +1,11 @@
+# 3.0.0 - 2021-09-21
+
+## Changes
+
+* Rename configuration variable BUILDDIR to ROBSDDIR.
+  (5fb74a1)
+  (Anton Lindqvist)
+
 # 2.1.0 - 2021-09-17
 
 ## News
