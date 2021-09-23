@@ -31,6 +31,7 @@ DISTFILES+=	CHANGELOG.md
 DISTFILES+=	LICENSE
 DISTFILES+=	Makefile
 DISTFILES+=	Makefile.inc
+DISTFILES+=	README.md
 DISTFILES+=	robsd
 DISTFILES+=	robsd-base.sh
 DISTFILES+=	robsd-checkflist.sh
