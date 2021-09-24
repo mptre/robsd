@@ -10,6 +10,7 @@ usage() {
 # getmode path
 getmode() {
 	case "${1##*/}" in
+	robsd-ports-clean)	echo "robsd-ports";;
 	robsd-regress-clean)	echo "robsd-regress";;
 	*)			echo "robsd";;
 	esac
@@ -18,11 +19,14 @@ getmode() {
 # config_path
 config_path() {
 	case "$_MODE" in
-	robsd-regress)
-		echo "${ROBSDCONF:-/etc/robsd-regress.conf}"
-		;;
 	robsd)
 		echo "${ROBSDCONF:-/etc/robsd.conf}"
+		;;
+	robsd-ports)
+		echo "${ROBSDCONF:-/etc/robsd-ports.conf}"
+		;;
+	robsd-regress)
+		echo "${ROBSDCONF:-/etc/robsd-regress.conf}"
 		;;
 	*)
 		return 1

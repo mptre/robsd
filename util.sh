@@ -1,4 +1,5 @@
-. "${EXECDIR}/util-regress.sh"
+. "${EXECDIR:-/usr/local/libexec/robsd}/util-ports.sh"
+. "${EXECDIR:-/usr/local/libexec/robsd}/util-regress.sh"
 
 # abs number
 #
@@ -69,10 +70,12 @@ cleandir() {
 # Load and validate the configuration.
 config_load() {
 	local _diff
+	local _ncpu
 	local _path
 	local _tmp
 
 	_path="$1"; : "${_path:?}"
+	_ncpu="$(sysctl -n hw.ncpuonline)"
 
 	# Global variables with sensible defaults.
 	BSDDIFF=""; export BSDDIFF
@@ -90,7 +93,7 @@ config_load() {
 	# shellcheck disable=SC2034
 	KEEP=0
 	BUILDDIR=""; export BUILDDIR
-	MAKEFLAGS="-j$(sysctl -n hw.ncpuonline)"; export MAKEFLAGS
+	MAKEFLAGS="-j${_ncpu}"; export MAKEFLAGS
 	PATH="${PATH}:/usr/X11R6/bin"; export PATH
 	ROBSDDIR=""; export ROBSDDIR
 	SIGNIFY=""; export SIGNIFY
@@ -101,6 +104,15 @@ config_load() {
 	XDIFF=""; export XDIFF
 	XOBJDIR="/usr/xobj"; export XOBJDIR
 	XSRCDIR="/usr/xenocara"; export XSRCDIR
+
+	# Variables only honored by robsd-ports.
+	if [ "$_MODE" = "robsd-ports" ]; then
+		CHROOT=""; export CHROOT
+		MAKE_JOBS="${_ncpu}"; export MAKE_JOBS
+		PORTS=""; export PORTS
+		PORTSDIR="/usr/ports"; export PORTSDIR
+		PORTSUSER=""; export PORTSUSER
+	fi
 
 	# Variables only honored by robsd-regress.
 	if [ "$_MODE" = "robsd-regress" ]; then
@@ -121,9 +133,21 @@ config_load() {
 		: "${CVSROOT:?}"
 		: "${CVSUSER:?}"
 		: "${DESTDIR:?}"
+	elif [ "$_MODE" = "robsd-ports" ]; then
+		: "${CHROOT:?}"
+		: "${CVSROOT:?}"
+		: "${CVSUSER:?}"
+		: "${PORTS:?}"
+		: "${PORTSDIR:?}"
+		: "${PORTSUSER:?}"
 	elif [ "$_MODE" = "robsd-regress" ]; then
 		: "${REGRESSUSER:?}"
 		: "${TESTS:?}"
+	fi
+
+	# Handle robsd-ports specific configuration.
+	if [ "$_MODE" = "robsd-ports" ]; then
+		ports_config_load
 	fi
 
 	# Handle robsd-regress specific configuration.
@@ -651,9 +675,13 @@ log_id() {
 	: "${_builddir:?}"
 	: "${_step:?}"
 
-	if [ "$_MODE" = "robsd-regress" ]; then
+	case "$_MODE" in
+	robsd-ports|robsd-regress)
 		_name="$(echo "$_name" | tr '/' '-')"
-	fi
+		;;
+	*)
+		;;
+	esac
 
 	_id="$(printf '%02d-%s.log' "$_step" "$_name")"
 	_dups="$(find "$_builddir" -name "${_id}*" | wc -l)"
@@ -1125,8 +1153,9 @@ robsd() {
 		_t1="$(date '+%s')"
 		step_end -d "$((_t1 - _t0))" -e "$_exit" -l "$_log" \
 			-n "$_STEPNAME" -s "$_s" "${BUILDDIR}/steps"
-		# The robsd steps are dependant on each other as opposed of
-		# robsd-regress where it's desirable to continue despite failure.
+		# The robsd steps are dependant on each other as opposed of the
+		# other utilities where it's desirable to continue despite
+		# failure.
 		[ "$_MODE" = "robsd" ] && [ "$_exit" -ne 0 ] && return 1
 
 		# Reboot in progress?
@@ -1337,7 +1366,10 @@ step_exec() (
 	[ -t 0 ] || exec >/dev/null 2>&1
 
 	{
-		if [ "$_MODE" = "robsd-regress" ] && ! [ -e "$_exec" ]; then
+		if [ "$_MODE" = "robsd-ports" ] && ! [ -e "$_exec" ]; then
+			"$_robsdexec" sh -eux "${EXECDIR}/${_MODE}-exec.sh" \
+				"$_step" || : >"$_fail"
+		elif [ "$_MODE" = "robsd-regress" ] && ! [ -e "$_exec" ]; then
 			"$_robsdexec" sh -eux "${EXECDIR}/${_MODE}-exec.sh" \
 				"$_step" || : >"$_fail"
 
@@ -1434,6 +1466,9 @@ steps() {
 		distrib
 		end
 		EOF
+		;;
+	robsd-ports)
+		ports_steps
 		;;
 	robsd-regress)
 		regress_steps

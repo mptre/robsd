@@ -108,7 +108,18 @@ Source directory for the xenocara tree.
 .Bq /usr/xenocara
 .El
 .Pp
-In addition, the following variables are recognized by
+The following variables are recognized by
+.Xr robsd-ports 8 .
+Default values are displayed in brackets.
+.Bl -tag -width Ds
+.It Ev CHROOT
+.It Ev MAKE_JOBS
+.It Ev PORTS
+.It Ev PORTSDIR
+.It Ev PORTSUSER
+.El
+.Pp
+The following variables are recognized by
 .Xr robsd-regress 8 .
 Default values are displayed in brackets.
 .Bl -tag -width Ds
@@ -141,23 +152,36 @@ Example
 .Pa /etc/robsd.conf
 configuration file with all mandatory variables present:
 .Bd -literal
+ROBSDDIR=/home/snapshots
 CVSROOT=anoncvs@anoncvs.eu.openbsd.org:/cvs
 CVSUSER=anton
 DESTDIR=/home/noperm
-ROBSDDIR=/home/snapshots
+.Ed
+.Pp
+Example
+.Pa /etc/robsd-ports.conf
+configuration file with all mandatory variables present:
+.Bd -literal
+ROBSDDIR=/home/ports
+CHROOT=/home/proot
+CVSROOT=anoncvs@anoncvs.eu.openbsd.org:/cvs
+CVSUSER=anton
+PORTSUSER=anton
+PORTS="devel/knfmt mail/mdsort"
 .Ed
 .Pp
 Example
 .Pa /etc/robsd-regress.conf
 configuration file with all mandatory variables present:
 .Bd -literal
-REGRESSUSER=anton
 ROBSDDIR=/home/regress
+REGRESSUSER=anton
 TESTS="bin/csh bin/ksh"
 .Ed
 .Sh SEE ALSO
 .Xr robsd 8 ,
 .Xr robsd-clean 8 ,
+.Xr robsd-ports 8 ,
 .Xr robsd-regress 8 ,
 .Xr robsd-rescue 8 ,
 .Xr robsd-steps 8

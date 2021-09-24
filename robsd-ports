@@ -1,0 +1,85 @@
+#!/bin/ksh
+
+set -eu
+
+usage() {
+	xargs 1>&2 <<-EOF
+	usage: robsd-ports
+	[-D]
+	[-r path]
+	[-s step]
+	EOF
+	exit 1
+}
+
+. "${EXECDIR:-/usr/local/libexec/robsd}/util.sh"
+
+setmode "robsd-ports"
+setprogname "robsd-ports"
+[ "$(id -u)" -ne 0 ] && fatal "must be run as root"
+config_load "${ROBSDCONF:-/etc/robsd-ports.conf}"
+
+while getopts "Dr:s:" opt; do
+	case "$opt" in
+	D)	DETACH=1;;
+	r)	BUILDDIR="$(readlink -f "$OPTARG")";;
+	s)	SKIP="${SKIP}${SKIP:+ }${OPTARG}";;
+	*)	usage;;
+	esac
+done
+shift $((OPTIND - 1))
+[ $# -ne 0 ] && usage
+
+trap 'trap_exit -r "$ROBSDDIR" -b "$BUILDDIR"' EXIT
+
+if [ -z "$BUILDDIR" ]; then
+	check_perf || exit 1
+
+	BUILDDIR="${ROBSDDIR}/$(build_id "$ROBSDDIR")"
+	mkdir "$BUILDDIR"
+	: >"${BUILDDIR}/robsd.log"
+	: >"${BUILDDIR}/steps"
+else
+	STEP="$(step_next "${BUILDDIR}/steps")"
+fi
+info "using directory ${BUILDDIR} at step ${STEP}"
+
+if ! lock_acquire "$ROBSDDIR" "$BUILDDIR"; then
+	# Signal to info() that no further output should be written to robsd.log
+	# as we're about the remove the directory where the same log resides.
+	DETACH=0
+	# Do not leave an empty release around.
+	[ "$STEP" -eq 1 ] && rm -r "$BUILDDIR"
+	exit 1
+fi
+
+# Take note of skipped steps initially.
+if [ "$STEP" -eq 1 ] && [ -n "$SKIP" ]; then
+	info "skipping steps: ${SKIP}"
+	for _step in $SKIP; do
+		_id="$(step_id "$_step")"
+		step_end -S -n "$_step" -s "$_id" "${BUILDDIR}/steps"
+	done
+fi
+
+if [ "$KEEP" -gt 0 ]; then
+	/usr/local/sbin/robsd-ports-clean "$KEEP"
+fi
+
+if [ "$DETACH" -eq 1 ]; then
+	# Signal to info() that no further output should be written to robsd.log
+	# as we're about redirect all output to the same log.
+	DETACH=2
+	exec </dev/null >>"${BUILDDIR}/robsd.log" 2>&1
+
+	# Reinstall trap handler since they are not inherited by subprocesses.
+	trap '-' EXIT
+	{
+		trap 'trap_exit -r "$ROBSDDIR" -b "$BUILDDIR"' EXIT
+		robsd "$STEP"
+	} &
+	info "running in detach mode as pid ${!}"
+else
+	info "running as pid ${$}"
+	robsd "$STEP"
+fi

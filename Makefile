@@ -18,6 +18,10 @@ SCRIPTS+=	robsd-hash.sh
 SCRIPTS+=	robsd-image.sh
 SCRIPTS+=	robsd-kernel.sh
 SCRIPTS+=	robsd-patch.sh
+SCRIPTS+=	robsd-ports-cvs.sh
+SCRIPTS+=	robsd-ports-env.sh
+SCRIPTS+=	robsd-ports-exec.sh
+SCRIPTS+=	robsd-ports-proot.sh
 SCRIPTS+=	robsd-reboot.sh
 SCRIPTS+=	robsd-regress-env.sh
 SCRIPTS+=	robsd-regress-exec.sh
@@ -25,6 +29,7 @@ SCRIPTS+=	robsd-release.sh
 SCRIPTS+=	robsd-revert.sh
 SCRIPTS+=	robsd-xbase.sh
 SCRIPTS+=	robsd-xrelease.sh
+SCRIPTS+=	util-ports.sh
 SCRIPTS+=	util-regress.sh
 SCRIPTS+=	util.sh
 
@@ -46,6 +51,12 @@ DISTFILES+=	robsd-hash.sh
 DISTFILES+=	robsd-image.sh
 DISTFILES+=	robsd-kernel.sh
 DISTFILES+=	robsd-patch.sh
+DISTFILES+=	robsd-ports
+DISTFILES+=	robsd-ports-cvs.sh
+DISTFILES+=	robsd-ports-env.sh
+DISTFILES+=	robsd-ports-exec.sh
+DISTFILES+=	robsd-ports-proot.sh
+DISTFILES+=	robsd-ports.8
 DISTFILES+=	robsd-reboot.sh
 DISTFILES+=	robsd-regress
 DISTFILES+=	robsd-regress-env.sh
@@ -94,7 +105,8 @@ DISTFILES+=	tests/step-next.sh
 DISTFILES+=	tests/step-value.sh
 DISTFILES+=	tests/t.sh
 DISTFILES+=	tests/util.sh
-DISTFILES+=	tests/util-regress.sh
+DISTFILES+=	util-ports.sh
+DISTFILES+=	util-regress.sh
 DISTFILES+=	util.sh
 
 PREFIX=		/usr/local
@@ -105,6 +117,7 @@ INSTALL?=	install
 INSTALL_MAN?=	${INSTALL}
 
 MANLINT+=	robsd-clean.8
+MANLINT+=	robsd-ports.8
 MANLINT+=	robsd-regress.8
 MANLINT+=	robsd-rescue.8
 MANLINT+=	robsd-steps.8
@@ -114,6 +127,7 @@ MANLINT+=	robsd.conf.5
 SHLINT+=	${SCRIPTS}
 SHLINT+=	robsd
 SHLINT+=	robsd-clean
+SHLINT+=	robsd-ports
 SHLINT+=	robsd-regress
 SHLINT+=	robsd-rescue
 SHLINT+=	robsd-steps
@@ -147,8 +161,10 @@ install: all
 	mkdir -p ${DESTDIR}${BINDIR}
 	${INSTALL} -m 0755 ${.CURDIR}/robsd ${DESTDIR}${BINDIR}
 	${INSTALL} -m 0755 ${.CURDIR}/robsd-clean ${DESTDIR}${BINDIR}
-	ln -f ${DESTDIR}${BINDIR}/robsd-clean ${DESTDIR}${BINDIR}/robsd-regress-clean
+	${INSTALL} -m 0755 ${.CURDIR}/robsd-ports ${DESTDIR}${BINDIR}
+	ln -f ${DESTDIR}${BINDIR}/robsd-clean ${DESTDIR}${BINDIR}/robsd-ports-clean
 	${INSTALL} -m 0755 ${.CURDIR}/robsd-regress ${DESTDIR}${BINDIR}
+	ln -f ${DESTDIR}${BINDIR}/robsd-clean ${DESTDIR}${BINDIR}/robsd-regress-clean
 	${INSTALL} -m 0755 ${.CURDIR}/robsd-rescue ${DESTDIR}${BINDIR}
 	${INSTALL} -m 0755 ${.CURDIR}/robsd-steps ${DESTDIR}${BINDIR}
 	mkdir -p ${DESTDIR}${LIBEXECDIR}/robsd
@@ -161,6 +177,7 @@ install: all
 	@mkdir -p ${DESTDIR}${MANDIR}/man8
 	${INSTALL_MAN} ${.CURDIR}/robsd.8 ${DESTDIR}${MANDIR}/man8
 	${INSTALL_MAN} ${.CURDIR}/robsd-clean.8 ${DESTDIR}${MANDIR}/man8
+	${INSTALL_MAN} ${.CURDIR}/robsd-ports.8 ${DESTDIR}${MANDIR}/man8
 	${INSTALL_MAN} ${.CURDIR}/robsd-regress.8 ${DESTDIR}${MANDIR}/man8
 	${INSTALL_MAN} ${.CURDIR}/robsd-rescue.8 ${DESTDIR}${MANDIR}/man8
 	${INSTALL_MAN} ${.CURDIR}/robsd-steps.8 ${DESTDIR}${MANDIR}/man8
