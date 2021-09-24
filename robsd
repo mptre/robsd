@@ -81,7 +81,6 @@ fi
 # Take note of skipped steps initially.
 if [ "$STEP" -eq 1 ] && [ -n "$SKIP" ]; then
 	info "skipping steps: ${SKIP}"
-
 	for _step in $SKIP; do
 		_id="$(step_id "$_step")"
 		step_end -S -n "$_step" -s "$_id" "${BUILDDIR}/steps"
