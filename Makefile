@@ -25,6 +25,7 @@ SCRIPTS+=	robsd-release.sh
 SCRIPTS+=	robsd-revert.sh
 SCRIPTS+=	robsd-xbase.sh
 SCRIPTS+=	robsd-xrelease.sh
+SCRIPTS+=	util-regress.sh
 SCRIPTS+=	util.sh
 
 DISTFILES+=	CHANGELOG.md
@@ -93,6 +94,7 @@ DISTFILES+=	tests/step-next.sh
 DISTFILES+=	tests/step-value.sh
 DISTFILES+=	tests/t.sh
 DISTFILES+=	tests/util.sh
+DISTFILES+=	tests/util-regress.sh
 DISTFILES+=	util.sh
 
 PREFIX=		/usr/local
