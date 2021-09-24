@@ -15,4 +15,4 @@ setprogname "robsd-steps"
 # No root privileges required.
 config_load "${ROBSDCONF:-/etc/robsd.conf}"
 
-step_names | grep -vw -e env -e end
+steps | grep -vw -e env -e end

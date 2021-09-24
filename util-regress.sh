@@ -70,6 +70,17 @@ regress_skip() {
 	echo "$SKIPIGNORE" | grep -q "\<${_test}\>"
 }
 
+# regress_steps
+#
+# Get the step names in execution order.
+regress_steps() {
+	xargs printf '%s\n' <<-EOF
+	env
+	${TESTS}
+	end
+	EOF
+}
+
 # regress_tests outcome-pattern step-log
 #
 # Extract all regress tests from the log matching the given outcome pattern.

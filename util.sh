@@ -1385,7 +1385,7 @@ step_id() {
 
 	_name="$1"; : "${_name:?}"
 
-	_id="$(step_names | cat -n | grep -w "$_name" | awk '{print $1}')"
+	_id="$(steps | cat -n | grep -w "$_name" | awk '{print $1}')"
 	if [ -n "$_id" ]; then
 		echo "$_id"
 	else
@@ -1400,7 +1400,7 @@ step_id() {
 step_name() {
 	local _step
 
-	_step="$(step_names | sed -n -e "${1}p")"
+	_step="$(steps | sed -n -e "${1}p")"
 	if [ -n "$_step" ]; then
 		echo "$_step"
 	else
@@ -1408,13 +1408,14 @@ step_name() {
 	fi
 }
 
-# step_names
+# steps
 #
-# Writes the names of all steps in execution order.
+# Get the names of all steps in execution order.
 # The last step named end is a sentinel step without a corresponding step
 # script.
-step_names() {
-	if [ "$_MODE" = "robsd" ]; then
+steps() {
+	case "$_MODE" in
+	robsd)
 		cat <<-EOF
 		env
 		cvs
@@ -1433,13 +1434,13 @@ step_names() {
 		distrib
 		end
 		EOF
-	elif [ "$_MODE" = "robsd-regress" ]; then
-		xargs printf '%s\n' <<-EOF
-		env
-		${TESTS}
-		end
-		EOF
-	fi
+		;;
+	robsd-regress)
+		regress_steps
+		;;
+	*)
+		;;
+	esac
 }
 
 # step_next file
