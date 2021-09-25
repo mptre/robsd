@@ -21,12 +21,34 @@ utility builds a
 release according to the
 .Xr release 8
 process.
-Some steps are enhanced as follows:
-.Bl -dash
+The build is divided into the steps as follows:
+.Bl -enum
 .It
-During step 2
-.Pq Build and install a new kernel
-the
+env
+.br
+Dump the current environment.
+This is a no operation only used to collect data useful while debugging a
+failing build.
+.It
+cvs
+.br
+Update the
+.Ev BSDSRCDIR
+and
+.Ev XSRCDIR
+source directories using the configured upstream, see
+.Xr robsd.conf 5 .
+.It
+patch
+.br
+Apply any given src or xenocara diff to the corresponding source directory.
+Any configured sticky diff is also applied, see
+.Xr robsd.conf 5 .
+.It
+kernel
+.br
+Build and install a new kernel.
+The
 .Pa GENERIC.MP
 kernel configuration is favored on multiprocessor machines based on
 .Va hw.ncpu ,
@@ -36,22 +58,59 @@ Otherwise,
 the
 .Pa GENERIC
 kernel configuration is used.
-.El
-.Pp
-In addition, the following steps are also executed:
-.Bl -dash
 .It
-After step 2
-.Pq Build and install a new kernel
-the machine is rebooted.
-Upon the next boot, the same release build is resumed from
+reboot
+.br
+Reboot the machine before continuing the build, exercising the new kernel.
+The release build is resumed from
 .Xr rc.firsttime 8 .
-This behavior can be disabled by skipping the reboot step.
 .It
-After step 8
-.Pq Create boot and installation disk images
-the final release files are optionally distributed to another host using
+base
+.br
+Build and install the base system.
+Afterwards, update the machine using
+.Xr sysmerge 8
+and
+.Xr MAKEDEV 8 .
+.It
+release
+.br
+Make and validate the base system.
+.It
+checkflist
+.br
+Check for missing contents in the release tarballs.
+.It
+xbase
+.br
+Build and install the xenocara system.
+.It
+xrelease
+.br
+Make and validate the xenocara system.
+.It
+image
+.br
+Create boot and installation disk images.
+.It
+hash
+.br
+Move system and xenocara release files into the
+.Pa rel
+directory associated with the current release build and compute checksums.
+.It
+revert
+.br
+Revert any applied src or xenocara diff, see the patch step above.
+.It
+distrib
+.br
+Distribute the release files located in the
+.Pa rel
+directory to another using
 .Xr scp 1 .
+This step is optional and requires presence of certain configuration, see
+.Xr robsd.conf 5 .
 .El
 .Pp
 Each release build is identified by a directory created by
@@ -105,9 +164,7 @@ Otherwise, the next step will be executed.
 .It Fl s Ar step
 Skip
 .Ar step ,
-see
-.Xr robsd-steps 8
-for a list of all available steps.
+see enumerated steps above.
 May be given multiple times.
 .It Fl S Ar src-diff
 Diff to apply to the src tree.
@@ -139,7 +196,6 @@ The default configuration file.
 .Xr robsd-clean 8 ,
 .Xr robsd-ports 8 ,
 .Xr robsd-regress 8 ,
-.Xr robsd-rescue 8 ,
-.Xr robsd-steps 8
+.Xr robsd-rescue 8
 .Sh AUTHORS
 .An Anton Lindqvist Aq Mt anton@basename.se
