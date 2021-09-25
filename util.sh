@@ -70,12 +70,10 @@ cleandir() {
 # Load and validate the configuration.
 config_load() {
 	local _diff
-	local _ncpu
 	local _path
 	local _tmp
 
 	_path="$1"; : "${_path:?}"
-	_ncpu="$(sysctl -n hw.ncpuonline)"
 
 	# Global variables with sensible defaults.
 	BSDDIFF=""; export BSDDIFF
@@ -93,7 +91,7 @@ config_load() {
 	# shellcheck disable=SC2034
 	KEEP=0
 	BUILDDIR=""; export BUILDDIR
-	MAKEFLAGS="-j${_ncpu}"; export MAKEFLAGS
+	MAKEFLAGS="-j$(sysctl -n hw.ncpuonline)"; export MAKEFLAGS
 	PATH="${PATH}:/usr/X11R6/bin"; export PATH
 	ROBSDDIR=""; export ROBSDDIR
 	SIGNIFY=""; export SIGNIFY
@@ -108,7 +106,7 @@ config_load() {
 	# Variables only honored by robsd-ports.
 	if [ "$_MODE" = "robsd-ports" ]; then
 		CHROOT=""; export CHROOT
-		MAKE_JOBS="${_ncpu}"; export MAKE_JOBS
+		MAKE_JOBS="1"; export MAKE_JOBS
 		PORTS=""; export PORTS
 		PORTSDIR="/usr/ports"; export PORTSDIR
 		PORTSUSER=""; export PORTSUSER
