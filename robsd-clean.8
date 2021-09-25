@@ -5,7 +5,7 @@
 .Nm robsd-clean ,
 .Nm robsd-ports-clean ,
 .Nm robsd-regress-clean
-.Nd clean releases
+.Nd clean old builds
 .Sh SYNOPSIS
 .Nm robsd-clean
 .Ar count
@@ -16,13 +16,16 @@
 .Sh DESCRIPTION
 The
 .Nm
-utility cleans out old releases built by
+utility cleans out old builds built by
 .Xr robsd 8 ,
+.Xr robsd-ports 8
+or
+.Xr robsd-regress 8
 keeping only the
 .Ar count
-number of latest releases.
+number of latest builds.
 .Pp
-Old releases are moved to a directory named
+Old builds are moved to a directory named
 .Pa attic
 rooted in
 .Ev ROBSDDIR ,
@@ -34,16 +37,11 @@ Only the following files are kept in order to reduce disk usage:
 .Pa env.log
 .Pa rel/index.txt ,
 .Pa report ,
-.Pa src.diff ,
+.Pa src.diff.* ,
 .Pa steps
 and
-.Pa xenocara.diff .
+.Pa xenocara.diff.* .
 Those files can be used to track various metrics over time.
-.Sh FILES
-.Bl -tag -width Ds
-.It Pa /etc/robsd.conf
-The default configuration file.
-.El
 .Sh DIAGNOSTICS
 .Ex -std
 .Sh SEE ALSO
