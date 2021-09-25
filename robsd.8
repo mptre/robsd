@@ -22,31 +22,23 @@ release according to the
 .Xr release 8
 process.
 The build is divided into the steps as follows:
-.Bl -enum
-.It
-env
-.br
+.Bl -tag -width checkflist
+.It env
 Dump the current environment.
 This is a no operation only used to collect data useful while debugging a
 failing build.
-.It
-cvs
-.br
+.It cvs
 Update the
 .Ev BSDSRCDIR
 and
 .Ev XSRCDIR
 source directories using the configured upstream, see
 .Xr robsd.conf 5 .
-.It
-patch
-.br
+.It patch
 Apply any given src or xenocara diff to the corresponding source directory.
 Any configured sticky diff is also applied, see
 .Xr robsd.conf 5 .
-.It
-kernel
-.br
+.It kernel
 Build and install a new kernel.
 The
 .Pa GENERIC.MP
@@ -58,53 +50,33 @@ Otherwise,
 the
 .Pa GENERIC
 kernel configuration is used.
-.It
-reboot
-.br
+.It reboot
 Reboot the machine before continuing the build, exercising the new kernel.
 The release build is resumed from
 .Xr rc.firsttime 8 .
-.It
-base
-.br
+.It base
 Build and install the base system.
 Afterwards, update the machine using
 .Xr sysmerge 8
 and
 .Xr MAKEDEV 8 .
-.It
-release
-.br
+.It release
 Make and validate the base system.
-.It
-checkflist
-.br
+.It checkflist
 Check for missing contents in the release tarballs.
-.It
-xbase
-.br
+.It xbase
 Build and install the xenocara system.
-.It
-xrelease
-.br
+.It xrelease
 Make and validate the xenocara system.
-.It
-image
-.br
+.It image
 Create boot and installation disk images.
-.It
-hash
-.br
+.It hash
 Move system and xenocara release files into the
 .Pa rel
 directory associated with the current release build and compute checksums.
-.It
-revert
-.br
+.It revert
 Revert any applied src or xenocara diff, see the patch step above.
-.It
-distrib
-.br
+.It distrib
 Distribute the release files located in the
 .Pa rel
 directory to another using
@@ -121,7 +93,7 @@ and is named after the current date.
 The release directory contains the entries as follows.
 In addition, each executed step has a corresponding log file in the same
 directory.
-.Bl -tag -width Ds
+.Bl -tag -width robsd.log
 .It Pa comment
 File used to annotate the release build which is include in
 .Pa report .
