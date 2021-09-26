@@ -17,8 +17,30 @@ The
 utility builds
 .Ox
 ports.
-The ports to build run are configured using
-.Xr robsd-ports.conf 5 ,
+The process is divided into the steps as follows:
+.Bl -tag -width proot
+.It env
+Dump the current environment.
+This is a no operation only used to collect data useful while debugging.
+.It cvs
+Update the
+.Ev PORTSDIR
+source directory using the configured upstream, see
+.Xr robsd-ports.conf 5 .
+.It proot
+Create the
+.Ev CHROOT
+using
+.Xr proot 1 ,
+this is where ports are built.
+.It Ev PORTS
+Build each configured port synchronously, see
+.Xr robsd-ports.conf 5 .
+.It end
+Auxillary step used to generate
+.Pa report .
+.El
+.Pp
 Each invocation is identified by a directory created by
 .Nm
 rooted in
@@ -26,7 +48,7 @@ rooted in
 and is named after the current date.
 The directory contains the entries as follows.
 In addition, each port has a corresponding log file in the same directory.
-.Bl -tag -width Ds
+.Bl -tag -width robsd.log
 .It Pa report
 A summary delivered as a mail to root while running in detached mode once
 .Nm
@@ -67,6 +89,8 @@ The default configuration file.
 .Sh DIAGNOSTICS
 .Ex -std
 .Sh SEE ALSO
+.Xr dpb 1 ,
+.Xr proot 1 ,
 .Xr robsd-ports.conf 5 ,
 .Xr ports 7 ,
 .Xr robsd 8 ,

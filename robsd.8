@@ -21,12 +21,11 @@ utility builds a
 release according to the
 .Xr release 8
 process.
-The build is divided into the steps as follows:
+The process is divided into the steps as follows:
 .Bl -tag -width checkflist
 .It env
 Dump the current environment.
-This is a no operation only used to collect data useful while debugging a
-failing build.
+This is a no operation only used to collect data useful while debugging.
 .It cvs
 Update the
 .Ev BSDSRCDIR
@@ -83,14 +82,17 @@ directory to another using
 .Xr scp 1 .
 This step is optional and requires presence of certain configuration, see
 .Xr robsd.conf 5 .
+.It Ev end
+Auxillary step used to generate
+.Pa report .
 .El
 .Pp
-Each release build is identified by a directory created by
+Each invocation is identified by a directory created by
 .Nm
 rooted in
 .Ev ROBSDDIR
 and is named after the current date.
-The release directory contains the entries as follows.
+The directory contains the entries as follows.
 In addition, each executed step has a corresponding log file in the same
 directory.
 .Bl -tag -width robsd.log

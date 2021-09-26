@@ -14,8 +14,19 @@ The
 utility runs
 .Ox
 regression tests.
-The regression tests to run are configured using
-.Xr robsd-regress.conf 5 ,
+The process is divided into the steps as follows:
+.Bl -tag -width TESTS
+.It env
+Dump the current environment.
+This is a no operation only used to collect data useful while debugging.
+.It Ev TESTS
+Run each configured regression test synchronously, see
+.Xr robsd-regress.conf 5 .
+.It Ev end
+Auxillary step used to generate
+.Pa report .
+.El
+.Pp
 Each invocation is identified by a directory created by
 .Nm
 rooted in
@@ -34,7 +45,7 @@ Standard output and error from
 .Nm
 while running in detached mode.
 .It Pa steps
-Internal representation of the executed regression tests.
+Internal representation of the executed steps.
 This file should never be edited manually.
 .El
 .Pp
@@ -65,6 +76,7 @@ The default configuration file.
 .Sh DIAGNOSTICS
 .Ex -std
 .Sh SEE ALSO
+.Xr bsd.regress.mk 5 ,
 .Xr robsd-regress.conf 5 ,
 .Xr robsd 8 ,
 .Xr robsd-regress-clean 8
