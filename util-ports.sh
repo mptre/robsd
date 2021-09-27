@@ -2,6 +2,8 @@
 #
 # Handle ports specific configuration.
 ports_config_load() {
+	# Parallelism is dictated by MAKE_JOBS.
+	unset MAKEFLAGS
 	# Do not inherit anything.
 	unset PKG_PATH
 }
