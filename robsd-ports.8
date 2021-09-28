@@ -18,7 +18,7 @@ utility builds
 .Ox
 ports.
 The process is divided into the steps as follows:
-.Bl -tag -width proot
+.Bl -tag -width outdated
 .It env
 Dump the current environment.
 This is a no operation only used to collect data useful while debugging.
@@ -33,9 +33,15 @@ Create the
 using
 .Xr proot 1 ,
 this is where ports are built.
+.It outdated
+Determine which ports among the configured
+.Ev PORTS
+that must be built.
+A port is considered outdated if the
+.Ev PKGFILE
+is absent or the package signature changed.
 .It Ev PORTS
-Build all configured ports synchronously, see
-.Xr robsd-ports.conf 5 .
+Build all outdated ports synchronously.
 .It end
 Auxillary step used to generate
 .Pa report .
