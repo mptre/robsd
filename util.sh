@@ -877,7 +877,7 @@ report() {
 		_exit="$(step_value exit)"
 		_log="$(step_value log)"
 		# The end step lacks a log.
-		[ "$_exit" -eq 0 ] && report_skip "$_name" "${_log:-/dev/null}" && continue
+		[ "$_exit" -eq 0 ] && report_skip -n "$_name" -l "${_log:-/dev/null}" && continue
 
 		_duration="$(step_value duration)"
 
@@ -1053,15 +1053,23 @@ report_sizes() {
 	done
 }
 
-# report_skip step-name step-log
+# report_skip -n step-name -l step-log
 #
 # Exits zero if the given step should not be included in the report.
 report_skip() {
 	local _name
 	local _log
 
-	_name="$1"; : "${_name:?}"
-	_log="$2"; : "${_log:?}"
+	while [ $# -gt 0 ]; do
+		case "$1" in
+		-l)	shift; _log="$1";;
+		-n)	shift; _name="$1";;
+		*)	break;;
+		esac
+		shift
+	done
+	: "${_log:?}"
+	: "${_name:?}"
 
 	if [ "$_MODE" = "robsd-regress" ]; then
 		regress_report_skip -n "$_name" -l "$_log"
