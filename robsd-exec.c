@@ -29,6 +29,9 @@ main(int argc, char *argv[])
 	if (argc < 2)
 		usage();
 
+	if (pledge("stdio proc exec", NULL) == -1)
+		err(1, "pledge");
+
 	if (pipe2(pip, O_NONBLOCK) == -1)
 		err(1, "pipe2");
 
