@@ -49,6 +49,34 @@ ports_path() {
 	fi
 }
 
+# ports_report_skip -n step-name -l step-log
+#
+# Exits zero if the given step should not be included in the report.
+ports_report_skip() {
+	local _log
+	local _name
+
+	while [ $# -gt 0 ]; do
+		case "$1" in
+		-l)	shift; _log="$1";;
+		-n)	shift; _name="$1";;
+		*)	break;;
+		esac
+		shift
+	done
+	: "${_log:?}"
+	: "${_name:?}"
+
+	case "$_name" in
+	env|cvs|proot|outdated|end)
+		return 0
+		;;
+	*)
+		return 1
+		;;
+	esac
+}
+
 # ports_steps
 #
 # Get the step names in execution order.

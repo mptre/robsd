@@ -1071,10 +1071,18 @@ report_skip() {
 	: "${_log:?}"
 	: "${_name:?}"
 
-	if [ "$_MODE" = "robsd-regress" ]; then
+	case "$_MODE" in
+	robsd-ports)
+		ports_report_skip -n "$_name" -l "$_log"
+		return $?
+		;;
+	robsd-regress)
 		regress_report_skip -n "$_name" -l "$_log"
 		return $?
-	fi
+		;;
+	*)
+		;;
+	esac
 
 	case "$_name" in
 	env|end|reboot)
