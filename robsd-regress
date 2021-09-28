@@ -34,22 +34,13 @@ if [ -z "$BUILDDIR" ]; then
 	check_perf || exit 1
 
 	BUILDDIR="${ROBSDDIR}/$(build_id "$ROBSDDIR")"
-	mkdir "$BUILDDIR"
-	: >"${BUILDDIR}/robsd.log"
-	: >"${BUILDDIR}/steps"
 else
 	STEP="$(step_next "${BUILDDIR}/steps")"
 fi
+build_init "$BUILDDIR"
 info "using directory ${BUILDDIR} at step ${STEP}"
 
-if ! lock_acquire "$ROBSDDIR" "$BUILDDIR"; then
-	# Signal to info() that no further output should be written to robsd.log
-	# as we're about the remove the directory where the same log resides.
-	DETACH=0
-	# Do not leave an empty release around.
-	[ "$STEP" -eq 1 ] && rm -r "$BUILDDIR"
-	exit 1
-fi
+lock_acquire "$ROBSDDIR" "$BUILDDIR" || exit 1
 
 if [ "$KEEP" -gt 0 ]; then
 	/usr/local/sbin/robsd-regress-clean "$KEEP"

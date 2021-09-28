@@ -1,6 +1,6 @@
-BUILDDIR="${TSHDIR}/builddir"
-STEPS="${TSHDIR}/steps"
-REPORT="${TSHDIR}/report"
+BUILDDIR="${ROBSDDIR}/2019-02-23"
+STEPS="${BUILDDIR}/steps"
+REPORT="${BUILDDIR}/report"
 
 # genfile size path
 #
@@ -12,9 +12,9 @@ genfile() {
 }
 
 if testcase "basic"; then
+	build_init "$BUILDDIR"
 	BSDDIFF=""; export BSDDIFF
 	XDIFF=""; export XDIFF
-	BUILDDIR="${ROBSDDIR}/2019-02-23"
 	# shellcheck disable=SC2086
 	mkdir -p ${ROBSDDIR}/2019-02-{22,23}
 	echo "comment goes here" >"${BUILDDIR}/comment"
@@ -58,13 +58,13 @@ if testcase "basic"; then
 	cvs log
 	EOF
 
-	report -r "$REPORT" -s "${BUILDDIR}/steps"
+	report -b "$BUILDDIR"
 
 	assert_file "$TMP1" "$REPORT"
 fi
 
 if testcase "failure"; then
-	mkdir "$BUILDDIR"
+	build_init "$BUILDDIR"
 	echo "env log" >"${BUILDDIR}/env.log"
 	echo "cvs log" >"${BUILDDIR}/cvs.log"
 	cat <<-EOF >"$STEPS"
@@ -95,13 +95,13 @@ if testcase "failure"; then
 	cvs log
 	EOF
 
-	report -r "$REPORT" -s "$STEPS"
+	report -b "$BUILDDIR"
 
 	assert_file "$TMP1" "$REPORT"
 fi
 
 if testcase "failure in skipped step"; then
-	mkdir "$BUILDDIR"
+	build_init "$BUILDDIR"
 	echo "env log" >"${BUILDDIR}/env.log"
 	cat <<-EOF >"$STEPS"
 	step="1" name="env" exit="1" duration="1" log="${BUILDDIR}/env.log" user="root" time="0"
@@ -122,20 +122,19 @@ if testcase "failure in skipped step"; then
 	env log
 	EOF
 
-	report -r "$REPORT" -s "$STEPS"
+	report -b "$BUILDDIR"
 
 	assert_file "$TMP1" "$REPORT"
 fi
 
 if testcase "missing step"; then
-	if report -r "$REPORT" -s "$STEPS"; then
+	if report -b "$BUILDDIR"; then
 		fail "want exit 1, got 0"
 	fi
 fi
 
 if testcase "regress"; then
-	BUILDDIR="${ROBSDDIR}/2019-02-23"
-	mkdir -p "$BUILDDIR"
+	build_init "$BUILDDIR"
 	cat <<-EOF >"${BUILDDIR}/nein.log"
 	==== t0 ====
 	skip
@@ -165,7 +164,7 @@ if testcase "regress"; then
 	step="4" name="end" exit="0" duration="11" log="" user="root" time="0"
 	EOF
 
-	(setmode "robsd-regress" && report -r "$REPORT" -s "$STEPS")
+	(setmode "robsd-regress" && report -b "$BUILDDIR")
 
 	assert_file - "$REPORT" <<-EOF
 	Subject: robsd-regress: $(hostname -s): failed in error

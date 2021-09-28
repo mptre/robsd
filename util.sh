@@ -26,7 +26,7 @@ build_date() {
 	step_value time
 }
 
-# build_id root-dir
+# build_id robsd-dir
 #
 # Generate a new build directory path.
 build_id() {
@@ -36,6 +36,21 @@ build_id() {
 	_d="$(date '+%Y-%m-%d')"
 	_c="$(find "$1" -type d -name "${_d}*" | wc -l)"
 	printf '%s.%d\n' "$_d" "$((_c + 1))"
+}
+
+# build_init build-dir
+#
+# Initialize the given build directory.
+build_init() {
+	local _builddir
+
+	_builddir="$1"; : "${_builddir:?}"
+
+	[ -d "$_builddir" ] || mkdir "$_builddir"
+	[ -d "${_builddir}/tmp" ] || mkdir "${_builddir}/tmp"
+	[ -e "${_builddir}/robsd.log" ] || : >"${_builddir}/robsd.log"
+	[ -e "${_builddir}/steps" ] || : >"${_builddir}/steps"
+	return 0
 }
 
 # check_perf
@@ -79,6 +94,7 @@ config_load() {
 	BSDDIFF=""; export BSDDIFF
 	BSDOBJDIR="/usr/obj"; export BSDOBJDIR
 	BSDSRCDIR="/usr/src"; export BSDSRCDIR
+	BUILDDIR=""; export BUILDDIR
 	CVSROOT=""; export CVSROOT
 	CVSUSER=""; export CVSUSER
 	DESTDIR=""; export DESTDIR
@@ -90,7 +106,6 @@ config_load() {
 	HOOK=""
 	# shellcheck disable=SC2034
 	KEEP=0
-	BUILDDIR=""; export BUILDDIR
 	MAKEFLAGS="-j$(sysctl -n hw.ncpuonline)"; export MAKEFLAGS
 	PATH="${PATH}:/usr/X11R6/bin"; export PATH
 	ROBSDDIR=""; export ROBSDDIR
@@ -785,10 +800,11 @@ reboot_commence() {
 	shutdown -r '+1' </dev/null >/dev/null 2>&1
 }
 
-# report -r report -s steps
+# report -b build-dir
 #
-# Create a build report and save it to report.
+# Create and save build report.
 report() {
+	local _builddir
 	local _duration=0
 	local _exit
 	local _f
@@ -799,25 +815,23 @@ report() {
 	local _status=""
 	local _steps
 	local _tmp
-	local _wrkdir
 
 	while [ $# -gt 0 ]; do
 		case "$1" in
-		-r)	shift; _report="$1";;
-		-s)	shift; _steps="$1";;
+		-b)	shift; _builddir="$1";;
 		*)	break;;
 		esac
 		shift
 	done
-	: "${_report:?}"
-	: "${_steps:?}"
+	: "${_builddir:?}"
 
-	# The steps file could be absent when a build fails to start due to
+	_report="${_builddir}/report"
+	_steps="${_builddir}/steps"
+	_tmp="${_builddir}/tmp/report"
+
+	# The steps file could be empty when a build fails to start due to
 	# another already running build.
-	[ -e "$_steps" ] || return 1
-
-	_wrkdir="$(mktemp -d -t robsd.XXXXXX)"
-	_tmp="${_wrkdir}/report"
+	[ -s "$_steps" ] || return 1
 
 	# If any step failed, the build failed.
 	_i=1
@@ -847,10 +861,10 @@ report() {
 	EOF
 
 	# Add comment to the beginning of the report.
-	if [ -e "${BUILDDIR}/comment" ]; then
+	if [ -e "${_builddir}/comment" ]; then
 		cat <<-EOF >>"$_tmp"
 		> comment:
-		$(cat "${BUILDDIR}/comment")
+		$(cat "${_builddir}/comment")
 
 		EOF
 	fi
@@ -861,10 +875,10 @@ report() {
 		> stats:
 		Status: ${_status}
 		Duration: ${_duration}
-		Build: ${BUILDDIR}
+		Build: ${_builddir}
 		EOF
 
-		report_sizes "$(release_dir "$BUILDDIR")"
+		report_sizes "$(release_dir "$_builddir")"
 	} >>"$_tmp"
 
 	_i=1
@@ -886,14 +900,13 @@ report() {
 		printf 'Duration: %s\n' "$(report_duration -d "$_name" "$_duration")"
 		printf 'Log: %s\n' "$(basename "$_log")"
 		report_log -e "$_exit" -n "$_name" -l "$(step_value log)" \
-			-t "$_wrkdir"
+			-t "${_builddir}/tmp"
 	done >>"$_tmp"
 
 	# smtpd(8) rejects messages with carriage return not followed by a
 	# newline. Play it safe and let vis(1) encode potential carriage
 	# returns.
 	vis "$_tmp" >"$_report"
-	rm -r "$_wrkdir"
 }
 
 # report_duration [-d steps] [-t threshold] duration
@@ -1572,18 +1585,22 @@ trap_exit() {
 	done
 	: "${_rootdir:?}"
 
-	if [ -n "$_builddir" ]; then
-		lock_release "$_rootdir" "$_builddir" || :
-	fi
+	[ -n "$_builddir" ] || return "$_err"
+
+	lock_release "$_rootdir" "$_builddir" || :
 
 	if [ "$_err" -ne 0 ] || report_must "$_STEPNAME"; then
-		if report -r "${_builddir}/report" -s "${_builddir}/steps"; then
+		if report -b "$_builddir"; then
 			# Do not send mail during interactive invocations.
 			if [ "$DETACH" -ne 0 ]; then
 				sendmail root <"${_builddir}/report"
 			fi
 		fi
 	fi
+
+	rm -rf "${_builddir}/tmp"
+	# Do not leave an empty build around.
+	[ -s "${_builddir}/steps" ] || rm -r "$_builddir"
 
 	return "$_err"
 }
