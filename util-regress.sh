@@ -72,6 +72,32 @@ regress_report_log() {
 	return 0
 }
 
+# regress_report_skip -n step-name -l step-log
+#
+# Exits zero if the given step should not be included in the report.
+regress_report_skip() {
+	local _log
+	local _name
+
+	while [ $# -gt 0 ]; do
+		case "$1" in
+		-l)	shift; _log="$1";;
+		-n)	shift; _name="$1";;
+		*)	break;;
+		esac
+		shift
+	done
+	: "${_log:?}"
+	: "${_name:?}"
+
+	# Do not skip if one or many tests where skipped.
+	if ! regress_skip "$_name" &&
+	   ! regress_tests SKIPPED "$_log" | cmp -s - /dev/null; then
+		return 1
+	fi
+	return 0
+}
+
 # regress_root test
 #
 # Exits zero if the given regress test must be executed as root.

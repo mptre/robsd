@@ -1064,12 +1064,8 @@ report_skip() {
 	_log="$2"; : "${_log:?}"
 
 	if [ "$_MODE" = "robsd-regress" ]; then
-		# Do not skip if one or many tests where skipped.
-		if ! regress_skip "$_name" &&
-		   ! regress_tests SKIPPED "$_log" | cmp -s - /dev/null; then
-			return 1
-		fi
-		return 0
+		regress_report_skip -n "$_name" -l "$_log"
+		return $?
 	fi
 
 	case "$_name" in
