@@ -968,8 +968,7 @@ report_log() {
 	[ -s "$_log" ] && echo
 
 	if [ "$_MODE" = "robsd-regress" ]; then
-		regress_tests 'FAILED|SKIPPED' "$_log" | tee "$_tmp"
-		[ -s "$_tmp" ] || tail "$_log"
+		regress_report_log -l "$_log" -t "$_tmp"
 		return 0
 	fi
 

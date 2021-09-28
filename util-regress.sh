@@ -49,6 +49,29 @@ regress_parallel() {
 	! echo "$NOTPARALLEL" | grep -q "\<${_test}\>"
 }
 
+# regress_report_log -l step-log -t tmp-file
+#
+# Get an excerpt of the given step log.
+regress_report_log() {
+	local _log
+	local _tmp
+
+	while [ $# -gt 0 ]; do
+		case "$1" in
+		-l)	shift; _log="$1";;
+		-t)	shift; _tmp="$1";;
+		*)	break;;
+		esac
+		shift
+	done
+	: "${_log:?}"
+	: "${_tmp:?}"
+
+	regress_tests 'FAILED|SKIPPED' "$_log" | tee "$_tmp"
+	[ -s "$_tmp" ] || tail "$_log"
+	return 0
+}
+
 # regress_root test
 #
 # Exits zero if the given regress test must be executed as root.
