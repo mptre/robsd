@@ -49,26 +49,33 @@ regress_parallel() {
 	! echo "$NOTPARALLEL" | grep -q "\<${_test}\>"
 }
 
-# regress_report_log -l step-log -t tmp-file
+# regress_report_log -e step-exit -n step-name -l step-log -t tmp-dir
 #
 # Get an excerpt of the given step log.
 regress_report_log() {
+	local _exit
+	local _name
 	local _log
-	local _tmp
+	local _tmpdir
 
 	while [ $# -gt 0 ]; do
 		case "$1" in
+		-e)	shift; _exit="$1";;
+		-n)	shift; _name="$1";;
 		-l)	shift; _log="$1";;
-		-t)	shift; _tmp="$1";;
+		-t)	shift; _tmpdir="$1";;
 		*)	break;;
 		esac
 		shift
 	done
+	: "${_exit:?}"
+	: "${_name:?}"
 	: "${_log:?}"
-	: "${_tmp:?}"
+	: "${_tmpdir:?}"
 
-	regress_tests 'FAILED|SKIPPED' "$_log" | tee "$_tmp"
-	[ -s "$_tmp" ] || tail "$_log"
+	printf '\n'
+	regress_tests 'FAILED|SKIPPED' "$_log" | tee "${_tmpdir}/regress"
+	[ -s "${_tmpdir}/regress" ] || tail "$_log"
 	return 0
 }
 
