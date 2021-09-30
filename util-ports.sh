@@ -49,6 +49,45 @@ ports_path() {
 	fi
 }
 
+# ports_report_log -e step-exit -n step-name -l step-log -t tmp-dir
+#
+# Get an excerpt of the given step log.
+ports_report_log() {
+	local _exit
+	local _name
+	local _log
+	local _tmpdir
+
+	while [ $# -gt 0 ]; do
+		case "$1" in
+		-e)	shift; _exit="$1";;
+		-n)	shift; _name="$1";;
+		-l)	shift; _log="$1";;
+		-t)	shift; _tmpdir="$1";;
+		*)	break;;
+		esac
+		shift
+	done
+	: "${_exit:?}"
+	: "${_name:?}"
+	: "${_log:?}"
+	: "${_tmpdir:?}"
+
+	printf '\n'
+	case "$_name" in
+	cvs)
+		cat "$_log"
+		;;
+	*)
+		if [ "$_exit" -eq 0 ]; then
+			awk '/PLIST\.orig/,EOF' "$_log" | tee "${_tmpdir}/ports"
+			[ -s "${_tmpdir}/ports" ] && return 0
+		fi
+		tail "$_log"
+		;;
+	esac
+}
+
 # ports_report_skip -n step-name -l step-log
 #
 # Exits zero if the given step should not be included in the report.

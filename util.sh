@@ -963,10 +963,18 @@ report_log() {
 	local _log
 	local _tmpdir
 
-	if [ "$_MODE" = "robsd-regress" ]; then
+	case "$_MODE" in
+	robsd-ports)
+		ports_report_log "$@"
+		return $?
+		;;
+	robsd-regress)
 		regress_report_log "$@"
 		return $?
-	fi
+		;;
+	*)
+		;;
+	esac
 
 	while [ $# -gt 0 ]; do
 		case "$1" in

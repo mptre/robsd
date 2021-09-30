@@ -10,6 +10,7 @@ TESTS+=	duration-total.sh
 TESTS+=	format-duration.sh
 TESTS+=	lock-acquire.sh
 TESTS+=	log-id.sh
+TESTS+=	ports-report-log.sh
 TESTS+=	prev-release.sh
 TESTS+=	purge.sh
 TESTS+=	regress-config-load.sh
