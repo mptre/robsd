@@ -68,7 +68,7 @@ ports_report_skip() {
 	: "${_name:?}"
 
 	case "$_name" in
-	env|cvs|proot|outdated|end)
+	env|proot|outdated|end)
 		return 0
 		;;
 	*)
