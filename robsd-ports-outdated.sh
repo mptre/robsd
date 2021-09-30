@@ -17,7 +17,7 @@ for _p in $PORTS; do
 	fi
 
 	# Capture the plist, later used to generate a diff.
-	_pkgname=$(make show=PKGNAME)
+	_pkgname=$(make show=FULLPKGNAME)
 	_plist=$(make show=PLIST_REPOSITORY)/${_arch}/${_pkgname}
 	cat  ${_plist} >/tmp/${_pkgname}.plist || :
 

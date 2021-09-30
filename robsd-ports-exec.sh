@@ -12,8 +12,8 @@ make package FETCH_PACKAGES=No
 make install
 
 # Generate plist diff, will end up in the report.
-_pkgname=$(make show=PKGNAME)
+_pkgname=$(make show=FULLPKGNAME)
 _plist=$(make show=PLIST_REPOSITORY)/$(machine)/${_pkgname}
 set +x
-diff -u -L PLIST.orig -L PLIST /tmp/${_pkgname}.plist ${_plist} || :
+diff -U0 -L PLIST.orig -L PLIST /tmp/${_pkgname}.plist ${_plist} || :
 EOF
