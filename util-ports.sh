@@ -74,7 +74,7 @@ ports_report_log() {
 	: "${_tmpdir:?}"
 
 	case "$_name" in
-	cvs)
+	cvs|distrib)
 		cat "$_log"
 		;;
 	*)
@@ -119,13 +119,16 @@ ports_report_skip() {
 #
 # Get the step names in execution order.
 ports_steps() {
+	local _outdated="${BUILDDIR}/outdated.log"
+
 	# The outdated.log will eventually be populated by the outdated step.
 	xargs printf '%s\n' <<-EOF
 	env
 	cvs
 	proot
 	outdated
-	$(cat "${BUILDDIR}/outdated.log" 2>/dev/null)
+	$( ([ -s "$_outdated" ] && cat "$_outdated" ) || :)
+	$( ([ -s "$_outdated" ] && echo distrib ) || :)
 	end
 	EOF
 }

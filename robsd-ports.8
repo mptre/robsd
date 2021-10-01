@@ -42,6 +42,15 @@ A port is considered outdated if the
 is absent or the package signature changed.
 .It Ev PORTS
 Build all outdated ports synchronously.
+.It distrib
+Distribute the packages for all configured
+.Ev PORTS
+to another host using
+.Xr scp 1 .
+Note that this step is only be executed if at least one port was considered
+outdated and therefore rebuilt.
+This step is optional and requires presence of certain configuration, see
+.Xr robsd-ports.conf 5 .
 .It end
 Auxillary step used to generate
 .Pa report .
