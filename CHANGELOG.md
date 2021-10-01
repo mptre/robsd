@@ -1,3 +1,33 @@
+# 4.0.0 - 2021-10-01
+
+## Changes
+
+- Remove robsd-steps utility, all steps are documented in each respective
+  manual instead.
+  (0495780)
+  (Anton Lindqvist)
+
+## News
+
+- Add robsd-ports, used to build ports.
+  Currently a work in progress.
+  (de82b30)
+  (Anton Lindqvist)
+
+- Add missing pledge to robsd-exec.
+  (260d3dd)
+  (Anton Lindqvist)
+
+## Bug fixes
+
+- Handle missing new lines while extracing regress logs.
+  (92aad52)
+  (Anton Lindqvist)
+
+- Unblock SIGHUP in robsd-exec.
+  (0f22a78)
+  (Anton Lindqvist)
+
 # 3.0.0 - 2021-09-21
 
 ## Changes
