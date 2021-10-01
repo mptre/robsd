@@ -15,8 +15,11 @@ fi
 
 cd "$RELDIR"
 
-# Adjust the build date to the start of the release build.
-date -u -r "$(build_date)" "+Build date: %s - %+" >BUILDINFO
+# Adjust BUILDINFO by setting the date to the start of the build and add id.
+{
+	date -u -r "$(build_date)" "+Build date: %s - %+"
+	echo "Build id: ${BUILDDIR##*/}"
+} >BUILDINFO
 
 # Compute missing checksums.
 mv SHA256 SHA256.orig
