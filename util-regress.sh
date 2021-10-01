@@ -7,6 +7,9 @@ regress_config_load() {
 	local _t
 	local _tests=""
 
+	# Prevent tests from picking up compiler flags in bsd.sys.mk.
+	unset DESTDIR
+
 	for _t in ${TESTS:-}; do
 		_flags="${_t##*:}"
 		_t="${_t%:*}"
@@ -25,7 +28,6 @@ regress_config_load() {
 
 		_tests="${_tests}${_tests:+ }${_t}"
 	done
-
 	TESTS="$_tests"
 }
 
