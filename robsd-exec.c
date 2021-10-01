@@ -44,6 +44,7 @@ main(int argc, char *argv[])
 			err(1, "setsid");
 
 		/* Unblock common signals. */
+		siginstall(SIGHUP, SIG_DFL, 0);
 		siginstall(SIGINT, SIG_DFL, 0);
 
 		/* Signal to the parent that the process group is present. */
