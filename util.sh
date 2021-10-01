@@ -899,8 +899,12 @@ report() {
 		printf 'Exit: %d\n' "$_exit"
 		printf 'Duration: %s\n' "$(report_duration -d "$_name" "$_duration")"
 		printf 'Log: %s\n' "$(basename "$_log")"
-		report_log -e "$_exit" -n "$_name" -l "$(step_value log)" \
-			-t "${_builddir}/tmp"
+		report_log -e "$_exit" -n "$_name" -l "$_log" \
+			-t "${_builddir}/tmp" >"${_builddir}/tmp/log"
+		if [ -s "${_builddir}/tmp/log" ]; then
+			echo
+			cat "${_builddir}/tmp/log"
+		fi
 	done >>"$_tmp"
 
 	# smtpd(8) rejects messages with carriage return not followed by a
@@ -991,7 +995,6 @@ report_log() {
 	: "${_log:?}"
 	: "${_tmpdir:?}"
 
-	[ -s "$_log" ] && printf '\n'
 	case "$_name" in
 	env|cvs|patch|checkflist|reboot|revert|distrib)
 		cat "$_log"

@@ -73,7 +73,6 @@ ports_report_log() {
 	: "${_log:?}"
 	: "${_tmpdir:?}"
 
-	printf '\n'
 	case "$_name" in
 	cvs)
 		cat "$_log"

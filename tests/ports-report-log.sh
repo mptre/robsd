@@ -7,7 +7,6 @@ if testcase "step exit non-zero"; then
 	EOF
 	ports_report_log -e 1 -n test -l "$TMP1" -t "$TSHDIR" >"$TMP2"
 	assert_file "$TMP2" - <<-EOF
-
 	error
 	EOF
 fi
@@ -23,7 +22,6 @@ if testcase "diff present"; then
 	EOF
 	ports_report_log -e 0 -n test -l "$TMP1" -t "$TSHDIR" >"$TMP2"
 	assert_file "$TMP2" - <<-EOF
-
 	--- PLIST.orig
 	+++ PLIST
 	@@ -1 +1 @@
@@ -38,7 +36,6 @@ if testcase "diff absent"; then
 	EOF
 	ports_report_log -e 0 -n test -l "$TMP1" -t "$TSHDIR" >"$TMP2"
 	assert_file "$TMP2" - <<-EOF
-
 	no diff
 	EOF
 fi

@@ -75,7 +75,6 @@ regress_report_log() {
 	: "${_log:?}"
 	: "${_tmpdir:?}"
 
-	printf '\n'
 	regress_tests 'FAILED|SKIPPED' "$_log" | tee "${_tmpdir}/regress"
 	[ -s "${_tmpdir}/regress" ] || tail "$_log"
 	return 0
