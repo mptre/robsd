@@ -68,8 +68,8 @@ if testcase "failure"; then
 	echo "env log" >"${BUILDDIR}/env.log"
 	echo "cvs log" >"${BUILDDIR}/cvs.log"
 	cat <<-EOF >"$STEPS"
-	step="1" name="env" exit="1" duration="10" log="${BUILDDIR}/env.log" user="root" time="0"
-	step="2" name="cvs" exit="0" duration="11" log="${BUILDDIR}/cvs.log" user="root" time="0"
+	step="1" name="cvs" exit="0" duration="11" log="${BUILDDIR}/cvs.log" user="root" time="0"
+	step="2" name="env" exit="1" duration="10" log="${BUILDDIR}/env.log" user="root" time="0"
 	step="3" name="patch" skip="1"
 	EOF
 	cat <<-EOF >"$TMP1"
@@ -80,19 +80,19 @@ if testcase "failure"; then
 	Duration: 00:00:21
 	Build: ${BUILDDIR}
 
-	> env:
-	Exit: 1
-	Duration: 00:00:10
-	Log: env.log
-
-	env log
-
 	> cvs:
 	Exit: 0
 	Duration: 00:00:11
 	Log: cvs.log
 
 	cvs log
+
+	> env:
+	Exit: 1
+	Duration: 00:00:10
+	Log: env.log
+
+	env log
 	EOF
 
 	report -b "$BUILDDIR"
@@ -161,16 +161,16 @@ if testcase "regress"; then
 	step="1" name="skipped" exit="0" duration="10" log="${BUILDDIR}/skipped.log" user="root" time="0"
 	step="2" name="nein" exit="1" duration="1" log="${BUILDDIR}/nein.log" user="root" time="0"
 	step="3" name="error" exit="1" duration="1" log="${BUILDDIR}/error.log" user="root" time="0"
-	step="4" name="end" exit="0" duration="11" log="" user="root" time="0"
+	step="4" name="end" exit="0" duration="12" log="" user="root" time="0"
 	EOF
 
 	(setmode "robsd-regress" && report -b "$BUILDDIR")
 
 	assert_file - "$REPORT" <<-EOF
-	Subject: robsd-regress: $(hostname -s): failed in error
+	Subject: robsd-regress: $(hostname -s): 2 failures
 
 	> stats:
-	Status: failed in error
+	Status: 2 failures
 	Duration: 00:00:12
 	Build: ${BUILDDIR}
 

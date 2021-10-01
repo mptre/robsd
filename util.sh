@@ -805,14 +805,15 @@ reboot_commence() {
 # Create and save build report.
 report() {
 	local _builddir
-	local _duration=0
+	local _duration=""
 	local _exit
 	local _f
-	local _i
+	local _i=1
 	local _log
+	local _n
 	local _name
 	local _report
-	local _status=""
+	local _status="ok"
 	local _steps
 	local _tmp
 
@@ -834,24 +835,35 @@ report() {
 	[ -s "$_steps" ] || return 1
 
 	# If any step failed, the build failed.
-	_i=1
-	while step_eval "-${_i}" "$_steps" 2>/dev/null; do
-		_i=$((_i + 1))
-
-		step_skip && continue
-
-		if [ "$(step_value exit)" -ne 0 ]; then
-			_status="failed in $(step_value name)"
-			_duration="$(duration_total "$_steps")"
-			_duration="$(report_duration "$_duration")"
-			break
+	case "$_MODE" in
+	robsd-ports|robsd-regress)
+		_n="$(step_failures "$_steps")"
+		if [ "$_n" -gt 1 ]; then
+			_status="${_n} failures"
+		elif [ "$_n" -gt 0 ]; then
+			_status="${_n} failure"
 		fi
-	done
-	if [ -z "$_status" ]; then
-		step_eval -n end "$_steps"
-		_status="ok"
+		;;
+	*)
+		# As robsd halts if a step failed, only bother checking the last
+		# non-skipped step.
+		while step_eval "-${_i}" "$_steps" 2>/dev/null; do
+			_i=$((_i + 1))
+			step_skip && continue
+			[ "$(step_value exit)" -eq 0 ] && break
+
+			_status="failed in $(step_value name)"
+			break
+		done
+		;;
+	esac
+
+	if step_eval -n end "$_steps" 2>/dev/null; then
 		_duration="$(step_value duration)"
 		_duration="$(report_duration -d end -t 60 "$_duration")"
+	else
+		_duration="$(duration_total "$_steps")"
+		_duration="$(report_duration "$_duration")"
 	fi
 
 	# Add headers.
@@ -1418,6 +1430,17 @@ step_exec() (
 	fi
 	return 0
 )
+
+# step_failures file
+#
+# Get the number of failing steps.
+step_failures() {
+	local _file
+
+	_file="$1"; : "${_file:?}"
+
+	grep -c 'exit="[^0]*"' "$_file" || :
+}
 
 # step_field step-name
 #
