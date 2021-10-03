@@ -119,7 +119,7 @@ ports_report_skip() {
 #
 # Get the step names in execution order.
 ports_steps() {
-	local _outdated="${BUILDDIR}/outdated.log"
+	local _outdated="${BUILDDIR}/tmp/outdated.log"
 
 	# The outdated.log will eventually be populated by the outdated step.
 	xargs printf '%s\n' <<-EOF

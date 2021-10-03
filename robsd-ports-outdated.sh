@@ -1,6 +1,6 @@
 . "${EXECDIR}/util.sh"
 
-chroot "$CHROOT" sh -ex <<'EOF' >"${BUILDDIR}/outdated.log"
+chroot "$CHROOT" sh -ex <<'EOF' >"${BUILDDIR}/tmp/outdated.log"
 cd $PORTSDIR
 _DEPENDS_CACHE=$(make create_DEPENDS_CACHE); export _DEPENDS_CACHE
 
