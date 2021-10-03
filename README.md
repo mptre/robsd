@@ -3,7 +3,7 @@
 This project started out as an attempt to automate the
 [release(8)](release)
 process on OpenBSD in order to roll my own snapshots.
-The prime motivation was to test of own and others changes to the kernel, user
+The prime motivation was to test my own and others changes to the kernel, user
 space and everything in between.
 Hence the name robsd as in release OpenBSD.
 The scope later grew and the project is by now a kitchen sink for everything
@@ -18,6 +18,10 @@ The project is divided into the utilities as follows.
 XXX
 XXX try out diffs (src, xenocara)
 XXX report step time increase, size increase, cvs log
+
+### robsd-ports
+
+XXX
 
 ### robsd-regress
 
