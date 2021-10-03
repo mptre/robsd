@@ -1,29 +1,28 @@
 . "${EXECDIR}/util.sh"
 
+set -o pipefail
+
 if [ -z "$DISTRIBHOST" ] || [ -z "$DISTRIBPATH" ] || [ -z "$DISTRIBUSER" ]; then
 	exit 0
 fi
 
-# XXX debug packages included?
-# XXX use SUBDIRLIST?
-# Use echo to normalize whitespace.
-# shellcheck disable=SC2086,SC2116
-_subdir="$(echo $PORTS)"
-chroot "$CHROOT" env "SUBDIR=${_subdir}" make -C "$PORTSDIR" show=PKGFILE |
-grep '^/' |
+echo "$PORTS" |
+chroot "$CHROOT" env SUBDIRLIST=/dev/stdin make -C "$PORTSDIR" run-dir-depends |
+tsort |
+chroot "$CHROOT" env SUBDIRLIST=/dev/stdin make -C "$PORTSDIR" show=PKGFILES |
+grep -v '^===> ' |
 xargs printf "${CHROOT}%s\n" |
+sort |
 tee "${BUILDDIR}/tmp/distrib" |
 xargs sha256 |
-sed -e 's,(.*/,(,' |
-sort >"${BUILDDIR}/tmp/SHA256"
+sed -e 's,(.*/,(,' >"${BUILDDIR}/tmp/SHA256"
 
 if [ -n "$SIGNIFY" ]; then
-	signify -Se -s "$SIGNIFY" -m SHA256
+	signify -Se -s "$SIGNIFY" -m "${BUILDDIR}/tmp/SHA256"
 fi
 
-ls -nT -- * >"${BUILDDIR}/tmp/index.txt"
+xargs ls -nT <"${BUILDDIR}/tmp/distrib" |
+sed -e 's,/.*/,,' >"${BUILDDIR}/tmp/index.txt"
 
 unpriv "$DISTRIBUSER" "exec ssh ${DISTRIBHOST} rm -f ${DISTRIBPATH}/*"
-unpriv "$DISTRIBUSER" "exec scp -p $(cat "${BUILDDIR}/tmp/distrib") ${BUILDDIR}/tmp/SHA256* ${BUILDDIR}/tmp/index.txt ${DISTRIBHOST}:${DISTRIBPATH}"
-
-exit 1
+unpriv "$DISTRIBUSER" "exec scp -p $(xargs <"${BUILDDIR}/tmp/distrib") ${BUILDDIR}/tmp/SHA256* ${BUILDDIR}/tmp/index.txt ${DISTRIBHOST}:${DISTRIBPATH}"

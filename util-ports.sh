@@ -62,7 +62,7 @@ ports_report_log() {
 		cat "$_log"
 		;;
 	*)
-		tail "$_log"
+		[ "$_exit" -eq 0 ] || tail "$_log"
 		;;
 	esac
 }
@@ -88,6 +88,9 @@ ports_report_skip() {
 	case "$_name" in
 	env|proot|outdated|end)
 		return 0
+		;;
+	cvs|distrib)
+		return 1
 		;;
 	*)
 		! echo "$PORTS" | grep -q "\<${_name}\>"

@@ -15,6 +15,6 @@ EOF
 
 [ -n "$SIGNIFY" ] || exit 0
 
-chroot "$CHROOT" env "SUBDIR=${1}" make -C "$PORTSDIR" show=PKGFILE |
-grep -v '^===> ' |
-xargs -t -I {} pkg_sign -s signify2 -s "$SIGNIFY" "${CHROOT}{}"
+_pkgfile="$(chroot "$CHROOT" env "SUBDIR=${1}" make -C "$PORTSDIR" show=PKGFILE | grep -v '^===> ')"
+cd "${CHROOT}${_pkgfile%/*}"
+pkg_sign -s signify2 -s "$SIGNIFY" "${_pkgfile##*/}"
