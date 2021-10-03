@@ -1,3 +1,21 @@
+# 4.1.0 - 2021-10-03
+
+## News
+
+- Add build identifier to BUILDINFO release file.
+  Intended to be used to correlate robsd and robsd-ports invocations.
+  (798ee8d)
+  (Anton Lindqvist)
+
+- Change robsd-ports and robsd-regress failure report subject, count the number
+  of failures as opposed of displaying the last failing step.
+  (41e5923)
+  (Anton Lindqvist)
+
+- Add comment option back to all utilities.
+  (0f8a28d)
+  (Anton Lindqvist)
+
 # 4.0.0 - 2021-10-01
 
 ## Changes
