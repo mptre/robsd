@@ -7,9 +7,10 @@
 .Sh SYNOPSIS
 .Nm robsd
 .Op Fl D
-.Op Fl s Ar step
 .Op Fl S Ar src-diff
 .Op Fl X Ar xenocara-diff
+.Op Fl c Ar comment
+.Op Fl s Ar step
 .Nm
 .Op Fl D
 .Fl r Ar path
@@ -97,7 +98,7 @@ In addition, each executed step has a corresponding log file in the same
 directory.
 .Bl -tag -width robsd.log
 .It Pa comment
-File used to annotate the release build which is include in
+File used to annotate the invocation which is included in
 .Pa report .
 By default, it contains a list of all applied patches.
 .It Pa rel
@@ -130,16 +131,6 @@ The options are as follows:
 Detach
 .Nm
 into the background.
-.It Fl r Ar path
-Resume a release build located at
-.Ar path .
-If the last executed step failed or aborted, it will be executed again.
-Otherwise, the next step will be executed.
-.It Fl s Ar step
-Skip
-.Ar step ,
-see enumerated steps above.
-May be given multiple times.
 .It Fl S Ar src-diff
 Diff to apply to the src tree.
 The diff path names can be relative to any directory in the src tree.
@@ -155,6 +146,19 @@ The same diff will be reverted once the release is finished.
 In addition, a copy of the diff is saved to a file named
 .Pa xenocara.diff.N
 in the release directory where N is incremented for every given diff.
+May be given multiple times.
+.It Fl c Ar comment
+Path to comment included in
+.Pa report .
+.It Fl r Ar path
+Resume a release build located at
+.Ar path .
+If the last executed step failed or aborted, it will be executed again.
+Otherwise, the next step will be executed.
+.It Fl s Ar step
+Skip
+.Ar step ,
+see enumerated steps above.
 May be given multiple times.
 .El
 .Sh FILES

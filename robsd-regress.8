@@ -7,7 +7,10 @@
 .Sh SYNOPSIS
 .Nm robsd-regress
 .Op Fl D
-.Op Fl r Ar path
+.Op Fl c Ar comment
+.Nm
+.Op Fl D
+.Fl r Ar path
 .Sh DESCRIPTION
 The
 .Nm
@@ -35,7 +38,10 @@ and is named after the current date.
 The directory contains the entries as follows.
 In addition, each regression test has a corresponding log file in the same
 directory.
-.Bl -tag -width Ds
+.Bl -tag -width robsd.log
+.It Pa comment
+File used to annotate the invocation which is included in
+.Pa report .
 .It Pa report
 A summary delivered as a mail to root while running in detached mode once
 .Nm
@@ -62,6 +68,9 @@ The options are as follows:
 Detach
 .Nm
 into the background.
+.It Fl c Ar comment
+Path to comment included in
+.Pa report .
 .It Fl r Ar path
 Resume a run located at
 .Ar path .

@@ -6,6 +6,7 @@ usage() {
 	xargs 1>&2 <<-EOF
 	usage: robsd
 	[-D]
+	[-c comment]
 	[-r path]
 	[-s step]
 	[-S src-diff]
@@ -20,11 +21,14 @@ setprogname "robsd"
 [ "$(id -u)" -ne 0 ] && fatal "must be run as root"
 config_load "${ROBSDCONF:-/etc/robsd.conf}"
 
-while getopts "DS:X:r:s:" opt; do
+COMMENT=""
+
+while getopts "DS:X:c:r:s:" opt; do
 	case "$opt" in
 	D)	DETACH=1;;
 	S)	BSDDIFF="${BSDDIFF}${BSDDIFF:+ }$(readlink -f "${OPTARG}")";;
 	X)	XDIFF="${XDIFF}${XDIFF:+ }$(readlink -f "${OPTARG}")";;
+	c)	COMMENT="$OPTARG";;
 	r)	BUILDDIR="$(readlink -f "$OPTARG")";;
 	s)	SKIP="${SKIP}${SKIP:+ }${OPTARG}";;
 	*)	usage;;
@@ -47,15 +51,19 @@ info "using directory ${BUILDDIR} at step ${STEP}"
 
 lock_acquire "$ROBSDDIR" "$BUILDDIR" || exit 1
 
-# Generate comment present in the report including a list of the diff(s),
-if [ "$STEP" -eq 1 ] && { [ -n "$BSDDIFF" ] || [ -n "$XDIFF" ]; }; then
-	{
-		echo 'Applied the following diff(s):'
-		# shellcheck disable=SC2030
-		[ -n "$BSDDIFF" ] && echo "$BSDDIFF" | xargs ls
-		# shellcheck disable=SC2030
-		[ -n "$XDIFF" ] && echo "$XDIFF" | xargs ls
-	} >"${BUILDDIR}/comment"
+if [ "$STEP" -eq 1 ]; then
+	if [ -n "$COMMENT" ]; then
+		cat "$COMMENT" >"${BUILDDIR}/comment"
+	elif [ -n "$BSDDIFF" ] || [ -n "$XDIFF" ]; then
+		# Generate comment including a list of the diff(s),
+		{
+			echo 'Applied the following diff(s):'
+			# shellcheck disable=SC2030
+			[ -n "$BSDDIFF" ] && echo "$BSDDIFF" | xargs ls
+			# shellcheck disable=SC2030
+			[ -n "$XDIFF" ] && echo "$XDIFF" | xargs ls
+		} >"${BUILDDIR}/comment"
+	fi
 fi
 
 # Copy the diff(s) initially, otherwise use the previously copied ones.

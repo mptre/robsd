@@ -6,6 +6,7 @@ usage() {
 	xargs 1>&2 <<-EOF
 	usage: robsd-ports
 	[-D]
+	[-c comment]
 	[-r path]
 	[-s step]
 	EOF
@@ -19,9 +20,12 @@ setprogname "robsd-ports"
 [ "$(id -u)" -ne 0 ] && fatal "must be run as root"
 config_load "${ROBSDCONF:-/etc/robsd-ports.conf}"
 
-while getopts "Dr:s:" opt; do
+COMMENT=""
+
+while getopts "Dc:r:s:" opt; do
 	case "$opt" in
 	D)	DETACH=1;;
+	c)	COMMENT="$OPTARG";;
 	r)	BUILDDIR="$(readlink -f "$OPTARG")";;
 	s)	SKIP="${SKIP}${SKIP:+ }${OPTARG}";;
 	*)	usage;;
@@ -43,6 +47,12 @@ build_init "$BUILDDIR"
 info "using directory ${BUILDDIR} at step ${STEP}"
 
 lock_acquire "$ROBSDDIR" "$BUILDDIR" || exit 1
+
+if [ "$STEP" -eq 1 ]; then
+	if [ -n "$COMMENT" ]; then
+		cat "$COMMENT" >"${BUILDDIR}/comment"
+	fi
+fi
 
 # Take note of skipped steps initially.
 if [ "$STEP" -eq 1 ] && [ -n "$SKIP" ]; then
