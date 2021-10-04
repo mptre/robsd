@@ -1,6 +1,6 @@
 . "${EXECDIR}/util.sh"
 
-PATH="${PATH}:$(ports_path infrastructure/bin)" proot -c /dev/stdin <<-EOF
+PATH="${PATH}:${CHROOT}${PORTSDIR}/infrastructure/bin" proot -c /dev/stdin <<-EOF
 chroot=${CHROOT}
 PORT_USER=${PORTSUSER}
 extra=/etc/installurl
