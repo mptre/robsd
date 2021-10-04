@@ -8,21 +8,21 @@ if testcase "basic"; then
 	EXECDIR=${EXECDIR}
 	REGRESSUSER=nobody
 	SUDO=doas
-	TESTS="fail hello:P root:R"
+	TESTS="test/fail test/hello:P test/root:R"
 	EOF
 	mkdir "$ROBSDDIR"
-	mkdir -p "${TSHDIR}/regress/fail"
-	cat <<EOF >"${TSHDIR}/regress/fail/Makefile"
+	mkdir -p "${TSHDIR}/regress/test/fail"
+	cat <<EOF >"${TSHDIR}/regress/test/fail/Makefile"
 all:
 	exit 1
 EOF
-	mkdir -p "${TSHDIR}/regress/hello"
-	cat <<EOF >"${TSHDIR}/regress/hello/Makefile"
+	mkdir -p "${TSHDIR}/regress/test/hello"
+	cat <<EOF >"${TSHDIR}/regress/test/hello/Makefile"
 all:
 	echo hello >${TSHDIR}/hello
 EOF
-	mkdir -p "${TSHDIR}/regress/root"
-	cat <<EOF >"${TSHDIR}/regress/root/Makefile"
+	mkdir -p "${TSHDIR}/regress/test/root"
+	cat <<EOF >"${TSHDIR}/regress/test/root/Makefile"
 all:
 	echo SUDO=\${SUDO} >${TSHDIR}/root
 EOF
@@ -36,4 +36,24 @@ EOF
 	assert_file - "${TSHDIR}/root" <<-EOF
 	SUDO=
 	EOF
+fi
+
+if testcase "failure in non-test step"; then
+	config_stub - "robsd-regress" <<-EOF
+	ROBSDDIR=${ROBSDDIR}
+	EXECDIR=${EXECDIR}
+	REGRESSUSER=nobody
+	TESTS="test/nothing"
+	EOF
+	mkdir "$ROBSDDIR"
+	# Make the env step fail.
+	cat <<-EOF >"${BINDIR}/df"
+	#!/bin/sh
+	exit 1
+	EOF
+	chmod u+x "${BINDIR}/df"
+
+	if PATH="${BINDIR}:${PATH}" sh "$ROBSDREGRESS" >"$TMP1" 2>&1; then
+		fail - "expected exit non-zero" <"$TMP1"
+	fi
 fi

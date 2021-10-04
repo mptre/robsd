@@ -1197,10 +1197,18 @@ robsd() {
 		_t1="$(date '+%s')"
 		step_end -d "$((_t1 - _t0))" -e "$_exit" -l "$_log" \
 			-n "$_STEPNAME" -s "$_s" "${BUILDDIR}/steps"
-		# The robsd steps are dependant on each other as opposed of the
-		# other utilities where it's desirable to continue despite
-		# failure.
-		[ "$_MODE" = "robsd" ] && [ "$_exit" -ne 0 ] && return 1
+
+		case "$_MODE" in
+		robsd-ports)
+			ports_continue -e "$_exit" -n "$_STEPNAME" || return 1
+			;;
+		robsd-regress)
+			regress_continue -e "$_exit" -n "$_STEPNAME" || return 1
+			;;
+		*)
+			[ "$_exit" -eq 0 ] || return 1
+			;;
+		esac
 
 		# Reboot in progress?
 		[ "$_STEPNAME" = "reboot" ] && return 0

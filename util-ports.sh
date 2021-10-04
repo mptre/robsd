@@ -8,45 +8,29 @@ ports_config_load() {
 	unset PKG_PATH
 }
 
-# port_make port target
+# ports_continue -e step-exit -n step-name
 #
-# Execute the given make target for the port.
-port_make() {
-	local _path
-	local _port
-	local _target
-
-	_port="$1"; : "${_port:?}"
-	_target="$2"; : "${_target:?}"
-
-	_path="$(ports_path "$_port")"
-	make -C "$_path" "PORTSDIR=${CHROOT}${PORTSDIR}" "$_target"
-}
-
-# ports_path [-C] port
-#
-# Get port path, relative to the chroot or not.
-ports_path() {
-	local _chroot="$CHROOT"
-	local _port
+# Exits 0 if the ports build can continue.
+ports_continue() {
+	local _exit
+	local _name
 
 	while [ $# -gt 0 ]; do
 		case "$1" in
-		-C)	_chroot="";;
+		-e)	shift; _exit="$1";;
+		-n)	shift; _name="$1";;
 		*)	break;;
 		esac
 		shift
 	done
-	_port="$1"; : "${_port:?}"
+	: "${_exit:?}"
+	: "${_name:?}"
 
-	if [ -e "${_chroot}${PORTSDIR}/${_port}" ]; then
-		echo "${_chroot}${PORTSDIR}/${_port}" 
-	elif [ -e  "${_chroot}${PORTSDIR}/mystuff/${_port}" ]; then
-		echo "${_chroot}${PORTSDIR}/mystuff/${_port}"
-	else
-		echo "ports_path: ${_port}: no such directory" 1>&2
-		return 1
-	fi
+	# Ignore ports build errors.
+	case "$(cat "${BUILDDIR}/tmp/outdated.log" 2>/dev/null)" in
+	*${_name}*)	return 0;;
+	*)		return "$_exit";;
+	esac
 }
 
 # ports_report_log -e step-exit -n step-name -l step-log -t tmp-dir
