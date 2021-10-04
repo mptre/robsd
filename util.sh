@@ -1631,7 +1631,6 @@ trap_exit() {
 		fi
 	fi
 
-	rm -rf "${_builddir}/tmp"
 	# Do not leave an empty build around.
 	[ -s "${_builddir}/steps" ] || rm -r "$_builddir"
 
