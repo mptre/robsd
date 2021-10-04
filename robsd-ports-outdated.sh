@@ -1,6 +1,8 @@
 . "${EXECDIR}/util.sh"
 
-chroot "$CHROOT" sh -ex <<'EOF' >"${BUILDDIR}/tmp/outdated.log"
+set -o pipefail
+
+chroot "$CHROOT" sh -ex <<'EOF' | tsort -r >"${BUILDDIR}/tmp/outdated.log"
 cd $PORTSDIR
 
 _DEPENDS_CACHE=$(make create_DEPENDS_CACHE); export _DEPENDS_CACHE
@@ -13,7 +15,7 @@ for _p in $PORTS; do
 		[ "$_s1" = "$_s2" ] && continue
 	fi
 
-	echo $_p
+	env "SUBDIR=${_p}" make all-dir-depends
 done
 
 make destroy_DEPENDS_CACHE

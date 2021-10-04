@@ -62,10 +62,6 @@ ports_report_log() {
 		cat "$_log"
 		;;
 	*)
-		if [ "$_exit" -eq 0 ]; then
-			awk '/PLIST\.orig/,EOF' "$_log" | tee "${_tmpdir}/ports"
-			[ -s "${_tmpdir}/ports" ] && return 0
-		fi
 		tail "$_log"
 		;;
 	esac
@@ -94,7 +90,7 @@ ports_report_skip() {
 		return 0
 		;;
 	*)
-		return 1
+		! echo "$PORTS" | grep -q "\<${_name}\>"
 		;;
 	esac
 }
