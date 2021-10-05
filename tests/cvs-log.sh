@@ -102,7 +102,9 @@ if testcase "basic"; then
 fi
 
 if testcase "previous build absent"; then
-	cvs_log -r /dev/null -t "${TSHDIR}/.cvs" -u nobody 2>/dev/null
+	if ! cvs_log -r /dev/null -t "${TSHDIR}/.cvs" -u nobody >"$TMP1" 2>&1; then
+		fail - "expected exit zero" <"$TMP1"
+	fi
 fi
 
 # If the previous build didn't update anything, there's no date header to use

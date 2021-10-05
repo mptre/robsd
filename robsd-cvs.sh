@@ -7,4 +7,5 @@ for _d in "$BSDSRCDIR" "$XSRCDIR"; do
 		tee "${_tmpdir}/cvs.log"
 	find "$_d" -type f -name Root -delete
 	cvs_log -r "$_d" -t "$_tmpdir" -u "$CVSUSER" <"${_tmpdir}/cvs.log"
+	rm "${_tmpdir}/cvs.log"
 done

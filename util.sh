@@ -223,7 +223,7 @@ cvs_log() {
 	while [ $# -gt 0 ]; do
 		case "$1" in
 		-r)	shift; _repo="$1";;
-		-t)	shift; _tmp="$1";;
+		-t)	shift; _tmp="${1}/cvs";;
 		-u)	shift; _user="$1";;
 		*)	break;;
 		esac
@@ -232,6 +232,9 @@ cvs_log() {
 	: "${_repo:?}"
 	: "${_tmp:?}"
 	: "${_user:?}"
+
+	[ -d "$_tmp" ] && rm -r "$_tmp"
+	mkdir -p "$_tmp"
 
 	# Use the date from latest revision from the previous release.
 	for _prev in $(prev_release 0); do
@@ -265,7 +268,7 @@ cvs_log() {
 	grep '^[MPU]\>' |
 	cut -d ' ' -f 2 |
 	unpriv "$_user" "cd ${_repo} && xargs cvs -q log -N -l -d '>${_date}'" |
-	tee "${_tmp}/cvs-log" |
+	tee "${_tmp}/cvs.log" |
 	while read -r _line; do
 		case "$_line" in
 		Working\ file:*)
@@ -917,12 +920,14 @@ report() {
 			echo
 			cat "${_builddir}/tmp/log"
 		fi
+		rm "${_builddir}/tmp/log"
 	done >>"$_tmp"
 
 	# smtpd(8) rejects messages with carriage return not followed by a
 	# newline. Play it safe and let vis(1) encode potential carriage
 	# returns.
 	vis "$_tmp" >"$_report"
+	rm "$_tmp"
 }
 
 # report_duration [-d steps] [-t threshold] duration
