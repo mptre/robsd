@@ -16,4 +16,4 @@ if [ -z "$DISTRIBHOST" ] || [ -z "$DISTRIBPATH" ] || [ -z "$DISTRIBUSER" ]; then
 fi
 
 unpriv "$DISTRIBUSER" "exec ssh ${DISTRIBHOST} rm -f ${DISTRIBPATH}/*"
-unpriv "$DISTRIBUSER" "exec scp ${RELEASEDIR}/* ${DISTRIBHOST}:${DISTRIBPATH}"
+unpriv "$DISTRIBUSER" "exec scp -p ${RELEASEDIR}/* ${DISTRIBHOST}:${DISTRIBPATH}"
