@@ -1668,6 +1668,5 @@ unpriv() (
 
 # Global locals only used in this file. Since this file is source by step
 # scripts, preserve any existing value.
-: "${_MODE:="robsd"}"
 : "${_PROG:=""}"
 : "${_STEPNAME:="unknown"}"

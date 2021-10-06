@@ -97,4 +97,5 @@ SKIPIGNORE=""; export SKIPIGNORE
 
 . "${EXECDIR}/util.sh"
 
+setmode "robsd"
 setprogname "robsd-test"
