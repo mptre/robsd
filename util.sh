@@ -1025,20 +1025,6 @@ report_log() {
 	esac
 }
 
-# report_must step-name
-#
-# Exits 0 if a report must be generated.
-report_must() {
-	local _name
-
-	_name="$1"; : "${_name:?}"
-
-	case "$_name" in
-	end)	return 0;;
-	*)	return 1;;
-	esac
-}
-
 # report_size file
 #
 # If the given file is significantly larger than the same file in the previous
@@ -1166,6 +1152,7 @@ release_dir() {
 robsd() {
 	local _exit
 	local _log
+	local _name
 	local _s
 	local _step
 	local _t0
@@ -1174,41 +1161,41 @@ robsd() {
 	_step="$1"; : "${_step:?}"
 
 	while :; do
-		_STEPNAME="$(step_name "$_step")"
+		_name="$(step_name "$_step")"
 		_s="$_step"
 		_step=$((_step + 1))
 
-		if step_eval -n "$_STEPNAME" "${BUILDDIR}/steps" 2>/dev/null && step_skip; then
-			info "step ${_STEPNAME} skipped"
+		if step_eval -n "$_name" "${BUILDDIR}/steps" 2>/dev/null && step_skip; then
+			info "step ${_name} skipped"
 			continue
 		else
-			info "step ${_STEPNAME}"
+			info "step ${_name}"
 		fi
 
-		if [ "$_STEPNAME" = "end" ]; then
+		if [ "$_name" = "end" ]; then
 			# The duration of the end step is the accumulated
 			# duration.
 			step_end -d "$(duration_total "${BUILDDIR}/steps")" \
-				-n "$_STEPNAME" -s "$_s" "${BUILDDIR}/steps"
+				-n "$_name" -s "$_s" "${BUILDDIR}/steps"
 			return 0
 		fi
 
-		_log="${BUILDDIR}/$(log_id -b "$BUILDDIR" -n "$_STEPNAME" -s "$_s")"
+		_log="${BUILDDIR}/$(log_id -b "$BUILDDIR" -n "$_name" -s "$_s")"
 		_exit=0
 		_t0="$(date '+%s')"
-		step_begin -l "$_log" -n "$_STEPNAME" -s "$_s" "${BUILDDIR}/steps"
-		step_exec -f "${BUILDDIR}/fail" -l "$_log" -s "$_STEPNAME" || \
+		step_begin -l "$_log" -n "$_name" -s "$_s" "${BUILDDIR}/steps"
+		step_exec -f "${BUILDDIR}/fail" -l "$_log" -s "$_name" || \
 			_exit="$?"
 		_t1="$(date '+%s')"
 		step_end -d "$((_t1 - _t0))" -e "$_exit" -l "$_log" \
-			-n "$_STEPNAME" -s "$_s" "${BUILDDIR}/steps"
+			-n "$_name" -s "$_s" "${BUILDDIR}/steps"
 
 		case "$_MODE" in
 		robsd-ports)
-			ports_continue -e "$_exit" -n "$_STEPNAME" || return 1
+			ports_continue -e "$_exit" -n "$_name" || return 1
 			;;
 		robsd-regress)
-			regress_continue -e "$_exit" -n "$_STEPNAME" || return 1
+			regress_continue -e "$_exit" -n "$_name" || return 1
 			;;
 		*)
 			[ "$_exit" -eq 0 ] || return 1
@@ -1216,7 +1203,7 @@ robsd() {
 		esac
 
 		# Reboot in progress?
-		[ "$_STEPNAME" = "reboot" ] && return 0
+		[ "$_name" = "reboot" ] && return 0
 	done
 }
 
@@ -1619,7 +1606,7 @@ trap_exit() {
 	local _builddir=""
 	local _rootdir=""
 
-	info "trap at step ${_STEPNAME}, exit ${_err}"
+	info "trap exit ${_err}"
 
 	while [ $# -gt 0 ]; do
 		case "$1" in
@@ -1635,12 +1622,10 @@ trap_exit() {
 
 	lock_release "$_rootdir" "$_builddir" || :
 
-	if [ "$_err" -ne 0 ] || report_must "$_STEPNAME"; then
-		if report -b "$_builddir"; then
-			# Do not send mail during interactive invocations.
-			if [ "$DETACH" -ne 0 ]; then
-				sendmail root <"${_builddir}/report"
-			fi
+	if report -b "$_builddir"; then
+		# Do not send mail during interactive invocations.
+		if [ "$DETACH" -ne 0 ]; then
+			sendmail root <"${_builddir}/report"
 		fi
 	fi
 
@@ -1665,7 +1650,3 @@ unpriv() (
 	USER="$_user"
 	su "$_user" -c "$@"
 )
-
-# Global locals only used in this file. Since this file is source by step
-# scripts, preserve any existing value.
-: "${_STEPNAME:="unknown"}"
