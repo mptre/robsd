@@ -1310,6 +1310,7 @@ step_end() {
 }
 
 # step_eval offset file
+# step_eval -offset file
 # step_eval -n step-name file
 #
 # Read the given step from file into the _STEP array. The offset argument
