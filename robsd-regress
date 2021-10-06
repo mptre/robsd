@@ -20,6 +20,7 @@ setprogname "robsd-regress"
 config_load "${ROBSDCONF:-/etc/robsd-regress.conf}"
 
 COMMENT=""
+STEP=1
 
 while getopts "Dc:r:" opt; do
 	case "$opt" in

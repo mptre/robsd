@@ -21,6 +21,7 @@ setprogname "robsd-ports"
 config_load "${ROBSDCONF:-/etc/robsd-ports.conf}"
 
 COMMENT=""
+STEP=1
 
 while getopts "Dc:r:s:" opt; do
 	case "$opt" in
