@@ -424,7 +424,7 @@ diff_revert() {
 		_root="$(diff_root -d "${_dir}" "$_diff")"
 		cd "$_root"
 		if unpriv "$CVSUSER" "exec patch -CRfs" \
-			<"$_diff" >/dev/null 2>&1
+		   <"$_diff" >/dev/null 2>&1
 		then
 			info "reverting diff ${_diff}"
 			unpriv "$CVSUSER" "exec patch -ERs" <"$_diff"
