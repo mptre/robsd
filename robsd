@@ -20,7 +20,7 @@ usage() {
 setmode "robsd"
 setprogname "robsd"
 [ "$(id -u)" -ne 0 ] && fatal "must be run as root"
-config_load "${ROBSDCONF:-/etc/robsd.conf}"
+config_load "$(config_path)"
 
 COMMENT=""
 STEP=1

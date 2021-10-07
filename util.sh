@@ -185,6 +185,18 @@ config_load() {
 	XDIFF="$_tmp"
 }
 
+# config_path
+#
+# Get the configuration path based on the execution mode.
+config_path() {
+	case "$_MODE" in
+	robsd)		echo "${ROBSDCONF:-/etc/robsd.conf}";;
+	robsd-ports)	echo "${ROBSDCONF:-/etc/robsd-ports.conf}";;
+	robsd-regress)	echo "${ROBSDCONF:-/etc/robsd-regress.conf}";;
+	*)		return 1;;
+	esac
+}
+
 # cvs_field field log-line
 #
 # Extract the given field from a cvs log line.
@@ -613,6 +625,20 @@ format_size() {
 
 	echo "${_size} ${_d} ${_p}" |
 	awk '{ printf("%.01f%s", $1 / $2, $3) }'
+}
+
+# getmode path
+#
+# Get the execution mode given the binary path.
+getmode() {
+	local _path
+
+	_path="$1"; : "${_path:?}"
+	case "${_path##*/}" in
+	robsd-ports*)	echo "robsd-ports";;
+	robsd-regress*)	echo "robsd-regress";;
+	*)		echo "robsd";;
+	esac
 }
 
 # info message ...
