@@ -49,11 +49,12 @@ Directory rooted on a filesystem mounted with the
 option, see
 .Xr release 8 .
 .It Ev DISTRIBHOST
-Host to upload the final release files to during the distribution step.
+Host to upload the release files to during the distrib step.
 .It Ev DISTRIBPATH
 Directory on
 .Ev DISTRIBHOST
-to upload the final release files to during the distribution step.
+to upload the release files to during the distrib step.
+Note, this directory will be wiped before uploading the new release files.
 .It Ev DISTRIBUSER
 User to perform
 .Xr scp 1
@@ -93,7 +94,7 @@ Steps to skip,
 see corresponding manual for each utility for a list of all available steps.
 May contain multiple steps separated by whitespace.
 .It Ev SIGNIFY
-Private key used to optionally sign the final release files using
+Private key used to optionally sign the release files using
 .Xr signify 1 .
 .It Ev XDIFF
 Path to sticky diff to always apply to the xenocara tree.
@@ -152,7 +153,8 @@ All entries must be relative to
 An entry can optionally be followed by a colon
 .Pq Sq \&:
 and one or many of the following flags:
-.Bl -tag -width Ds -offset indent
+.Pp
+.Bl -tag -compact -width P
 .It P
 Disable
 .Xr make 1
