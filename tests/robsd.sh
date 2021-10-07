@@ -100,6 +100,25 @@ if testcase "basic"; then
 	EOF
 fi
 
+if testcase "reboot"; then
+	config_stub - <<-EOF
+	ROBSDDIR=${ROBSDDIR}
+	EXECDIR=${WRKDIR}/exec
+	EOF
+	mkdir -p "$ROBSDDIR"
+
+	_fail="${TSHDIR}/fail"
+	PATH="${BINDIR}:${PATH}" sh "$ROBSD" >"$TMP1" 2>&1 || : >"$_fail"
+	if [ -e "$_fail" ]; then
+		fail - "expected exit zero" <"$TMP1"
+	fi
+
+	_builddir="${ROBSDDIR}/$(date '+%Y-%m-%d').1"
+	if [ -e "${_builddir}/report" ]; then
+		fail - "expected no report" <"$TMP1"
+	fi
+fi
+
 if testcase "already running"; then
 	config_stub - <<-EOF
 	ROBSDDIR=${ROBSDDIR}

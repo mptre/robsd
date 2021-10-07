@@ -1621,9 +1621,12 @@ trap_exit() {
 
 	lock_release "$_rootdir" "$_builddir" || :
 
-	if report -b "$_builddir"; then
-		# Do not send mail during interactive invocations.
-		if [ "$DETACH" -ne 0 ]; then
+	# Generate the report if a step failed or the end step is reached.
+	if [ "$_err" -ne 0 ] ||
+	   step_eval -n end "${_builddir}/steps" 2>/dev/null
+	then
+		if report -b "$_builddir" && [ "$DETACH" -ne 0 ]; then
+			# Do not send mail during interactive invocations.
 			sendmail root <"${_builddir}/report"
 		fi
 	fi
