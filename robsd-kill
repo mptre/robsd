@@ -1,0 +1,23 @@
+#!/bin/ksh
+
+set -eu
+
+usage() {
+	echo "usage: robsd-kill" 1>&2
+	exit 1
+}
+
+. "${EXECDIR:-/usr/local/libexec/robsd}/util.sh"
+
+[ $# -ne 0 ] && usage
+
+setmode "$(getmode "$0")"
+setprogname "$(getmode "$0")-kill"
+[ "$(id -u)" -ne 0 ] && fatal "must be run as root"
+config_load "$(config_path)"
+
+[ -e "${ROBSDDIR}/.running" ] || fatal "${_MODE} is not running"
+chflags uchg "${ROBSDDIR}/.running"
+while pkill -f "^${ROBSDEXEC:-/usr/local/sbin/libexec/robsd/robsd-exec}" 2>/dev/null; do
+	sleep .1
+done

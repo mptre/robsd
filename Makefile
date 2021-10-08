@@ -52,6 +52,7 @@ DISTFILES+=	robsd-exec.c
 DISTFILES+=	robsd-hash.sh
 DISTFILES+=	robsd-image.sh
 DISTFILES+=	robsd-kernel.sh
+DISTFILES+=	robsd-kill
 DISTFILES+=	robsd-patch.sh
 DISTFILES+=	robsd-ports
 DISTFILES+=	robsd-ports-cvs.sh
@@ -129,6 +130,7 @@ MANLINT+=	robsd.conf.5
 SHLINT+=	${SCRIPTS}
 SHLINT+=	robsd
 SHLINT+=	robsd-clean
+SHLINT+=	robsd-kill
 SHLINT+=	robsd-ports
 SHLINT+=	robsd-regress
 SHLINT+=	robsd-rescue
@@ -162,10 +164,13 @@ install: all
 	mkdir -p ${DESTDIR}${BINDIR}
 	${INSTALL} -m 0755 ${.CURDIR}/robsd ${DESTDIR}${BINDIR}
 	${INSTALL} -m 0755 ${.CURDIR}/robsd-clean ${DESTDIR}${BINDIR}
+	${INSTALL} -m 0755 ${.CURDIR}/robsd-kill ${DESTDIR}${BINDIR}
 	${INSTALL} -m 0755 ${.CURDIR}/robsd-ports ${DESTDIR}${BINDIR}
 	ln -f ${DESTDIR}${BINDIR}/robsd-clean ${DESTDIR}${BINDIR}/robsd-ports-clean
+	ln -f ${DESTDIR}${BINDIR}/robsd-kill ${DESTDIR}${BINDIR}/robsd-ports-kill
 	${INSTALL} -m 0755 ${.CURDIR}/robsd-regress ${DESTDIR}${BINDIR}
 	ln -f ${DESTDIR}${BINDIR}/robsd-clean ${DESTDIR}${BINDIR}/robsd-regress-clean
+	ln -f ${DESTDIR}${BINDIR}/robsd-kill ${DESTDIR}${BINDIR}/robsd-regress-kill
 	${INSTALL} -m 0755 ${.CURDIR}/robsd-rescue ${DESTDIR}${BINDIR}
 	mkdir -p ${DESTDIR}${LIBEXECDIR}/robsd
 	${INSTALL} ${PROG_robsd-exec} ${DESTDIR}${LIBEXECDIR}/robsd

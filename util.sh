@@ -676,6 +676,20 @@ lock_acquire() {
 	echo "$_builddir" >"${_rootdir}/.running"
 }
 
+# lock_alive root-dir build-dir
+#
+# Exits 0 if the lock is still alive as it could be immutable which is
+# signalling that robsd-kill want us dead.
+lock_alive() {
+	local _builddir
+	local _rootdir
+
+	_rootdir="$1"; : "${_rootdir:?}"
+	_builddir="$2"; : "${_builddir:?}"
+	touch "${_rootdir}/.running" 2>/dev/null || return 1
+	echo "$_builddir" | cmp -s - "${_rootdir}/.running"
+}
+
 # lock_release root-dir build-dir
 #
 # Release the mutex lock if we did acquire it.
@@ -687,6 +701,7 @@ lock_release() {
 	_builddir="$2"; : "${_builddir:?}"
 
 	if echo "$_builddir" | cmp -s - "${_rootdir}/.running"; then
+		chflags nouchg "${_rootdir}/.running"
 		rm -f "${_rootdir}/.running"
 	else
 		return 1
@@ -1228,6 +1243,9 @@ robsd() {
 
 		# Reboot in progress?
 		[ "$_name" = "reboot" ] && return 0
+
+		# Does robsd-kill want us dead?
+		lock_alive "$ROBSDDIR" "$BUILDDIR" || return 1
 	done
 }
 

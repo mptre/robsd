@@ -123,6 +123,11 @@ is configured using
 .Xr robsd.conf 5
 and must be run as root.
 Some steps can however operate on behalf of another user.
+Killing
+.Nm
+must be done using
+.Xr robsd-kill 8
+to ensure a clean exit.
 .Pp
 The options are as follows:
 .Bl -tag -width Ds
@@ -171,6 +176,7 @@ The default configuration file.
 .Xr robsd.conf 5 ,
 .Xr release 8 ,
 .Xr robsd-clean 8 ,
+.Xr robsd-kill 8 ,
 .Xr robsd-ports 8 ,
 .Xr robsd-regress 8 ,
 .Xr robsd-rescue 8
