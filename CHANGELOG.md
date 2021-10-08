@@ -1,3 +1,11 @@
+# 5.0.1 - 2021-10-08
+
+## Bug fixes
+
+- Fix robsd-exec path in robsd-kill.
+  (6586a6f)
+  (Anton Lindqvist)
+
 # 5.0.0 - 2021-10-08
 
 ## Changes
