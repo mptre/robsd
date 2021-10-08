@@ -18,6 +18,6 @@ config_load "$(config_path)"
 
 [ -e "${ROBSDDIR}/.running" ] || fatal "${_MODE} is not running"
 chflags uchg "${ROBSDDIR}/.running"
-while pkill -f "^${ROBSDEXEC:-/usr/local/sbin/libexec/robsd/robsd-exec}" 2>/dev/null; do
+while pkill -f "^${ROBSDEXEC:-/usr/local/libexec/robsd/robsd-exec}" 2>/dev/null; do
 	sleep .1
 done
