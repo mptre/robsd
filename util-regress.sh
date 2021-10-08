@@ -9,6 +9,8 @@ regress_config_load() {
 
 	# Prevent tests from picking up compiler flags in bsd.sys.mk.
 	unset DESTDIR
+	# Not suited for parallelism.
+	unset MAKEFLAGS
 
 	for _t in ${TESTS:-}; do
 		_flags="${_t##*:}"
@@ -19,7 +21,6 @@ regress_config_load() {
 		# shellcheck disable=SC2001
 		for _f in $(echo "$_flags" | sed -e 's/\(.\)/\1 /g'); do
 			case "$_f" in
-			P)	NOTPARALLEL="${NOTPARALLEL}${NOTPARALLEL:+ }${_t}";;
 			R)	REGRESSROOT="${REGRESSROOT}${REGRESSROOT:+ }${_t}";;
 			S)	SKIPIGNORE="${SKIPIGNORE}${SKIPIGNORE:+ }${_t}";;
 			*)	fatal "unknown regress test flag '${_f}'";;
@@ -64,16 +65,6 @@ regress_failed() {
 
 	_log="$1"; : "${_log:?}"
 	grep -q '^FAILED$' "$_log"
-}
-
-# regress_parallel test
-#
-# Exits zero if the given regress test is suitable for make parallelism.
-regress_parallel() {
-	local _test
-
-	_test="$1"; : "${_test:?}"
-	! echo "$NOTPARALLEL" | grep -q "\<${_test}\>"
 }
 
 # regress_report_log -e step-exit -n step-name -l step-log -t tmp-dir

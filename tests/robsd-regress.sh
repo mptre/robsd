@@ -9,7 +9,7 @@ if testcase "basic"; then
 	EXECDIR=${EXECDIR}
 	REGRESSUSER=nobody
 	SUDO=doas
-	TESTS="test/fail test/hello:P test/root:R"
+	TESTS="test/fail test/hello test/root:R"
 	EOF
 	mkdir "$ROBSDDIR"
 	mkdir -p "${TSHDIR}/regress/test/fail"

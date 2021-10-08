@@ -127,7 +127,6 @@ config_load() {
 
 	# Variables only honored by robsd-regress.
 	if [ "$_MODE" = "robsd-regress" ]; then
-		NOTPARALLEL=""; export NOTPARALLEL
 		REGRESSROOT=""; export REGRESSROOT
 		REGRESSUSER=""; export REGRESSUSER
 		SKIPIGNORE=""

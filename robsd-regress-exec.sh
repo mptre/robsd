@@ -1,6 +1,5 @@
 . "${EXECDIR}/util.sh"
 
-regress_parallel "$1" || unset MAKEFLAGS
 if regress_root "$1"; then
 	unset SUDO
 	exec make -C "${BSDSRCDIR}/regress/${1}"
