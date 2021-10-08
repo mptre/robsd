@@ -1,3 +1,35 @@
+# 5.0.0 - 2021-10-08
+
+## Changes
+
+- Remove no parallel robsd-regress flag support, defaults to running with make
+  parallelism disabled.
+  (87d97ab)
+  (Anton Lindqvist)
+
+## News
+
+- Keep temporary directory around, useful while debugging.
+  (8ef532e)
+  (Anton Lindqvist)
+
+- Build all dependenices in robsd-ports.
+  (cc3dcd6)
+  (Anton Lindqvist)
+
+- Add robsd-kill utility.
+  Especially useful when killing robsd-ports or robsd-regress since they
+  continue despite encountering a failing step.
+  (0e9bf63)
+  (Anton Lindqvist)
+
+## Bug fixes
+
+- Do not ignore non-zero exits during default steps in robsd-ports and
+  robsd-regress.
+  (a969593)
+  (Anton Lindqvist)
+
 # 4.1.0 - 2021-10-03
 
 ## News
