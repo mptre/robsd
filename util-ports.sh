@@ -27,7 +27,7 @@ ports_continue() {
 	: "${_name:?}"
 
 	# Ignore ports build errors.
-	case "$(cat "${BUILDDIR}/tmp/outdated.log" 2>/dev/null)" in
+	case "$(cat "${BUILDDIR}/tmp/outdated" 2>/dev/null)" in
 	*${_name}*)	return 0;;
 	*)		return "$_exit";;
 	esac
@@ -102,9 +102,9 @@ ports_report_skip() {
 #
 # Get the step names in execution order.
 ports_steps() {
-	local _outdated="${BUILDDIR}/tmp/outdated.log"
+	local _outdated="${BUILDDIR}/tmp/outdated"
 
-	# The outdated.log will eventually be populated by the outdated step.
+	# The outdated file will eventually be populated by the outdated step.
 	xargs printf '%s\n' <<-EOF
 	env
 	cvs

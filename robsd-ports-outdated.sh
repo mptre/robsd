@@ -2,7 +2,7 @@
 
 set -o pipefail
 
-chroot "$CHROOT" sh -ex <<'EOF' | tsort -r >"${BUILDDIR}/tmp/outdated.log"
+chroot "$CHROOT" sh -ex <<'EOF' | tsort -r >"${BUILDDIR}/tmp/outdated"
 cd $PORTSDIR
 
 _DEPENDS_CACHE=$(make create_DEPENDS_CACHE); export _DEPENDS_CACHE
