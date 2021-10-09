@@ -1,6 +1,14 @@
 . "${EXECDIR}/util.sh"
 
 chroot "$CHROOT" sh -esux -- "$1" <<'EOF'
+
+dependency() {
+	case "$PORTS" in
+	*${1}*)	return 1;;
+	*)	return 0;;
+	esac
+}
+
 PROGRESS_METER=No; export PROGRESS_METER
 
 cd "$PORTSDIR"
@@ -8,7 +16,8 @@ cd "$PORTSDIR"
 _d="$(env "SUBDIR=${1}" make show=.CURDIR | grep -v '^===> ')"
 cd "$_d"
 
-make clean=all
+# Reuse already built dependencies.
+dependency "$1" || make clean=all
 make package
 make install
 EOF
