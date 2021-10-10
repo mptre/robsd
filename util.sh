@@ -1432,7 +1432,7 @@ step_exec() (
 	local _log
 	local _exec
 	local _step
-	local _robsdexec="${ROBSDEXEC:-${EXECDIR}/robsd-exec}"
+	local _robsdexec="${ROBSDEXEC:-${EXECDIR}/${_MODE}-exec}"
 
 	while [ $# -gt 0 ]; do
 		case "$1" in

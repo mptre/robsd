@@ -16,8 +16,10 @@ setprogname "$(getmode "$0")-kill"
 [ "$(id -u)" -ne 0 ] && fatal "must be run as root"
 config_load "$(config_path)"
 
+EXEC="${ROBSDEXEC:-/usr/local/libexec/robsd/${_MODE}-exec}"
+
 [ -e "${ROBSDDIR}/.running" ] || fatal "${_MODE} is not running"
 chflags uchg "${ROBSDDIR}/.running"
-while pkill -f "^${ROBSDEXEC:-/usr/local/libexec/robsd/robsd-exec}" 2>/dev/null; do
+while pkill -f "^${EXEC}" 2>/dev/null; do
 	sleep .1
 done
