@@ -1,3 +1,15 @@
+# 5.0.2 - 2021-10-10
+
+## Bug fixes
+
+- Install robsd-kill manual.
+  (7e6a13f)
+  (Anton Lindqvist)
+
+- Make robsd-kill kill the correct corresponding robsd utility.
+  (de9e860)
+  (Anton Lindqvist)
+
 # 5.0.1 - 2021-10-08
 
 ## Bug fixes
