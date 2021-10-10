@@ -24,5 +24,8 @@ fi
 xargs ls -nT <"${BUILDDIR}/tmp/distrib" |
 sed -e 's,/.*/,,' >"${BUILDDIR}/tmp/index.txt"
 
-unpriv "$DISTRIBUSER" "exec ssh ${DISTRIBHOST} rm -f ${DISTRIBPATH}/*"
-unpriv "$DISTRIBUSER" "exec scp -p $(xargs <"${BUILDDIR}/tmp/distrib") ${BUILDDIR}/tmp/SHA256* ${BUILDDIR}/tmp/index.txt ${DISTRIBHOST}:${DISTRIBPATH}"
+unpriv "$DISTRIBUSER" <<EOF
+ssh -n ${DISTRIBHOST} rm -f ${DISTRIBPATH}/*
+cd ${BUILDDIR}/tmp
+scp -p \$(<distrib) SHA256* index.txt ${DISTRIBHOST}:${DISTRIBPATH}
+EOF

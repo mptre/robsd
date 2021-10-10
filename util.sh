@@ -1681,8 +1681,9 @@ trap_exit() {
 }
 
 # unpriv user utility argument ...
+# unpriv user
 #
-# Run utility as the given user.
+# Run utility or stdin as the given user.
 unpriv() (
 	local _user
 
@@ -1693,5 +1694,9 @@ unpriv() (
 	# tests.
 	LOGNAME="$_user"
 	USER="$_user"
-	su "$_user" -c "$@"
+	if [ $# -gt 0 ]; then
+		su "$_user" -c "$@"
+	else
+		su "$_user" -sx
+	fi
 )
