@@ -53,6 +53,7 @@ DISTFILES+=	robsd-hash.sh
 DISTFILES+=	robsd-image.sh
 DISTFILES+=	robsd-kernel.sh
 DISTFILES+=	robsd-kill
+DISTFILES+=	robsd-kill.8
 DISTFILES+=	robsd-patch.sh
 DISTFILES+=	robsd-ports
 DISTFILES+=	robsd-ports-cvs.sh
@@ -182,6 +183,7 @@ install: all
 	@mkdir -p ${DESTDIR}${MANDIR}/man8
 	${INSTALL_MAN} ${.CURDIR}/robsd.8 ${DESTDIR}${MANDIR}/man8
 	${INSTALL_MAN} ${.CURDIR}/robsd-clean.8 ${DESTDIR}${MANDIR}/man8
+	${INSTALL_MAN} ${.CURDIR}/robsd-kill.8 ${DESTDIR}${MANDIR}/man8
 	${INSTALL_MAN} ${.CURDIR}/robsd-ports.8 ${DESTDIR}${MANDIR}/man8
 	${INSTALL_MAN} ${.CURDIR}/robsd-regress.8 ${DESTDIR}${MANDIR}/man8
 	${INSTALL_MAN} ${.CURDIR}/robsd-rescue.8 ${DESTDIR}${MANDIR}/man8
