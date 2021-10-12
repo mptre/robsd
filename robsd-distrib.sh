@@ -17,5 +17,5 @@ fi
 
 unpriv "$DISTRIBUSER" <<EOF
 ssh -n ${DISTRIBHOST} rm -f ${DISTRIBPATH}/*
-scp -p ${RELEASEDIR}/* ${DISTRIBHOST}:${DISTRIBPATH}
+cd ${RELEASEDIR} && exec scp -p * ${DISTRIBHOST}:${DISTRIBPATH}
 EOF
