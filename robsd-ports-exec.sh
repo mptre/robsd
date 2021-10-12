@@ -11,15 +11,12 @@ dependency() {
 
 PROGRESS_METER=No; export PROGRESS_METER
 
-cd "$PORTSDIR"
-
-_d="$(env "SUBDIR=${1}" make show=.CURDIR | grep -v '^===> ')"
-cd "$_d"
+_make="env "SUBDIR=${1}" make -C ${PORTSDIR}"
 
 # Reuse already built dependencies.
-dependency "$1" || make clean=all
-make package
-make install
+dependency "$1" || $_make clean=all
+$_make package
+$_make install
 EOF
 
 [ -n "$SIGNIFY" ] || exit 0
