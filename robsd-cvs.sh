@@ -2,10 +2,14 @@
 
 _tmpdir="${BUILDDIR}/tmp"
 
-for _d in "$BSDSRCDIR" "$XSRCDIR"; do
+{
+echo src "$BSDSRCDIR"
+echo xenocara "$XSRCDIR"
+} | while read -r _n _d; do
+	_ci="${_tmpdir}/cvs-${_n}-ci.log"
+	_up="${_tmpdir}/cvs-${_n}-up.log"
 	unpriv "$CVSUSER" "cd ${_d} && exec cvs -q -d ${CVSROOT} update -Pd" 2>&1 |
-		tee "${_tmpdir}/cvs.log"
+		tee "$_up"
 	find "$_d" -type f -name Root -delete
-	cvs_log -r "$_d" -t "$_tmpdir" -u "$CVSUSER" <"${_tmpdir}/cvs.log"
-	rm "${_tmpdir}/cvs.log"
+	cvs_log -r "$_d" -t "$_tmpdir" -u "$CVSUSER" <"$_up" | tee "$_ci"
 done
