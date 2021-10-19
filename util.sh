@@ -1018,8 +1018,9 @@ report_duration() {
 # Writes an excerpt of the given step log.
 report_log() {
 	local _exit
-	local _name
+	local _f
 	local _log
+	local _name
 	local _tmpdir
 
 	case "$_MODE" in
@@ -1051,8 +1052,20 @@ report_log() {
 	: "${_tmpdir:?}"
 
 	case "$_name" in
-	env|cvs|patch|checkflist|reboot|revert|distrib)
+	env|patch|checkflist|reboot|revert|distrib)
 		cat "$_log"
+		;;
+	cvs)
+		cat <<-EOF | while read -r _f
+		${_tmpdir}/cvs-src-up.log
+		${_tmpdir}/cvs-src-ci.log
+		${_tmpdir}/cvs-xenocara-up.log
+		${_tmpdir}/cvs-xenocara-ci.log
+		EOF
+		do
+			[ -s "$_f" ] || continue
+			cat "$_f"; echo
+		done
 		;;
 	kernel)
 		tail -n 11 "$_log"

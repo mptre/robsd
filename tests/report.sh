@@ -18,7 +18,8 @@ if testcase "basic"; then
 	# shellcheck disable=SC2086
 	mkdir -p ${ROBSDDIR}/2019-02-{22,23}
 	echo "comment goes here" >"${BUILDDIR}/comment"
-	echo "cvs log" >"${BUILDDIR}/cvs.log"
+	echo "cvs src update" >"${BUILDDIR}/tmp/cvs-src-up.log"
+	echo "cvs src commits" >"${BUILDDIR}/tmp/cvs-src-ci.log"
 	cat <<-EOF >"${BUILDDIR}/steps"
 	step="1" name="env" exit="0" duration="0" log="${BUILDDIR}/env.log" user="root" time="0"
 	step="2" name="cvs" exit="0" duration="358" log="${BUILDDIR}/cvs.log" user="root" time="0"
@@ -55,7 +56,10 @@ if testcase "basic"; then
 	Duration: 00:05:58 (+00:01:00)
 	Log: cvs.log
 
-	cvs log
+	cvs src update
+
+	cvs src commits
+
 	EOF
 
 	report -b "$BUILDDIR"
@@ -84,8 +88,6 @@ if testcase "failure"; then
 	Exit: 0
 	Duration: 00:00:11
 	Log: cvs.log
-
-	cvs log
 
 	> env:
 	Exit: 1
