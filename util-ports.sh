@@ -58,7 +58,17 @@ ports_report_log() {
 	: "${_tmpdir:?}"
 
 	case "$_name" in
-	cvs|distrib)
+	cvs)
+		cat <<-EOF | while read -r _f
+		${_tmpdir}/cvs-ports-up.log
+		${_tmpdir}/cvs-ports-ci.log
+		EOF
+		do
+			[ -s "$_f" ] || continue
+			cat "$_f"; echo
+		done
+		;;
+	distrib)
 		cat "$_log"
 		;;
 	*)
