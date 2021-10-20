@@ -59,7 +59,6 @@ if testcase "basic"; then
 	cvs src update
 
 	cvs src commits
-
 	EOF
 
 	report -b "$BUILDDIR"

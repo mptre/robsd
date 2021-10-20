@@ -955,6 +955,7 @@ report() {
 		report_log -e "$_exit" -n "$_name" -l "$_log" \
 			-t "${_builddir}/tmp" >"${_builddir}/tmp/log"
 		if [ -s "${_builddir}/tmp/log" ]; then
+			trimfile "${_builddir}/tmp/log"
 			echo
 			cat "${_builddir}/tmp/log"
 		fi
@@ -1691,6 +1692,18 @@ trap_exit() {
 	[ -s "${_builddir}/steps" ] || rm -r "$_builddir"
 
 	return "$_err"
+}
+
+# trimfile path
+#
+# Remove empty lines at the end of the given file.
+trimfile() {
+	local _path
+
+	_path="$1"; : "${_path:?}"
+	while [ "$(sed -n -e '$p' "$_path")" = "" ]; do
+		sed -i -e '$d' "$_path"
+	done
 }
 
 # unpriv user utility argument ...
