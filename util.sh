@@ -948,7 +948,8 @@ report() {
 
 		_duration="$(step_value duration)"
 
-		printf '\n> %s:\n' "$_name"
+		printf '\n'
+		printf '> %s:\n' "$_name"
 		printf 'Exit: %d\n' "$_exit"
 		printf 'Duration: %s\n' "$(report_duration -d "$_name" "$_duration")"
 		printf 'Log: %s\n' "$(basename "$_log")"
@@ -956,8 +957,7 @@ report() {
 			-t "${_builddir}/tmp" >"${_builddir}/tmp/log"
 		if [ -s "${_builddir}/tmp/log" ]; then
 			trimfile "${_builddir}/tmp/log"
-			echo
-			cat "${_builddir}/tmp/log"
+			echo; cat "${_builddir}/tmp/log"
 		fi
 		rm "${_builddir}/tmp/log"
 	done >>"$_tmp"
