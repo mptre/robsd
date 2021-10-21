@@ -60,6 +60,7 @@ if testcase "basic"; then
 	# Remove non stable output.
 	sed -i -e '/running as pid/d' -e '/robsd-exec:/d' "$TMP1"
 	_builddir="${ROBSDDIR}/$(date '+%Y-%m-%d').1"
+	_user="$(logname)"
 	assert_file - "$TMP1" <<-EOF
 	robsd: using directory ${_builddir} at step 1
 	robsd: using diff ${TSHDIR}/src.diff rooted at ${TSHDIR}
@@ -67,33 +68,33 @@ if testcase "basic"; then
 	robsd: skipping steps: reboot
 	robsd: step env
 	robsd: step cvs
-	robsd: invoking hook: ${_hook} ${_builddir} cvs 0
+	robsd: invoking hook: ${_hook} ${_builddir} cvs 0 ${_user}
 	robsd: step patch
-	robsd: invoking hook: ${_hook} ${_builddir} patch 0
+	robsd: invoking hook: ${_hook} ${_builddir} patch 0 ${_user}
 	robsd: step kernel
-	robsd: invoking hook: ${_hook} ${_builddir} kernel 0
+	robsd: invoking hook: ${_hook} ${_builddir} kernel 0 ${_user}
 	robsd: step reboot skipped
 	robsd: step env
 	robsd: step base
-	robsd: invoking hook: ${_hook} ${_builddir} base 0
+	robsd: invoking hook: ${_hook} ${_builddir} base 0 ${_user}
 	robsd: step release
-	robsd: invoking hook: ${_hook} ${_builddir} release 0
+	robsd: invoking hook: ${_hook} ${_builddir} release 0 ${_user}
 	robsd: step checkflist
-	robsd: invoking hook: ${_hook} ${_builddir} checkflist 0
+	robsd: invoking hook: ${_hook} ${_builddir} checkflist 0 ${_user}
 	robsd: step xbase
-	robsd: invoking hook: ${_hook} ${_builddir} xbase 0
+	robsd: invoking hook: ${_hook} ${_builddir} xbase 0 ${_user}
 	robsd: step xrelease
-	robsd: invoking hook: ${_hook} ${_builddir} xrelease 0
+	robsd: invoking hook: ${_hook} ${_builddir} xrelease 0 ${_user}
 	robsd: step image
-	robsd: invoking hook: ${_hook} ${_builddir} image 0
+	robsd: invoking hook: ${_hook} ${_builddir} image 0 ${_user}
 	robsd: step hash
-	robsd: invoking hook: ${_hook} ${_builddir} hash 0
+	robsd: invoking hook: ${_hook} ${_builddir} hash 0 ${_user}
 	robsd: step revert
-	robsd: invoking hook: ${_hook} ${_builddir} revert 0
+	robsd: invoking hook: ${_hook} ${_builddir} revert 0 ${_user}
 	robsd: step distrib
-	robsd: invoking hook: ${_hook} ${_builddir} distrib 0
+	robsd: invoking hook: ${_hook} ${_builddir} distrib 0 ${_user}
 	robsd: step end
-	robsd: invoking hook: ${_hook} ${_builddir} end 0
+	robsd: invoking hook: ${_hook} ${_builddir} end 0 ${_user}
 	stdout
 	stderr
 	robsd: trap exit 0

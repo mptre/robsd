@@ -1313,6 +1313,7 @@ step_end() {
 	local _name
 	local _s
 	local _skip=""
+	local _user
 
 	while [ $# -gt 0 ]; do
 		case "$1" in
@@ -1330,6 +1331,8 @@ step_end() {
 	: "${_s:?}"
 	_file="$1"; : "${_file:?}"
 
+	_user="$(logname)"
+
 	# Remove any existing entry for the same step, could be present if a
 	# previous execution failed.
 	[ -e "$_file" ] && sed -i -e "/step=\"${_s}\"/d" "$_file"
@@ -1345,7 +1348,7 @@ step_end() {
 			printf 'exit="%d"\n' "$_e"
 			printf 'duration="%d"\n' "$_d"
 			printf 'log="%s"\n' "$_log"
-			printf 'user="%s"\n' "$(logname)"
+			printf 'user="%s"\n' "$_user"
 			printf 'time="%d"\n' "$(date '+%s')"
 		fi
 	} | paste -s -d ' ' - >>"$_file"
@@ -1358,9 +1361,10 @@ step_end() {
 	# Only invoke the hook if the step has ended. A duration of -1 is a
 	# sentinel indicating that the step has just begun.
 	if [ -n "$HOOK" ] && [ "$_d" -ne -1 ] && [ "$_name" != "env" ]; then
-		info "invoking hook: ${HOOK} ${BUILDDIR} ${_name} ${_e}"
+		info "invoking hook: ${HOOK}" \
+			"${BUILDDIR} ${_name} ${_e} ${_user}"
 		# Ignore non-zero exit.
-		"$HOOK" "$BUILDDIR" "$_name" "$_e" || :
+		"$HOOK" "$BUILDDIR" "$_name" "$_e" "$_user" || :
 	fi
 }
 
