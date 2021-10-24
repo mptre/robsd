@@ -260,12 +260,11 @@ cvs_log() {
 		fi
 		_date="$(grep -m 1 '^Date:' "$_log" | sed -e 's/^[^:]*: *//')"
 		if [ -n "$_date" ]; then
-			_date="$(date -j -f '%Y/%m/%d %H:%M:%S' +'%F %T' "$_date")"
+			_date="$(date -j -f '%Y/%m/%d %H:%M:%S' '+%s' "$_date")"
 		else
 			if ! _date="$(step_value time 2>/dev/null)"; then
 				continue
 			fi
-			_date="$(date -r "$_date" '+%F %T')"
 		fi
 		[ -n "$_date" ] && break
 	done
@@ -273,6 +272,7 @@ cvs_log() {
 		echo "cvs_log: previous date not found" 1>&2
 		return 0
 	fi
+	_date="$(date -r "$_date" '+%F %T')"
 
 	grep '^[MPU]\>' |
 	cut -d ' ' -f 2 |
