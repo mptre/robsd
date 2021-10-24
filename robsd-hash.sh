@@ -15,9 +15,15 @@ fi
 
 cd "$RELDIR"
 
-# Adjust BUILDINFO by setting the date to the start of the build and add id.
 {
+	# Set the date to the start of the build.
 	date -u -r "$(build_date)" "+Build date: %s - %+"
+	# Include date of the last CVS revision.
+	for _dir in "$BUILDDIR" $(prev_release 0); do
+		_date="$(cvs_date "$_dir")" || continue
+		date -u -r "$_date" "+Build cvs date: %s - %+"
+		break
+	done
 	echo "Build id: ${BUILDDIR##*/}"
 } >BUILDINFO
 

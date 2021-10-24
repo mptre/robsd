@@ -212,6 +212,31 @@ cvs_field() {
 	echo "$_line"
 }
 
+# cvs_date release-dir
+#
+# Get the date of the CVS update invocation expressed as a Unix timestamp for
+# the given release.
+cvs_date() {
+	local _dir
+	local _log
+
+	_dir="$1"; : "${_dir:?}"
+
+	step_eval -n cvs "${_dir}/steps"
+	step_skip && return 1
+
+	# Try to find the date of the last revision in the log, i.e. the first
+	# entry written by cvs_log(). If nothing was updated, use the step
+	# execution date of the cvs step as a fallback.
+	_log="$(step_value log 2>/dev/null)"
+	_date="$(grep -m 1 '^Date:' "$_log" | sed -e 's/^[^:]*: *//')"
+	if [ -n "$_date" ]; then
+		date -j -f '%Y/%m/%d %H:%M:%S' '+%s' "$_date"
+	else
+		step_value time
+	fi
+}
+
 # cvs_log -r cvs-dir -t tmp-dir -u user
 #
 # Generate a descending log of all commits since the last release build for the
@@ -247,26 +272,7 @@ cvs_log() {
 
 	# Use the date from latest revision from the previous release.
 	for _prev in $(prev_release 0); do
-		# Find cvs date threshold. By default, try to use the date from
-		# the last revision from the previous release. Otherwise if the
-		# previous release didn't include any new revisions, use the
-		# execution date of the cvs step from the previous release.
-		step_eval -n cvs "${_prev}/steps"
-
-		step_skip && continue
-
-		if ! _log="$(step_value log 2>/dev/null)"; then
-			continue
-		fi
-		_date="$(grep -m 1 '^Date:' "$_log" | sed -e 's/^[^:]*: *//')"
-		if [ -n "$_date" ]; then
-			_date="$(date -j -f '%Y/%m/%d %H:%M:%S' '+%s' "$_date")"
-		else
-			if ! _date="$(step_value time 2>/dev/null)"; then
-				continue
-			fi
-		fi
-		[ -n "$_date" ] && break
+		_date="$(cvs_date "$_prev")" && break
 	done
 	if [ -z "$_date" ]; then
 		echo "cvs_log: previous date not found" 1>&2
