@@ -6,11 +6,12 @@ usage() {
 	xargs 1>&2 <<-EOF
 	usage: robsd
 	[-D]
+	[-S src-diff]
+	[-X xenocara-diff]
 	[-c comment]
 	[-r path]
 	[-s step]
-	[-S src-diff]
-	[-X xenocara-diff]
+	[-t tag]
 	EOF
 	exit 1
 }
@@ -25,7 +26,7 @@ config_load "$(config_path)"
 COMMENT=""
 STEP=1
 
-while getopts "DS:X:c:r:s:" opt; do
+while getopts "DS:X:c:r:s:t:" opt; do
 	case "$opt" in
 	D)	DETACH=1;;
 	S)	BSDDIFF="${BSDDIFF}${BSDDIFF:+ }$(readlink -f "${OPTARG}")";;
@@ -33,6 +34,7 @@ while getopts "DS:X:c:r:s:" opt; do
 	c)	COMMENT="$OPTARG";;
 	r)	BUILDDIR="$(readlink -f "$OPTARG")";;
 	s)	SKIP="${SKIP}${SKIP:+ }${OPTARG}";;
+	t)	TAGS="${TAGS}${TAGS:+ }${OPTARG}";;
 	*)	usage;;
 	esac
 done
@@ -65,6 +67,9 @@ if [ "$STEP" -eq 1 ]; then
 			# shellcheck disable=SC2030
 			[ -n "$XDIFF" ] && echo "$XDIFF" | xargs ls
 		} >"${BUILDDIR}/comment"
+	fi
+	if [ -n "$TAGS" ]; then
+		echo "$TAGS" >"${BUILDDIR}/tags"
 	fi
 fi
 

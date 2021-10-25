@@ -8,6 +8,7 @@ usage() {
 	[-D]
 	[-c comment]
 	[-r path]
+	[-t tag]
 	EOF
 	exit 1
 }
@@ -22,11 +23,12 @@ config_load "$(config_path)"
 COMMENT=""
 STEP=1
 
-while getopts "Dc:r:" opt; do
+while getopts "Dc:r:t:" opt; do
 	case "$opt" in
 	D)	DETACH=1;;
 	c)	COMMENT="$OPTARG";;
 	r)	BUILDDIR="$(readlink -f "$OPTARG")";;
+	t)	TAGS="${TAGS}${TAGS:+ }${OPTARG}";;
 	*)	usage;;
 	esac
 done
@@ -50,6 +52,9 @@ lock_acquire "$ROBSDDIR" "$BUILDDIR" || exit 1
 if [ "$STEP" -eq 1 ]; then
 	if [ -n "$COMMENT" ]; then
 		cat "$COMMENT" >"${BUILDDIR}/comment"
+	fi
+	if [ -n "$TAGS" ]; then
+		echo "$TAGS" >"${BUILDDIR}/tags"
 	fi
 fi
 

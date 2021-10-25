@@ -112,6 +112,8 @@ config_load() {
 	SIGNIFY=""; export SIGNIFY
 	# shellcheck disable=SC2034
 	SKIP=""
+	# shellcheck disable=SC2034
+	TAGS=""
 	XDIFF=""; export XDIFF
 	XOBJDIR="/usr/xobj"; export XOBJDIR
 	XSRCDIR="/usr/xenocara"; export XSRCDIR
@@ -936,6 +938,11 @@ report() {
 		Duration: ${_duration}
 		Build: ${_builddir}
 		EOF
+
+		if [ -e  "${_builddir}/tags" ]; then
+			printf 'Tags: '
+			cat "${_builddir}/tags"
+		fi
 
 		report_sizes "$(release_dir "$_builddir")"
 	} >>"$_tmp"

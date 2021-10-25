@@ -11,6 +11,7 @@
 .Op Fl X Ar xenocara-diff
 .Op Fl c Ar comment
 .Op Fl s Ar step
+.Op Fl t Ar tag
 .Nm
 .Op Fl D
 .Fl r Ar path
@@ -116,6 +117,9 @@ while running in detached mode.
 .It Pa steps
 Internal representation of the executed steps.
 This file should never be edited manually.
+.It Pa tags
+Tags included in
+.Pa report .
 .El
 .Pp
 .Nm
@@ -163,6 +167,10 @@ Otherwise, the next step will be executed.
 Skip
 .Ar step ,
 see enumerated steps above.
+May be given multiple times.
+.It Fl t Ar tag
+Arbitrary tag used to annotate the invocation which is included in
+.Pa report .
 May be given multiple times.
 .El
 .Sh FILES

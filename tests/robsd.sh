@@ -48,7 +48,7 @@ if testcase "basic"; then
 	_fail="${TSHDIR}/fail"
 	PATH="${BINDIR}:${PATH}" sh "$ROBSD" \
 		-S "${TSHDIR}/src.diff" -X "${TSHDIR}/xenocara.diff" \
-		-s reboot \
+		-s reboot -t daily \
 		>"$TMP1" 2>&1 || : >"$_fail"
 	if [ -e "$_fail" ]; then
 		fail - "expected exit zero" <"$TMP1"
@@ -56,10 +56,12 @@ if testcase "basic"; then
 	if [ -e "${ROBSDDIR}/.running" ]; then
 		fail - "lock not removed" <"$TMP1"
 	fi
+	_builddir="${ROBSDDIR}/$(date '+%Y-%m-%d').1"
+
+	echo daily | assert_file - "${_builddir}/tags"
 
 	# Remove non stable output.
 	sed -i -e '/running as pid/d' -e '/robsd-exec:/d' "$TMP1"
-	_builddir="${ROBSDDIR}/$(date '+%Y-%m-%d').1"
 	_user="$(logname)"
 	assert_file - "$TMP1" <<-EOF
 	robsd: using directory ${_builddir} at step 1

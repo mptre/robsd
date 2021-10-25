@@ -8,6 +8,7 @@
 .Nm robsd-regress
 .Op Fl D
 .Op Fl c Ar comment
+.Op Fl t Ar tag
 .Nm
 .Op Fl D
 .Fl r Ar path
@@ -53,6 +54,9 @@ while running in detached mode.
 .It Pa steps
 Internal representation of the executed steps.
 This file should never be edited manually.
+.It Pa tags
+Tags included in
+.Pa report .
 .El
 .Pp
 .Nm
@@ -80,6 +84,10 @@ Resume a run located at
 .Ar path .
 If the last regression test failed or aborted, it will be executed again.
 Otherwise, the next regression test will be executed.
+.It Fl t Ar tag
+Arbitrary tag used to annotate the invocation which is included in
+.Pa report .
+May be given multiple times.
 .El
 .Sh FILES
 .Bl -tag -width Ds

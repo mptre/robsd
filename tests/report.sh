@@ -17,6 +17,7 @@ if testcase "basic"; then
 	XDIFF=""; export XDIFF
 	# shellcheck disable=SC2086
 	mkdir -p ${ROBSDDIR}/2019-02-{22,23}
+	echo "daily" >"${BUILDDIR}/tags"
 	echo "comment goes here" >"${BUILDDIR}/comment"
 	echo "cvs src update" >"${BUILDDIR}/tmp/cvs-src-up.log"
 	echo "cvs src commits" >"${BUILDDIR}/tmp/cvs-src-ci.log"
@@ -49,6 +50,7 @@ if testcase "basic"; then
 	Status: ok
 	Duration: 01:00:00
 	Build: ${BUILDDIR}
+	Tags: daily
 	Size: bsd.rd 2.0M (+1.0M)
 
 	> cvs:

@@ -9,6 +9,7 @@
 .Op Fl D
 .Op Fl c Ar comment
 .Op Fl s Ar step
+.Op Fl t Ar tag
 .Nm robsd-ports
 .Op Fl D
 .Fl r Ar path
@@ -78,6 +79,9 @@ while running in detached mode.
 .It Pa steps
 Internal representation of the executed steps.
 This file should never be edited manually.
+.It Pa tags
+Tags included in
+.Pa report .
 .El
 .Pp
 .Nm
@@ -105,6 +109,10 @@ Resume a ports build located at
 .Ar path .
 If the last port failed or aborted, it will be built again.
 Otherwise, the next port will be built.
+.It Fl t Ar tag
+Arbitrary tag used to annotate the invocation which is included in
+.Pa report .
+May be given multiple times.
 .El
 .Sh FILES
 .Bl -tag -width Ds
