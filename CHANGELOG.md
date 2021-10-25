@@ -1,3 +1,31 @@
+# 5.1.0 - 2021-10-25
+
+## Bug fixes
+
+- Always use SUBDIR with make in robsd-ports.
+  (0d7d6be)
+  (Anton Lindqvist)
+
+## News
+
+- Make cvs section in report less noisy by removing sh(1) traces.
+  (4990015)
+  (Anton Lindqvist)
+
+- Pass the invoking user to HOOK.
+  (086ee5b)
+  (Anton Lindqvist)
+
+- Include the CVS date of the last updated revision in robsd BUILDINFO.
+  Intended to be used in conjuction with robsd-regress to checkout the same
+  source tree.
+  (c3b67cd)
+  (Anton Lindqvist)
+
+- Add tags support to all utilities.
+  (b60adc6)
+  (Anton Lindqvist)
+
 # 5.0.2 - 2021-10-10
 
 ## Bug fixes
