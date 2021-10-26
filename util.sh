@@ -820,7 +820,7 @@ purge() {
 		find "$_d" -mindepth 1 -not \( \
 			-name '*.diff.*' -o \
 			-name '*cvs.log' -o \
-			-name '*env.log' -o \
+			-name '01-env.log' -o \
 			-name 'comment' -o \
 			-name 'index.txt' -o \
 			-name 'report' -o \
