@@ -1,6 +1,6 @@
 LOG="${TSHDIR}/log"
 
-if testcase "basic"; then
+if testcase "skipped"; then
 	cat <<-EOF >"$LOG"
 	cc   -o optionstest optionstest.o apps.o -lcrypto -lssl
 
@@ -10,7 +10,9 @@ if testcase "basic"; then
 	===> second
 	SKIPPED
 	EOF
-	regress_tests SKIPPED "$LOG" >"$TMP1"
+
+	regress_report_log -e 0 -n test -l "$LOG" -t "$TSHDIR" >"$TMP1"
+
 	assert_file - "$TMP1" <<-EOF
 	===> x509
 	missing package p5-IO-Socket-SSL
@@ -19,7 +21,9 @@ if testcase "basic"; then
 	===> second
 	SKIPPED
 	EOF
+fi
 
+if testcase "skipped many lines"; then
 	cat <<-EOF >"$LOG"
 	==== t-permit-1 ====
 	t-permit-1
@@ -30,7 +34,9 @@ if testcase "basic"; then
 	lie on nosuid filesystems, so we cannot run doas there.
 	SKIPPED
 	EOF
-	regress_tests SKIPPED "$LOG" >"$TMP1"
+
+	regress_report_log -e 0 -n test -l "$LOG" -t "$TSHDIR" >"$TMP1"
+
 	assert_file - "$TMP1" <<-EOF
 	==== t-run-keepenv-path ====
 	All of directories we are allowed to use for temporary data
@@ -38,12 +44,16 @@ if testcase "basic"; then
 	lie on nosuid filesystems, so we cannot run doas there.
 	SKIPPED
 	EOF
+fi
 
+if testcase "skipped no lines"; then
 	cat <<-EOF >"$LOG"
 	==== test
 	SKIPPED
 	EOF
-	regress_tests SKIPPED "$LOG" >"$TMP1"
+
+	regress_report_log -e 0 -n test -l "$LOG" -t "$TSHDIR" >"$TMP1"
+
 	assert_file - "$TMP1" <<-EOF
 	==== test
 	SKIPPED
