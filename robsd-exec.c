@@ -76,8 +76,10 @@ main(int argc, char *argv[])
 		}
 	}
 	error = exitstatus(status);
-	if (error)
+	if (error) {
+		/* Output used to detected errors. */
 		warnx("process group exited %d", error);
+	}
 	return error;
 }
 
