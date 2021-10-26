@@ -1,3 +1,16 @@
+# 5.2.0 - 2021-10-26
+
+## News
+
+- Improve robsd-regress log excerpt in report when there's no failing nor
+  skipped targets.
+  (1b1fbe7)
+  (Anton Lindqvist)
+
+- Only keep the first env.log in the attic.
+  (89816ea)
+  (Anton Lindqvist)
+
 # 5.1.0 - 2021-10-25
 
 ## Bug fixes
