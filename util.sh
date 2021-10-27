@@ -817,6 +817,7 @@ purge() {
 		# Grab the modification time before removal of irrelevant files.
 		_tim="$(stat -f '%Sm' -t '%FT%T' "$_d")"
 
+		rm -rf "${_d}/tmp"
 		find "$_d" -mindepth 1 -not \( \
 			-name '*.diff.*' -o \
 			-name '*cvs.log' -o \

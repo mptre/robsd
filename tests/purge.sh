@@ -5,8 +5,9 @@ if testcase "basic"; then
 		for _f in 01-base.log 01-base.log.1 02-cvs.log 03-env.log comment rel/index.txt report src.diff.1; do
 			(cd "$_d" && echo "$_f" >"$_f")
 		done
-		cat <<-EOF >"${_d}/steps"
-		EOF
+		: >"${_d}/steps"
+		mkdir "${_d}/tmp"
+		touch "${_d}/tmp/cvs.log"
 	done
 	touch -t 201903012233.44 "${ROBSDDIR}/2019-03-01"
 
@@ -18,7 +19,7 @@ if testcase "basic"; then
 	[ -d "${ROBSDDIR}/attic/2019/03/01" ] ||
 		fail "expected 2019-03-01 to be moved"
 
-	for _f in 01-base.log 01-base.log.1 03-env.log; do
+	for _f in 01-base.log 01-base.log.1 03-env.log tmp; do
 		_p="${ROBSDDIR}/attic/2019/03/01/${_f}"
 		[ -e "$_p" ] && fail "expected ${_p} to be removed"
 	done
