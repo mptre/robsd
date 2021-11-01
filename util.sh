@@ -654,7 +654,7 @@ getmode() {
 info() {
 	local _log="/dev/null"
 
-	if [ "${DETACH:-0}" -eq 1 ]; then
+	if [ "${DETACH:-0}" -le 1 ] && [ -n "${BUILDDIR:-}" ]; then
 		# Not fully detached yet, write all entries to robsd.log.
 		_log="${BUILDDIR}/robsd.log"
 	fi
