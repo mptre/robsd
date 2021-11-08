@@ -19,7 +19,8 @@ lint: _SUBDIRUSE
 	cd ${.CURDIR} && mandoc -Tlint -Wstyle ${MANLINT}
 .endif
 .if defined(SHLINT)
-	cd ${.CURDIR} && shellcheck ${SHELLCHECKFLAGS} ${SHLINT}
+	cd ${.CURDIR} && echo ${SHLINT} | \
+	xargs -n1 -P`sysctl -n hw.ncpuonline` shellcheck ${SHELLCHECKFLAGS}
 .endif
 .PHONY: lint
 

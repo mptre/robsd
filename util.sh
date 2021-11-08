@@ -131,6 +131,7 @@ config_load() {
 	if [ "$_MODE" = "robsd-regress" ]; then
 		REGRESSROOT=""; export REGRESSROOT
 		REGRESSUSER=""; export REGRESSUSER
+		# shellcheck disable=SC2034
 		SKIPIGNORE=""
 		SUDO="doas -n"; export SUDO
 		TESTS=""
