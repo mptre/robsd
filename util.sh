@@ -570,29 +570,10 @@ fatal() {
 # Format the given duration to a human readable representation.
 format_duration() {
 	local _d
-	local _h=""
-	local _m=""
-	local _s=""
 
 	_d="$1"; : "${_d:?}"
 
-	[ "$_d" -eq 0 ] && { echo 0; return 0; }
-
-	if [ "$_d" -ge 3600 ]; then
-		_h="$((_d / 3600))"
-		_d=$((_d % 3600))
-	fi
-
-	if [ "$_d" -ge 60 ]; then
-		_m="$((_d / 60))"
-		_d=$((_d % 60))
-	fi
-
-	if [ "$_d" -gt 0 ]; then
-		_s="$_d"
-	fi
-
-	printf '%02d:%02d:%02d\n' "$_h" "$_m" "$_s"
+	date -u -r "$_d" '+%T'
 }
 
 # format_size [-M] [-s] size

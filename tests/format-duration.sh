@@ -3,5 +3,5 @@ if testcase "basic"; then
 fi
 
 if testcase "zero"; then
-	assert_eq "0" "$(format_duration 0)"
+	assert_eq "00:00:00" "$(format_duration 0)"
 fi
