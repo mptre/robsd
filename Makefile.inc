@@ -11,6 +11,8 @@ SHELLCHECKFLAGS+=	-o quote-safe-variables
 # Get rid of annoying white space.
 SHELLCHECKFLAGS!=	echo ${SHELLCHECKFLAGS}
 
+NCPU!!=	sysctl -n hw.ncpuonline
+
 lint: _SUBDIRUSE
 .if defined(KNFMT)
 	cd ${.CURDIR} && knfmt -d ${KNFMT}
@@ -20,7 +22,7 @@ lint: _SUBDIRUSE
 .endif
 .if defined(SHLINT)
 	cd ${.CURDIR} && echo ${SHLINT} | \
-	xargs -n1 -P`sysctl -n hw.ncpuonline` shellcheck ${SHELLCHECKFLAGS}
+	xargs -n1 -P${NCPU} shellcheck ${SHELLCHECKFLAGS}
 .endif
 .PHONY: lint
 
