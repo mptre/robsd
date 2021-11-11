@@ -35,13 +35,12 @@ for _p in $PORTS; do
 			# Dependency already flagged as up-to-date.
 			:
 		elif grep -q "$_d" "$_outdated"; then
-			# Dependency already flagged as outdated, the port and
-			# all of its dependencies are therefore considered
-			# outdated.
+			# Dependency already flagged as outdated, implies that
+			# the port is also outdated.
 			echo "${_p} ${_d}"
 		elif outdated "$_d"; then
-			# Dependency outdated, the port and all of its
-			# dependencies are therefore considered outdated.
+			# Dependency outdated, implies that the port is also
+			# outdated.
 			echo "$_d" >>"$_outdated"
 			echo "${_p} ${_d}"
 		else
