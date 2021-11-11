@@ -38,14 +38,12 @@ for _p in $PORTS; do
 			# Dependency already flagged as outdated, the port and
 			# all of its dependencies are therefore considered
 			# outdated.
-			env "SUBDIR=${_p}" make all-dir-depends
-			break
+			echo "${_p} ${_d}"
 		elif outdated "$_d"; then
 			# Dependency outdated, the port and all of its
 			# dependencies are therefore considered outdated.
 			echo "$_d" >>"$_outdated"
-			env "SUBDIR=${_p}" make all-dir-depends
-			break
+			echo "${_p} ${_d}"
 		else
 			# Dependency up-to-date, take note.
 			echo "$_d" >>"$_checked"
