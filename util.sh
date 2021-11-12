@@ -211,7 +211,7 @@ cvs_field() {
 
 	echo "$_line" | grep -q -F "$_field" || return 1
 
-	_line="${_line##*${_field}: }"; _line="${_line%%;*}"
+	_line="${_line##*"${_field}": }"; _line="${_line%%;*}"
 	echo "$_line"
 }
 
@@ -484,7 +484,7 @@ diff_root() {
 	head -2 |
 	xargs |
 	while read -r _file _path; do
-		_p="${_path%/${_file}}"
+		_p="${_path%/"${_file}"}"
 		while [ -n "$_p" ]; do
 			if [ -e "${_root}${_p}" ]; then
 				echo "${_root}${_p}"
