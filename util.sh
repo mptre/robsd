@@ -577,21 +577,19 @@ format_duration() {
 	date -u -r "$_d" '+%T'
 }
 
-# format_size [-M] [-s] size
+# format_size [-s] size
 #
 # Format the given size into a human readable representation.
 # Optionally include the sign if the size is a delta.
 format_size() {
 	local _abs
 	local _d=1
-	local _mega=0
 	local _p=""
 	local _sign=0
 	local _size
 
 	while [ $# -gt 0 ]; do
 		case "$1" in
-		-M)	_mega=1;;
 		-s)	_sign=1;;
 		*)	break;;
 		esac
@@ -600,7 +598,7 @@ format_size() {
 	_size="$1"; : "${_size:?}"
 
 	_abs="$(abs "$_size")"
-	if [ "$_mega" -eq 1 ] || [ "$_abs" -ge "$((1024 * 1024))" ]; then
+	if [ "$_abs" -ge "$((1024 * 1024))" ]; then
 		_d=$((1024 * 1024))
 		_p="M"
 	elif [ "$_abs" -ge "1024" ]; then
@@ -1085,6 +1083,7 @@ report_size() {
 	local _prev
 	local _s1
 	local _s2
+	local _threshold
 
 	_f="$1"; : "${_f:?}"
 
@@ -1101,10 +1100,14 @@ report_size() {
 	_s1="$(ls -l "$_f" | awk '{print $5}')"
 	_s2="$(ls -l "$_path" | awk '{print $5}')"
 	_delta="$((_s1 - _s2))"
-	[ "$(abs "$_delta")" -ge $((1024 * 100)) ] || return 0
+	case "$_name" in
+	bsd*)	_threshold=1024;;
+	*)	_threshold=$((1024 * 100));;
+	esac
+	[ "$(abs "$_delta")" -ge "$_threshold" ] || return 0
 
 	echo "$_name" "$(format_size "$_s1")" \
-		"($(format_size -M -s "$_delta"))"
+		"($(format_size -s "$_delta"))"
 }
 
 # report_sizes release-dir
@@ -1119,7 +1122,7 @@ report_sizes() {
 
 	[ -d "$_dir" ] || return 0
 
-	find "$_dir" -type f | while read -r _f; do
+	find "$_dir" -type f | sort | while read -r _f; do
 		_siz="$(report_size "$_f")"
 		[ -z "$_siz" ] && continue
 

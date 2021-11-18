@@ -35,7 +35,7 @@ if testcase "previous delta megabytes"; then
 	mkdir -p ${ROBSDDIR}/2019-02-{22,23}/rel
 	zero "$((1024 * 1024))" "${ROBSDDIR}/2019-02-22/rel/${FILE}"
 
-	assert_eq "${FILE} 1.4M (+0.4M)" "$(report_size "$TMP1")"
+	assert_eq "${FILE} 1.4M (+428.6K)" "$(report_size "$TMP1")"
 fi
 
 if testcase "previous delta negative"; then
