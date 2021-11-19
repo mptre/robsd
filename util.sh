@@ -1101,7 +1101,8 @@ report_size() {
 	_s2="$(ls -l "$_path" | awk '{print $5}')"
 	_delta="$((_s1 - _s2))"
 	case "$_name" in
-	bsd*)	_threshold=1024;;
+	bsd.rd)	_threshold=$((1024 * 1));;
+	bsd*)	_threshold=$((1024 * 10));;
 	*)	_threshold=$((1024 * 100));;
 	esac
 	[ "$(abs "$_delta")" -ge "$_threshold" ] || return 0
