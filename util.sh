@@ -95,6 +95,9 @@ config_load() {
 	BSDOBJDIR="/usr/obj"; export BSDOBJDIR
 	BSDSRCDIR="/usr/src"; export BSDSRCDIR
 	BUILDDIR=""; export BUILDDIR
+	# Intentionally not documented as it must be kept in sync with
+	# bsd.own.mk.
+	BUILDUSER="build"; export BUILDUSER
 	CVSROOT=""; export CVSROOT
 	CVSUSER=""; export CVSUSER
 	DESTDIR=""; export DESTDIR
