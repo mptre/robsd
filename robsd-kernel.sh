@@ -9,10 +9,12 @@ kernel_path() {
 	printf 'arch/%s/compile/GENERIC%s\n' "$(machine)" "$_s"
 }
 
-unpriv "$BUILDUSER" <<EOF
 cd "${BSDSRCDIR}/sys/$(kernel_path)"
+
+unpriv "$BUILDUSER" <<EOF
 make obj
 make config
 make
-make install
 EOF
+
+make install
