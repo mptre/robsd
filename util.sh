@@ -1105,7 +1105,6 @@ report_size() {
 	_delta="$((_s1 - _s2))"
 	case "$_name" in
 	bsd.rd)	_threshold=$((1024 * 1));;
-	bsd*)	_threshold=$((1024 * 10));;
 	*)	_threshold=$((1024 * 100));;
 	esac
 	[ "$(abs "$_delta")" -ge "$_threshold" ] || return 0
