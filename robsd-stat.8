@@ -1,0 +1,46 @@
+.Dd $Mdocdate: December 1 2021$
+.Dt ROBSD-STAT 8
+.Os
+.Sh NAME
+.Nm robsd-stat
+.Nd statistics collector
+.Sh SYNOPSIS
+.Nm robsd-stat
+.Sh DESCRIPTION
+The
+.Nm
+utility collects statistics while
+.Xr robsd 8 ,
+.Xr robsd-ports 8
+or
+.Xr robsd-regress 8
+is running.
+It periodically outputs a line expressed as comma separated values (CSV) with
+the columns as follows:
+.Bl -tag -width directory
+.It time
+The current time, expressed as the number of second since the Epoch.
+.It load
+The current load normalized with the number of CPUs.
+.It user
+Fraction of time spent in user space.
+.It sys
+Fraction of time spent in kernel space.
+.It spin
+Fraction of time spent waiting on locks.
+.It intr
+Fraction of time spent handling interrupts.
+.It idle
+Fraction of time doing nothing.
+.It directory
+Estimate of the current working directory for the corresponding robsd process.
+Could be omitted.
+.El
+.Sh DIAGNOSTICS
+.Ex -std
+.Sh SEE ALSO
+.Xr robsd 8 ,
+.Xr robsd-ports 8 ,
+.Xr robsd-regress 8
+.Sh AUTHORS
+.An Anton Lindqvist Aq Mt anton@basename.se

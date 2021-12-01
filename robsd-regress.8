@@ -43,6 +43,9 @@ directory.
 .It Pa comment
 File used to annotate the invocation which is included in
 .Pa report .
+.It Pa stat.csv
+Collected statistics, see
+.Xr robsd-stat 8 .
 .It Pa report
 A summary delivered as a mail to root while running in detached mode once
 .Nm
@@ -101,6 +104,7 @@ The default configuration file.
 .Xr robsd-regress.conf 5 ,
 .Xr robsd 8 ,
 .Xr robsd-regress-clean 8 ,
-.Xr robsd-regress-kill 8
+.Xr robsd-regress-kill 8 ,
+.Xr robsd-stat 8
 .Sh AUTHORS
 .An Anton Lindqvist Aq Mt anton@basename.se

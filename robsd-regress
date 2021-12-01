@@ -21,6 +21,7 @@ setprogname "robsd-regress"
 config_load "$(config_path)"
 
 COMMENT=""
+STATPID=""
 STEP=1
 
 while getopts "Dc:r:t:" opt; do
@@ -35,7 +36,7 @@ done
 shift $((OPTIND - 1))
 [ $# -ne 0 ] && usage
 
-trap 'trap_exit -r "$ROBSDDIR" -b "$BUILDDIR"' EXIT
+trap 'trap_exit -r "$ROBSDDIR" -b "$BUILDDIR" -s "$STATPID"' EXIT
 
 if [ -z "$BUILDDIR" ]; then
 	check_perf || exit 1
@@ -56,11 +57,15 @@ if [ "$STEP" -eq 1 ]; then
 	if [ -n "$TAGS" ]; then
 		echo "$TAGS" >"${BUILDDIR}/tags"
 	fi
+	"$ROBSDSTAT" -H >"${BUILDDIR}/stat.csv"
 fi
 
 if [ "$KEEP" -gt 0 ]; then
 	/usr/local/sbin/robsd-regress-clean "$KEEP"
 fi
+
+"$ROBSDSTAT" >>"${BUILDDIR}/stat.csv" &
+STATPID="$!"
 
 if [ "$DETACH" -eq 1 ]; then
 	# Signal to info() that no further output should be written to robsd.log
@@ -71,7 +76,7 @@ if [ "$DETACH" -eq 1 ]; then
 	# Reinstall trap handler since they are not inherited by subprocesses.
 	trap '-' EXIT
 	{
-		trap 'trap_exit -r "$ROBSDDIR" -b "$BUILDDIR"' EXIT
+		trap 'trap_exit -r "$ROBSDDIR" -b "$BUILDDIR" -s "${STATPID}"' EXIT
 		robsd "$STEP"
 	} &
 	info "running in detach mode as pid ${!}"

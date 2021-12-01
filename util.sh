@@ -112,6 +112,7 @@ config_load() {
 	MAKEFLAGS="-j$(sysctl -n hw.ncpuonline)"; export MAKEFLAGS
 	PATH="${PATH}:/usr/X11R6/bin"; export PATH
 	ROBSDDIR=""; export ROBSDDIR
+	: "${ROBSDSTAT:=${EXECDIR}/robsd-stat}"
 	SIGNIFY=""; export SIGNIFY
 	# shellcheck disable=SC2034
 	SKIP=""
@@ -1661,25 +1662,29 @@ step_value() {
 	echo "${_STEP[$_i]}"
 }
 
-# trap_exit -r root-dir [-b build-dir]
+# trap_exit -r root-dir [-b build-dir] [-s stat-pid]
 #
 # Exit trap handler. The log dir may not be present if we failed very early on.
 trap_exit() {
 	local _err="$?"
 	local _builddir=""
 	local _rootdir=""
+	local _statpid=""
 
 	info "trap exit ${_err}"
 
 	while [ $# -gt 0 ]; do
 		case "$1" in
-		-r)	shift; _rootdir="$1";;
 		-b)	shift; _builddir="$1";;
+		-r)	shift; _rootdir="$1";;
+		-s)	shift; _statpid="$1";;
 		*)	break;;
 		esac
 		shift
 	done
 	: "${_rootdir:?}"
+
+	[ -z "$_statpid" ] || kill "$_statpid" || :
 
 	[ -n "$_builddir" ] || return "$_err"
 

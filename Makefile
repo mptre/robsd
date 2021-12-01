@@ -5,9 +5,15 @@ SRCS_robsd-exec=	robsd-exec.c
 OBJS_robsd-exec=	${SRCS_robsd-exec:.c=.o}
 DEPS_robsd-exec=	${SRCS_robsd-exec:.c=.d}
 
+PROG_robsd-stat=	robsd-stat
+SRCS_robsd-stat=	robsd-stat.c
+OBJS_robsd-stat=	${SRCS_robsd-stat:.c=.o}
+DEPS_robsd-stat=	${SRCS_robsd-stat:.c=.d}
+
 CFLAGS+=	-Wall -Wextra -MD -MP
 
 KNFMT+=	robsd-exec.c
+KNFMT+=	robsd-stat.c
 
 SCRIPTS+=	robsd-base.sh
 SCRIPTS+=	robsd-checkflist.sh
@@ -72,6 +78,8 @@ DISTFILES+=	robsd-release.sh
 DISTFILES+=	robsd-rescue
 DISTFILES+=	robsd-rescue.8
 DISTFILES+=	robsd-revert.sh
+DISTFILES+=	robsd-stat.8
+DISTFILES+=	robsd-stat.c
 DISTFILES+=	robsd-xbase.sh
 DISTFILES+=	robsd-xrelease.sh
 DISTFILES+=	robsd.8
@@ -126,6 +134,7 @@ MANLINT+=	robsd-clean.8
 MANLINT+=	robsd-ports.8
 MANLINT+=	robsd-regress.8
 MANLINT+=	robsd-rescue.8
+MANLINT+=	robsd-stat.8
 MANLINT+=	robsd.8
 MANLINT+=	robsd.conf.5
 
@@ -139,13 +148,18 @@ SHLINT+=	robsd-rescue
 
 SUBDIR+=	tests
 
-all: ${PROG_robsd-exec}
+all: ${PROG_robsd-exec} ${PROG_robsd-stat}
 
 ${PROG_robsd-exec}: ${OBJS_robsd-exec}
 	${CC} ${DEBUG} -o ${PROG_robsd-exec} ${OBJS_robsd-exec} ${LDFLAGS}
 
+${PROG_robsd-stat}: ${OBJS_robsd-stat}
+	${CC} ${DEBUG} -o ${PROG_robsd-stat} ${OBJS_robsd-stat} ${LDFLAGS}
+
 clean:
-	rm -f ${DEPS_robsd-exec} ${OBJS_robsd-exec} ${PROG_robsd-exec}
+	rm -f \
+		${DEPS_robsd-exec} ${OBJS_robsd-exec} ${PROG_robsd-exec} \
+		${DEPS_robsd-stat} ${OBJS_robsd-stat} ${PROG_robsd-stat}
 .PHONY: clean
 
 dist:
@@ -169,7 +183,6 @@ install: all
 	${INSTALL} -m 0555 ${.CURDIR}/robsd-kill ${DESTDIR}${BINDIR}
 	${INSTALL} -m 0555 ${.CURDIR}/robsd-rescue ${DESTDIR}${BINDIR}
 	mkdir -p ${DESTDIR}${LIBEXECDIR}/robsd
-	${INSTALL} -m 0555 ${PROG_robsd-exec} ${DESTDIR}${LIBEXECDIR}/robsd
 .for s in ${SCRIPTS}
 	${INSTALL} -m 0444 ${.CURDIR}/$s ${DESTDIR}${LIBEXECDIR}/robsd/$s
 .endfor
@@ -180,6 +193,8 @@ install: all
 	${INSTALL_MAN} ${.CURDIR}/robsd-clean.8 ${DESTDIR}${MANDIR}/man8
 	${INSTALL_MAN} ${.CURDIR}/robsd-kill.8 ${DESTDIR}${MANDIR}/man8
 	${INSTALL_MAN} ${.CURDIR}/robsd-rescue.8 ${DESTDIR}${MANDIR}/man8
+# robsd-exec
+	${INSTALL} -m 0555 ${PROG_robsd-exec} ${DESTDIR}${LIBEXECDIR}/robsd
 # robsd-ports
 	${INSTALL} -m 0555 ${.CURDIR}/robsd-ports ${DESTDIR}${BINDIR}
 	ln -f ${DESTDIR}${BINDIR}/robsd-clean ${DESTDIR}${BINDIR}/robsd-ports-clean
@@ -193,14 +208,19 @@ install: all
 	ln -f ${DESTDIR}${BINDIR}/robsd-kill ${DESTDIR}${BINDIR}/robsd-regress-kill
 	ln -f ${DESTDIR}${LIBEXECDIR}/robsd/robsd-exec ${DESTDIR}${LIBEXECDIR}/robsd/robsd-regress-exec
 	${INSTALL_MAN} ${.CURDIR}/robsd-regress.8 ${DESTDIR}${MANDIR}/man8
+# robsd-stat
+	${INSTALL} -m 0555 ${PROG_robsd-stat} ${DESTDIR}${LIBEXECDIR}/robsd
+	${INSTALL_MAN} ${.CURDIR}/robsd-stat.8 ${DESTDIR}${MANDIR}/man8
 .PHONY: install
 
 test: all
 	${MAKE} -C ${.CURDIR}/tests \
 		"EXECDIR=${.CURDIR}" \
 		"ROBSDEXEC=${.OBJDIR}/${PROG_robsd-exec}" \
+		"ROBSDSTAT=${.OBJDIR}/${PROG_robsd-stat}" \
 		"TESTFLAGS=${TESTFLAGS}"
 .PHONY: test
 
 .include "${.CURDIR}/Makefile.inc"
 -include ${DEPS_robsd-exec}
+-include ${DEPS_robsd-stat}
