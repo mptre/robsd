@@ -24,31 +24,32 @@ cd $PORTSDIR
 
 _DEPENDS_CACHE=$(make create_DEPENDS_CACHE); export _DEPENDS_CACHE
 
-_outdated="/tmp/outdated"; : >"$_outdated"
 _checked="/tmp/checked"; : >"$_checked"
+_outdated="/tmp/outdated"; : >"$_outdated"
+_tsort="/tmp/tsort"; : >"$_tsort"
 for _p in $PORTS; do
-	env "SUBDIR=${_p}" make all-dir-depends |
-	tsort -r |
-	while read -r _d
-	do
-		if grep -q "$_d" "$_checked"; then
+	{
+		env "SUBDIR=${_p}" make all-dir-depends
+		echo "${_p} ${_p}"
+	} | while read -r _parent _dependency; do
+		if grep -q "$_dependency" "$_checked"; then
 			# Dependency already flagged as up-to-date.
 			:
-		elif grep -q "$_d" "$_outdated"; then
+		elif grep -q "$_dependency" "$_outdated"; then
 			# Dependency already flagged as outdated, implies that
 			# the port is also outdated.
-			echo "${_p} ${_d}"
-		elif outdated "$_d"; then
+			echo "${_parent} ${_dependency}"
+		elif outdated "$_dependency"; then
 			# Dependency outdated, implies that the port is also
 			# outdated.
-			echo "$_d" >>"$_outdated"
-			echo "${_p} ${_d}"
+			echo "$_dependency" >>"$_outdated"
+			echo "${_parent} ${_dependency}"
 		else
 			# Dependency up-to-date, take note.
-			echo "$_d" >>"$_checked"
+			echo "$_dependency" >>"$_checked"
 		fi
 	done
-done
+done | tee "$_tsort"
 
 make destroy_DEPENDS_CACHE
 EOF
