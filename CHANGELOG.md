@@ -1,3 +1,29 @@
+# 5.3.0 - 2021-12-01
+
+## Bug fixes
+
+- Correct robsd-ports detection of outdated dependencies.
+  (9260b25, 88ab60b, 8772c36)
+  (Anton Lindqvist)
+
+- Document skip option in robsd-ports manual.
+  (b9089a0)
+  (Anton Lindqvist)
+
+- Ensure robsd-ports signs all packages, including debug packages.
+  (2fcf179)
+  (Anton Lindqvist)
+
+## News
+
+- Add support for flagging ports that cannot be built in parallel.
+  (ed0f5d7)
+  (Anton Lindqvist)
+
+- Add robsd-stat, used to collect system statistics.
+  (af95f23)
+  (Anton Lindqvist)
+
 # 5.2.0 - 2021-10-26
 
 ## News
