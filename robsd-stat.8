@@ -15,8 +15,8 @@ utility collects statistics while
 or
 .Xr robsd-regress 8
 is running.
-It periodically outputs a line expressed as comma separated values (CSV) with
-the columns as follows:
+It periodically outputs a line with comma separated values (CSV) using the
+columns as follows:
 .Bl -tag -width directory
 .It time
 The current time, expressed as the number of second since the Epoch.
@@ -29,12 +29,12 @@ Fraction of time spent in kernel space.
 .It spin
 Fraction of time spent waiting on locks.
 .It intr
-Fraction of time spent handling interrupts.
+Fraction of time spent in interrupt context.
 .It idle
 Fraction of time doing nothing.
 .It directory
 Estimate of the current working directory for the corresponding robsd process.
-Could be omitted.
+Could be empty.
 .El
 .Sh DIAGNOSTICS
 .Ex -std
