@@ -33,6 +33,16 @@ ports_continue() {
 	esac
 }
 
+# ports_parallel port
+#
+# Exits zero if the given port can build in parallel.
+ports_parallel() {
+	local _port
+
+	_port="$1"; : "${_port:?}"
+	! echo "$NOPARALLEL" | grep -q "\<${_port}\>"
+}
+
 # ports_report_log -e step-exit -n step-name -l step-log -t tmp-dir
 #
 # Get an excerpt of the given step log.

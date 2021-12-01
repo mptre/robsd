@@ -1,5 +1,7 @@
 . "${EXECDIR}/util.sh"
 
+ports_parallel "$1" || unset MAKE_JOBS
+
 chroot "$CHROOT" sh -esux -- "$1" <<'EOF'
 PROGRESS_METER=No; export PROGRESS_METER
 

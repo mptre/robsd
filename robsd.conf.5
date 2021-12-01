@@ -124,6 +124,10 @@ Number of parallel
 processes used while building ports.
 Disabled by default.
 .Bq 1
+.It Ev NOPARALLEL
+Ports which cannot be built in parallel, separated by whitespace.
+.Ev MAKE_JOBS
+is effectively cleared for such ports.
 .It Ev PORTS
 Ports to build, separated by whitespace.
 All entries must be relative to

@@ -89,6 +89,7 @@ DISTFILES+=	tests/duration-total.sh
 DISTFILES+=	tests/format-duration.sh
 DISTFILES+=	tests/lock-acquire.sh
 DISTFILES+=	tests/log-id.sh
+DISTFILES+=	tests/ports-parallel.sh
 DISTFILES+=	tests/ports-report-log.sh
 DISTFILES+=	tests/ports-report-skip.sh
 DISTFILES+=	tests/prev-release.sh

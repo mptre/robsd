@@ -125,6 +125,7 @@ config_load() {
 	if [ "$_MODE" = "robsd-ports" ]; then
 		CHROOT=""; export CHROOT
 		MAKE_JOBS="1"; export MAKE_JOBS
+		NOPARALLEL=""; export NOPARALLEL
 		PORTS=""; export PORTS
 		PORTSDIR="/usr/ports"; export PORTSDIR
 		PORTSUSER=""; export PORTSUSER
