@@ -64,7 +64,7 @@ if [ "$KEEP" -gt 0 ]; then
 	/usr/local/sbin/robsd-regress-clean "$KEEP"
 fi
 
-"$ROBSDSTAT" >>"${BUILDDIR}/stat.csv" &
+"$ROBSDSTAT" -u "$REGRESSUSER" >>"${BUILDDIR}/stat.csv" &
 STATPID="$!"
 
 if [ "$DETACH" -eq 1 ]; then

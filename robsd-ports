@@ -75,7 +75,7 @@ if [ "$KEEP" -gt 0 ]; then
 	/usr/local/sbin/robsd-ports-clean "$KEEP"
 fi
 
-"$ROBSDSTAT" >>"${BUILDDIR}/stat.csv" &
+"$ROBSDSTAT" -u _pbuild -u _pfetch >>"${BUILDDIR}/stat.csv" &
 STATPID="$!"
 
 if [ "$DETACH" -eq 1 ]; then

@@ -27,7 +27,8 @@ static __dead void	usage(void);
 
 /* stat collect routines */
 static void	stat_cpu(struct robsd_stat *);
-static void	stat_directory(struct robsd_stat *);
+static void	stat_directory(struct robsd_stat *, char *const *);
+static int	stat_directory1(struct robsd_stat *, const char *);
 static void	stat_loadavg(struct robsd_stat *);
 static void	stat_time(struct robsd_stat *);
 
@@ -38,16 +39,30 @@ static int	cpustate(int);
 int
 main(int argc, char *argv[])
 {
-	struct robsd_stat rs;
+	struct robsd_stat rs = {};
+	char **users;
 	FILE *fh = stdout;
 	int ch;
 	int doheader = 0;
+	int nusers = 0;
 	int tick_s = 10;
 
-	while ((ch = getopt(argc, argv, "H")) != -1) {
+	users = reallocarray(NULL, 1, sizeof(*users));
+	if (users == NULL)
+		err(1, NULL);
+	users[0] = NULL;
+
+	while ((ch = getopt(argc, argv, "Hu:")) != -1) {
 		switch (ch) {
 		case 'H':
 			doheader = 1;
+			break;
+		case 'u':
+			users = reallocarray(users, nusers + 1, sizeof(*users));
+			if (users == NULL)
+				err(1, NULL);
+			users[nusers++] = optarg;
+			users[nusers] = NULL;
 			break;
 		default:
 			usage();
@@ -64,15 +79,19 @@ main(int argc, char *argv[])
 		return 0;
 	}
 
-	memset(&rs, 0, sizeof(rs));
+	if (nusers == 0)
+		usage();
+
 	for (;;) {
 		stat_time(&rs);
 		stat_cpu(&rs);
 		stat_loadavg(&rs);
-		stat_directory(&rs);
+		stat_directory(&rs, users);
 		stat_print(&rs, fh);
 		usleep(tick_s * 1000 * 1000);
 	}
+
+	free(users);
 
 	return 0;
 }
@@ -80,7 +99,7 @@ main(int argc, char *argv[])
 static __dead void
 usage(void)
 {
-	fprintf(stderr, "usage: robsd-stat [-H]\n");
+	fprintf(stderr, "usage: robsd-stat [-H] [-u user]\n");
 	exit(1);
 }
 
@@ -119,11 +138,20 @@ stat_cpu(struct robsd_stat *rs)
 
 /*
  * Try to figure out in which directory the ongoing release build is currently
- * at by finding the make process started by the build user with the longest
+ * at by finding the make process started by the given user(s) with the longest
  * current working directory. A surprisingly accurate guess.
  */
 static void
-stat_directory(struct robsd_stat *rs)
+stat_directory(struct robsd_stat *rs, char *const *users)
+{
+	for (; *users != NULL; users++) {
+		if (stat_directory1(rs, *users))
+			break;
+	}
+}
+
+static int
+stat_directory1(struct robsd_stat *rs, const char *user)
 {
 	int mib[6];
 	struct kinfo_proc *kp;
@@ -135,9 +163,9 @@ stat_directory(struct robsd_stat *rs)
 
 	rs->rs_directory[0] = '\0';
 
-	pw = getpwnam("build");
+	pw = getpwnam(user);
 	if (pw == NULL)
-		errx(1, "getpwnam: failed to lookup build user");
+		errx(1, "getpwnam: %s: no such user", user);
 
 	mib[0] = CTL_KERN;
 	mib[1] = KERN_PROC;
@@ -150,7 +178,7 @@ stat_directory(struct robsd_stat *rs)
 		err(1, "sysctl: kern.proc.uid");
 	nprocs = siz / kpsiz;
 	if (nprocs == 0)
-		return;
+		return 0;
 	/* Cope with new processes, roughly 10% growth. */
 	nprocs += nprocs / 8;
 	kp = calloc(nprocs, sizeof(*kp));
@@ -166,7 +194,8 @@ stat_directory(struct robsd_stat *rs)
 	for (i = 0; i < nprocs; i++) {
 		char cwd[PATH_MAX];
 
-		if (strcmp(kp[i].p_comm, "make"))
+		if (strcmp(kp[i].p_comm, "make") &&
+		    strcmp(kp[i].p_comm, "gmake"))
 			continue;
 
 		mib[0] = CTL_KERN;
@@ -184,6 +213,7 @@ stat_directory(struct robsd_stat *rs)
 
 out:
 	free(kp);
+	return maxlen > 0;
 }
 
 static void
