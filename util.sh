@@ -805,7 +805,6 @@ purge() {
 		rm -rf "${_d}/tmp"
 		find "$_d" -mindepth 1 -not \( \
 			-name '*.diff.*' -o \
-			-name '*cvs.log' -o \
 			-name '01-env.log' -o \
 			-name 'comment' -o \
 			-name 'index.txt' -o \
