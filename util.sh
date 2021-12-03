@@ -809,6 +809,7 @@ purge() {
 			-name 'comment' -o \
 			-name 'index.txt' -o \
 			-name 'report' -o \
+			-name 'stat.csv' -o \
 			-name 'steps' \) -delete
 
 		# Transform: YYYY-MM-DD.X -> YYYY/MM/DD.X
