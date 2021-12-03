@@ -1,4 +1,4 @@
-VERSION=	5.3.0
+VERSION=	5.3.1
 
 PROG_robsd-exec=	robsd-exec
 SRCS_robsd-exec=	robsd-exec.c
