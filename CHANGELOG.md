@@ -1,3 +1,12 @@
+# 5.3.1 - 2021-12-03
+
+## Bug fixes
+
+- Make robsd-stat capable of figuring out the current working directory for
+  robsd-ports and robsd-regress.
+  (600fe55)
+  (Anton Lindqvist)
+
 # 5.3.0 - 2021-12-01
 
 ## Bug fixes
