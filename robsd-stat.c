@@ -39,7 +39,7 @@ static int	cpustate(int);
 int
 main(int argc, char *argv[])
 {
-	struct robsd_stat rs = {};
+	struct robsd_stat rs;
 	char **users;
 	FILE *fh = stdout;
 	int ch;
@@ -82,6 +82,7 @@ main(int argc, char *argv[])
 	if (nusers == 0)
 		usage();
 
+	memset(&rs, 0, sizeof(rs));
 	for (;;) {
 		stat_time(&rs);
 		stat_cpu(&rs);
