@@ -1,3 +1,11 @@
+# 5.3.2 - 2021-12-05
+
+## Bug fixes
+
+- Look for root owned processes in robsd-stat during robsd-regress.
+  (ff23f2f)
+  (Anton Lindqvist)
+
 # 5.3.1 - 2021-12-03
 
 ## Bug fixes
