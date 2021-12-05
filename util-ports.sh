@@ -1,3 +1,28 @@
+# ports_begin -n step -s steps-file
+#
+# Exits 0 if the given step can be executed.
+ports_begin() {
+	local _name
+	local _steps
+
+	while [ $# -gt 0 ]; do
+		case "$1" in
+		-n)	shift; _name="$1";;
+		-s)	shift; _steps="$1";;
+		*)	break;;
+		esac
+		shift
+	done
+	: "${_name:?}"
+	: "${_steps:?}"
+
+	if [ "$_name" = "distrib" ] &&
+	   [ "$(step_failures "$_steps")" -gt 0 ]; then
+		return 1
+	fi
+	return 0
+}
+
 # ports_config_load
 #
 # Handle ports specific configuration.

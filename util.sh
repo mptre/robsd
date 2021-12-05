@@ -1237,6 +1237,14 @@ robsd() {
 			return 0
 		fi
 
+		case "$_MODE" in
+		robsd-ports)
+			ports_begin -n "$_name" -s "${BUILDDIR}/steps" || return 1
+			;;
+		*)
+			;;
+		esac
+
 		_log="${BUILDDIR}/$(log_id -b "$BUILDDIR" -n "$_name" -s "$_s")"
 		_exit=0
 		_t0="$(date '+%s')"
