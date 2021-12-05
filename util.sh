@@ -508,12 +508,13 @@ diff_root() {
 
 # duration_prev step-name
 #
-# Get the duration for the given step from the previous successful release.
-# Exits non-zero if no previous release exists or the previous one failed.
+# Get the duration for the given step from the previous successful invocation.
+# Exits non-zero if no previous invocation exists or the previous one failed.
 duration_prev() {
+	local _duration
+	local _exit
 	local _prev
 	local _step
-	local _v
 
 	_step="$1"
 	: "${_step:?}"
@@ -527,8 +528,11 @@ duration_prev() {
 			return 1
 		fi
 
-		_v="$(step_value duration 2>/dev/null)" || continue
-		echo "$_v"
+		_exit="$(step_value exit 2>/dev/null || echo 1)"
+		[ "$_exit" -eq 0 ] || continue
+
+		_duration="$(step_value duration 2>/dev/null)" || continue
+		echo "$_duration"
 		return 1
 	done || return 0
 
@@ -968,22 +972,23 @@ report() {
 	rm "$_tmp"
 }
 
-# report_duration [-d steps] [-t threshold] duration
+# report_duration [-d step] [-t threshold] duration
 #
 # Format the given duration to a human readable representation.
 # If option `-d' is given, the duration delta for the given step relative
-# to the previous succesful release is also formatted if the delta is greater
+# to the previous successful release is also formatted if the delta is greater
 # than the given threshold.
 report_duration() {
 	local _d
-	local _delta=""
+	local _delta
 	local _prev
 	local _sign
+	local _step=""
 	local _threshold=0
 
 	while [ $# -gt 0 ]; do
 		case "$1" in
-		-d)	shift; _delta="$1";;
+		-d)	shift; _step="$1";;
 		-t)	shift; _threshold="$1";;
 		*)	break;;
 		esac
@@ -991,7 +996,7 @@ report_duration() {
 	done
 	_d="$1"; : "${_d:?}"
 
-	if [ -z "$_delta" ] || ! _prev="$(duration_prev "$_delta")"; then
+	if [ -z "$_step" ] || ! _prev="$(duration_prev "$_step")"; then
 		format_duration "$_d"
 		return 0
 	fi
