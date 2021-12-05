@@ -12,18 +12,31 @@ genfile() {
 }
 
 if testcase "basic"; then
+	# Create a previous release in order to report duration deltas.
+	build_init "${ROBSDDIR}/2019-02-21"
+	cat <<-EOF >"${ROBSDDIR}/2019-02-21/steps"
+	step="2" name="cvs" exit="0" duration="30" log="/dev/null" user="root" time="0"
+	EOF
+
+	# Create a previous release in order to report size deltas.
+	build_init "${ROBSDDIR}/2019-02-22"
+	cat <<-EOF >"${ROBSDDIR}/2019-02-22/steps"
+	step="2" name="cvs" skip="1"
+	EOF
+	mkdir "${ROBSDDIR}/2019-02-22/rel"
+	genfile 1 "${ROBSDDIR}/2019-02-22/rel/bsd.rd"
+	genfile 1 "${ROBSDDIR}/2019-02-22/rel/base66.tgz"
+
 	build_init "$BUILDDIR"
 	BSDDIFF=""; export BSDDIFF
 	XDIFF=""; export XDIFF
-	# shellcheck disable=SC2086
-	mkdir -p ${ROBSDDIR}/2019-02-{22,23}
 	echo "daily" >"${BUILDDIR}/tags"
 	echo "comment goes here" >"${BUILDDIR}/comment"
 	echo "cvs src update" >"${BUILDDIR}/tmp/cvs-src-up.log"
 	echo "cvs src commits" >"${BUILDDIR}/tmp/cvs-src-ci.log"
 	cat <<-EOF >"${BUILDDIR}/steps"
 	step="1" name="env" exit="0" duration="0" log="${BUILDDIR}/env.log" user="root" time="0"
-	step="2" name="cvs" exit="0" duration="358" log="${BUILDDIR}/cvs.log" user="root" time="0"
+	step="2" name="cvs" exit="0" duration="60" log="${BUILDDIR}/cvs.log" user="root" time="0"
 	step="3" name="patch" exit="0" duration="0" log="${BUILDDIR}/patch.log" user="root" time="0"
 	step="4" name="kernel" skip="1"
 	step="5" name="end" exit="0" duration="3600" log="" user="root" time="0"
@@ -31,14 +44,6 @@ if testcase "basic"; then
 	mkdir "${BUILDDIR}/rel"
 	genfile 2 "${BUILDDIR}/rel/bsd.rd"
 	genfile 1 "${BUILDDIR}/rel/base66.tgz"
-
-	# Create a previous release in order to report duration and sizes.
-	cat <<-EOF >"${ROBSDDIR}/2019-02-22/steps"
-	step="2" name="cvs" exit="0" duration="298" log="/dev/null" user="root" time="0"
-	EOF
-	mkdir "${ROBSDDIR}/2019-02-22/rel"
-	genfile 1 "${ROBSDDIR}/2019-02-22/rel/bsd.rd"
-	genfile 1 "${ROBSDDIR}/2019-02-22/rel/base66.tgz"
 
 	cat <<-EOF >"$TMP1"
 	Subject: robsd: $(hostname -s): ok
@@ -55,7 +60,7 @@ if testcase "basic"; then
 
 	> cvs:
 	Exit: 0
-	Duration: 00:05:58 (+00:01:00)
+	Duration: 00:01:00 (+00:00:30)
 	Log: cvs.log
 
 	cvs src update

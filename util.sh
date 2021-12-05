@@ -522,11 +522,7 @@ duration_prev() {
 	prev_release 0 |
 	while read -r _prev; do
 		step_eval -n "$_step" "${_prev}/steps" 2>/dev/null || continue
-
-		if step_skip; then
-			echo "0"
-			return 1
-		fi
+		step_skip && continue
 
 		_exit="$(step_value exit 2>/dev/null || echo 1)"
 		[ "$_exit" -eq 0 ] || continue
