@@ -109,6 +109,7 @@ DISTFILES+=	tests/report-duration.sh
 DISTFILES+=	tests/report-size.sh
 DISTFILES+=	tests/report-skip.sh
 DISTFILES+=	tests/report.sh
+DISTFILES+=	tests/robsd-ports.sh
 DISTFILES+=	tests/robsd-regress.sh
 DISTFILES+=	tests/robsd-rescue.sh
 DISTFILES+=	tests/robsd.sh
