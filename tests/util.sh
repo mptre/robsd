@@ -1,7 +1,7 @@
 set -u
 
-# config_stub [-] [mode]
-config_stub() {
+# robsd_config [-] [mode]
+robsd_config() {
 	local _stdin=0
 	local _mode="robsd"
 
@@ -28,8 +28,15 @@ config_stub() {
 	} >"$ROBSDCONF"
 }
 
-# utility_setup
-utility_setup() {
+# robsd_mock
+#
+# Setup directories and mock out a few utilities need by robsd. Outputs the
+# following directories on a single line:
+#
+# 1. temporary directory that persists between test cases
+# 2. bin directory intended to be prepended to PATH
+# 3. robsd directory
+robsd_mock() {
 	local _bindir
 	local _tmpdir
 

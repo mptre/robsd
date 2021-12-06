@@ -1,5 +1,5 @@
 export WRKDIR
-utility_setup >"$TMP1"; read -r WRKDIR BINDIR ROBSDDIR <"$TMP1"
+robsd_mock >"$TMP1"; read -r WRKDIR BINDIR ROBSDDIR <"$TMP1"
 
 ROBSDRESCUE="${EXECDIR}/robsd-rescue"
 
@@ -15,7 +15,7 @@ setup() {
 		shift
 	done
 
-	config_stub - <<-EOF
+	robsd_config - <<-EOF
 	ROBSDDIR=${ROBSDDIR}
 	BSDDIFF=/var/empty
 	EOF

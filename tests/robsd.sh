@@ -1,4 +1,4 @@
-utility_setup >"$TMP1"; read -r WRKDIR BINDIR ROBSDDIR <"$TMP1"
+robsd_mock >"$TMP1"; read -r WRKDIR BINDIR ROBSDDIR <"$TMP1"
 
 ROBSD="${EXECDIR}/robsd"
 
@@ -36,7 +36,7 @@ if testcase "basic"; then
 	EOF
 	chmod u+x "$_hook"
 
-	config_stub - <<-EOF
+	robsd_config - <<-EOF
 	ROBSDDIR=${ROBSDDIR}
 	EXECDIR=${WRKDIR}/exec
 	HOOK=${_hook}
@@ -104,7 +104,7 @@ if testcase "basic"; then
 fi
 
 if testcase "reboot"; then
-	config_stub - <<-EOF
+	robsd_config - <<-EOF
 	ROBSDDIR=${ROBSDDIR}
 	EXECDIR=${WRKDIR}/exec
 	EOF
@@ -123,7 +123,7 @@ if testcase "reboot"; then
 fi
 
 if testcase "already running"; then
-	config_stub - <<-EOF
+	robsd_config - <<-EOF
 	ROBSDDIR=${ROBSDDIR}
 	EOF
 	mkdir -p "$ROBSDDIR"
@@ -139,7 +139,7 @@ if testcase "already running"; then
 fi
 
 if testcase "already running detached"; then
-	config_stub - <<-EOF
+	robsd_config - <<-EOF
 	ROBSDDIR=${ROBSDDIR}
 	EOF
 	mkdir -p "$ROBSDDIR"
@@ -155,7 +155,7 @@ if testcase "already running detached"; then
 fi
 
 if testcase "early failure"; then
-	config_stub - <<-EOF
+	robsd_config - <<-EOF
 	ROBSDDIR=${ROBSDDIR}
 	EOF
 	echo 'exit 0' >"${BINDIR}/sysctl"
@@ -170,7 +170,7 @@ if testcase "early failure"; then
 fi
 
 if testcase "missing build directory"; then
-	config_stub - <<-EOF
+	robsd_config - <<-EOF
 	ROBSDDIR=${ROBSDDIR}
 	EOF
 	if PATH="${BINDIR}:${PATH}" sh "$ROBSD" >"$TMP1" 2>&1; then

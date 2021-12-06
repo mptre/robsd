@@ -1,10 +1,10 @@
-utility_setup >"$TMP1"; read -r _ BINDIR ROBSDDIR <"$TMP1"
+robsd_mock >"$TMP1"; read -r _ BINDIR ROBSDDIR <"$TMP1"
 
 ROBSDREGRESS="${EXECDIR}/robsd-regress"
 ROBSDKILL="${EXECDIR}/robsd-kill"
 
 if testcase "basic"; then
-	config_stub - "robsd-regress" <<-EOF
+	robsd_config - "robsd-regress" <<-EOF
 	ROBSDDIR=${ROBSDDIR}
 	EXECDIR=${EXECDIR}
 	REGRESSUSER=nobody
@@ -40,7 +40,7 @@ EOF
 fi
 
 if testcase "failure in non-test step"; then
-	config_stub - "robsd-regress" <<-EOF
+	robsd_config - "robsd-regress" <<-EOF
 	ROBSDDIR=${ROBSDDIR}
 	EXECDIR=${EXECDIR}
 	REGRESSUSER=nobody
@@ -62,7 +62,7 @@ if testcase "failure in non-test step"; then
 fi
 
 if testcase "kill"; then
-	config_stub - "robsd-regress" <<-EOF
+	robsd_config - "robsd-regress" <<-EOF
 	ROBSDDIR=${ROBSDDIR}
 	EXECDIR=${EXECDIR}
 	REGRESSUSER=nobody
