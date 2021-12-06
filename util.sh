@@ -1257,10 +1257,10 @@ robsd() {
 
 		case "$_MODE" in
 		robsd-ports)
-			ports_continue -e "$_exit" -n "$_name" || return 1
+			ports_step_after -e "$_exit" -n "$_name" || return 1
 			;;
 		robsd-regress)
-			regress_continue -e "$_exit" -n "$_name" || return 1
+			regress_step_after -e "$_exit" -n "$_name" || return 1
 			;;
 		*)
 			[ "$_exit" -eq 0 ] || return 1

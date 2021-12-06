@@ -33,31 +33,6 @@ ports_config_load() {
 	unset PKG_PATH
 }
 
-# ports_continue -e step-exit -n step-name
-#
-# Exits 0 if the ports build can continue.
-ports_continue() {
-	local _exit
-	local _name
-
-	while [ $# -gt 0 ]; do
-		case "$1" in
-		-e)	shift; _exit="$1";;
-		-n)	shift; _name="$1";;
-		*)	break;;
-		esac
-		shift
-	done
-	: "${_exit:?}"
-	: "${_name:?}"
-
-	# Ignore ports build errors.
-	case "$(cat "${BUILDDIR}/tmp/outdated" 2>/dev/null)" in
-	*${_name}*)	return 0;;
-	*)		return "$_exit";;
-	esac
-}
-
 # ports_parallel port
 #
 # Exits zero if the given port can build in parallel.
@@ -140,6 +115,31 @@ ports_report_skip() {
 	*)
 		! echo "$PORTS" | grep -q "\<${_name}\>"
 		;;
+	esac
+}
+
+# ports_step_after -e step-exit -n step-name
+#
+# After step hook, exits 0 if we can continue.
+ports_step_after() {
+	local _exit
+	local _name
+
+	while [ $# -gt 0 ]; do
+		case "$1" in
+		-e)	shift; _exit="$1";;
+		-n)	shift; _name="$1";;
+		*)	break;;
+		esac
+		shift
+	done
+	: "${_exit:?}"
+	: "${_name:?}"
+
+	# Ignore ports build errors.
+	case "$(cat "${BUILDDIR}/tmp/outdated" 2>/dev/null)" in
+	*${_name}*)	return 0;;
+	*)		return "$_exit";;
 	esac
 }
 

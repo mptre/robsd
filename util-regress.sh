@@ -32,31 +32,6 @@ regress_config_load() {
 	TESTS="$_tests"
 }
 
-# regress_continue -e step-exit -n step-name
-#
-# Exits 0 if the regress run can continue.
-regress_continue() {
-	local _exit
-	local _name
-
-	while [ $# -gt 0 ]; do
-		case "$1" in
-		-e)	shift; _exit="$1";;
-		-n)	shift; _name="$1";;
-		*)	break;;
-		esac
-		shift
-	done
-	: "${_exit:?}"
-	: "${_name:?}"
-
-	# Ignore regress test errors.
-	case "$TESTS" in
-	*${_name}*)	return 0;;
-	*)		return "$_exit";;
-	esac
-}
-
 # regress_failed step-log
 #
 # Exits zero if the given regress step log indicate failure.
@@ -142,6 +117,31 @@ regress_skip() {
 
 	_test="$1"; : "${_test:?}"
 	echo "$SKIPIGNORE" | grep -q "\<${_test}\>"
+}
+
+# regress_step_after -e step-exit -n step-name
+#
+# After step hook, exits 0 if we can continue.
+regress_step_after() {
+	local _exit
+	local _name
+
+	while [ $# -gt 0 ]; do
+		case "$1" in
+		-e)	shift; _exit="$1";;
+		-n)	shift; _name="$1";;
+		*)	break;;
+		esac
+		shift
+	done
+	: "${_exit:?}"
+	: "${_name:?}"
+
+	# Ignore regress test errors.
+	case "$TESTS" in
+	*${_name}*)	return 0;;
+	*)		return "$_exit";;
+	esac
 }
 
 # regress_steps
