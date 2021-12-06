@@ -118,26 +118,54 @@ ports_report_skip() {
 	esac
 }
 
-# ports_step_after -e step-exit -n step-name
+# ports_step_after -b build-dir -e step-exit -n step-name
 #
 # After step hook, exits 0 if we can continue.
 ports_step_after() {
+	local _builddir
 	local _exit
+	local _n
 	local _name
+	local _outdated
+	local _s
+	local _steps
 
 	while [ $# -gt 0 ]; do
 		case "$1" in
+		-b)	shift; _builddir="$1";;
 		-e)	shift; _exit="$1";;
 		-n)	shift; _name="$1";;
 		*)	break;;
 		esac
 		shift
 	done
+	: "${_builddir:?}"
 	: "${_exit:?}"
 	: "${_name:?}"
 
+	_outdated="${_builddir}/tmp/outdated"
+	_steps="${_builddir}/steps"
+
+	# After the outdated step, adjust step ids for any following skipped
+	# steps since the number of steps has most likely increased after
+	# finding all outdated ports.
+	if [ "$_name" = "outdated" ]; then
+		_n="$(wc -l "$_outdated" | awk '{print $1}')"
+		step_eval -n "outdated" "${_builddir}/steps"
+		_s="$(step_value step)"; _s=$((_s + 1))
+		cp "${_builddir}/steps" "${_builddir}/tmp/steps"
+		while step_eval "$_s" "${_builddir}/tmp/steps" 2>/dev/null; do
+			step_skip || break
+
+			step_end -S -n "$(step_value name)" -s "$((_s + _n))" \
+				"$_steps"
+			_s=$((_s + 1))
+		done
+		rm "${_builddir}/tmp/steps"
+	fi
+
 	# Ignore ports build errors.
-	case "$(cat "${BUILDDIR}/tmp/outdated" 2>/dev/null)" in
+	case "$(cat "$_outdated" 2>/dev/null)" in
 	*${_name}*)	return 0;;
 	*)		return "$_exit";;
 	esac
@@ -156,7 +184,7 @@ ports_steps() {
 	proot
 	outdated
 	$( ([ -s "$_outdated" ] && cat "$_outdated" ) || :)
-	$( ([ -s "$_outdated" ] && echo distrib ) || :)
+	distrib
 	end
 	EOF
 }

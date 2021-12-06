@@ -119,7 +119,7 @@ regress_skip() {
 	echo "$SKIPIGNORE" | grep -q "\<${_test}\>"
 }
 
-# regress_step_after -e step-exit -n step-name
+# regress_step_after -b build-dir -e step-exit -n step-name
 #
 # After step hook, exits 0 if we can continue.
 regress_step_after() {
@@ -128,6 +128,7 @@ regress_step_after() {
 
 	while [ $# -gt 0 ]; do
 		case "$1" in
+		-b)	shift;;
 		-e)	shift; _exit="$1";;
 		-n)	shift; _name="$1";;
 		*)	break;;
