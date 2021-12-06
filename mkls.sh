@@ -1,5 +1,3 @@
-set -e
-
 mkls "$@" \
 SCRIPTS \
 	!(mkls).sh \
