@@ -1,6 +1,16 @@
 robsd_mock >"$TMP1"; read -r WRKDIR BINDIR ROBSDDIR <"$TMP1"
 
+# Sentinel file used to represent an up-to-date package.
 : >"${WRKDIR}/pkgfile"
+
+# Default configuration.
+cat <<EOF >"${WRKDIR}/robsd-ports.conf"
+ROBSDDIR=${ROBSDDIR}
+EXECDIR=${EXECDIR}
+CHROOT=/var/empty
+PORTSDIR=/var/empty
+PORTSUSER=nobody
+EOF
 
 cat <<'EOF' >"${BINDIR}/chroot"
 #!/bin/sh
@@ -76,11 +86,7 @@ ROBSDPORTS="${EXECDIR}/robsd-ports"
 
 if testcase "basic"; then
 	robsd_config - "robsd-ports" <<-EOF
-	ROBSDDIR=${ROBSDDIR}
-	EXECDIR=${EXECDIR}
-	CHROOT=/var/empty
-	PORTSDIR=/var/empty
-	PORTSUSER=nobody
+	$(cat "${WRKDIR}/robsd-ports.conf")
 	PORTS="devel/updated devel/nopkg devel/nosign"
 	EOF
 	mkdir "$ROBSDDIR"
@@ -89,10 +95,26 @@ if testcase "basic"; then
 	   -s cvs -s proot >"$TMP1" 2>&1; then
 		fail - "expected exit zero" <"$TMP1"
 	fi
-
 	_builddir="${ROBSDDIR}/$(date '+%Y-%m-%d').1"
+
 	assert_file - "${_builddir}/tmp/outdated" <<-EOF
 	devel/nopkg
 	devel/nosign
+	EOF
+
+	# Remove unstable output.
+	sed -e '/running as pid/d' "${_builddir}/robsd.log" >"$TMP1"
+	assert_file - "$TMP1" <<-EOF
+	robsd-ports: using directory ${_builddir} at step 1
+	robsd-ports: skipping steps: cvs proot
+	robsd-ports: step env
+	robsd-ports: step cvs skipped
+	robsd-ports: step proot skipped
+	robsd-ports: step outdated
+	robsd-ports: step devel/nopkg
+	robsd-ports: step devel/nosign
+	robsd-ports: step distrib
+	robsd-ports: step end
+	robsd-ports: trap exit 0
 	EOF
 fi

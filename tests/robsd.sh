@@ -60,7 +60,7 @@ if testcase "basic"; then
 
 	echo daily | assert_file - "${_builddir}/tags"
 
-	# Remove non stable output.
+	# Remove unstable output.
 	sed -i -e '/running as pid/d' -e '/robsd-exec:/d' "$TMP1"
 	_user="$(logname)"
 	assert_file - "$TMP1" <<-EOF
