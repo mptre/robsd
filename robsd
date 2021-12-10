@@ -69,9 +69,19 @@ if [ "$STEP" -eq 1 ]; then
 			[ -n "$XDIFF" ] && echo "$XDIFF" | xargs ls
 		} >"${BUILDDIR}/comment"
 	fi
+
+	if [ -n "$SKIP" ]; then
+		info "skipping steps: ${SKIP}"
+		for _step in $SKIP; do
+			_id="$(step_id "$_step")"
+			step_end -S -n "$_step" -s "$_id" "${BUILDDIR}/steps"
+		done
+	fi
+
 	if [ -n "$TAGS" ]; then
 		echo "$TAGS" >"${BUILDDIR}/tags"
 	fi
+
 	"$ROBSDSTAT" -H >"${BUILDDIR}/stat.csv"
 fi
 
@@ -84,15 +94,6 @@ if [ "$STEP" -eq 1 ]; then
 else
 	BSDDIFF="$(diff_list "$BUILDDIR" "src.diff")"
 	XDIFF="$(diff_list "$BUILDDIR" "xenocara.diff")"
-fi
-
-# Take note of skipped steps initially.
-if [ "$STEP" -eq 1 ] && [ -n "$SKIP" ]; then
-	info "skipping steps: ${SKIP}"
-	for _step in $SKIP; do
-		_id="$(step_id "$_step")"
-		step_end -S -n "$_step" -s "$_id" "${BUILDDIR}/steps"
-	done
 fi
 
 if [ "$KEEP" -gt 0 ]; then

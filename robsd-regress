@@ -54,9 +54,11 @@ if [ "$STEP" -eq 1 ]; then
 	if [ -n "$COMMENT" ]; then
 		cat "$COMMENT" >"${BUILDDIR}/comment"
 	fi
+
 	if [ -n "$TAGS" ]; then
 		echo "$TAGS" >"${BUILDDIR}/tags"
 	fi
+
 	"$ROBSDSTAT" -H >"${BUILDDIR}/stat.csv"
 fi
 

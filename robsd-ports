@@ -56,19 +56,20 @@ if [ "$STEP" -eq 1 ]; then
 	if [ -n "$COMMENT" ]; then
 		cat "$COMMENT" >"${BUILDDIR}/comment"
 	fi
+
+	if [ -n "$SKIP" ]; then
+		info "skipping steps: ${SKIP}"
+		for _step in $SKIP; do
+			_id="$(step_id "$_step")"
+			step_end -S -n "$_step" -s "$_id" "${BUILDDIR}/steps"
+		done
+	fi
+
 	if [ -n "$TAGS" ]; then
 		echo "$TAGS" >"${BUILDDIR}/tags"
 	fi
-	"$ROBSDSTAT" -H >"${BUILDDIR}/stat.csv"
-fi
 
-# Take note of skipped steps initially.
-if [ "$STEP" -eq 1 ] && [ -n "$SKIP" ]; then
-	info "skipping steps: ${SKIP}"
-	for _step in $SKIP; do
-		_id="$(step_id "$_step")"
-		step_end -S -n "$_step" -s "$_id" "${BUILDDIR}/steps"
-	done
+	"$ROBSDSTAT" -H >"${BUILDDIR}/stat.csv"
 fi
 
 if [ "$KEEP" -gt 0 ]; then

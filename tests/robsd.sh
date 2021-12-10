@@ -65,9 +65,9 @@ if testcase "basic"; then
 	_user="$(logname)"
 	assert_file - "$TMP1" <<-EOF
 	robsd: using directory ${_builddir} at step 1
+	robsd: skipping steps: reboot
 	robsd: using diff ${TSHDIR}/src.diff rooted at ${TSHDIR}
 	robsd: using diff ${TSHDIR}/xenocara.diff rooted at ${TSHDIR}
-	robsd: skipping steps: reboot
 	robsd: step env
 	robsd: step cvs
 	robsd: invoking hook: ${_hook} ${_builddir} cvs 0 ${_user}
