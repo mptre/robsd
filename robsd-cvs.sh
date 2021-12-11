@@ -1,7 +1,5 @@
 . "${EXECDIR}/util.sh"
 
-set -o pipefail
-
 _tmpdir="${BUILDDIR}/tmp"
 
 {
