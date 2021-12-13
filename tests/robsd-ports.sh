@@ -32,7 +32,9 @@ elif [ "$1" = "destroy_DEPENDS_CACHE" ]; then
 elif [ "$1" = "all-dir-depends" ]; then
 	case "$SUBDIR" in
 	*)
-		echo "${SUBDIR} ${SUBDIR}"
+		for _p in $SUBDIR; do
+			echo "${_p} ${_p}"
+		done
 		;;
 	esac
 elif [ "$1" = "print-update-signature" ]; then
