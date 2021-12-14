@@ -100,7 +100,6 @@ config_load() {
 	BUILDUSER="build"; export BUILDUSER
 	CVSROOT=""; export CVSROOT
 	CVSUSER=""; export CVSUSER
-	DESTDIR=""; export DESTDIR
 	DETACH=0
 	DISTRIBHOST=""; export DISTRIBHOST
 	DISTRIBPATH=""; export DISTRIBPATH
@@ -122,24 +121,25 @@ config_load() {
 	XOBJDIR="/usr/xobj"; export XOBJDIR
 	XSRCDIR="/usr/xenocara"; export XSRCDIR
 
-	# Variables only honored by robsd-ports.
-	if [ "$_MODE" = "robsd-ports" ]; then
+	case "$_MODE" in
+	robsd-ports)
 		CHROOT=""; export CHROOT
 		MAKE_JOBS="0"; export MAKE_JOBS
 		PORTS=""; export PORTS
 		PORTSDIR="/usr/ports"; export PORTSDIR
 		PORTSUSER=""; export PORTSUSER
-	fi
-
-	# Variables only honored by robsd-regress.
-	if [ "$_MODE" = "robsd-regress" ]; then
+		;;
+	robsd-regress)
 		REGRESSROOT=""; export REGRESSROOT
 		REGRESSUSER=""; export REGRESSUSER
 		# shellcheck disable=SC2034
 		SKIPIGNORE=""
 		SUDO="doas -n"; export SUDO
 		TESTS=""
-	fi
+		;;
+	*)
+		DESTDIR=""; export DESTDIR
+	esac
 
 	. "$_path"
 

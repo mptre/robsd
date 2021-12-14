@@ -27,8 +27,6 @@ ports_begin() {
 #
 # Handle ports specific configuration.
 ports_config_load() {
-	# Commonly used during make install.
-	unset DESTDIR
 	# Parallelism is dictated by MAKE_JOBS.
 	unset MAKEFLAGS
 	# Do not inherit anything.

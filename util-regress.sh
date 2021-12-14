@@ -7,8 +7,6 @@ regress_config_load() {
 	local _t
 	local _tests=""
 
-	# Prevent tests from picking up compiler flags in bsd.sys.mk.
-	unset DESTDIR
 	# Not suited for parallelism.
 	unset MAKEFLAGS
 
