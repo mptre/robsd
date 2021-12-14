@@ -96,6 +96,30 @@ regress_report_skip() {
 	return 0
 }
 
+# regress_report_status -s steps
+#
+# Get the report status subject.
+regress_report_status() {
+	local _n
+	local _steps
+
+	while [ $# -gt 0 ]; do
+		case "$1" in
+		-s)	shift; _steps="$1";;
+		*)	break;;
+		esac
+		shift
+	done
+	: "${_steps:?}"
+
+	_n="$(step_failures "$_steps")"
+	if [ "$_n" -gt 1 ]; then
+		echo "${_n} failures"
+	elif [ "$_n" -gt 0 ]; then
+		echo "${_n} failure"
+	fi
+}
+
 # regress_root test
 #
 # Exits zero if the given regress test must be executed as root.

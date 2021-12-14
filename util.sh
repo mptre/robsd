@@ -888,13 +888,7 @@ report() {
 		_status="$(ports_report_status -s "$_steps")"
 		;;
 	robsd-regress)
-		# If any step failed, the build failed.
-		_n="$(step_failures "$_steps")"
-		if [ "$_n" -gt 1 ]; then
-			_status="${_n} failures"
-		elif [ "$_n" -gt 0 ]; then
-			_status="${_n} failure"
-		fi
+		_status="$(regress_report_status -s "$_steps")"
 		;;
 	*)
 		# As robsd halts if a step failed, only bother checking the last
