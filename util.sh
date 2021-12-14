@@ -534,7 +534,7 @@ duration_prev() {
 	return 1
 }
 
-# duration_total steps
+# duration_total -s steps
 #
 # Calculate the accumulated build duration.
 duration_total() {
@@ -543,7 +543,14 @@ duration_total() {
 	local _steps
 	local _tot=0
 
-	_steps="$1"; : "${_steps:?}"
+	while [ $# -gt 0 ]; do
+		case "$1" in
+		-s)	shift; _steps="$1";;
+		*)	break;;
+		esac
+		shift
+	done
+	: "${_steps:?}"
 
 	case "$_MODE" in
 	robsd-ports)
@@ -908,7 +915,7 @@ report() {
 		_duration="$(step_value duration)"
 		_duration="$(report_duration -d end -t 60 "$_duration")"
 	else
-		_duration="$(duration_total "$_steps")"
+		_duration="$(duration_total -s "$_steps")"
 		_duration="$(report_duration "$_duration")"
 	fi
 
@@ -1243,7 +1250,7 @@ robsd() {
 		if [ "$_name" = "end" ]; then
 			# The duration of the end step is the accumulated
 			# duration.
-			step_end -d "$(duration_total "${BUILDDIR}/steps")" \
+			step_end -d "$(duration_total -s "${BUILDDIR}/steps")" \
 				-n "$_name" -s "$_s" "${BUILDDIR}/steps"
 			return 0
 		fi
