@@ -35,14 +35,47 @@ ports_config_load() {
 	unset PKG_PATH
 }
 
-# ports_parallel port
+# ports_duration_total -s steps
 #
-# Exits zero if the given port can build in parallel.
-ports_parallel() {
-	local _port
+# Get the total duration.
+ports_duration_total() {
+	local _d
+	local _i=1
+	local _name
+	local _steps
+	local _tot=0
 
-	_port="$1"; : "${_port:?}"
-	! echo "$NOPARALLEL" | grep -q "\<${_port}\>"
+	while [ $# -gt 0 ]; do
+		case "$1" in
+		-s)	shift; _steps="$1";;
+		*)	break;;
+		esac
+		shift
+	done
+	: "${_steps:?}"
+
+	while step_eval "$_i" "$_steps" 2>/dev/null; do
+		_i=$((_i + 1))
+
+		step_skip && continue
+
+		_name="$(step_value name)"
+
+		# Do not include the previous accumulated build duration.
+		# Could be present if the report is re-generated.
+		[ "$_name" = "end" ] && continue
+
+		# Ports are already covered by the total dpb duration.
+		case "$PORTS" in
+		*${_name}*)	continue;;
+		*)		;;
+		esac
+
+		_d="$(step_value duration)"
+		_tot=$((_tot + _d))
+	done
+
+	echo "$_tot"
 }
 
 # ports_report_log -e step-exit -n step-name -l step-log -t tmp-dir
@@ -108,7 +141,7 @@ ports_report_skip() {
 	: "${_name:?}"
 
 	case "$_name" in
-	env|proot|outdated|distrib|end)
+	env|proot|dpb|distrib|end)
 		return 0
 		;;
 	cvs)
@@ -120,72 +153,68 @@ ports_report_skip() {
 	esac
 }
 
-# ports_step_after -b build-dir -e step-exit -n step-name
+# ports_report_status -s steps
 #
-# After step hook, exits 0 if we can continue.
-ports_step_after() {
-	local _builddir
-	local _exit
+# Get the report status subject.
+ports_report_status() {
 	local _n
-	local _name
-	local _outdated
-	local _s
 	local _steps
 
 	while [ $# -gt 0 ]; do
 		case "$1" in
-		-b)	shift; _builddir="$1";;
-		-e)	shift; _exit="$1";;
-		-n)	shift; _name="$1";;
+		-s)	shift; _steps="$1";;
 		*)	break;;
 		esac
 		shift
 	done
-	: "${_builddir:?}"
-	: "${_exit:?}"
-	: "${_name:?}"
+	: "${_steps:?}"
 
-	_outdated="${_builddir}/tmp/outdated"
-	_steps="${_builddir}/steps"
+	_n="$(step_failures "$_steps")"
+	[ "$_n" -gt 0 ] || return 0
 
-	# After the outdated step, adjust step ids for any following skipped
-	# steps since the number of steps has most likely increased after
-	# finding all outdated ports.
-	if [ "$_name" = "outdated" ]; then
-		_n="$(wc -l "$_outdated" | awk '{print $1}')"
-		step_eval -n "outdated" "${_builddir}/steps"
-		_s="$(step_value step)"; _s=$((_s + 1))
-		cp "${_builddir}/steps" "${_builddir}/tmp/steps"
-		while step_eval "$_s" "${_builddir}/tmp/steps" 2>/dev/null; do
-			step_skip || break
-
-			step_end -S -n "$(step_value name)" -s "$((_s + _n))" \
-				"$_steps"
-			_s=$((_s + 1))
-		done
-		rm "${_builddir}/tmp/steps"
+	if [ "$_n" -gt 1 ] &&
+	   step_eval -n dpb "$_steps" 2>/dev/null &&
+	   [ "$(step_value exit)" -ne 0 ]; then
+		_n=$((_n - 1))
 	fi
 
-	# Ignore ports build errors.
-	case "$(cat "$_outdated" 2>/dev/null)" in
-	*${_name}*)	return 0;;
-	*)		return "$_exit";;
-	esac
+	if [ "$_n" -gt 1 ]; then
+		echo "${_n} failures"
+	else
+		echo "${_n} failure"
+	fi
+}
+
+# ports_step_after -b build-dir -e step-exit -n step-name
+#
+# After step hook, exits 0 if we can continue.
+ports_step_after() {
+	local _exit
+
+	while [ $# -gt 0 ]; do
+		case "$1" in
+		-b)	shift;;
+		-e)	shift; _exit="$1";;
+		-n)	shift;;
+		*)	break;;
+		esac
+		shift
+	done
+	: "${_exit:?}"
+
+	return "$_exit"
 }
 
 # ports_steps
 #
 # Get the step names in execution order.
 ports_steps() {
-	local _outdated="${BUILDDIR}/tmp/outdated"
-
-	# The outdated file will eventually be populated by the outdated step.
 	xargs printf '%s\n' <<-EOF
 	env
 	cvs
 	proot
-	outdated
-	$( ([ -s "$_outdated" ] && cat "$_outdated" ) || :)
+	${PORTS}
+	dpb
 	distrib
 	end
 	EOF

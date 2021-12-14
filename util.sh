@@ -125,8 +125,7 @@ config_load() {
 	# Variables only honored by robsd-ports.
 	if [ "$_MODE" = "robsd-ports" ]; then
 		CHROOT=""; export CHROOT
-		MAKE_JOBS="1"; export MAKE_JOBS
-		NOPARALLEL=""; export NOPARALLEL
+		MAKE_JOBS="0"; export MAKE_JOBS
 		PORTS=""; export PORTS
 		PORTSDIR="/usr/ports"; export PORTSDIR
 		PORTSUSER=""; export PORTSUSER
@@ -544,8 +543,16 @@ duration_total() {
 	local _steps
 	local _tot=0
 
-	_steps="$1"
-	: "${_steps:?}"
+	_steps="$1"; : "${_steps:?}"
+
+	case "$_MODE" in
+	robsd-ports)
+		ports_duration_total -s "$_steps"
+		return 0
+		;;
+	*)
+		;;
+	esac
 
 	while step_eval "$_i" "$_steps" 2>/dev/null; do
 		_i=$((_i + 1))
@@ -848,7 +855,7 @@ report() {
 	local _n
 	local _name
 	local _report
-	local _status="ok"
+	local _status
 	local _steps
 	local _tmp
 
@@ -869,9 +876,12 @@ report() {
 	# another already running build.
 	[ -s "$_steps" ] || return 1
 
-	# If any step failed, the build failed.
 	case "$_MODE" in
-	robsd-ports|robsd-regress)
+	robsd-ports)
+		_status="$(ports_report_status -s "$_steps")"
+		;;
+	robsd-regress)
+		# If any step failed, the build failed.
 		_n="$(step_failures "$_steps")"
 		if [ "$_n" -gt 1 ]; then
 			_status="${_n} failures"
@@ -892,6 +902,7 @@ report() {
 		done
 		;;
 	esac
+	: "${_status:="ok"}"
 
 	if step_eval -n end "$_steps" 2>/dev/null; then
 		_duration="$(step_value duration)"
@@ -1485,10 +1496,7 @@ step_exec() (
 	[ -t 0 ] || exec >/dev/null 2>&1
 
 	{
-		if [ "$_MODE" = "robsd-ports" ] && ! [ -e "$_exec" ]; then
-			"$_robsdexec" sh -eux "${EXECDIR}/${_MODE}-exec.sh" \
-				"$_step" || : >"$_fail"
-		elif [ "$_MODE" = "robsd-regress" ] && ! [ -e "$_exec" ]; then
+		if [ "$_MODE" = "robsd-regress" ] && ! [ -e "$_exec" ]; then
 			"$_robsdexec" sh -eux "${EXECDIR}/${_MODE}-exec.sh" \
 				"$_step" || : >"$_fail"
 

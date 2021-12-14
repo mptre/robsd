@@ -63,6 +63,12 @@ if [ "$STEP" -eq 1 ]; then
 			_id="$(step_id "$_step")"
 			step_end -S -n "$_step" -s "$_id" "${BUILDDIR}/steps"
 		done
+		# Flag all ports as skipped initially, later populated by the
+		# dpb step.
+		for _p in $PORTS; do
+			_id="$(step_id "$_p")"
+			step_end -S -n "$_p" -s "$_id" "${BUILDDIR}/steps"
+		done
 	fi
 
 	if [ -n "$TAGS" ]; then

@@ -123,11 +123,7 @@ Number of parallel
 .Xr make 1
 processes used while building ports.
 Disabled by default.
-.Bq 1
-.It Ev NOPARALLEL
-Ports which cannot be built in parallel, separated by whitespace.
-.Ev MAKE_JOBS
-is effectively cleared for such ports.
+.Bq 0
 .It Ev PORTS
 Ports to build, separated by whitespace.
 All entries must be relative to
@@ -137,7 +133,8 @@ Ports directory relative to
 .Ev CHROOT .
 .Bq Pa /usr/ports
 .It Ev PORTSUSER
-User to build ports as.
+User owning
+.Ev PORTSDIR .
 .It Ev SIGNIFY
 Private key used to optionally sign the packages using
 .Xr signify 1 .
