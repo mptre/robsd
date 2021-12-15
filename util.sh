@@ -1234,12 +1234,20 @@ robsd() {
 		_s="$_step"
 		_step=$((_step + 1))
 
-		if step_eval -n "$_name" "${BUILDDIR}/steps" 2>/dev/null && step_skip; then
+		if step_eval -n "$_name" "${BUILDDIR}/steps" 2>/dev/null &&
+		   step_skip; then
 			info "step ${_name} skipped"
 			continue
-		else
-			info "step ${_name}"
 		fi
+
+		case "$_MODE" in
+		robsd-ports)
+			ports_step_skip -n "$_name" && continue
+			;;
+		*)
+			;;
+		esac
+		info "step ${_name}"
 
 		if [ "$_name" = "end" ]; then
 			# The duration of the end step is the accumulated
@@ -1248,14 +1256,6 @@ robsd() {
 				-n "$_name" -s "$_s" "${BUILDDIR}/steps"
 			return 0
 		fi
-
-		case "$_MODE" in
-		robsd-ports)
-			ports_begin -n "$_name" -s "${BUILDDIR}/steps" || return 1
-			;;
-		*)
-			;;
-		esac
 
 		_log="${BUILDDIR}/$(log_id -b "$BUILDDIR" -n "$_name" -s "$_s")"
 		_exit=0
