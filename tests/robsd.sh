@@ -56,7 +56,7 @@ if testcase "basic"; then
 	if [ -e "${ROBSDDIR}/.running" ]; then
 		fail - "lock not removed" <"$TMP1"
 	fi
-	_builddir="${ROBSDDIR}/$(date '+%Y-%m-%d').1"
+	_builddir="$(find "${ROBSDDIR}" -type d -mindepth 1 -maxdepth 1)"
 
 	echo daily | assert_file - "${_builddir}/tags"
 
@@ -116,7 +116,7 @@ if testcase "reboot"; then
 		fail - "expected exit zero" <"$TMP1"
 	fi
 
-	_builddir="${ROBSDDIR}/$(date '+%Y-%m-%d').1"
+	_builddir="$(find "${ROBSDDIR}" -type d -mindepth 1 -maxdepth 1)"
 	if [ -e "${_builddir}/report" ]; then
 		fail - "expected no report" <"$TMP1"
 	fi
