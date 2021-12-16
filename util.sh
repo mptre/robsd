@@ -108,7 +108,6 @@ config_load() {
 	HOOK=""
 	# shellcheck disable=SC2034
 	KEEP=0
-	MAKEFLAGS="-j$(sysctl -n hw.ncpuonline)"; export MAKEFLAGS
 	PATH="${PATH}:/usr/X11R6/bin"; export PATH
 	ROBSDDIR=""; export ROBSDDIR
 	: "${ROBSDSTAT:=${EXECDIR}/robsd-stat}"
@@ -122,6 +121,10 @@ config_load() {
 	XSRCDIR="/usr/xenocara"; export XSRCDIR
 
 	case "$_MODE" in
+	robsd)
+		MAKEFLAGS="-j$(sysctl -n hw.ncpuonline)"; export MAKEFLAGS
+		DESTDIR=""; export DESTDIR
+		;;
 	robsd-ports)
 		CHROOT=""; export CHROOT
 		MAKE_JOBS="0"; export MAKE_JOBS
@@ -138,7 +141,7 @@ config_load() {
 		TESTS=""
 		;;
 	*)
-		DESTDIR=""; export DESTDIR
+		;;
 	esac
 
 	. "$_path"

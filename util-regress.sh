@@ -7,9 +7,6 @@ regress_config_load() {
 	local _t
 	local _tests=""
 
-	# Not suited for parallelism.
-	unset MAKEFLAGS
-
 	for _t in ${TESTS:-}; do
 		_flags="${_t##*:}"
 		_t="${_t%:*}"
