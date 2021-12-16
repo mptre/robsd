@@ -80,15 +80,17 @@ EOF
 all:
 	echo nein >${TSHDIR}/nein
 EOF
+	_exec="${TSHDIR}/robsd-regress-exec"
+	cp "$ROBSDEXEC" "$_exec"
 
-	if ! PATH="${BINDIR}:${PATH}" sh "$ROBSDREGRESS" -D \
+	if ! PATH="${BINDIR}:${PATH}" ROBSDEXEC="$_exec" sh "$ROBSDREGRESS" -D \
 	   >"$TMP1" 2>&1; then
 		fail - "expected exit zero" <"$TMP1"
 	fi
 	until [ -e "${TSHDIR}/sleep" ]; do
 		sleep .1
 	done
-	PATH="${BINDIR}:${PATH}" sh "$ROBSDKILL"
+	PATH="${BINDIR}:${PATH}" ROBSDEXEC="$_exec" sh "$ROBSDKILL"
 	while pgrep -q -f "$ROBSDREGRESS"; do
 		sleep .1
 	done
