@@ -38,7 +38,7 @@ ports_duration_total() {
 		# Could be present if the report is re-generated.
 		[ "$_name" = "end" ] && continue
 
-		# Ports are already covered by the total dpb duration.
+		# Ports are already covered by the dpb duration.
 		case "$PORTS" in
 		*${_name}*)	continue;;
 		*)		;;
