@@ -12,7 +12,7 @@ usage() {
 [ $# -ne 0 ] && usage
 
 setmode "$(getmode "$0")"
-setprogname "$(getmode "$0")-kill"
+setprogname "${_MODE}-kill"
 [ "$(id -u)" -ne 0 ] && fatal "must be run as root"
 config_load "$(config_path)"
 
