@@ -20,7 +20,7 @@ cd "$RELDIR"
 	date -u -r "$(build_date)" "+Build date: %s - %+"
 	# Include date of the last CVS revision.
 	for _dir in "$BUILDDIR" $(prev_release 0); do
-		_date="$(cvs_date "$_dir")" || continue
+		_date="$(cvs_date -s "${_dir}/steps")" || continue
 		date -u -r "$_date" "+Build cvs date: %s - %+"
 		break
 	done

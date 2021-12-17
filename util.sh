@@ -222,17 +222,24 @@ cvs_field() {
 	echo "$_line"
 }
 
-# cvs_date release-dir
+# cvs_date -s steps
 #
 # Get the date of the CVS update invocation expressed as a Unix timestamp for
 # the given release.
 cvs_date() {
-	local _dir
 	local _log
+	local _steps
 
-	_dir="$1"; : "${_dir:?}"
+	while [ $# -gt 0 ]; do
+		case "$1" in
+		-s)	shift; _steps="$1";;
+		*)	break;;
+		esac
+		shift
+	done
+	: "${_steps:?}"
 
-	step_eval -n cvs "${_dir}/steps"
+	step_eval -n cvs "$_steps"
 	step_skip && return 1
 
 	# Try to find the date of the last revision in the log, i.e. the first
@@ -282,7 +289,7 @@ cvs_log() {
 
 	# Use the date from latest revision from the previous release.
 	for _prev in $(prev_release 0); do
-		_date="$(cvs_date "$_prev")" && break
+		_date="$(cvs_date -s "${_prev}/steps")" && break
 	done
 	if [ -z "$_date" ]; then
 		echo "cvs_log: previous date not found" 1>&2
