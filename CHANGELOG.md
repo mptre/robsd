@@ -1,3 +1,11 @@
+# 6.0.0 - 2021-12-18
+
+## Changes
+
+- Make use of dpb(1) under the hood in robsd-ports.
+  (87f8532)
+  (Anton Lindqvist)
+
 # 5.3.2 - 2021-12-05
 
 ## Bug fixes
