@@ -7,6 +7,9 @@ regress_config_load() {
 	local _t
 	local _tests=""
 
+	# Sanitize the inherited environment.
+	unset MAKEFLAGS
+
 	for _t in ${TESTS:-}; do
 		_flags="${_t##*:}"
 		_t="${_t%:*}"

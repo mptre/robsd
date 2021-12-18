@@ -2,8 +2,8 @@
 #
 # Handle ports specific configuration.
 ports_config_load() {
-	# Do not inherit anything.
-	unset PKG_PATH
+	# Sanitize the inherited environment.
+	unset MAKEFLAGS PKG_PATH
 }
 
 # ports_duration_total -s steps
