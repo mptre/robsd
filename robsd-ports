@@ -5,7 +5,7 @@ set -eu
 usage() {
 	xargs 1>&2 <<-EOF
 	usage: robsd-ports
-	[-D]
+	[-d]
 	[-c comment]
 	[-r path]
 	[-s step]
@@ -25,9 +25,9 @@ COMMENT=""
 STATPID=""
 STEP=1
 
-while getopts "Dc:r:s:t:" opt; do
+while getopts "dc:r:s:t:" opt; do
 	case "$opt" in
-	D)	DETACH=1;;
+	d)	DETACH=0;;
 	c)	COMMENT="$OPTARG";;
 	r)	BUILDDIR="$(readlink -f "$OPTARG")";;
 	s)	SKIP="${SKIP}${SKIP:+ }${OPTARG}";;

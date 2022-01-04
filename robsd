@@ -5,7 +5,7 @@ set -eu
 usage() {
 	xargs 1>&2 <<-EOF
 	usage: robsd
-	[-D]
+	[-d]
 	[-S src-diff]
 	[-X xenocara-diff]
 	[-c comment]
@@ -27,9 +27,9 @@ COMMENT=""
 STATPID=""
 STEP=1
 
-while getopts "DS:X:c:r:s:t:" opt; do
+while getopts "dS:X:c:r:s:t:" opt; do
 	case "$opt" in
-	D)	DETACH=1;;
+	d)	DETACH=0;;
 	S)	BSDDIFF="${BSDDIFF}${BSDDIFF:+ }$(readlink -f "${OPTARG}")";;
 	X)	XDIFF="${XDIFF}${XDIFF:+ }$(readlink -f "${OPTARG}")";;
 	c)	COMMENT="$OPTARG";;

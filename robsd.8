@@ -6,14 +6,14 @@
 .Nd build OpenBSD release
 .Sh SYNOPSIS
 .Nm robsd
-.Op Fl D
+.Op Fl d
 .Op Fl S Ar src-diff
 .Op Fl X Ar xenocara-diff
 .Op Fl c Ar comment
 .Op Fl s Ar step
 .Op Fl t Ar tag
 .Nm
-.Op Fl D
+.Op Fl d
 .Fl r Ar path
 .Sh DESCRIPTION
 The
@@ -138,8 +138,8 @@ to ensure a clean exit.
 .Pp
 The options are as follows:
 .Bl -tag -width Ds
-.It Fl D
-Detach
+.It Fl d
+Do not detach
 .Nm
 into the background.
 .It Fl S Ar src-diff

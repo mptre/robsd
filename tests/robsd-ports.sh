@@ -27,7 +27,7 @@ if testcase "basic"; then
 	mkdir "$ROBSDDIR"
 
 	if ! PATH="${BINDIR}:${PATH}" WRKDIR="$WRKDIR" sh "$ROBSDPORTS" \
-	   -s cvs -s proot >"$TMP1" 2>&1; then
+	   -d -s cvs -s proot >"$TMP1" 2>&1; then
 		fail - "expected exit zero" <"$TMP1"
 	fi
 	_builddir="$(find "${ROBSDDIR}" -type d -mindepth 1 -maxdepth 1)"
@@ -62,7 +62,7 @@ if testcase "skip"; then
 	mkdir "$ROBSDDIR"
 
 	if ! PATH="${BINDIR}:${PATH}" WRKDIR="$WRKDIR" sh "$ROBSDPORTS" \
-	   -s cvs -s proot -s distrib >"$TMP1" 2>&1; then
+	   -d -s cvs -s proot -s distrib >"$TMP1" 2>&1; then
 		fail - "expected exit zero" <"$TMP1"
 	fi
 	_builddir="$(find "${ROBSDDIR}" -type d -mindepth 1 -maxdepth 1)"

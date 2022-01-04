@@ -46,7 +46,7 @@ if testcase "basic"; then
 	echo "Index: dir/file.c" >"${TSHDIR}/xenocara.diff"
 
 	_fail="${TSHDIR}/fail"
-	PATH="${BINDIR}:${PATH}" sh "$ROBSD" \
+	PATH="${BINDIR}:${PATH}" sh "$ROBSD" -d \
 		-S "${TSHDIR}/src.diff" -X "${TSHDIR}/xenocara.diff" \
 		-s reboot -t daily \
 		>"$TMP1" 2>&1 || : >"$_fail"
@@ -111,7 +111,7 @@ if testcase "reboot"; then
 	mkdir -p "$ROBSDDIR"
 
 	_fail="${TSHDIR}/fail"
-	PATH="${BINDIR}:${PATH}" sh "$ROBSD" >"$TMP1" 2>&1 || : >"$_fail"
+	PATH="${BINDIR}:${PATH}" sh "$ROBSD" -d >"$TMP1" 2>&1 || : >"$_fail"
 	if [ -e "$_fail" ]; then
 		fail - "expected exit zero" <"$TMP1"
 	fi
@@ -128,7 +128,7 @@ if testcase "already running"; then
 	EOF
 	mkdir -p "$ROBSDDIR"
 	echo /var/empty >"${ROBSDDIR}/.running"
-	PATH="${BINDIR}:${PATH}" sh "$ROBSD" 2>&1 | grep -v 'using ' >"$TMP1"
+	PATH="${BINDIR}:${PATH}" sh "$ROBSD" -d 2>&1 | grep -v 'using ' >"$TMP1"
 	if ! [ -e "${ROBSDDIR}/.running" ]; then
 		fail - "lock not preserved" <"$TMP1"
 	fi
@@ -144,7 +144,7 @@ if testcase "already running detached"; then
 	EOF
 	mkdir -p "$ROBSDDIR"
 	echo /var/empty >"${ROBSDDIR}/.running"
-	PATH="${BINDIR}:${PATH}" sh "$ROBSD" -D 2>&1 | grep -v 'using ' >"$TMP1"
+	PATH="${BINDIR}:${PATH}" sh "$ROBSD" 2>&1 | grep -v 'using ' >"$TMP1"
 	if ! [ -e "${ROBSDDIR}/.running" ]; then
 		fail - "lock not preserved" <"$TMP1"
 	fi
@@ -160,7 +160,7 @@ if testcase "early failure"; then
 	EOF
 	echo 'exit 0' >"${BINDIR}/sysctl"
 	mkdir -p "$ROBSDDIR"
-	if PATH="${BINDIR}:${PATH}" sh "$ROBSD" >"$TMP1" 2>&1; then
+	if PATH="${BINDIR}:${PATH}" sh "$ROBSD" -d >"$TMP1" 2>&1; then
 		fail - "expected exit non-zero" <"$TMP1"
 	fi
 	assert_file - "$TMP1" <<-EOF
@@ -173,7 +173,7 @@ if testcase "missing build directory"; then
 	robsd_config - <<-EOF
 	ROBSDDIR=${ROBSDDIR}
 	EOF
-	if PATH="${BINDIR}:${PATH}" sh "$ROBSD" >"$TMP1" 2>&1; then
+	if PATH="${BINDIR}:${PATH}" sh "$ROBSD" -d >"$TMP1" 2>&1; then
 		fail - "expected exit non-zero" <"$TMP1"
 	fi
 	assert_file - "$TMP1" <<-EOF

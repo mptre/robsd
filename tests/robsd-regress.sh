@@ -28,7 +28,7 @@ all:
 	echo SUDO=\${SUDO} >${TSHDIR}/root
 EOF
 
-	if ! PATH="${BINDIR}:${PATH}" sh "$ROBSDREGRESS" >"$TMP1" 2>&1; then
+	if ! PATH="${BINDIR}:${PATH}" sh "$ROBSDREGRESS" -d >"$TMP1" 2>&1; then
 		fail - "expected exit zero" <"$TMP1"
 	fi
 	assert_file - "${TSHDIR}/hello" <<-EOF
@@ -54,7 +54,7 @@ if testcase "failure in non-test step"; then
 	EOF
 	chmod u+x "${BINDIR}/df"
 
-	if PATH="${BINDIR}:${PATH}" sh "$ROBSDREGRESS" >"$TMP1" 2>&1; then
+	if PATH="${BINDIR}:${PATH}" sh "$ROBSDREGRESS" -d >"$TMP1" 2>&1; then
 		fail - "expected exit non-zero" <"$TMP1"
 	fi
 
@@ -83,7 +83,7 @@ EOF
 	_exec="${TSHDIR}/robsd-regress-exec"
 	cp "$ROBSDEXEC" "$_exec"
 
-	if ! PATH="${BINDIR}:${PATH}" ROBSDEXEC="$_exec" sh "$ROBSDREGRESS" -D \
+	if ! PATH="${BINDIR}:${PATH}" ROBSDEXEC="$_exec" sh "$ROBSDREGRESS" \
 	   >"$TMP1" 2>&1; then
 		fail - "expected exit zero" <"$TMP1"
 	fi

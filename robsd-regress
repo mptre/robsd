@@ -5,7 +5,7 @@ set -eu
 usage() {
 	xargs 1>&2 <<-EOF
 	usage: robsd-regress
-	[-D]
+	[-d]
 	[-c comment]
 	[-r path]
 	[-t tag]
@@ -24,9 +24,9 @@ COMMENT=""
 STATPID=""
 STEP=1
 
-while getopts "Dc:r:t:" opt; do
+while getopts "dc:r:t:" opt; do
 	case "$opt" in
-	D)	DETACH=1;;
+	d)	DETACH=0;;
 	c)	COMMENT="$OPTARG";;
 	r)	BUILDDIR="$(readlink -f "$OPTARG")";;
 	t)	TAGS="${TAGS}${TAGS:+ }${OPTARG}";;
