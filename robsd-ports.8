@@ -37,6 +37,9 @@ Create the
 using
 .Xr proot 1 ,
 this is where ports are built.
+.It patch
+Apply patches including sticky ones, see
+.Xr robsd-ports.conf 5 .
 .It Ev PORTS
 Build all configured
 .Ev PORTS
@@ -49,6 +52,8 @@ including runtime dependencies to another host using
 .Xr scp 1 .
 This step is optional and requires presence of certain configuration, see
 .Xr robsd-ports.conf 5 .
+.It revert
+Revert applied patches, see the patch step above.
 .It end
 Auxillary step used to generate
 .Pa report .
@@ -107,12 +112,10 @@ Patch to apply to
 .Ev PORTSDIR .
 The patch path names can be relative to any directory in
 .Ev PORTSDIR .
-The same patch will be reverted once
-.Nm
-is done.
+The same patch will be reverted by the revert step, see above.
 In addition, a copy of the patch is saved to a file named
 .Pa ports.diff.N
-in the invocation directory where N is incremented for every given diff.
+in the invocation directory where N is incremented for every given patch.
 May be given multiple times.
 .It Fl c Ar comment
 Path to comment included in
