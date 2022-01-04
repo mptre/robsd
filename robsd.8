@@ -7,8 +7,8 @@
 .Sh SYNOPSIS
 .Nm robsd
 .Op Fl d
-.Op Fl S Ar src-diff
-.Op Fl X Ar xenocara-diff
+.Op Fl S Ar src-patch
+.Op Fl X Ar xenocara-patch
 .Op Fl c Ar comment
 .Op Fl s Ar step
 .Op Fl t Ar tag
@@ -36,8 +36,7 @@ and
 source directories using the configured upstream, see
 .Xr robsd.conf 5 .
 .It patch
-Apply any given src or xenocara diff to the corresponding source directory.
-Any configured sticky diff is also applied, see
+Apply patches including sticky ones, see
 .Xr robsd.conf 5 .
 .It kernel
 Build and install a new kernel.
@@ -76,7 +75,7 @@ Move system and xenocara release files into the
 .Pa rel
 directory associated with the current release build and compute checksums.
 .It revert
-Revert any applied src or xenocara diff, see the patch step above.
+Revert applied patches, see the patch step above.
 .It distrib
 Distribute the release files located in the
 .Pa rel
@@ -142,21 +141,25 @@ The options are as follows:
 Do not detach
 .Nm
 into the background.
-.It Fl S Ar src-diff
-Diff to apply to the src tree.
-The diff path names can be relative to any directory in the src tree.
-The same diff will be reverted once the release is finished.
-In addition, a copy of the diff is saved to a file named
+.It Fl S Ar src-patch
+Patch to apply to
+.Ev BSDSRCDIR .
+The patch path names can be relative to any directory in
+.Ev BSDSRCDIR .
+The same patch will be reverted by the revert step, see above.
+In addition, a copy of the patch is saved to a file named
 .Pa src.diff.N
-in the release directory where N is incremented for every given diff.
+in the invocation directory where N is incremented for every given patch.
 May be given multiple times.
-.It Fl X Ar xenocara-diff
-Diff to apply to the xenocara tree.
-The diff path names can be relative to any directory in the xenocara tree.
-The same diff will be reverted once the release is finished.
-In addition, a copy of the diff is saved to a file named
+.It Fl S Ar xenocara-patch
+Patch to apply to
+.Ev XSRCDIR .
+The patch path names can be relative to any directory in
+.Ev XSRCDIR .
+The same patch will be reverted by the revert step, see above.
+In addition, a copy of the patch is saved to a file named
 .Pa xenocara.diff.N
-in the release directory where N is incremented for every given diff.
+in the invocation directory where N is incremented for every given patch.
 May be given multiple times.
 .It Fl c Ar comment
 Path to comment included in
