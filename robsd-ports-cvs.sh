@@ -1,1 +1,0 @@
-. "${EXECDIR}/robsd-cvs.sh"

@@ -1503,6 +1503,9 @@ step_exec() (
 	: "${_step:?}"
 
 	_exec="${EXECDIR}/${_MODE}-${_step}.sh"
+	if ! [ -e "$_exec" ]; then
+		_exec="${EXECDIR}/robsd-${_step}.sh"
+	fi
 
 	[ -t 0 ] || exec >/dev/null 2>&1
 
