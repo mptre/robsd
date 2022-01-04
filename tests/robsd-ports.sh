@@ -47,8 +47,10 @@ if testcase "basic"; then
 	robsd-ports: step env
 	robsd-ports: step cvs skipped
 	robsd-ports: step proot skipped
+	robsd-ports: step patch
 	robsd-ports: step dpb
 	robsd-ports: step distrib
+	robsd-ports: step revert
 	robsd-ports: step end
 	robsd-ports: trap exit 0
 	EOF
@@ -75,8 +77,10 @@ if testcase "skip"; then
 	robsd-ports: step env
 	robsd-ports: step cvs skipped
 	robsd-ports: step proot skipped
+	robsd-ports: step patch
 	robsd-ports: step dpb
 	robsd-ports: step distrib skipped
+	robsd-ports: step revert
 	robsd-ports: step end
 	robsd-ports: trap exit 0
 	EOF

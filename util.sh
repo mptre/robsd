@@ -129,6 +129,7 @@ config_load() {
 		CHROOT=""; export CHROOT
 		MAKE_JOBS="0"; export MAKE_JOBS
 		PORTS=""; export PORTS
+		PORTSDIFF=""; export PORTSDIFF
 		PORTSDIR="/usr/ports"; export PORTSDIR
 		PORTSUSER=""; export PORTSUSER
 		;;

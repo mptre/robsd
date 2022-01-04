@@ -7,6 +7,7 @@
 .Sh SYNOPSIS
 .Nm robsd-ports
 .Op Fl d
+.Op Fl P Ar patch
 .Op Fl c Ar comment
 .Op Fl s Ar step
 .Op Fl t Ar tag
@@ -64,6 +65,7 @@ In addition, each port has a corresponding log file in the same directory.
 .It Pa comment
 File used to annotate the invocation which is included in
 .Pa report .
+By default, it contains a list of all applied patches.
 .It Pa report
 A summary delivered as a mail to root while running in detached mode once
 .Nm
@@ -100,6 +102,18 @@ The options are as follows:
 Do not detach
 .Nm
 into the background.
+.It Fl P Ar patch
+Patch to apply to
+.Ev PORTSDIR .
+The patch path names can be relative to any directory in
+.Ev PORTSDIR .
+The same patch will be reverted once
+.Nm
+is done.
+In addition, a copy of the patch is saved to a file named
+.Pa ports.diff.N
+in the invocation directory where N is incremented for every given diff.
+May be given multiple times.
 .It Fl c Ar comment
 Path to comment included in
 .Pa report .
