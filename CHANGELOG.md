@@ -1,3 +1,17 @@
+# 7.0.0 - 2022-01-05
+
+## Changes
+
+- Invert detach option, running in the background is now the default.
+  (38467b9)
+  (Anton Lindqvist)
+
+## News
+
+- Add patch support to robsd-ports
+  (7f053fa)
+  (Anton Lindqvist)
+
 # 6.0.0 - 2021-12-18
 
 ## Changes
