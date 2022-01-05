@@ -853,7 +853,7 @@ purge() {
 # Commence reboot and continue building the current release after boot.
 reboot_commence() {
 	cat <<-EOF >>/etc/rc.firsttime
-	/usr/local/sbin/robsd -D -r ${BUILDDIR} >/dev/null
+	/usr/local/sbin/robsd -r ${BUILDDIR} >/dev/null
 	EOF
 
 	# Add some grace in order to let the script finish.
