@@ -25,6 +25,11 @@ cd "$RELDIR"
 		break
 	done
 	echo "Build id: ${BUILDDIR##*/}"
+
+	if [ -e "${BUILDDIR}/comment" ]; then
+		echo
+		cat "${BUILDDIR}/comment"
+	fi
 } >BUILDINFO
 
 # Compute missing checksums.
