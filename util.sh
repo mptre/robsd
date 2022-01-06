@@ -431,17 +431,17 @@ diff_copy() {
 	return 0
 }
 
-# diff_list dir prefix
+# diff_list build-dir prefix
 #
 # List all diff in the given dir matching prefix.
 diff_list() {
-	local _dir
+	local _builddir
 	local _prefix
 
-	_dir="$1" ; : "${_dir:?}"
+	_builddir="$1" ; : "${_builddir:?}"
 	_prefix="$2" ; : "${_prefix:?}"
 
-	find "$_dir" \( -type f -name "${_prefix}.*" \) -print0 | xargs -0
+	find "$_builddir" \( -type f -name "${_prefix}.*" \) -print0 | xargs -0
 }
 
 # diff_revert dir diff ...
