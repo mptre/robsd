@@ -11,6 +11,10 @@ robsd-ports)
 	# shellcheck disable=SC2046
 	diff_revert "${CHROOT}${PORTSDIR}" $(diff_list "$BUILDDIR" "ports.diff")
 	;;
+robsd-regress)
+	# shellcheck disable=SC2046
+	diff_revert "$BSDSRCDIR" $(diff_list "$BUILDDIR" "src.diff")
+	;;
 *)
 	exit 1
 	;;

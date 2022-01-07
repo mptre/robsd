@@ -6,6 +6,7 @@ usage() {
 	xargs 1>&2 <<-EOF
 	usage: robsd-regress
 	[-d]
+	[-S src-diff]
 	[-c comment]
 	[-r path]
 	[-t tag]
@@ -24,9 +25,10 @@ COMMENT=""
 STATPID=""
 STEP=1
 
-while getopts "dc:r:t:" opt; do
+while getopts "dS:c:r:t:" opt; do
 	case "$opt" in
 	d)	DETACH=0;;
+	S)	BSDDIFF="${BSDDIFF}${BSDDIFF:+ }$(readlink -f "${OPTARG}")";;
 	c)	COMMENT="$OPTARG";;
 	r)	BUILDDIR="$(readlink -f "$OPTARG")";;
 	t)	TAGS="${TAGS}${TAGS:+ }${OPTARG}";;
@@ -53,6 +55,13 @@ lock_acquire "$ROBSDDIR" "$BUILDDIR" || exit 1
 if [ "$STEP" -eq 1 ]; then
 	if [ -n "$COMMENT" ]; then
 		cat "$COMMENT" >"${BUILDDIR}/comment"
+	elif [ -n "$BSDDIFF" ]; then
+		# Generate comment including a list of the diff(s).
+		{
+			echo 'Applied the following diff(s):'
+			# shellcheck disable=SC2030
+			[ -n "$BSDDIFF" ] && echo "$BSDDIFF" | xargs ls
+		} >"${BUILDDIR}/comment"
 	fi
 
 	if [ -n "$TAGS" ]; then
@@ -60,6 +69,14 @@ if [ "$STEP" -eq 1 ]; then
 	fi
 
 	"$ROBSDSTAT" -H >"${BUILDDIR}/stat.csv"
+fi
+
+# Copy the diff(s) initially, otherwise use the previously copied ones.
+if [ "$STEP" -eq 1 ]; then
+	# shellcheck disable=SC2086,SC2031
+	BSDDIFF="$(diff_copy -d "$BSDSRCDIR" "${BUILDDIR}/src.diff" $BSDDIFF)"
+else
+	BSDDIFF="$(diff_list "$BUILDDIR" "src.diff")"
 fi
 
 if [ "$KEEP" -gt 0 ]; then

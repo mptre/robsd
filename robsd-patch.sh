@@ -17,6 +17,12 @@ robsd-ports)
 		diff_apply -u "$CVSUSER" "$_diff"
 	done
 	;;
+robsd-regress)
+	for _diff in $BSDDIFF; do
+		cd "$(diff_root -d "$BSDSRCDIR" "$_diff")"
+		diff_apply -u "$CVSUSER" "$_diff"
+	done
+	;;
 *)
 	exit 1
 	;;

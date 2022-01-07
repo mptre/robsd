@@ -173,7 +173,9 @@ regress_step_after() {
 regress_steps() {
 	xargs printf '%s\n' <<-EOF
 	env
+	patch
 	${TESTS}
+	revert
 	end
 	EOF
 }
