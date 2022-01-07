@@ -1,3 +1,11 @@
+# 7.1.0 - 2022-01-07
+
+## News
+
+- Add patch support to robsd-regress.
+  (fb07d85)
+  (Anton Lindqvist)
+
 # 7.0.0 - 2022-01-05
 
 ## Changes
@@ -8,7 +16,7 @@
 
 ## News
 
-- Add patch support to robsd-ports
+- Add patch support to robsd-ports.
   (7f053fa)
   (Anton Lindqvist)
 
