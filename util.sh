@@ -441,7 +441,7 @@ diff_list() {
 	_builddir="$1" ; : "${_builddir:?}"
 	_prefix="$2" ; : "${_prefix:?}"
 
-	find "$_builddir" \( -type f -name "${_prefix}.*" \) -print0 | xargs -0
+	find "$_builddir" \( -type f -name "${_prefix}.*" \) | sort
 }
 
 # diff_revert dir diff ...
