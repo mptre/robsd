@@ -60,7 +60,7 @@ if [ "$STEP" -eq 1 ]; then
 	if [ -n "$COMMENT" ]; then
 		cat "$COMMENT" >"${BUILDDIR}/comment"
 	elif [ -n "$BSDDIFF" ] || [ -n "$XDIFF" ]; then
-		# Generate comment including a list of the diff(s),
+		# Generate comment including a list of the diff(s).
 		{
 			echo 'Applied the following diff(s):'
 			# shellcheck disable=SC2030
