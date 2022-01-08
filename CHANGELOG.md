@@ -1,3 +1,19 @@
+# 7.2.0 - 2022-01-08
+
+## Bug fixes
+
+- Fix naming conflict caused by regression tests overlapping with another step
+  name.
+  (e85eb34)
+  (Anton Lindqvist)
+
+## News
+
+- Add mount BSDSRCDIR read-only support to robsd-regress.
+  Used to detect object directory ignorance.
+  (76b4619)
+  (Anton Lindqvist)
+
 # 7.1.0 - 2022-01-07
 
 ## News
