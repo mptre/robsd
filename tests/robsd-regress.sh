@@ -61,6 +61,22 @@ if testcase "failure in non-test step"; then
 	rm "${BINDIR}/df"
 fi
 
+if testcase "failure in non-test step, conflicting with test name"; then
+	robsd_config - "robsd-regress" <<-EOF
+	ROBSDDIR=${ROBSDDIR}
+	EXECDIR=${EXECDIR}
+	REGRESSUSER=nobody
+	TESTS="usr.bin/patch"
+	EOF
+	mkdir "$ROBSDDIR"
+	: >"${TSHDIR}/patch"
+
+	if PATH="${BINDIR}:${PATH}" sh "$ROBSDREGRESS" \
+	   -d -S "${TSHDIR}/patch" >"$TMP1" 2>&1; then
+		fail - "expected exit non-zero" <"$TMP1"
+	fi
+fi
+
 if testcase "kill"; then
 	robsd_config - "robsd-regress" <<-EOF
 	ROBSDDIR=${ROBSDDIR}

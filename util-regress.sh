@@ -161,10 +161,10 @@ regress_step_after() {
 	: "${_name:?}"
 
 	# Ignore regress test errors.
-	case "$TESTS" in
-	*${_name}*)	return 0;;
-	*)		return "$_exit";;
-	esac
+	if echo "$TESTS" | xargs printf '%s\n' | grep -q "^${_name}$"; then
+		return 0
+	fi
+	return "$_exit"
 }
 
 # regress_steps
