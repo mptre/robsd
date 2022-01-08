@@ -134,6 +134,7 @@ config_load() {
 		PORTSUSER=""; export PORTSUSER
 		;;
 	robsd-regress)
+		RDONLY="0"; export RDONLY
 		REGRESSROOT=""; export REGRESSROOT
 		REGRESSUSER=""; export REGRESSUSER
 		# shellcheck disable=SC2034

@@ -27,9 +27,18 @@ This is a no operation only used to collect data useful while debugging.
 .It patch
 Apply patches including sticky ones, see
 .Xr robsd-regress.conf 5 .
+.It mount
+Optionally mount
+.Ev BSDSRCDIR
+read-only if
+.Ev RDONLY
+is defined, see
+.Xr robsd-regress.conf 5 .
 .It Ev TESTS
 Run all configured regression tests synchronously, see
 .Xr robsd-regress.conf 5 .
+.It umount
+Inverse of the mount step.
 .It revert
 Revert applied patches, see the patch step above.
 .It end

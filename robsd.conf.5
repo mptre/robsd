@@ -151,6 +151,14 @@ The following variables are recognized by
 .Xr robsd-regress 8 .
 Default values are displayed in brackets.
 .Bl -tag -width Ds
+.It Ev RDONLY
+Mount
+.Ev BSDSRCDIR
+read-only before running any regression tests.
+Used to detect object directory ignorance.
+Requires
+.Ev BSDSRCDIR
+to reside on a dedicated partition.
 .It Ev REGRESSUSER
 User to execute regression tests as.
 .It Ev SUDO

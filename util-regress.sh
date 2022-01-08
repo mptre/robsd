@@ -174,7 +174,9 @@ regress_steps() {
 	xargs printf '%s\n' <<-EOF
 	env
 	patch
+	mount
 	${TESTS}
+	umount
 	revert
 	end
 	EOF
