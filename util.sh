@@ -444,33 +444,43 @@ diff_list() {
 	find "$_builddir" \( -type f -name "${_prefix}.*" \) | sort
 }
 
-# diff_revert dir diff ...
+# diff_revert -d dir -t tmp-dir
 #
-# Revert the given diff(s).
+# Revert the given diff(s) read from stdin.
 diff_revert() {
 	local _diff
 	local _dir
-	local _revert=0
 	local _root
+	local _revert=""
 
-	_dir="$1"; : "${_dir:?}"; shift
+	while [ $# -gt 0 ]; do
+		case "$1" in
+		-d)	shift; _dir="$1";;
+		-t)	shift; _revert="${1}/revert";;
+		*)	break;;
+		esac
+		shift
+	done
+	: "${_dir:?}"
+	: "${_revert:?}"
 
-	for _diff; do
-		_root="$(diff_root -d "${_dir}" "$_diff")"
+	while read -r _diff; do
+		_root="$(diff_root -d "$_dir" "$_diff")"
 		cd "$_root"
 		if unpriv "$CVSUSER" "exec patch -CRfs" \
 		   <"$_diff" >/dev/null 2>&1
 		then
 			info "reverting diff ${_diff}"
 			unpriv "$CVSUSER" "exec patch -ERs" <"$_diff"
-			_revert=1
+			: >"$_revert"
 		else
 			info "diff already reverted ${_diff}"
 		fi
 	done
-	if [ "$_revert" -eq 1 ]; then
+	if [ -e "$_revert" ]; then
 		diff_clean "$_dir"
 	fi
+	rm -f "$_revert"
 }
 
 # diff_root -d directory diff

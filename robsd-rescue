@@ -32,10 +32,11 @@ else
 fi
 
 if step_eval -n patch "${BUILDDIR}/steps" 2>/dev/null; then
-	# shellcheck disable=SC2046
-	diff_revert "$BSDSRCDIR" $(diff_list "$BUILDDIR" "src.diff")
-	# shellcheck disable=SC2046
-	diff_revert "$XSRCDIR" $(diff_list "$BUILDDIR" "xenocara.diff")
+	diff_list "$BUILDDIR" "src.diff" |
+	diff_revert -d "$BSDSRCDIR" -t "${BUILDDIR}/tmp"
+
+	diff_list "$BUILDDIR" "xenocara.diff" |
+	diff_revert -d "$XSRCDIR" -t "${BUILDDIR}/tmp"
 else
 	info "step patch not found, cannot revert diff(s)"
 fi

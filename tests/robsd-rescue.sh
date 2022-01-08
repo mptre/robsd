@@ -21,6 +21,7 @@ setup() {
 	EOF
 
 	mkdir -p "${ROBSDDIR}/2020-09-01.1" "${ROBSDDIR}/2020-09-02.1"
+	mkdir "${ROBSDDIR}/2020-09-02.1/tmp"
 	: >"${ROBSDDIR}/2020-09-02.1/steps"
 
 	[ "$_patch" -eq 0 ] && return 0

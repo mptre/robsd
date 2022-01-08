@@ -1,19 +1,22 @@
 . "${EXECDIR}/util.sh"
 
+_tmpdir="${BUILDDIR}/tmp"
+
 case "$_MODE" in
 robsd)
-	# shellcheck disable=SC2046
-	diff_revert "$BSDSRCDIR" $(diff_list "$BUILDDIR" "src.diff")
-	# shellcheck disable=SC2046
-	diff_revert "$XSRCDIR" $(diff_list "$BUILDDIR" "xenocara.diff")
+	diff_list "$BUILDDIR" "src.diff" |
+	diff_revert -d "$BSDSRCDIR" -t "$_tmpdir"
+
+	diff_list "$BUILDDIR" "xenocara.diff" |
+	diff_revert -d "$XSRCDIR" -t "$_tmpdir"
 	;;
 robsd-ports)
-	# shellcheck disable=SC2046
-	diff_revert "${CHROOT}${PORTSDIR}" $(diff_list "$BUILDDIR" "ports.diff")
+	diff_list "$BUILDDIR" "ports.diff" |
+	diff_revert -d "${CHROOT}${PORTSDIR}" -t "$_tmpdir"
 	;;
 robsd-regress)
-	# shellcheck disable=SC2046
-	diff_revert "$BSDSRCDIR" $(diff_list "$BUILDDIR" "src.diff")
+	diff_list "$BUILDDIR" "src.diff" |
+	diff_revert -d "$BSDSRCDIR" -t "$_tmpdir"
 	;;
 *)
 	exit 1
