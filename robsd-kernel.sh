@@ -14,6 +14,11 @@ cd "${BSDSRCDIR}/sys/$(kernel_path)"
 unpriv "$BUILDUSER" <<EOF
 make obj
 make config
+make && exit 0
+
+# Try again this time with a clean slate.
+make clean
+make config
 make
 EOF
 
