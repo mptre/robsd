@@ -8,6 +8,8 @@ space and everything in between.
 Hence the name robsd as in release OpenBSD.
 The scope later grew and the project is by now a kitchen sink for everything
 related to building, testing and maintaining OpenBSD.
+It's written in ksh with a dash of C and requires nothing other than what's
+included in OpenBSD.
 
 The project is divided into the utilities as follows.
 
@@ -15,17 +17,34 @@ The project is divided into the utilities as follows.
 
 ### robsd
 
-XXX
-XXX try out diffs (src, xenocara)
-XXX report step time increase, size increase, cvs log
+[robsd(8)](robsd)
+builds a release according to the release process. Some of its features worth
+mentioning:
+
+* The changes since the last build according to CVS is turned into a
+  readable log, similar to the format seen on the *-changes mailing
+  lists.
+* Patches can be applied and reverted.
+* Detection of build time changes.
+* Detection of significant kernel and sets size changes.
+
+[robsd]: https://www.basename.se/robsd
 
 ### robsd-ports
 
-XXX
+[robsd-ports(8)](robsd-ports)
+builds ports using
+[dpb(1)](dpb)
+under the hood.
+
+[dpb]: https://man.openbsd.org/dpb
+[robsd-ports]: https://www.basename.se/robsd-ports
 
 ### robsd-regress
 
-XXX
+[robsd-regress(8)](robsd-regress) runs regression tests.
+
+[robsd-regress]: https://www.basename.se/robsd-ports
 
 ## Installation
 
