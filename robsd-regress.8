@@ -20,7 +20,7 @@ utility runs
 .Ox
 regression tests.
 The process is divided into the steps as follows:
-.Bl -tag -width TESTS
+.Bl -tag -width revert
 .It env
 Dump the current environment.
 This is a no operation only used to collect data useful while debugging.
@@ -62,13 +62,13 @@ File used to annotate the invocation which is included in
 Collected statistics, see
 .Xr robsd-stat 8 .
 .It Pa report
-A summary delivered as a mail to root while running in detached mode once
+A summary delivered as a mail to root while running in the background once
 .Nm
 exits.
 .It Pa robsd.log
 Standard output and error from
 .Nm
-while running in detached mode.
+while running in the background.
 .It Pa steps
 Internal representation of the executed steps.
 This file should never be edited manually.

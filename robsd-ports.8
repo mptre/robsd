@@ -22,7 +22,7 @@ utility builds
 ports using
 .Xr dpb 1 .
 The process is divided into the steps as follows:
-.Bl -tag -width outdated
+.Bl -tag -width distrib
 .It env
 Dump the current environment.
 This is a no operation only used to collect data useful while debugging.
@@ -72,13 +72,13 @@ File used to annotate the invocation which is included in
 .Pa report .
 By default, it contains a list of all applied patches.
 .It Pa report
-A summary delivered as a mail to root while running in detached mode once
+A summary delivered as a mail to root while running in the background once
 .Nm
 exits.
 .It Pa robsd.log
 Standard output and error from
 .Nm
-while running in detached mode.
+while running in the background.
 .It Pa stat.csv
 Collected statistics, see
 .Xr robsd-stat 8 .
