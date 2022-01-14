@@ -35,7 +35,7 @@ mentioning:
 [robsd-ports(8)](robsd-ports)
 builds ports using
 [dpb(1)](dpb)
-under the hood.
+behind the scenes.
 
 [dpb]: https://man.openbsd.org/dpb
 [robsd-ports]: https://www.basename.se/robsd-ports
