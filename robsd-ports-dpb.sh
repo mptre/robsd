@@ -28,19 +28,24 @@ dpb -c -B "$CHROOT" $_parallel $PORTS
 
 _fail=0
 for _p in $PORTS; do
-	_src="${CHROOT}${PORTSDIR}/logs/${_arch}/paths/${_p}.log"
-	[ -e "$_src" ] || continue
-
 	_id="$(step_id "$_p")"
 	_dst="${BUILDDIR}/$(log_id -b "$BUILDDIR" -n "$_p" -s "$_id")"
-	cp "$_src" "$_dst"
-
-	_t0="$(duration '^>>> Running ' <"$_src")"
-	_t1="$(duration '^>>> Ended ' <"$_src")"
-	_exit="$(! grep -q '^Error: job failed ' "$_src"; echo $?)"
-	[ "$_exit" -eq 0 ] || _fail=1
-	HOOK="" step_end -d "$((_t1 - _t0))" -e "$_exit" -l "$_dst" \
-		-n "$_p" -s "$_id" "${BUILDDIR}/steps"
+	_log="${CHROOT}${PORTSDIR}/logs/${_arch}/paths/${_p}.log"
+	if [ -e "$_log" ]; then
+		cp "$_log" "$_dst"
+		_t0="$(duration '^>>> Running ' <"$_log")"
+		_t1="$(duration '^>>> Ended ' <"$_log")"
+		_exit="$(! grep -q '^Error: job failed ' "$_log"; echo $?)"
+		[ "$_exit" -eq 0 ] || _fail=1
+		HOOK="" step_end -d "$((_t1 - _t0))" -e "$_exit" -l "$_dst" \
+			-n "$_p" -s "$_id" "${BUILDDIR}/steps"
+	elif grep "!: ${_p} " "/${CHROOT}${PORTSDIR}/logs/${_arch}/engine.log" \
+	     >"$_dst"
+	then
+		_fail=1
+		HOOK="" step_end -d 0 -e 1 -l "$_dst" \
+			-n "$_p" -s "$_id" "${BUILDDIR}/steps"
+	fi
 done
 
 exit "$_fail"
