@@ -14,6 +14,17 @@ cat <<'EOF' >"${BINDIR}/dpb"
 
 mkdir -p "${CHROOT}${PORTSDIR}/logs/$(machine)/paths/devel"
 touch "${CHROOT}${PORTSDIR}/logs/$(machine)/paths/devel/outdated.log"
+
+case "$PORTS" in
+*devel/broken*)
+	cat <<-ENGINE >"${CHROOT}${PORTSDIR}/logs/$(machine)/engine.log"
+	!: devel/broken is marked as broken
+	ENGINE
+	;;
+*)
+	;;
+esac
+
 EOF
 chmod u+x "${BINDIR}/dpb"
 
@@ -32,10 +43,10 @@ if testcase "basic"; then
 	fi
 	_builddir="$(find "${ROBSDDIR}" -type d -mindepth 1 -maxdepth 1)"
 
-	if grep -q 'step="devel/updated"' "${_builddir}/steps"; then
+	if step_eval -n devel/updated "${_builddir}/steps" 2>/dev/null; then
 		fail - "unexpected step devel/updated" <"${_builddir}/steps"
 	fi
-	if ! grep -q 'name="devel/outdated"' "${_builddir}/steps"; then
+	if ! step_eval -n devel/outdated "${_builddir}/steps" 2>/dev/null; then
 		fail - "expected step devel/outdated" <"${_builddir}/steps"
 	fi
 
@@ -83,5 +94,26 @@ if testcase "skip"; then
 	robsd-ports: step revert
 	robsd-ports: step end
 	robsd-ports: trap exit 0
+	EOF
+fi
+
+if testcase "port flagged as broken"; then
+	robsd_config - "robsd-ports" <<-EOF
+	$(cat "${WRKDIR}/robsd-ports.conf")
+	PORTS="devel/broken"
+	EOF
+	mkdir "$ROBSDDIR"
+
+	if PATH="${BINDIR}:${PATH}" WRKDIR="$WRKDIR" sh "$ROBSDPORTS" \
+	   -d -s cvs -s proot >"$TMP1" 2>&1; then
+		fail - "expected exit non-zero" <"$TMP1"
+	fi
+	_builddir="$(find "${ROBSDDIR}" -type d -mindepth 1 -maxdepth 1)"
+
+	if ! step_eval -n devel/broken "${_builddir}/steps" 2>/dev/null; then
+		fail - "expected step devel/broken" <"${_builddir}/steps"
+	fi
+	assert_file - "$(step_value log)" <<-EOF
+	!: devel/broken is marked as broken
 	EOF
 fi
