@@ -58,7 +58,7 @@ main(int argc, char *argv[])
 			doheader = 1;
 			break;
 		case 'u':
-			users = reallocarray(users, nusers + 1, sizeof(*users));
+			users = reallocarray(users, nusers + 2, sizeof(*users));
 			if (users == NULL)
 				err(1, NULL);
 			users[nusers++] = optarg;
