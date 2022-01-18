@@ -351,29 +351,47 @@ cvs_log() {
 	sed -e 's/^[[:space:]]*$//'
 }
 
-# diff_apply -u user diff
+# diff_apply -t tmp-dir -u user diff
 #
 # Apply the given diff, operating as user.
 diff_apply() {
 	local _diff
+	local _err=0
+	local _strip
+	local _tmp
 	local _user
 
 	while [ $# -gt 0 ]; do
 		case "$1" in
+		-t)	shift; _tmp="${1}/diff-apply";;
 		-u)	shift; _user="$1";;
 		*)	break;;
 		esac
 		shift
 	done
 	_diff="$1"
+	: "${_tmp:?}"
 	: "${_user:?}"
 	: "${_diff:?}"
 
 	# Try to revert the diff if dry run fails.
-	if ! unpriv "$_user" "exec patch -Cfs" <"$_diff" >/dev/null; then
-		unpriv "$_user" "exec patch -Rs" <"$_diff"
+	if ! unpriv "$_user" "exec patch -C -Efs" <"$_diff" >/dev/null; then
+		unpriv "$_user" "exec patch -R -Efs" <"$_diff"
 	fi
-	unpriv "$_user" "exec patch -Es" <"$_diff"
+	# Use the strip argument in order to cope with files in newly created
+	# directories since they would otherwise end up in the current working
+	# directory. However, we could operate on a Git diff in which prefixes
+	# must be stripped.
+	for _strip in 0 1; do
+		if unpriv "$_user" "exec patch -Efs -p ${_strip}" \
+		   <"$_diff" >"$_tmp" 2>&1; then
+			break
+		fi
+	done
+	[ -s "$_tmp" ] && _err=1
+	cat "$_tmp"
+	rm -f "$_tmp"
+	return "$_err"
 }
 
 # diff_clean dir
