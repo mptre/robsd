@@ -460,7 +460,7 @@ diff_list() {
 	_builddir="$1" ; : "${_builddir:?}"
 	_prefix="$2" ; : "${_prefix:?}"
 
-	find "$_builddir" \( -type f -name "${_prefix}.*" \) | sort
+	find "$_builddir" -type f -name "${_prefix}.*" -maxdepth 1 | sort
 }
 
 # diff_revert -d dir -t tmp-dir
