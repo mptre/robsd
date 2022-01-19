@@ -470,44 +470,46 @@ diff_list() {
 	find "$_builddir" -type f -name "${_prefix}.*" -maxdepth 1 | sort
 }
 
-# diff_revert -d dir -t tmp-dir
+# diff_revert -d dir -t tmp-dir -u user diff
 #
-# Revert the given diff(s) read from stdin.
-diff_revert() {
+# Revert the given diff, operating as user.
+diff_revert() (
 	local _diff
 	local _dir
 	local _root
 	local _revert=""
+	local _user
 
 	while [ $# -gt 0 ]; do
 		case "$1" in
 		-d)	shift; _dir="$1";;
 		-t)	shift; _revert="${1}/revert";;
+		-u)	shift; _user="$1";;
 		*)	break;;
 		esac
 		shift
 	done
+	_diff="$1"
 	: "${_dir:?}"
 	: "${_revert:?}"
+	: "${_user:?}"
+	: "${_diff:?}"
 
-	while read -r _diff; do
-		_root="$(diff_root -d "$_dir" "$_diff")"
-		cd "$_root"
-		if unpriv "$CVSUSER" "exec patch -CRfs" \
-		   <"$_diff" >/dev/null 2>&1
-		then
-			info "reverting diff ${_diff}"
-			unpriv "$CVSUSER" "exec patch -ERs" <"$_diff"
-			: >"$_revert"
-		else
-			info "diff already reverted ${_diff}"
-		fi
-	done
+	_root="$(diff_root -d "$_dir" "$_diff")"
+	cd "$_root"
+
+	if unpriv "$_user" "exec patch -CR -Efs" <"$_diff" >/dev/null 2>&1; then
+		info "reverting diff ${_diff}"
+		unpriv "$_user" "exec patch -R -Efs" <"$_diff"
+		: >"$_revert"
+	else
+		info "diff already reverted ${_diff}"
+	fi
 	if [ -e "$_revert" ]; then
 		diff_clean "$_dir"
 	fi
 	rm -f "$_revert"
-}
+)
 
 # diff_root -d directory diff
 #

@@ -33,10 +33,14 @@ fi
 
 if step_eval -n patch "${BUILDDIR}/steps" 2>/dev/null; then
 	diff_list "$BUILDDIR" "src.diff" |
-	diff_revert -d "$BSDSRCDIR" -t "${BUILDDIR}/tmp"
+	while read -r _diff; do
+		diff_revert -d "$BSDSRCDIR" -t "${BUILDDIR}/tmp" -u "$CVSUSER" "$_diff"
+	done
 
 	diff_list "$BUILDDIR" "xenocara.diff" |
-	diff_revert -d "$XSRCDIR" -t "${BUILDDIR}/tmp"
+	while read -r _diff; do
+		diff_revert -d "$XSRCDIR" -t "${BUILDDIR}/tmp" -u "$CVSUSER" "$_diff"
+	done
 else
 	info "step patch not found, cannot revert diff(s)"
 fi
