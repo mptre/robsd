@@ -15,7 +15,7 @@ if testcase "basic"; then
 	}
 	EOF
 	diff_create >"$DIFF"
-	if ! (cd "$TSHDIR" && diff_apply -t "$TSHDIR" -u nobody "$DIFF"); then
+	if ! diff_apply -d "$TSHDIR" -t "$TSHDIR" -u nobody "$DIFF"; then
 		fail "failed to apply diff"
 	fi
 	assert_file - "${TSHDIR}/foo" <<-EOF
@@ -34,7 +34,7 @@ if testcase "already applied"; then
 	}
 	EOF
 	diff_create >"$DIFF"
-	if ! (cd "$TSHDIR" && diff_apply -t "$TSHDIR" -u nobody "$DIFF"); then
+	if ! diff_apply -d "$TSHDIR" -t "$TSHDIR" -u nobody "$DIFF"; then
 		fail "failed to apply diff"
 	fi
 	assert_file - "${TSHDIR}/foo" <<-EOF
@@ -51,7 +51,7 @@ if testcase "new directory"; then
 	(cd "$TSHDIR" &&
 	 diff -u -L patch/dir/new -L patch/dir/new /dev/null patch/dir/new) >"$DIFF" || :
 	rm -r "${TSHDIR}/patch/dir"
-	if ! (cd "$TSHDIR" && diff_apply -t "$TSHDIR" -u nobody "$DIFF"); then
+	if ! diff_apply -d "$TSHDIR" -t "$TSHDIR" -u nobody "$DIFF"; then
 		fail "failed to apply diff"
 	fi
 	echo new | assert_file - "${TSHDIR}/patch/dir/new"
@@ -65,7 +65,7 @@ if testcase "failure"; then
 	}
 	EOF
 	diff_create >"$DIFF"
-	if (cd "/var/empty" && diff_apply -t "$TSHDIR" -u nobody "$DIFF" >"$TMP1" 2>&1); then
+	if diff_apply -d "/var/empty" -t "$TSHDIR" -u nobody "$DIFF" >"$TMP1" 2>&1; then
 		fail "expected exit non-zero"
 	fi
 	if ! [ -s "$TMP1" ]; then

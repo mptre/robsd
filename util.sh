@@ -351,18 +351,21 @@ cvs_log() {
 	sed -e 's/^[[:space:]]*$//'
 }
 
-# diff_apply -t tmp-dir -u user diff
+# diff_apply -d root-dir -t tmp-dir -u user diff
 #
 # Apply the given diff, operating as user.
-diff_apply() {
+diff_apply() (
 	local _diff
+	local _dir
 	local _err=0
 	local _strip
 	local _tmp
 	local _user
+	local _root
 
 	while [ $# -gt 0 ]; do
 		case "$1" in
+		-d)	shift; _dir="$1";;
 		-t)	shift; _tmp="${1}/diff-apply";;
 		-u)	shift; _user="$1";;
 		*)	break;;
@@ -370,9 +373,13 @@ diff_apply() {
 		shift
 	done
 	_diff="$1"
+	: "${_dir:?}"
 	: "${_tmp:?}"
 	: "${_user:?}"
 	: "${_diff:?}"
+
+	_root="$(diff_root -d "$_dir" "$_diff")"
+	cd "$_root"
 
 	# Try to revert the diff if dry run fails.
 	if ! unpriv "$_user" "exec patch -C -Efs" <"$_diff" >/dev/null; then
@@ -392,7 +399,7 @@ diff_apply() {
 	cat "$_tmp"
 	rm -f "$_tmp"
 	return "$_err"
-}
+)
 
 # diff_clean dir
 #
