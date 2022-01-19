@@ -83,8 +83,8 @@ fi
 
 # Copy the diff(s) initially, otherwise use the previously copied ones.
 if [ "$STEP" -eq 1 ]; then
-	# shellcheck disable=SC2086,SC2031
-	PORTSDIFF="$(diff_copy -d "${PORTSDIR:-}" "${BUILDDIR}/ports.diff" $PORTSDIFF)"
+	# shellcheck disable=SC2086
+	PORTSDIFF="$(diff_copy -d "${CHROOT}${PORTSDIR:-}" "${BUILDDIR}/ports.diff" $PORTSDIFF)"
 else
 	PORTSDIFF="$(diff_list "$BUILDDIR" "ports.diff")"
 fi
