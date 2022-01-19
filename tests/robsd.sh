@@ -66,8 +66,8 @@ if testcase "basic"; then
 	assert_file - "$TMP1" <<-EOF
 	robsd: using directory ${_builddir} at step 1
 	robsd: skipping steps: reboot
-	robsd: using diff ${TSHDIR}/src.diff rooted at ${TSHDIR}
-	robsd: using diff ${TSHDIR}/xenocara.diff rooted at ${TSHDIR}
+	robsd: using diff ${TSHDIR}/src.diff rooted in ${TSHDIR}
+	robsd: using diff ${TSHDIR}/xenocara.diff rooted in ${TSHDIR}
 	robsd: step env
 	robsd: step cvs
 	robsd: invoking hook: ${_hook} ${_builddir} cvs 0 ${_user}

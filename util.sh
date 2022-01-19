@@ -418,6 +418,7 @@ diff_copy() {
 	local _base
 	local _dst
 	local _i=1
+	local _r
 	local _root
 	local _src
 
@@ -438,12 +439,9 @@ diff_copy() {
 		# Redirection to stderr needed since stdout must only contain
 		# the paths to the copied diffs.
 		_r="$(diff_root -d "$_root" "$_src")"
-		info "using diff ${_src} rooted at ${_r}" 1>&2
+		info "using diff ${_src} rooted in ${_r}" 1>&2
 
-		{
-			printf '# %s\n\n' "$_src"
-			cat "$_src"
-		} >"$_dst"
+		{ printf '# %s\n\n' "$_src"; cat "$_src"; } >"$_dst"
 		chmod 644 "$_dst"
 
 		# Try hard to output everything on a single line.
