@@ -47,14 +47,32 @@ fi
 
 if testcase "new directory"; then
 	mkdir -p "${TSHDIR}/patch/dir"
-	echo new >"${TSHDIR}/patch/dir/new"
-	(cd "$TSHDIR" &&
-	 diff -u -L patch/dir/new -L patch/dir/new /dev/null patch/dir/new) >"$DIFF" || :
+	echo a >"${TSHDIR}/patch/dir/a"
+	echo b >"${TSHDIR}/patch/dir/b"
+	{
+		cd "$TSHDIR"
+		diff -u -L patch/dir/a -L patch/dir/a /dev/null patch/dir/a || :
+		diff -u -L patch/dir/b -L patch/dir/b /dev/null patch/dir/b || :
+	} >"$DIFF"
 	rm -r "${TSHDIR}/patch/dir"
 	if ! diff_apply -d "$TSHDIR" -t "$TSHDIR" -u nobody "$DIFF"; then
 		fail "failed to apply diff"
 	fi
-	echo new | assert_file - "${TSHDIR}/patch/dir/new"
+	echo a | assert_file - "${TSHDIR}/patch/dir/a"
+	echo b | assert_file - "${TSHDIR}/patch/dir/b"
+
+	if ! diff_revert -d "$TSHDIR" -t "$TSHDIR" -u nobody "$DIFF" >"$TMP1" 2>&1; then
+		fail - "failed to revert diff" <"$TMP1"
+	fi
+	assert_file - "$TMP1" <<-EOF
+	robsd-test: reverting diff ${DIFF}
+	robsd-test: removing empty directory patch/dir
+	EOF
+
+	if [ -d "${TSHDIR}/patch/dir" ]; then
+		find "$TSHDIR" -type d -mindepth 2 |
+		fail - "expected empty directory to be removed"
+	fi
 fi
 
 if testcase "failure"; then

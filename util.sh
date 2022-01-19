@@ -476,8 +476,9 @@ diff_list() {
 diff_revert() (
 	local _diff
 	local _dir
-	local _root
+	local _p
 	local _revert=""
+	local _root
 	local _user
 
 	while [ $# -gt 0 ]; do
@@ -500,13 +501,22 @@ diff_revert() (
 
 	if unpriv "$_user" "exec patch -CR -Efs" <"$_diff" >/dev/null 2>&1; then
 		info "reverting diff ${_diff}"
-		unpriv "$_user" "exec patch -R -Efs" <"$_diff"
-		: >"$_revert"
+		unpriv "$_user" "exec patch -R -Ef" <"$_diff" >"$_revert"
 	else
 		info "diff already reverted ${_diff}"
 	fi
 	if [ -e "$_revert" ]; then
 		diff_clean "$_dir"
+
+		# Remove empty directories.
+		sed -n -e 's/^Removing \([^[:space:]]*\) (empty .*/\1/p' "$_revert" |
+		xargs -r -L 1 dirname |
+		sort |
+		uniq |
+		while read -r _p; do
+			info "removing empty directory ${_p}"
+			rmdir "$_p"
+		done
 	fi
 	rm -f "$_revert"
 )
