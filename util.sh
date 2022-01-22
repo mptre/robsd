@@ -126,57 +126,37 @@ config_load() {
 		DESTDIR=""; export DESTDIR
 		;;
 	robsd-ports)
-		CHROOT=""; export CHROOT
-		MAKE_JOBS="0"; export MAKE_JOBS
-		PORTS=""; export PORTS
-		# shellcheck disable=SC2034
-		PORTSDIFF=""
-		PORTSDIR="/usr/ports"; export PORTSDIR
-		PORTSUSER=""; export PORTSUSER
+		ports_config_defaults
 		;;
 	robsd-regress)
-		RDONLY="0"; export RDONLY
-		REGRESSROOT=""; export REGRESSROOT
-		REGRESSUSER=""; export REGRESSUSER
-		# shellcheck disable=SC2034
-		SKIPIGNORE=""
-		SUDO="doas -n"; export SUDO
-		TESTS=""
+		regress_config_defaults
 		;;
 	*)
+		return 1
 		;;
 	esac
 
 	. "$_path"
 
-	# Ensure mandatory variables are defined.
 	: "${ROBSDDIR:?}"
 	ls "$ROBSDDIR" >/dev/null
-	if [ "$_MODE" = "robsd" ]; then
+
+	case "$_MODE" in
+	robsd)
 		: "${CVSROOT:?}"
 		: "${CVSUSER:?}"
 		: "${DESTDIR:?}"
-	elif [ "$_MODE" = "robsd-ports" ]; then
-		: "${CHROOT:?}"
-		: "${CVSROOT:?}"
-		: "${CVSUSER:?}"
-		: "${PORTS:?}"
-		: "${PORTSDIR:?}"
-		: "${PORTSUSER:?}"
-	elif [ "$_MODE" = "robsd-regress" ]; then
-		: "${REGRESSUSER:?}"
-		: "${TESTS:?}"
-	fi
-
-	# Handle robsd-ports specific configuration.
-	if [ "$_MODE" = "robsd-ports" ]; then
+		;;
+	robsd-ports)
 		ports_config_load
-	fi
-
-	# Handle robsd-regress specific configuration.
-	if [ "$_MODE" = "robsd-regress" ]; then
+		;;
+	robsd-regress)
 		regress_config_load
-	fi
+		;;
+	*)
+		return 1
+		;;
+	esac
 
 	# Filter out missing sticky src diff(s).
 	_tmp=""

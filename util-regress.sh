@@ -1,3 +1,15 @@
+# regress_config_defaults
+#
+# Populate default configuration.
+regress_config_defaults() {
+	RDONLY="0"; export RDONLY
+	REGRESSROOT=""; export REGRESSROOT
+	REGRESSUSER=""; export REGRESSUSER
+	SKIPIGNORE=""
+	SUDO="doas -n"; export SUDO
+	TESTS=""
+}
+
 # regress_config_load
 #
 # Parse the configured regression tests and handle any associated flags.
@@ -6,6 +18,9 @@ regress_config_load() {
 	local _flags
 	local _t
 	local _tests=""
+
+	: "${REGRESSUSER:?}"
+	: "${TESTS:?}"
 
 	# Sanitize the inherited environment.
 	unset MAKEFLAGS

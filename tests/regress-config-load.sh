@@ -1,6 +1,6 @@
 # Must be defined, usually done by config_load.
 REGRESSROOT=""
-SKIPIGNORE=""
+REGRESSUSER="nobody"; export REGRESSUSER
 
 if testcase "basic"; then
 (
