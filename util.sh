@@ -91,7 +91,7 @@ config_load() {
 	_path="$1"; : "${_path:?}"
 
 	# Global variables with sensible defaults.
-	BSDDIFF=""; export BSDDIFF
+	BSDDIFF=""
 	BSDOBJDIR="/usr/obj"; export BSDOBJDIR
 	BSDSRCDIR="/usr/src"; export BSDSRCDIR
 	BUILDDIR=""; export BUILDDIR
@@ -116,7 +116,7 @@ config_load() {
 	SKIP=""
 	# shellcheck disable=SC2034
 	TAGS=""
-	XDIFF=""; export XDIFF
+	XDIFF=""
 	XOBJDIR="/usr/xobj"; export XOBJDIR
 	XSRCDIR="/usr/xenocara"; export XSRCDIR
 
@@ -129,7 +129,8 @@ config_load() {
 		CHROOT=""; export CHROOT
 		MAKE_JOBS="0"; export MAKE_JOBS
 		PORTS=""; export PORTS
-		PORTSDIFF=""; export PORTSDIFF
+		# shellcheck disable=SC2034
+		PORTSDIFF=""
 		PORTSDIR="/usr/ports"; export PORTSDIR
 		PORTSUSER=""; export PORTSUSER
 		;;
@@ -429,30 +430,21 @@ diff_copy() {
 		esac
 		shift
 	done
-	[ "$#" -eq 1 ] && return 0
-	: "${_root:?}"
-
 	_base="$1"; shift
+	: "${_root:?}"
+	: "${_base:?}"
+
 	for _src; do
 		_dst="${_base}.${_i}"
 
-		# Redirection to stderr needed since stdout must only contain
-		# the paths to the copied diffs.
 		_r="$(diff_root -d "$_root" "$_src")"
-		info "using diff ${_src} rooted in ${_r}" 1>&2
+		info "using diff ${_src} rooted in ${_r}"
 
 		{ printf '# %s\n\n' "$_src"; cat "$_src"; } >"$_dst"
 		chmod 644 "$_dst"
 
-		# Try hard to output everything on a single line.
-		[ "$_i" -gt 1 ] && printf ' '
-		echo -n "$_dst"
-
 		_i=$((_i + 1))
 	done
-	printf '\n'
-
-	return 0
 }
 
 # diff_list build-dir prefix

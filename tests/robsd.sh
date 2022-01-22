@@ -58,6 +58,12 @@ if testcase "basic"; then
 	fi
 	_builddir="$(find "${ROBSDDIR}" -type d -mindepth 1 -maxdepth 1)"
 
+	assert_file - "${_builddir}/comment" <<-EOF
+	Applied the following diff(s):
+	${TSHDIR}/src.diff
+	${TSHDIR}/xenocara.diff
+	EOF
+
 	echo daily | assert_file - "${_builddir}/tags"
 
 	# Remove unstable output.
@@ -65,9 +71,9 @@ if testcase "basic"; then
 	_user="$(logname)"
 	assert_file - "$TMP1" <<-EOF
 	robsd: using directory ${_builddir} at step 1
-	robsd: skipping steps: reboot
 	robsd: using diff ${TSHDIR}/src.diff rooted in ${TSHDIR}
 	robsd: using diff ${TSHDIR}/xenocara.diff rooted in ${TSHDIR}
+	robsd: skipping steps: reboot
 	robsd: step env
 	robsd: step cvs
 	robsd: invoking hook: ${_hook} ${_builddir} cvs 0 ${_user}
