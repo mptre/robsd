@@ -18,8 +18,8 @@ The project is divided into the utilities as follows.
 ### robsd
 
 [robsd(8)](robsd)
-builds a release according to the release process. Some of its features worth
-mentioning:
+builds a release according to the release process.
+Some of its noteworthy features:
 
 * The changes since the last build according to CVS is turned into a
   readable log, similar to the format seen on the *-changes mailing
