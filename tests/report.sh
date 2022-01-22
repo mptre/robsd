@@ -39,7 +39,7 @@ if testcase "basic"; then
 	step="2" name="cvs" exit="0" duration="60" log="${BUILDDIR}/cvs.log" user="root" time="0"
 	step="3" name="patch" exit="0" duration="0" log="${BUILDDIR}/patch.log" user="root" time="0"
 	step="4" name="kernel" skip="1"
-	step="5" name="end" exit="0" duration="3600" log="" user="root" time="0"
+	step="5" name="end" exit="0" duration="3600" log="/dev/null" user="root" time="0"
 	EOF
 	mkdir "${BUILDDIR}/rel"
 	genfile 2 "${BUILDDIR}/rel/bsd.rd"
@@ -169,7 +169,7 @@ if testcase "regress"; then
 	step="1" name="skipped" exit="0" duration="10" log="${BUILDDIR}/skipped.log" user="root" time="0"
 	step="2" name="nein" exit="1" duration="1" log="${BUILDDIR}/nein.log" user="root" time="0"
 	step="3" name="error" exit="1" duration="1" log="${BUILDDIR}/error.log" user="root" time="0"
-	step="4" name="end" exit="0" duration="12" log="" user="root" time="0"
+	step="4" name="end" exit="0" duration="12" log="/dev/null" user="root" time="0"
 	EOF
 
 	(setmode "robsd-regress" && report -b "$BUILDDIR")

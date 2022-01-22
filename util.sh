@@ -990,9 +990,8 @@ report() {
 		_exit="$(step_value exit)"
 		_log="$(step_value log)"
 
-		# The end step lacks a log.
 		if [ "$_exit" -eq 0 ] &&
-		   report_skip -b "$_builddir" -n "$_name" -l "${_log:-/dev/null}"
+		   report_skip -b "$_builddir" -n "$_name" -l "$_log"
 		then
 			continue
 		fi
@@ -1297,7 +1296,8 @@ robsd() {
 			# The duration of the end step is the accumulated
 			# duration.
 			step_end -d "$(duration_total -s "${BUILDDIR}/steps")" \
-				-n "$_name" -s "$_s" "${BUILDDIR}/steps"
+				-n "$_name" -l "/dev/null" -s "$_s" \
+				"${BUILDDIR}/steps"
 			return 0
 		fi
 
