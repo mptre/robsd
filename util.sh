@@ -182,7 +182,6 @@ config_load() {
 	_tmp=""
 	for _diff in $BSDDIFF; do
 		[ -e "$_diff" ] || continue
-
 		_tmp="${_tmp}${_tmp:+ }${_diff}"
 	done
 	BSDDIFF="$_tmp"
@@ -191,7 +190,6 @@ config_load() {
 	_tmp=""
 	for _diff in $XDIFF; do
 		[ -e "$_diff" ] || continue
-
 		_tmp="${_tmp}${_tmp:+ }${_diff}"
 	done
 	XDIFF="$_tmp"
