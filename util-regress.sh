@@ -70,7 +70,7 @@ regress_report_log() {
 	return 0
 }
 
-# regress_report_skip -n step-name -l step-log
+# regress_report_skip -b build-dir -n step-name -l step-log
 #
 # Exits zero if the given step should not be included in the report.
 regress_report_skip() {
@@ -79,6 +79,7 @@ regress_report_skip() {
 
 	while [ $# -gt 0 ]; do
 		case "$1" in
+		-b)	shift;;
 		-l)	shift; _log="$1";;
 		-n)	shift; _name="$1";;
 		*)	break;;

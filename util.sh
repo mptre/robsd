@@ -999,8 +999,13 @@ report() {
 		_name="$(step_value name)"
 		_exit="$(step_value exit)"
 		_log="$(step_value log)"
+
 		# The end step lacks a log.
-		[ "$_exit" -eq 0 ] && report_skip -n "$_name" -l "${_log:-/dev/null}" && continue
+		if [ "$_exit" -eq 0 ] &&
+		   report_skip -b "$_builddir" -n "$_name" -l "${_log:-/dev/null}"
+		then
+			continue
+		fi
 
 		_duration="$(step_value duration)"
 
@@ -1193,10 +1198,11 @@ report_sizes() {
 	done
 }
 
-# report_skip -n step-name -l step-log
+# report_skip -b build-dir -n step-name -l step-log
 #
 # Exits zero if the given step should not be included in the report.
 report_skip() {
+	local _builddir
 	local _name
 	local _log
 
@@ -1215,12 +1221,14 @@ report_skip() {
 
 	while [ $# -gt 0 ]; do
 		case "$1" in
+		-b)	shift; _builddir="$1";;
 		-l)	shift; _log="$1";;
 		-n)	shift; _name="$1";;
 		*)	break;;
 		esac
 		shift
 	done
+	: "${_builddir:?}"
 	: "${_log:?}"
 	: "${_name:?}"
 
@@ -1233,9 +1241,10 @@ report_skip() {
 		grep -vq '^\+' "$_log" || return 0
 		;;
 	patch|revert)
-		[ -z "$BSDDIFF" ] && [ -z "$XDIFF" ] && return 0
+		diff_list "$_builddir" "*.diff" | cmp -s - /dev/null && return 0
 		;;
-	*)	;;
+	*)
+		;;
 	esac
 
 	return 1
