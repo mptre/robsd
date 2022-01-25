@@ -15,7 +15,7 @@ if testcase "basic"; then
 	mkdir -p "${TSHDIR}/regress/test/fail"
 	cat <<EOF >"${TSHDIR}/regress/test/fail/Makefile"
 all:
-	exit 1
+	exit 66
 EOF
 	mkdir -p "${TSHDIR}/regress/test/hello"
 	cat <<EOF >"${TSHDIR}/regress/test/hello/Makefile"
