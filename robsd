@@ -63,10 +63,7 @@ if [ "$STEP" -eq 1 ]; then
 		# Generate comment including a list of the diff(s).
 		{
 			echo 'Applied the following diff(s):'
-			# shellcheck disable=SC2030
-			[ -n "$BSDDIFF" ] && echo "$BSDDIFF" | xargs ls
-			# shellcheck disable=SC2030
-			[ -n "$XDIFF" ] && echo "$XDIFF" | xargs ls
+			echo "$BSDDIFF" "$XDIFF" | xargs ls
 		} >"${BUILDDIR}/comment"
 	fi
 
