@@ -28,7 +28,7 @@ STEP=1
 while getopts "dS:c:r:t:" opt; do
 	case "$opt" in
 	d)	DETACH=0;;
-	S)	BSDDIFF="${BSDDIFF}${BSDDIFF:+ }$(readlink -f "${OPTARG}")";;
+	S)	BSDDIFF="${BSDDIFF} $(readlink -f "${OPTARG}")";;
 	c)	COMMENT="$OPTARG";;
 	r)	BUILDDIR="$(readlink -f "$OPTARG")";;
 	t)	TAGS="${TAGS}${TAGS:+ }${OPTARG}";;

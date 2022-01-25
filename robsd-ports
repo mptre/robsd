@@ -29,7 +29,7 @@ STEP=1
 while getopts "dP:c:r:s:t:" opt; do
 	case "$opt" in
 	d)	DETACH=0;;
-	P)	PORTSDIFF="${PORTSDIFF}${PORTSDIFF:+ }$(readlink -f "${OPTARG}")";;
+	P)	PORTSDIFF="${PORTSDIFF} $(readlink -f "${OPTARG}")";;
 	c)	COMMENT="$OPTARG";;
 	r)	BUILDDIR="$(readlink -f "$OPTARG")";;
 	s)	SKIP="${SKIP}${SKIP:+ }${OPTARG}";;

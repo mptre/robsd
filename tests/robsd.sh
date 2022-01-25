@@ -42,12 +42,15 @@ if testcase "basic"; then
 	HOOK=${_hook}
 	EOF
 	mkdir -p "$ROBSDDIR"
-	echo "Index: dir/file.c" >"${TSHDIR}/src.diff"
+	echo "Index: dir/file.c" >"${TSHDIR}/src-one.diff"
+	echo "Index: dir/file.c" >"${TSHDIR}/src-two.diff"
 	echo "Index: dir/file.c" >"${TSHDIR}/xenocara.diff"
 
 	_fail="${TSHDIR}/fail"
 	PATH="${BINDIR}:${PATH}" sh "$ROBSD" -d \
-		-S "${TSHDIR}/src.diff" -X "${TSHDIR}/xenocara.diff" \
+		-S "${TSHDIR}/src-one.diff" \
+		-S "${TSHDIR}/src-two.diff" \
+		-X "${TSHDIR}/xenocara.diff" \
 		-s reboot -t daily \
 		>"$TMP1" 2>&1 || : >"$_fail"
 	if [ -e "$_fail" ]; then
@@ -60,7 +63,8 @@ if testcase "basic"; then
 
 	assert_file - "${_builddir}/comment" <<-EOF
 	Applied the following diff(s):
-	${TSHDIR}/src.diff
+	${TSHDIR}/src-one.diff
+	${TSHDIR}/src-two.diff
 	${TSHDIR}/xenocara.diff
 	EOF
 
@@ -71,7 +75,8 @@ if testcase "basic"; then
 	_user="$(logname)"
 	assert_file - "$TMP1" <<-EOF
 	robsd: using directory ${_builddir} at step 1
-	robsd: using diff ${TSHDIR}/src.diff rooted in ${TSHDIR}
+	robsd: using diff ${TSHDIR}/src-one.diff rooted in ${TSHDIR}
+	robsd: using diff ${TSHDIR}/src-two.diff rooted in ${TSHDIR}
 	robsd: using diff ${TSHDIR}/xenocara.diff rooted in ${TSHDIR}
 	robsd: skipping steps: reboot
 	robsd: step env

@@ -30,8 +30,8 @@ STEP=1
 while getopts "dS:X:c:r:s:t:" opt; do
 	case "$opt" in
 	d)	DETACH=0;;
-	S)	BSDDIFF="${BSDDIFF}${BSDDIFF:+ }$(readlink -f "${OPTARG}")";;
-	X)	XDIFF="${XDIFF}${XDIFF:+ }$(readlink -f "${OPTARG}")";;
+	S)	BSDDIFF="${BSDDIFF} $(readlink -f "${OPTARG}")";;
+	X)	XDIFF="${XDIFF} $(readlink -f "${OPTARG}")";;
 	c)	COMMENT="$OPTARG";;
 	r)	BUILDDIR="$(readlink -f "$OPTARG")";;
 	s)	SKIP="${SKIP}${SKIP:+ }${OPTARG}";;
