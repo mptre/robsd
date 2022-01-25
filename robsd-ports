@@ -6,7 +6,7 @@ usage() {
 	xargs 1>&2 <<-EOF
 	usage: robsd-ports
 	[-d]
-	[-P patch]
+	[-P ports-patch]
 	[-c comment]
 	[-r path]
 	[-s step]
