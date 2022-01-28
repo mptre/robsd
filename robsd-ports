@@ -25,6 +25,7 @@ config_load "$(config_path)"
 COMMENT=""
 STATPID=""
 STEP=1
+_tags=""
 
 while getopts "dP:c:r:s:t:" opt; do
 	case "$opt" in
@@ -33,7 +34,7 @@ while getopts "dP:c:r:s:t:" opt; do
 	c)	COMMENT="$OPTARG";;
 	r)	BUILDDIR="$(readlink -f "$OPTARG")";;
 	s)	SKIP="${SKIP}${SKIP:+ }${OPTARG}";;
-	t)	TAGS="${TAGS}${TAGS:+ }${OPTARG}";;
+	t)	_tags="${_tags}${_tags:+ }${OPTARG}";;
 	*)	usage;;
 	esac
 done
@@ -76,8 +77,8 @@ if [ "$STEP" -eq 1 ]; then
 		done
 	fi
 
-	if [ -n "$TAGS" ]; then
-		echo "$TAGS" >"${BUILDDIR}/tags"
+	if [ -n "$_tags" ]; then
+		echo "$_tags" >"${BUILDDIR}/tags"
 	fi
 
 	"$ROBSDSTAT" -H >"${BUILDDIR}/stat.csv"

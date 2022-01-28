@@ -114,8 +114,6 @@ config_load() {
 	SIGNIFY=""; export SIGNIFY
 	# shellcheck disable=SC2034
 	SKIP=""
-	# shellcheck disable=SC2034
-	TAGS=""
 	XDIFF=""
 	XOBJDIR="/usr/xobj"; export XOBJDIR
 	XSRCDIR="/usr/xenocara"; export XSRCDIR
