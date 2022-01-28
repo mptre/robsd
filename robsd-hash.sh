@@ -1,19 +1,19 @@
 . "${EXECDIR}/util.sh"
 
-RELDIR="$(release_dir "$BUILDDIR")"
-RELXDIR="$(release_dir -x "$BUILDDIR")"
+_reldir="$(release_dir "$BUILDDIR")"
+_relxdir="$(release_dir -x "$BUILDDIR")"
 
-if [ -e "${RELXDIR}/SHA256" ]; then
-	cat "${RELXDIR}/SHA256" >>"${RELDIR}/SHA256"
-	rm "${RELXDIR}/SHA256"
+if [ -e "${_relxdir}/SHA256" ]; then
+	cat "${_relxdir}/SHA256" >>"${_reldir}/SHA256"
+	rm "${_relxdir}/SHA256"
 fi
 
-if [ -d "$RELXDIR" ]; then
-	find "$RELXDIR" -type f -exec mv {} "$RELDIR" \;
-	rm -r "$RELXDIR"
+if [ -d "$_relxdir" ]; then
+	find "$_relxdir" -type f -exec mv {} "$_reldir" \;
+	rm -r "$_relxdir"
 fi
 
-cd "$RELDIR"
+cd "$_reldir"
 
 diff_list "$BUILDDIR" "*.diff" |
 while read -r _f; do

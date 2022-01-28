@@ -21,16 +21,16 @@ setprogname "robsd-regress"
 [ "$(id -u)" -ne 0 ] && fatal "must be run as root"
 config_load "$(config_path)"
 
-COMMENT=""
-STATPID=""
-STEP=1
+_comment=""
+_statpid=""
+_step=1
 _tags=""
 
 while getopts "dS:c:r:t:" opt; do
 	case "$opt" in
 	d)	DETACH=0;;
 	S)	BSDDIFF="${BSDDIFF} $(readlink -f "${OPTARG}")";;
-	c)	COMMENT="$OPTARG";;
+	c)	_comment="$OPTARG";;
 	r)	BUILDDIR="$(readlink -f "$OPTARG")";;
 	t)	_tags="${_tags}${_tags:+ }${OPTARG}";;
 	*)	usage;;
@@ -39,23 +39,23 @@ done
 shift $((OPTIND - 1))
 [ $# -ne 0 ] && usage
 
-trap 'trap_exit -r "$ROBSDDIR" -b "$BUILDDIR" -s "$STATPID"' EXIT
+trap 'trap_exit -r "$ROBSDDIR" -b "$BUILDDIR" -s "$_statpid"' EXIT
 
 if [ -z "$BUILDDIR" ]; then
 	check_perf || exit 1
 
 	BUILDDIR="${ROBSDDIR}/$(build_id "$ROBSDDIR")"
 else
-	STEP="$(step_next "${BUILDDIR}/steps")"
+	_step="$(step_next "${BUILDDIR}/steps")"
 fi
 build_init "$BUILDDIR"
-info "using directory ${BUILDDIR} at step ${STEP}"
+info "using directory ${BUILDDIR} at step ${_step}"
 
 lock_acquire "$ROBSDDIR" "$BUILDDIR" || exit 1
 
-if [ "$STEP" -eq 1 ]; then
-	if [ -n "$COMMENT" ]; then
-		cat "$COMMENT" >"${BUILDDIR}/comment"
+if [ "$_step" -eq 1 ]; then
+	if [ -n "$_comment" ]; then
+		cat "$_comment" >"${BUILDDIR}/comment"
 	elif [ -n "$BSDDIFF" ]; then
 		# Generate comment including a list of the diff(s).
 		{
@@ -79,7 +79,7 @@ if [ "$KEEP" -gt 0 ]; then
 fi
 
 "$ROBSDSTAT" -u "$REGRESSUSER" -u root >>"${BUILDDIR}/stat.csv" &
-STATPID="$!"
+_statpid="$!"
 
 if [ "$DETACH" -eq 1 ]; then
 	# Signal to info() that no further output should be written to robsd.log
@@ -90,11 +90,11 @@ if [ "$DETACH" -eq 1 ]; then
 	# Reinstall trap handler since they are not inherited by subprocesses.
 	trap '-' EXIT
 	{
-		trap 'trap_exit -r "$ROBSDDIR" -b "$BUILDDIR" -s "${STATPID}"' EXIT
-		robsd "$STEP"
+		trap 'trap_exit -r "$ROBSDDIR" -b "$BUILDDIR" -s "${_statpid}"' EXIT
+		robsd "$_step"
 	} &
 	info "running in detach mode as pid ${!}"
 else
 	info "running as pid ${$}"
-	robsd "$STEP"
+	robsd "$_step"
 fi

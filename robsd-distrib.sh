@@ -2,8 +2,8 @@
 
 # At this point, all release artifacts are present in the rel directory as the
 # hash step merges the relx directory into rel.
-RELEASEDIR="$(release_dir "$BUILDDIR")"
-cd "$RELEASEDIR"
+_releasedir="$(release_dir "$BUILDDIR")"
+cd "$_releasedir"
 
 if [ -n "$SIGNIFY" ]; then
 	signify -Se -s "$SIGNIFY" -m SHA256
@@ -17,5 +17,5 @@ fi
 
 unpriv "$DISTRIBUSER" <<EOF
 ssh -n ${DISTRIBHOST} rm -f ${DISTRIBPATH}/*
-cd ${RELEASEDIR} && exec scp -p * ${DISTRIBHOST}:${DISTRIBPATH}
+cd ${_releasedir} && exec scp -p * ${DISTRIBHOST}:${DISTRIBPATH}
 EOF
