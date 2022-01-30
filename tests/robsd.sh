@@ -37,9 +37,9 @@ if testcase "basic"; then
 	chmod u+x "$_hook"
 
 	robsd_config - <<-EOF
-	ROBSDDIR=${ROBSDDIR}
-	EXECDIR=${WRKDIR}/exec
-	HOOK=${_hook}
+	robsddir "${ROBSDDIR}"
+	execdir "${WRKDIR}/exec"
+	hook "${_hook}"
 	EOF
 	mkdir -p "$ROBSDDIR"
 	echo "Index: dir/file.c" >"${TSHDIR}/src-one.diff"
@@ -47,7 +47,8 @@ if testcase "basic"; then
 	echo "Index: dir/file.c" >"${TSHDIR}/xenocara.diff"
 
 	_fail="${TSHDIR}/fail"
-	PATH="${BINDIR}:${PATH}" sh "$ROBSD" -d \
+	env PATH="${BINDIR}:${PATH}" \
+		sh "$ROBSD" -d \
 		-S "${TSHDIR}/src-one.diff" \
 		-S "${TSHDIR}/src-two.diff" \
 		-X "${TSHDIR}/xenocara.diff" \
@@ -116,8 +117,8 @@ fi
 
 if testcase "reboot"; then
 	robsd_config - <<-EOF
-	ROBSDDIR=${ROBSDDIR}
-	EXECDIR=${WRKDIR}/exec
+	robsddir "${ROBSDDIR}"
+	execdir "${WRKDIR}/exec"
 	EOF
 	mkdir -p "$ROBSDDIR"
 
@@ -135,7 +136,7 @@ fi
 
 if testcase "already running"; then
 	robsd_config - <<-EOF
-	ROBSDDIR=${ROBSDDIR}
+	robsddir "${ROBSDDIR}"
 	EOF
 	mkdir -p "$ROBSDDIR"
 	echo /var/empty >"${ROBSDDIR}/.running"
@@ -151,7 +152,7 @@ fi
 
 if testcase "already running detached"; then
 	robsd_config - <<-EOF
-	ROBSDDIR=${ROBSDDIR}
+	robsddir "${ROBSDDIR}"
 	EOF
 	mkdir -p "$ROBSDDIR"
 	echo /var/empty >"${ROBSDDIR}/.running"
@@ -167,7 +168,7 @@ fi
 
 if testcase "early failure"; then
 	robsd_config - <<-EOF
-	ROBSDDIR=${ROBSDDIR}
+	robsddir "${ROBSDDIR}"
 	EOF
 	echo 'exit 0' >"${BINDIR}/sysctl"
 	mkdir -p "$ROBSDDIR"
@@ -177,17 +178,5 @@ if testcase "early failure"; then
 	assert_file - "$TMP1" <<-EOF
 	robsd: non-optimal performance detected, check hw.perfpolicy and hw.setperf
 	robsd: trap exit 1
-	EOF
-fi
-
-if testcase "missing build directory"; then
-	robsd_config - <<-EOF
-	ROBSDDIR=${ROBSDDIR}
-	EOF
-	if PATH="${BINDIR}:${PATH}" sh "$ROBSD" -d >"$TMP1" 2>&1; then
-		fail - "expected exit non-zero" <"$TMP1"
-	fi
-	assert_file - "$TMP1" <<-EOF
-	ls: ${ROBSDDIR}: No such file or directory
 	EOF
 fi

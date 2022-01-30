@@ -70,6 +70,11 @@ if testcase "ports"; then
 fi
 
 if testcase "regress"; then
+	robsd_config -R - <<-EOF
+	robsddir "${ROBSDDIR}"
+	regress {}
+	EOF
+
 	if (setmode "robsd-regress" &&
 	    report_skip -b "$TSHDIR" -n "bin/cat" -l "/dev/null")
 	then
@@ -80,13 +85,17 @@ if testcase "regress"; then
 fi
 
 if testcase "regress skip"; then
+	robsd_config -R - <<-EOF
+	robsddir "${ROBSDDIR}"
+	regress { "bin/w:S" }
+	EOF
 	cat <<-EOF >"$TMP1"
 	==== t0 ====
 	SKIPPED
 	EOF
 
 	if (setmode "robsd-regress" &&
-	    SKIPIGNORE="bin/w" report_skip -b "$TSHDIR" -n "bin/w" -l "$TMP1")
+	    report_skip -b "$TSHDIR" -n "bin/w" -l "$TMP1")
 	then
 		:
 	else

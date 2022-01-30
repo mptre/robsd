@@ -1,6 +1,9 @@
 . "${EXECDIR}/util.sh"
 
-unset DESTDIR
+config_load <<'EOF'
+XOBJDIR="${x11-objdir}"; export XOBJDIR
+XSRCDIR="${x11-srcdir}"; export XSRCDIR
+EOF
 
 cleandir "$XOBJDIR"
 chown build:wobj "$XOBJDIR"

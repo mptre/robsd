@@ -14,7 +14,9 @@ usage() {
 setmode "$(getmode "$0")"
 setprogname "${_MODE}-clean"
 [ "$(id -u)" -ne 0 ] && fatal "must be run as root"
-config_load "$(config_path)"
+config_load <<'EOF'
+ROBSDDIR="${robsddir}"
+EOF
 
 purge "$ROBSDDIR" "$1" | while read -r _d; do
 	info "moving ${_d} to the attic"

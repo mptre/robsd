@@ -2,6 +2,16 @@
 
 set -o pipefail
 
+config_load <<-'EOF'
+CHROOT="${chroot}"
+DISTRIBHOST="${distrib-host}"
+DISTRIBPATH="${distrib-path}"
+DISTRIBUSER="${distrib-user}"
+SIGNIFY="${distrib-signify}"
+PORTSDIR="${ports-dir}"
+PORTS="${ports}"
+EOF
+
 if [ -z "$DISTRIBHOST" ] || [ -z "$DISTRIBPATH" ] || [ -z "$DISTRIBUSER" ]; then
 	exit 0
 fi

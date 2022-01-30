@@ -2,14 +2,14 @@ if testcase "basic"; then
 	# shellcheck disable=SC2086
 	mkdir -p ${ROBSDDIR}/2019-07-{20,21}
 	BUILDDIR="${ROBSDDIR}/2019-07-21"; export BUILDDIR
-	assert_eq "${ROBSDDIR}/2019-07-20" "$(prev_release)"
+	assert_eq "${ROBSDDIR}/2019-07-20" "$(prev_release -r "$ROBSDDIR")"
 fi
 
 if testcase "count"; then
 	# shellcheck disable=SC2086
 	mkdir -p ${ROBSDDIR}/2019-07-{19,20,21}
 	BUILDDIR="${ROBSDDIR}/2019-07-21"; export BUILDDIR
-	prev_release 2 >"$TMP1"
+	prev_release -r "$ROBSDDIR" 2 >"$TMP1"
 	assert_file - "$TMP1" <<-EOF
 	${ROBSDDIR}/2019-07-20
 	${ROBSDDIR}/2019-07-19
@@ -20,7 +20,7 @@ if testcase "all"; then
 	# shellcheck disable=SC2086
 	mkdir -p ${ROBSDDIR}/2019-07-{19,20,21}
 	BUILDDIR="${ROBSDDIR}/2019-07-21"; export BUILDDIR
-	prev_release 0 >"$TMP1"
+	prev_release -r "$ROBSDDIR" 0 >"$TMP1"
 	assert_file - "$TMP1" <<-EOF
 	${ROBSDDIR}/2019-07-20
 	${ROBSDDIR}/2019-07-19

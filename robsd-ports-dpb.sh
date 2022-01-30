@@ -8,23 +8,24 @@ duration() {
 	grep -m 1 "$_pattern" | awk '{print $NF}' | sed 's/\..*//'
 }
 
+config_load <<'EOF'
+CHROOT="${chroot}"
+PORTSDIR="${ports-dir}"
+PORTS="${ports}"
+EOF
+
 PATH="${CHROOT}${PORTSDIR}/infrastructure/bin:${PATH}"
 
 _arch="$(machine)"
-
-_parallel=""
-if [ "$MAKE_JOBS" -gt 0 ]; then
-	_parallel="${MAKE_JOBS:+"-j ${MAKE_JOBS} -p ${MAKE_JOBS}"}"
-fi
-unset MAKE_JOBS
 
 xargs -t rm -rf <<EOF
 ${CHROOT}${PORTSDIR}/logs/${_arch}
 ${CHROOT}${PORTSDIR}/distfiles/build-stats/${_arch}
 EOF
 
+_ncpu="$(sysctl -n hw.ncpuonline)"
 # shellcheck disable=SC2086
-dpb -c -B "$CHROOT" $_parallel $PORTS
+dpb -c -B "$CHROOT" -j "$_ncpu" -p "$_ncpu" $PORTS
 
 _fail=0
 for _p in $PORTS; do

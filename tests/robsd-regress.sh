@@ -4,12 +4,10 @@ ROBSDREGRESS="${EXECDIR}/robsd-regress"
 ROBSDKILL="${EXECDIR}/robsd-kill"
 
 if testcase "basic"; then
-	robsd_config - "robsd-regress" <<-EOF
-	ROBSDDIR=${ROBSDDIR}
-	EXECDIR=${EXECDIR}
-	REGRESSUSER=nobody
-	SUDO=doas
-	TESTS="test/fail test/hello test/root:R"
+	robsd_config -R - "robsd-regress" <<-EOF
+	robsddir "${ROBSDDIR}"
+	execdir "${EXECDIR}"
+	regress { "test/fail" "test/hello" "test/root:R" }
 	EOF
 	mkdir "$ROBSDDIR"
 	mkdir -p "${TSHDIR}/regress/test/fail"
@@ -40,11 +38,10 @@ EOF
 fi
 
 if testcase "failure in non-test step"; then
-	robsd_config - "robsd-regress" <<-EOF
-	ROBSDDIR=${ROBSDDIR}
-	EXECDIR=${EXECDIR}
-	REGRESSUSER=nobody
-	TESTS="test/nothing"
+	robsd_config -R - "robsd-regress" <<-EOF
+	robsddir "${ROBSDDIR}"
+	execdir "${EXECDIR}"
+	regress { "test/nothing" }
 	EOF
 	mkdir "$ROBSDDIR"
 	# Make the env step fail.
@@ -62,11 +59,10 @@ if testcase "failure in non-test step"; then
 fi
 
 if testcase "failure in non-test step, conflicting with test name"; then
-	robsd_config - "robsd-regress" <<-EOF
-	ROBSDDIR=${ROBSDDIR}
-	EXECDIR=${EXECDIR}
-	REGRESSUSER=nobody
-	TESTS="usr.bin/patch"
+	robsd_config -R - "robsd-regress" <<-EOF
+	robsddir "${ROBSDDIR}"
+	execdir "${EXECDIR}"
+	regress { "usr.bin/patch" }
 	EOF
 	mkdir "$ROBSDDIR"
 	: >"${TSHDIR}/patch"
@@ -78,11 +74,10 @@ if testcase "failure in non-test step, conflicting with test name"; then
 fi
 
 if testcase "kill"; then
-	robsd_config - "robsd-regress" <<-EOF
-	ROBSDDIR=${ROBSDDIR}
-	EXECDIR=${EXECDIR}
-	REGRESSUSER=nobody
-	TESTS="test/sleep test/nein"
+	robsd_config -R - "robsd-regress" <<-EOF
+	robsddir "${ROBSDDIR}"
+	execdir "${EXECDIR}"
+	regress { "test/sleep" "test/nein" }
 	EOF
 	mkdir "$ROBSDDIR"
 	mkdir -p "${TSHDIR}/regress/test/sleep"
@@ -106,10 +101,14 @@ EOF
 	until [ -e "${TSHDIR}/sleep" ]; do
 		sleep .1
 	done
-	PATH="${BINDIR}:${PATH}" ROBSDEXEC="$_exec" sh "$ROBSDKILL"
+
+	_robsdkill="${TSHDIR}/robsd-regress-kill"
+	cp "$ROBSDKILL" "$_robsdkill"
+	PATH="${BINDIR}:${PATH}" ROBSDEXEC="$_exec" sh "$_robsdkill"
 	while pgrep -q -f "$ROBSDREGRESS"; do
 		sleep .1
 	done
+
 	echo sleep | assert_file - "${TSHDIR}/sleep"
 	if [ -e "${TSHDIR}/nein" ]; then
 		fail - "expected nein to not be present" <"${TSHDIR}/nein"

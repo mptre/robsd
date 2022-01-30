@@ -2,72 +2,30 @@
 .Dt ROBSD.CONF 5
 .Os
 .Sh NAME
-.Nm robsd.conf ,
-.Nm robsd-ports.conf ,
-.Nm robsd-regress.conf
+.Nm robsd.conf
 .Nd robsd configuration file
 .Sh DESCRIPTION
-The shell script
 .Nm
 is the configuration file for
 .Xr robsd 8 .
-By default,
-.Xr robsd 8
-is configured using environment variables.
-Variables and can optionally be specified in
-.Pa /etc/robsd.conf ,
-which is sourced during runtime.
-Where the latter takes higher precedence.
-.Pp
 The following variables are recognized.
-Default values are displayed in brackets.
 .Bl -tag -width Ds
-.It Ev BSDDIFF
-Path to sticky patch to always apply to
-.Ev BSDSRCDIR .
-It's silently ignored if the path does not exist.
-May contain multiple paths separated by whitespace.
-.It Ev BSDOBJDIR
-Object directory for the src tree.
-.Bq Pa /usr/obj
-.It Ev BSDSRCDIR
-Source directory for the src tree.
-.Bq Pa /usr/src
-.It Ev CVSROOT
-Upstream
-.Xr cvs 1
-repository used to update sources from.
-.It Ev CVSUSER
-User to perform
-.Xr cvs 1
-and
-.Xr patch 1
-operations on behalf of.
-.It Ev DESTDIR
+.It Ic robsddir Dq Ar path
+Directory to store releases.
+.It Ic destdir Dq Ar path
 Directory rooted on a filesystem mounted with the
 .Em noperm
 .Xr mount 8
 option, see
 .Xr release 8 .
-.It Ev DISTRIBHOST
-Host to upload the release files to during the distrib step.
-.It Ev DISTRIBPATH
-Directory on
-.Ev DISTRIBHOST
-to upload the release files to during the distrib step.
-Note, this directory will be wiped before uploading the new release files.
-.It Ev DISTRIBUSER
-User to perform
-.Xr scp 1
-operations on behalf of.
-.It Ev HOOK
+.It Ic hook Dq Ar path
 Command to invoke after each non-skipped step.
 The command will be given the following arguments:
 .Pp
 .Bl -enum -compact
 .It
 Release build directory rooted in
-.Ev ROBSDDIR .
+.Ic robsddir .
 .It
 Name of the step.
 .It
@@ -76,146 +34,85 @@ Exit status of the step,
 .It
 The user who started the step.
 .El
-.It Ev KEEP
+.It Ic keep Ar number
 Number of releases to keep in
-.Ev ROBSDDIR ,
+.Ic robsddir ,
 see
 .Xr robsd-clean 8 .
-Defaults to keeping all releases.
-.Bq 0
-.It Ev MAKEFLAGS
-Options passed to
-.Xr make 1 .
-Defaults to setting the maximum number of processes option to the value of
-.Va hw.ncpuonline ,
-see
-.Xr sysctl 8 .
-.It Ev ROBSDDIR
-Directory to store releases.
-.It Ev SKIP
-Steps to skip,
-see corresponding manual for each utility for a list of all available steps.
-May contain multiple steps separated by whitespace.
-.It Ev SIGNIFY
-Private key used to optionally sign the release files using
-.Xr signify 1 .
-.It Ev XDIFF
-Path to sticky patch to always apply to
-.Ev XSRCDIR .
-It's silently ignored if the path does not exist.
-May contain multiple paths separated by whitespace.
-.It Ev XOBJDIR
-Object directory for the xenocara tree.
-.Bq /usr/xobj
-.It Ev XSRCDIR
-Source directory for the xenocara tree.
-.Bq /usr/xenocara
+Defaults to keeping everything.
+.It Ic skip No { Do Ar step Dc Ar ... No }
+Steps to skip, see
+.Xr robsd 8
+for a list of all available steps.
+.It Ic bsd-diff Dq Ar glob
+Path to sticky patches to always apply to
+.Ic bsd-srcdir ,
+expressed as a
+.Xr glob 7
+pattern.
+It's silently ignored if
+.Ar glob
+does not yield any matches.
+.It Ic bsd-objdir Dq Ar path
+Object directory for the src tree, defaults to
+.Pa /usr/obj .
+.It Ic bsd-srcdir Dq Ar path
+Source directory for the src tree, defaults to
+.Pa /usr/src .
+.It Ic cvs-root Dq Ar host
+Upstream
+.Xr cvs 1
+repository used to update sources from.
+.It Ic cvs-user Dq Ar user
+User to perform
+.Xr cvs 1
+and
+.Xr patch 1
+operations on behalf of.
+.It Ic distrib-host Dq Ar hostname
+Host to upload the release files to during the distrib step.
+.It Ic distrib-path Dq Ar path
+Directory on
+.Ic distrib-host
+to upload the release files to during the distrib step.
+Note, this directory will be wiped before uploading the new release files.
+.It Ic distrib-user Dq Ar user
+User to perform
+.Xr scp 1
+operations on behalf of.
+.It Ic x11-diff Dq Ar glob
+Path to sticky patches to always apply to
+.Ic x11-srcdir ,
+expressed as a
+.Xr glob 7
+pattern.
+It's silently ignored if
+.Ar glob
+does not yield any matches.
+.It Ic x11-objdir Dq Ar path
+Object directory for the xenocara tree, defaults to
+.Pa /usr/xobj .
+.It Ic x11-srcdir Dq Ar path
+Source directory for the xenocara tree, defaults to
+.Pa /usr/xenocara .
 .El
-.Pp
-The following variables are recognized by
-.Xr robsd-ports 8 .
-Default values are displayed in brackets.
-.Bl -tag -width Ds
-.It Ev CHROOT
-Directory used as the
-.Xr proot 1
-chroot.
-.It Ev MAKE_JOBS
-Number of parallel
-.Xr make 1
-processes used while building ports.
-Disabled by default.
-.Bq 0
-.It Ev PORTS
-Ports to build, separated by whitespace.
-All entries must be relative to
-.Ev PORTSDIR .
-.It Ev PORTSDIFF
-Path to sticky patch to always apply to
-.Ev PORTSDIR .
-It's silently ignored if the path does not exist.
-May contain multiple paths separated by whitespace.
-.It Ev PORTSDIR
-Ports directory relative to
-.Ev CHROOT .
-.Bq Pa /usr/ports
-.It Ev PORTSUSER
-User owning
-.Ev PORTSDIR .
-.It Ev SIGNIFY
-Private key used to optionally sign the packages using
-.Xr signify 1 .
-.El
-.Pp
-The following variables are recognized by
-.Xr robsd-regress 8 .
-Default values are displayed in brackets.
-.Bl -tag -width Ds
-.It Ev RDONLY
-Mount
-.Ev BSDSRCDIR
-read-only before running any regression tests.
-Used to detect object directory ignorance.
-Requires
-.Ev BSDSRCDIR
-to reside on a dedicated partition.
-.It Ev REGRESSUSER
-User to execute regression tests as.
-.It Ev SUDO
-Command used to elevate privilegies, needed by certain regression tests.
-.Bq doas -n
-.It Ev TESTS
-Regression tests to execute, separated by whitespace.
-All entries must be relative to
-.Pa ${BSDSRCDIR}/regress .
-An entry can optionally be followed by a colon
-.Pq Sq \&:
-and one or many of the following flags:
-.Pp
-.Bl -tag -compact -width P
-.It R
-Run the regression test as root as opposed of
-.Ev REGRESSUSER .
-.It S
-Do not report skipped targets for this regression test.
-.El
+.Sh FILES
+.Bl -tag -width "/etc/robsd.conf"
+.It Pa /etc/robsd.conf
+The default configuration file.
 .El
 .Sh EXAMPLES
-Example
-.Pa /etc/robsd.conf
-configuration file with all mandatory variables present:
+Example configuration:
 .Bd -literal
-ROBSDDIR=/home/snapshots
-CVSROOT=anoncvs@anoncvs.eu.openbsd.org:/cvs
-CVSUSER=anton
-DESTDIR=/home/noperm
-.Ed
-.Pp
-Example
-.Pa /etc/robsd-ports.conf
-configuration file with all mandatory variables present:
-.Bd -literal
-ROBSDDIR=/home/ports
-CHROOT=/home/proot
-CVSROOT=anoncvs@anoncvs.eu.openbsd.org:/cvs
-CVSUSER=anton
-PORTSUSER=anton
-PORTS="devel/knfmt mail/mdsort"
-.Ed
-.Pp
-Example
-.Pa /etc/robsd-regress.conf
-configuration file with all mandatory variables present:
-.Bd -literal
-ROBSDDIR=/home/regress
-REGRESSUSER=anton
-TESTS="bin/csh bin/ksh"
+robsddir "/home/snapshots"
+destdir "/home/noperm"
+cvs-root "anoncvs@anoncvs.eu.openbsd.org:/cvs"
+cvs-user "anton"
 .Ed
 .Sh SEE ALSO
 .Xr robsd 8 ,
 .Xr robsd-clean 8 ,
-.Xr robsd-ports 8 ,
-.Xr robsd-regress 8 ,
+.Xr robsd-kill 8 ,
 .Xr robsd-rescue 8
 .Sh AUTHORS
 .An Anton Lindqvist Aq Mt anton@basename.se

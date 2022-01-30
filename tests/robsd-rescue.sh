@@ -16,8 +16,8 @@ setup() {
 	done
 
 	robsd_config - <<-EOF
-	ROBSDDIR=${ROBSDDIR}
-	BSDDIFF=/var/empty
+	robsddir "${ROBSDDIR}"
+	bsd-diff "/var/empty"
 	EOF
 
 	mkdir -p "${ROBSDDIR}/2020-09-01.1" "${ROBSDDIR}/2020-09-02.1"

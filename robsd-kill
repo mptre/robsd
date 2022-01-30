@@ -14,7 +14,9 @@ usage() {
 setmode "$(getmode "$0")"
 setprogname "${_MODE}-kill"
 [ "$(id -u)" -ne 0 ] && fatal "must be run as root"
-config_load "$(config_path)"
+config_load <<'EOF'
+ROBSDDIR="${robsddir}"
+EOF
 
 EXEC="${ROBSDEXEC:-/usr/local/libexec/robsd/${_MODE}-exec}"
 

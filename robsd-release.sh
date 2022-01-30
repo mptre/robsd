@@ -1,9 +1,14 @@
 . "${EXECDIR}/util.sh"
 
+config_load <<'EOF'
+DESTDIR="${destdir}"
+BSDSRCDIR="${bsd-srcdir}"
+EOF
+
 chown build "$DESTDIR"
 chmod 700 "$DESTDIR"
 
-DESTDIR="${DESTDIR}/src"
+DESTDIR="${DESTDIR}/src"; export DESTDIR
 mkdir -p "$DESTDIR"
 cleandir "$DESTDIR"
 

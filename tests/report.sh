@@ -68,7 +68,7 @@ if testcase "basic"; then
 	cvs src commits
 	EOF
 
-	report -b "$BUILDDIR"
+	report -r "$ROBSDDIR" -b "$BUILDDIR"
 
 	assert_file "$TMP1" "$REPORT"
 fi
@@ -103,7 +103,7 @@ if testcase "failure"; then
 	env log
 	EOF
 
-	report -b "$BUILDDIR"
+	report -r "$ROBSDDIR" -b "$BUILDDIR"
 
 	assert_file "$TMP1" "$REPORT"
 fi
@@ -130,19 +130,25 @@ if testcase "failure in skipped step"; then
 	env log
 	EOF
 
-	report -b "$BUILDDIR"
+	report -r "$ROBSDDIR" -b "$BUILDDIR"
 
 	assert_file "$TMP1" "$REPORT"
 fi
 
 if testcase "missing step"; then
-	if report -b "$BUILDDIR"; then
+	if report -r "$ROBSDDIR" -b "$BUILDDIR"; then
 		fail "want exit 1, got 0"
 	fi
 fi
 
 if testcase "regress"; then
 	build_init "$BUILDDIR"
+	cat <<-EOF >"${BUILDDIR}/skipped.log"
+	discard me...
+
+	===> test
+	SKIPPED
+	EOF
 	cat <<-EOF >"${BUILDDIR}/nein.log"
 	==== t0 ====
 	skip
@@ -155,24 +161,27 @@ if testcase "regress"; then
 	==== t2 ====
 	success
 	EOF
-	cat <<-EOF >"${BUILDDIR}/skipped.log"
-	discard me...
-
-	===> test
-	SKIPPED
-	EOF
 	cat <<-EOF >"${BUILDDIR}/error.log"
 	cc -O2 -pipe  -Wall  -MD -MP  -c log.c
 	error: unable to open output file 'log.o': 'Read-only file system'
+	EOF
+	cat <<-EOF >"${BUILDDIR}/skipignore.log"
+	===> test
+	SKIPPED
 	EOF
 	cat <<-EOF >"$STEPS"
 	step="1" name="skipped" exit="0" duration="10" log="${BUILDDIR}/skipped.log" user="root" time="0"
 	step="2" name="nein" exit="1" duration="1" log="${BUILDDIR}/nein.log" user="root" time="0"
 	step="3" name="error" exit="1" duration="1" log="${BUILDDIR}/error.log" user="root" time="0"
-	step="4" name="end" exit="0" duration="12" log="/dev/null" user="root" time="0"
+	step="4" name="skipignore" exit="0" duration="1" log="${BUILDDIR}/skipignore.log" user="root" time="0"
+	step="5" name="end" exit="0" duration="12" log="/dev/null" user="root" time="0"
 	EOF
 
-	(setmode "robsd-regress" && report -b "$BUILDDIR")
+	robsd_config -R - <<-EOF
+	robsddir "$ROBSDDIR"
+	regress { "skipped" "nein" "error" "skipignore:S" }
+	EOF
+	(setmode "robsd-regress" && report -r "$ROBSDDIR" -b "$BUILDDIR")
 
 	assert_file - "$REPORT" <<-EOF
 	Subject: robsd-regress: $(hostname -s): 2 failures
@@ -231,7 +240,8 @@ if testcase "ports"; then
 	EOF
 
 	# shellcheck disable=SC2034
-	(PORTS="mail/mdsort"; setmode "robsd-ports"; report -b "$BUILDDIR")
+	(PORTS="mail/mdsort"; setmode "robsd-ports";
+	 report -r "$ROBSDDIR" -b "$BUILDDIR")
 
 	assert_file - "$REPORT" <<-EOF
 	Subject: robsd-ports: $(hostname -s): ok
@@ -256,7 +266,8 @@ if testcase "ports failure"; then
 	EOF
 
 	# shellcheck disable=SC2034
-	(PORTS="mail/mdsort"; setmode "robsd-ports"; report -b "$BUILDDIR")
+	(PORTS="mail/mdsort"; setmode "robsd-ports";
+	 report -r "$ROBSDDIR" -b "$BUILDDIR")
 
 	assert_file - "$REPORT" <<-EOF
 	Subject: robsd-ports: $(hostname -s): 1 failure
@@ -285,7 +296,8 @@ if testcase "ports dpb failure"; then
 	EOF
 
 	# shellcheck disable=SC2034
-	(PORTS="mail/mdsort"; setmode "robsd-ports"; report -b "$BUILDDIR")
+	(PORTS="mail/mdsort"; setmode "robsd-ports";
+	 report -r "$ROBSDDIR" -b "$BUILDDIR")
 
 	assert_file - "$REPORT" <<-EOF
 	Subject: robsd-ports: $(hostname -s): 1 failure

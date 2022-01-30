@@ -9,7 +9,7 @@ FILE="$(basename "$TMP1")"
 BUILDDIR="${ROBSDDIR}/2019-02-23"; export BUILDDIR
 
 if testcase "previous release missing"; then
-	assert_eq "" "$(report_size "$TMP1")"
+	assert_eq "" "$(report_size -r "$ROBSDDIR" "$TMP1")"
 fi
 
 if testcase "previous release missing file"; then
@@ -17,7 +17,7 @@ if testcase "previous release missing file"; then
 	# shellcheck disable=SC2086
 	mkdir -p ${ROBSDDIR}/2019-02-{22,23}/rel
 
-	assert_eq "" "$(report_size "$TMP1")"
+	assert_eq "" "$(report_size -r "$ROBSDDIR" "$TMP1")"
 fi
 
 if testcase "previous delta too small"; then
@@ -26,7 +26,7 @@ if testcase "previous delta too small"; then
 	mkdir -p ${ROBSDDIR}/2019-02-{22,23}/rel
 	zero 1K "${ROBSDDIR}/2019-02-22/rel/${FILE}"
 
-	assert_eq "" "$(report_size "$TMP1")"
+	assert_eq "" "$(report_size -r "$ROBSDDIR" "$TMP1")"
 fi
 
 if testcase "previous delta megabytes"; then
@@ -35,7 +35,8 @@ if testcase "previous delta megabytes"; then
 	mkdir -p ${ROBSDDIR}/2019-02-{22,23}/rel
 	zero "$((1024 * 1024))" "${ROBSDDIR}/2019-02-22/rel/${FILE}"
 
-	assert_eq "${FILE} 1.4M (+428.6K)" "$(report_size "$TMP1")"
+	assert_eq "${FILE} 1.4M (+428.6K)" \
+		"$(report_size -r "$ROBSDDIR" "$TMP1")"
 fi
 
 if testcase "previous delta negative"; then
@@ -44,5 +45,5 @@ if testcase "previous delta negative"; then
 	mkdir -p ${ROBSDDIR}/2019-02-{22,23}/rel
 	zero 2M "${ROBSDDIR}/2019-02-22/rel/${FILE}"
 
-	assert_eq "${FILE} 1.0K (-2.0M)" "$(report_size "$TMP1")"
+	assert_eq "${FILE} 1.0K (-2.0M)" "$(report_size -r "$ROBSDDIR" "$TMP1")"
 fi

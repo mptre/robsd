@@ -1,5 +1,12 @@
 . "${EXECDIR}/util.sh"
 
+config_load <<'EOF'
+DISTRIBHOST="${distrib-host}"
+DISTRIBPATH="${distrib-path}"
+DISTRIBUSER="${distrib-user}"
+SIGNIFY="${distrib-signify}"
+EOF
+
 # At this point, all release artifacts are present in the rel directory as the
 # hash step merges the relx directory into rel.
 _releasedir="$(release_dir "$BUILDDIR")"

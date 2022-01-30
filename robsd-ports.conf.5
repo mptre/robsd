@@ -1,1 +1,104 @@
-.\" Dummy manual needed to silence mandoc lint.
+.Dd $Mdocdate: February 3 2022$
+.Dt ROBSD-PORTS.CONF 5
+.Os
+.Sh NAME
+.Nm robsd-ports.conf
+.Nd robsd-ports configuration file
+.Sh DESCRIPTION
+.Nm
+is the configuration file for
+.Xr robsd-ports 8 .
+The following variables are recognized.
+.Bl -tag -width Ds
+.It Ic robsddir Dq Ar path
+Directory used to store invocations.
+.It Ic chroot Dq Ar path
+Directory used as the
+.Xr proot 1
+chroot.
+.It Ic hook Dq Ar path
+Command to invoke after each non-skipped step.
+The command will be given the following arguments:
+.Pp
+.Bl -enum -compact
+.It
+Invocation directory rooted in
+.Ic robsddir .
+.It
+Name of the step.
+.It
+Exit status of the step,
+0 if the step succeeded and non-zero otherwise.
+.It
+The user who started the step.
+.El
+.It Ic keep Ar number
+Number of invocations to keep in
+.Ic robsddir ,
+see
+.Xr robsd-ports-clean 8 .
+Defaults to keeping everything.
+.It Ic skip No { Do Ar step Dc Ar ... No }
+Steps to skip, see
+.Xr robsd-ports 8
+for a list of all available steps.
+.It Ic cvs-root Dq Ar host
+Upstream
+.Xr cvs 1
+repository used to update sources from.
+.It Ic cvs-user Dq Ar user
+User to perform
+.Xr cvs 1
+and
+.Xr patch 1
+operations on behalf of.
+.It Ic distrib-host Dq Ar hostname
+Host to upload packages to during the distrib step.
+.It Ic distrib-path Dq Ar path
+Directory on
+.Ic distrib-host
+to upload the packages to during the distrib step.
+Note, this directory will be wiped before uploading the new packages.
+.It Ic distrib-user Dq Ar user
+User to perform
+.Xr scp 1
+operations on behalf of.
+.It Ic ports No { Do Ar path Dc Ar ... No }
+Ports to build,
+.Ar path
+must be relative to
+.Ic ports-dir .
+.It Ic ports-diff Dq Ar glob
+Path to sticky patches to always apply to
+.Ic ports-dir ,
+expressed as a
+.Xr glob 7
+pattern.
+It's silently ignored if
+.Ar glob
+does not yield any matches.
+.It Ic ports-user Dq Ar user
+The user owning
+.Ic ports-dir .
+.El
+.Sh FILES
+.Bl -tag -width "/etc/robsd-ports.conf"
+.It Pa /etc/robsd-ports.conf
+The default configuration file.
+.El
+.Sh EXAMPLES
+Example configuration:
+.Bd -literal
+robsddir "/home/snapshots"
+chroot "/home/proot"
+cvs-root "anoncvs@anoncvs.eu.openbsd.org:/cvs"
+cvs-user "anton"
+ports-user "anton"
+ports { "devel/knfmt" "mail/mdsort" }
+.Ed
+.Sh SEE ALSO
+.Xr robsd-ports 8 ,
+.Xr robsd-ports-clean 8 ,
+.Xr robsd-ports-kill 8
+.Sh AUTHORS
+.An Anton Lindqvist Aq Mt anton@basename.se

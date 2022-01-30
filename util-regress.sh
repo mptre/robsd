@@ -1,48 +1,9 @@
-# regress_config_defaults
-#
-# Populate default configuration.
-regress_config_defaults() {
-	RDONLY="0"; export RDONLY
-	REGRESSROOT=""; export REGRESSROOT
-	REGRESSUSER=""; export REGRESSUSER
-	SKIPIGNORE=""
-	SUDO="doas -n"; export SUDO
-	TESTS=""
-}
-
 # regress_config_load
 #
-# Parse the configured regression tests and handle any associated flags.
+# Handle regress specific configuration.
 regress_config_load() {
-	local _f
-	local _flags
-	local _t
-	local _tests=""
-
-	: "${REGRESSUSER:?}"
-	: "${TESTS:?}"
-
 	# Sanitize the inherited environment.
 	unset MAKEFLAGS
-
-	for _t in ${TESTS:-}; do
-		_flags="${_t##*:}"
-		_t="${_t%:*}"
-
-		[ "$_flags" = "$_t" ] && _flags=""
-
-		# shellcheck disable=SC2001
-		for _f in $(echo "$_flags" | sed -e 's/\(.\)/\1 /g'); do
-			case "$_f" in
-			R)	REGRESSROOT="${REGRESSROOT}${REGRESSROOT:+ }${_t}";;
-			S)	SKIPIGNORE="${SKIPIGNORE}${SKIPIGNORE:+ }${_t}";;
-			*)	fatal "unknown regress test flag '${_f}'";;
-			esac
-		done
-
-		_tests="${_tests}${_tests:+ }${_t}"
-	done
-	TESTS="$_tests"
 }
 
 # regress_failed step-log
@@ -143,7 +104,7 @@ regress_root() {
 	local _test
 
 	_test="$1"; : "${_test:?}"
-	echo "$REGRESSROOT" | grep -q "\<${_test}\>"
+	config_value regress-root | grep -q "\<${_test}\>"
 }
 
 # regress_skip test
@@ -154,7 +115,7 @@ regress_skip() {
 	local _test
 
 	_test="$1"; : "${_test:?}"
-	echo "$SKIPIGNORE" | grep -q "\<${_test}\>"
+	config_value regress-skip | grep -q "\<${_test}\>"
 }
 
 # regress_step_after -b build-dir -e step-exit -n step-name
@@ -177,7 +138,8 @@ regress_step_after() {
 	: "${_name:?}"
 
 	# Ignore regress test errors.
-	if echo "$TESTS" | xargs printf '%s\n' | grep -q "^${_name}$"; then
+	if config_value regress | xargs printf '%s\n' |
+	   grep -q "^${_name}$"; then
 		return 0
 	fi
 	return "$_exit"
@@ -191,7 +153,7 @@ regress_steps() {
 	env
 	patch
 	mount
-	${TESTS}
+	$(config_value regress)
 	umount
 	revert
 	end

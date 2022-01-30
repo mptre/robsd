@@ -21,7 +21,16 @@ usage() {
 setmode "robsd"
 setprogname "robsd"
 [ "$(id -u)" -ne 0 ] && fatal "must be run as root"
-config_load "$(config_path)"
+
+config_load <<'EOF'
+ROBSDDIR="${robsddir}"
+KEEP="${keep}"
+SKIP="${skip}"
+BSDDIFF="${bsd-diff}"
+BSDSRCDIR="${bsd-srcdir}"
+XDIFF="${x11-diff}"
+XSRCDIR="${x11-srcdir}"
+EOF
 
 _comment=""
 _statpid=""

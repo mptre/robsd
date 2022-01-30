@@ -1,37 +1,9 @@
-# ports_config_defaults
-#
-# Populate default configuration.
-ports_config_defaults() {
-	CHROOT=""; export CHROOT
-	MAKE_JOBS="0"; export MAKE_JOBS
-	PORTS=""; export PORTS
-	PORTSDIFF=""
-	PORTSDIR="/usr/ports"; export PORTSDIR
-	PORTSUSER=""; export PORTSUSER
-}
-
 # ports_config_load
 #
 # Handle ports specific configuration.
 ports_config_load() {
-	local _tmp=""
-
-	: "${CHROOT:?}"
-	: "${CVSROOT:?}"
-	: "${CVSUSER:?}"
-	: "${PORTS:?}"
-	: "${PORTSDIR:?}"
-	: "${PORTSUSER:?}"
-
 	# Sanitize the inherited environment.
 	unset MAKEFLAGS PKG_PATH
-
-	# Evaluate ports diff glob(7) patterns and filter out missing ones.
-	for _diff in $PORTSDIFF; do
-		[ -e "$_diff" ] || continue
-		_tmp="${_tmp}${_tmp:+ }${_diff}"
-	done
-	PORTSDIFF="$_tmp"
 }
 
 # ports_duration_total -s steps

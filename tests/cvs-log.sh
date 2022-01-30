@@ -97,12 +97,13 @@ if testcase "basic"; then
 
 	EOF
 
-	cvs_log -r "." -t "${TSHDIR}/.cvs" -u nobody <"$TMP1" >"${TSHDIR}/act"
+	cvs_log -r "$ROBSDDIR" -t "${TSHDIR}/.cvs" -u nobody -c . <"$TMP1" >"${TSHDIR}/act"
 	assert_file "${TSHDIR}/exp" "${TSHDIR}/act"
 fi
 
 if testcase "previous build absent"; then
-	if ! cvs_log -r /dev/null -t "${TSHDIR}/.cvs" -u nobody >"$TMP1" 2>&1; then
+	if ! cvs_log -r "$ROBSDDIR" -t "${TSHDIR}/.cvs" -u nobody -c /dev/null \
+	   >"$TMP1" 2>&1; then
 		fail - "expected exit zero" <"$TMP1"
 	fi
 fi
@@ -127,6 +128,9 @@ if testcase "previous build no updates"; then
 	P sbin/dhclient/clparse.c
 	EOF
 
-	cvs_log -r /dev/null -t "${TSHDIR}/.cvs" -u nobody <"$TMP1" >"${TSHDIR}/act"
+	if ! cvs_log -r "$ROBSDDIR" -t "${TSHDIR}/.cvs" -u nobody -c /dev/null \
+	   <"$TMP1" >"${TSHDIR}/act"; then
+		fail - "expected exit zero" <"$TMP1"
+	fi
 	assert_file "/dev/null" "${TSHDIR}/act"
 fi

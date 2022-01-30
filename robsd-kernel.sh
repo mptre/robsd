@@ -9,6 +9,11 @@ kernel_path() {
 	printf 'arch/%s/compile/GENERIC%s\n' "$(machine)" "$_s"
 }
 
+config_load <<'EOF'
+BSDSRCDIR="${bsd-srcdir}"
+BUILDUSER="${builduser}"
+EOF
+
 cd "${BSDSRCDIR}/sys/$(kernel_path)"
 
 unpriv "$BUILDUSER" <<EOF

@@ -1,6 +1,11 @@
 . "${EXECDIR}/util.sh"
 
-DESTDIR="${DESTDIR}/xenocara"
+config_load <<'EOF'
+DESTDIR="${destdir}"
+XSRCDIR="${x11-srcdir}"
+EOF
+
+DESTDIR="${DESTDIR}/xenocara"; export DESTDIR
 mkdir -p "$DESTDIR"
 cleandir "$DESTDIR"
 

@@ -1,23 +1,14 @@
-robsd_mock >"$TMP1"; read -r WRKDIR BINDIR ROBSDDIR <"$TMP1"
-
-# Default configuration.
-cat <<EOF >"${WRKDIR}/robsd-ports.conf"
-ROBSDDIR=${ROBSDDIR}
-EXECDIR=${EXECDIR}
-CHROOT=${TSHDIR}
-PORTSDIR=/ports
-PORTSUSER=nobody
-EOF
+robsd_mock >"$TMP1"; read -r _ BINDIR ROBSDDIR <"$TMP1"
 
 cat <<'EOF' >"${BINDIR}/dpb"
 #!/bin/sh
 
-mkdir -p "${CHROOT}${PORTSDIR}/logs/$(machine)/paths/devel"
-touch "${CHROOT}${PORTSDIR}/logs/$(machine)/paths/devel/outdated.log"
+mkdir -p "${TSHDIR}/ports/logs/$(machine)/paths/devel"
+touch "${TSHDIR}/ports/logs/$(machine)/paths/devel/outdated.log"
 
-case "$PORTS" in
+case "$@" in
 *devel/broken*)
-	cat <<-ENGINE >"${CHROOT}${PORTSDIR}/logs/$(machine)/engine.log"
+	cat <<-ENGINE >"${TSHDIR}/ports/logs/$(machine)/engine.log"
 	!: devel/broken is marked as broken
 	ENGINE
 	;;
@@ -28,17 +19,23 @@ esac
 EOF
 chmod u+x "${BINDIR}/dpb"
 
-ROBSDPORTS="${EXECDIR}/robsd-ports"
+# robsd_ports [robsd-ports-argument ...]
+robsd_ports() (
+	setmode "robsd-ports"
+	PATH="${BINDIR}:${PATH}"
+	export PATH PORTS TSHDIR
+	sh "${EXECDIR}/robsd-ports" "$@"
+)
 
 if testcase "basic"; then
-	robsd_config - "robsd-ports" <<-EOF
-	$(cat "${WRKDIR}/robsd-ports.conf")
-	PORTS="devel/updated devel/outdated"
+	robsd_config -P - <<-EOF
+	robsddir "${ROBSDDIR}"
+	execdir "${EXECDIR}"
+	ports { "devel/updated" "devel/outdated" }
 	EOF
 	mkdir "$ROBSDDIR"
 
-	if ! PATH="${BINDIR}:${PATH}" WRKDIR="$WRKDIR" sh "$ROBSDPORTS" \
-	   -d -s cvs -s proot >"$TMP1" 2>&1; then
+	if ! robsd_ports -d -s cvs -s proot >"$TMP1" 2>&1; then
 		fail - "expected exit zero" <"$TMP1"
 	fi
 	_builddir="$(find "${ROBSDDIR}" -type d -mindepth 1 -maxdepth 1)"
@@ -68,14 +65,14 @@ if testcase "basic"; then
 fi
 
 if testcase "skip"; then
-	robsd_config - "robsd-ports" <<-EOF
-	$(cat "${WRKDIR}/robsd-ports.conf")
-	PORTS="devel/updated devel/outdated"
+	robsd_config -P - <<-EOF
+	robsddir "${ROBSDDIR}"
+	execdir "${EXECDIR}"
+	ports { "devel/updated" "devel/outdated" }
 	EOF
 	mkdir "$ROBSDDIR"
 
-	if ! PATH="${BINDIR}:${PATH}" WRKDIR="$WRKDIR" sh "$ROBSDPORTS" \
-	   -d -s cvs -s proot -s distrib >"$TMP1" 2>&1; then
+	if ! robsd_ports -d -s cvs -s proot -s distrib >"$TMP1" 2>&1; then
 		fail - "expected exit zero" <"$TMP1"
 	fi
 	_builddir="$(find "${ROBSDDIR}" -type d -mindepth 1 -maxdepth 1)"
@@ -98,14 +95,14 @@ if testcase "skip"; then
 fi
 
 if testcase "port flagged as broken"; then
-	robsd_config - "robsd-ports" <<-EOF
-	$(cat "${WRKDIR}/robsd-ports.conf")
-	PORTS="devel/broken"
+	robsd_config -P - <<-EOF
+	robsddir "${ROBSDDIR}"
+	execdir "${EXECDIR}"
+	ports { "devel/broken" }
 	EOF
 	mkdir "$ROBSDDIR"
 
-	if PATH="${BINDIR}:${PATH}" WRKDIR="$WRKDIR" sh "$ROBSDPORTS" \
-	   -d -s cvs -s proot >"$TMP1" 2>&1; then
+	if robsd_ports -d -s cvs -s proot >"$TMP1" 2>&1; then
 		fail - "expected exit non-zero" <"$TMP1"
 	fi
 	_builddir="$(find "${ROBSDDIR}" -type d -mindepth 1 -maxdepth 1)"

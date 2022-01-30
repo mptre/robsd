@@ -1,1 +1,101 @@
-.\" Dummy manual needed to silence mandoc lint.
+.Dd $Mdocdate: February 3 2022$
+.Dt ROBSD-REGRESS.CONF 5
+.Os
+.Sh NAME
+.Nm robsd-regress.conf
+.Nd robsd-regress configuration file
+.Sh DESCRIPTION
+.Nm
+is the configuration file for
+.Xr robsd-regress 8 .
+The following variables are recognized.
+.Bl -tag -width Ds
+.It Ic robsddir Dq Ar path
+Directory used to store invocations.
+.It Ic hook Dq Ar path
+Command to invoke after each non-skipped step.
+The command will be given the following arguments:
+.Pp
+.Bl -enum -compact
+.It
+Invocation directory rooted in
+.Ic robsddir .
+.It
+Name of the step.
+.It
+Exit status of the step,
+0 if the step succeeded and non-zero otherwise.
+.It
+The user who started the step.
+.El
+.It Ic keep Ar number
+Number of invocations to keep in
+.Ic robsddir ,
+see
+.Xr robsd-regress-clean 8 .
+Defaults to keeping everything.
+.It Ic rdonly Ar number
+Mount
+.Ic bsd-srcdir
+read-only before running any regression tests.
+Used to detect object directory ignorance.
+Requires
+.Ic bsd-srcdir
+to reside on a dedicated partition.
+.It Ic sudo Dq Ar command
+Command used to elevate privileges, defaults to
+.Dq doas -n .
+.It Ic bsd-diff Dq Ar glob
+Path to sticky patches to always apply to
+.Ic bsd-srcdir ,
+expressed as a
+.Xr glob 7
+pattern.
+It's silently ignored if
+.Ar glob
+does not yield any matches.
+.It Ic bsd-srcdir Dq Ar path
+Source directory for the src tree, defaults to
+.Pa /usr/src .
+.It Ic cvs-user Dq Ar user
+User to perform
+.Xr patch 1
+operations on behalf of.
+.It Ic regress No { Do Ar path Dc Ar ... No }
+Regression tests to execute,
+.Ar path
+must be relative to
+.Pa ${bsd-srcdir}/regress
+and can optionally be followed by a colon
+.Pq Sq \&:
+and one or many of the following flags:
+.Pp
+.Bl -tag -compact -width P
+.It R
+Run the regression test as root as opposed of
+.Ic regress-user .
+.It S
+Do not report skipped targets for this regression test.
+.El
+.It Ic regress-user Dq Ar user
+User to execute regression tests as.
+.El
+.Sh FILES
+.Bl -tag -width "/etc/robsd-regress.conf"
+.It Pa /etc/robsd-regress.conf
+The default configuration file.
+.El
+.Sh EXAMPLES
+Example configuration:
+.Bd -literal
+robsddir "/home/snapshots"
+cvs-user "anton"
+regress-user "anton"
+regress { "bin/csh" "bin/ksh" "sys/nfs:R" }
+.Ed
+.Sh SEE ALSO
+.Xr robsd-regress 8 ,
+.Xr robsd-regress-clean 8 ,
+.Xr robsd-regress-kill 8
+.Sh AUTHORS
+.An Anton Lindqvist Aq Mt anton@basename.se

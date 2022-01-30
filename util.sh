@@ -80,70 +80,36 @@ cleandir() {
 	done
 }
 
-# config_load path
+# config_load
 #
 # Load and validate the configuration.
 config_load() {
-	local _diff
-	local _path
+	local _args=""
 	local _tmp
 
-	_path="$1"; : "${_path:?}"
+	# Testing backdoor.
+	[ -z "${ROBSDCONF:-}" ] || _args="-f ${ROBSDCONF}"
 
-	# Global variables with sensible defaults.
-	BSDDIFF=""
-	BSDOBJDIR="/usr/obj"; export BSDOBJDIR
-	BSDSRCDIR="/usr/src"; export BSDSRCDIR
-	BUILDDIR=""; export BUILDDIR
-	# Intentionally not documented as it must be kept in sync with
-	# bsd.own.mk.
-	BUILDUSER="build"; export BUILDUSER
-	CVSROOT=""; export CVSROOT
-	CVSUSER=""; export CVSUSER
-	DETACH=1
-	DISTRIBHOST=""; export DISTRIBHOST
-	DISTRIBPATH=""; export DISTRIBPATH
-	DISTRIBUSER=""; export DISTRIBUSER
-	EXECDIR="/usr/local/libexec/robsd"; export EXECDIR
-	HOOK=""
-	# shellcheck disable=SC2034
-	KEEP=0
+	: "${BUILDDIR:=}"; export BUILDDIR
+	: "${DETACH:=1}"
+	: "${EXECDIR:=/usr/local/libexec/robsd}"; export EXECDIR
 	PATH="${PATH}:/usr/X11R6/bin"; export PATH
-	ROBSDDIR=""; export ROBSDDIR
+	: "${ROBSDCONFIG:=${EXECDIR}/${_MODE}-config}"
 	: "${ROBSDSTAT:=${EXECDIR}/robsd-stat}"
-	SIGNIFY=""; export SIGNIFY
-	# shellcheck disable=SC2034
-	SKIP=""
-	XDIFF=""
-	XOBJDIR="/usr/xobj"; export XOBJDIR
-	XSRCDIR="/usr/xenocara"; export XSRCDIR
+
+	_tmp="$(mktemp -t robsd.XXXXXX)"
+	# shellcheck disable=SC2086
+	{
+		cat
+		echo "EXECDIR=\${execdir}"
+		echo "HOOK=\${hook}"
+	} | "$ROBSDCONFIG" $_args - >"$_tmp"
+	eval "$(<"$_tmp")"
+	rm "$_tmp"
 
 	case "$_MODE" in
 	robsd)
 		MAKEFLAGS="-j$(sysctl -n hw.ncpuonline)"; export MAKEFLAGS
-		DESTDIR=""; export DESTDIR
-		;;
-	robsd-ports)
-		ports_config_defaults
-		;;
-	robsd-regress)
-		regress_config_defaults
-		;;
-	*)
-		return 1
-		;;
-	esac
-
-	. "$_path"
-
-	: "${ROBSDDIR:?}"
-	ls "$ROBSDDIR" >/dev/null
-
-	case "$_MODE" in
-	robsd)
-		: "${CVSROOT:?}"
-		: "${CVSUSER:?}"
-		: "${DESTDIR:?}"
 		;;
 	robsd-ports)
 		ports_config_load
@@ -155,34 +121,18 @@ config_load() {
 		return 1
 		;;
 	esac
-
-	# Filter out missing sticky src diff(s).
-	_tmp=""
-	for _diff in $BSDDIFF; do
-		[ -e "$_diff" ] || continue
-		_tmp="${_tmp}${_tmp:+ }${_diff}"
-	done
-	BSDDIFF="$_tmp"
-
-	# Filter out missing sticky xenocara diff(s).
-	_tmp=""
-	for _diff in $XDIFF; do
-		[ -e "$_diff" ] || continue
-		_tmp="${_tmp}${_tmp:+ }${_diff}"
-	done
-	XDIFF="$_tmp"
 }
 
-# config_path
+# config_value variable
 #
-# Get the configuration path based on the execution mode.
-config_path() {
-	case "$_MODE" in
-	robsd)		echo "${ROBSDCONF:-/etc/robsd.conf}";;
-	robsd-ports)	echo "${ROBSDCONF:-/etc/robsd-ports.conf}";;
-	robsd-regress)	echo "${ROBSDCONF:-/etc/robsd-regress.conf}";;
-	*)		return 1;;
-	esac
+# Get the corresponding value for the given configuration variable.
+config_value()
+{
+	local _var
+
+	_var="$1"; : "${_var:?}"
+
+	echo "echo \${${_var}}" | config_load
 }
 
 # cvs_field field log-line
@@ -233,7 +183,7 @@ cvs_date() {
 	fi
 }
 
-# cvs_log -r cvs-dir -t tmp-dir -u user
+# cvs_log -r robsd-dir -t tmp-dir -u user -c cvs-dir
 #
 # Generate a descending log of all commits since the last release build for the
 # given repository. Individual revisions are group by commit id and sorted by
@@ -252,9 +202,10 @@ cvs_log() {
 
 	while [ $# -gt 0 ]; do
 		case "$1" in
-		-r)	shift; _repo="$1";;
+		-r)	shift; _robsddir="$1";;
 		-t)	shift; _tmp="${1}/cvs";;
 		-u)	shift; _user="$1";;
+		-c)	shift; _repo="$1";;
 		*)	break;;
 		esac
 		shift
@@ -267,7 +218,7 @@ cvs_log() {
 	mkdir -p "$_tmp"
 
 	# Use the date from latest revision from the previous release.
-	for _prev in $(prev_release 0); do
+	for _prev in $(prev_release -r "$_robsddir" 0); do
 		_date="$(cvs_date -s "${_prev}/steps")" && break
 	done
 	if [ -z "$_date" ]; then
@@ -530,7 +481,7 @@ diff_root() {
 	return 0
 }
 
-# duration_prev step-name
+# duration_prev -r robsd-dir step-name
 #
 # Get the duration for the given step from the previous successful invocation.
 # Exits non-zero if no previous invocation exists or the previous one failed.
@@ -538,12 +489,20 @@ duration_prev() {
 	local _duration
 	local _exit
 	local _prev
+	local _robsddir
 	local _step
 
-	_step="$1"
-	: "${_step:?}"
+	while [ $# -gt 0 ]; do
+		case "$1" in
+		-r)	shift; _robsddir="$1";;
+		*)	break;;
+		esac
+		shift
+	done
+	: "${_robsddir:?}"
+	_step="$1"; : "${_step:?}"
 
-	prev_release 0 |
+	prev_release -r "$_robsddir" 0 |
 	while read -r _prev; do
 		step_eval -n "$_step" "${_prev}/steps" 2>/dev/null || continue
 		step_skip && continue
@@ -793,18 +752,27 @@ path_strip() {
 
 }
 
-# prev_release [count]
+# prev_release -r robsd-dir [count]
 #
 # Get the previous count number of release directories. Where count defaults
 # to 1. If count is 0 means all previous release directories.
 prev_release() {
 	local _count
+	local _robsddir
 
+	while [ $# -gt 0 ]; do
+		case "$1" in
+		-r)	shift; _robsddir="$1";;
+		*)	break;;
+		esac
+		shift
+	done
+	: "${_robsddir:?}"
 	_count="${1:-1}"
 
-	find "$ROBSDDIR" -type d -mindepth 1 -maxdepth 1 |
+	find "$_robsddir" -type d -mindepth 1 -maxdepth 1 |
 	sort -nr |
-	grep -v -e "$BUILDDIR" -e "${ROBSDDIR}/attic" |
+	grep -v -e "$BUILDDIR" -e "${_robsddir}/attic" |
 	{
 		if [ "$_count" -gt 0 ]; then
 			head "-${_count}"
@@ -862,7 +830,7 @@ purge() {
 	done
 }
 
-# report -b build-dir
+# report -r robsd-dir -b build-dir
 #
 # Create and save build report.
 report() {
@@ -874,6 +842,7 @@ report() {
 	local _log
 	local _n
 	local _name
+	local _robsddir
 	local _report
 	local _status
 	local _steps
@@ -881,11 +850,13 @@ report() {
 
 	while [ $# -gt 0 ]; do
 		case "$1" in
+		-r)	shift; _robsddir="$1";;
 		-b)	shift; _builddir="$1";;
 		*)	break;;
 		esac
 		shift
 	done
+	: "${_robsddir:?}"
 	: "${_builddir:?}"
 
 	_report="${_builddir}/report"
@@ -920,10 +891,10 @@ report() {
 
 	if step_eval -n end "$_steps" 2>/dev/null; then
 		_duration="$(step_value duration)"
-		_duration="$(report_duration -d end -t 60 "$_duration")"
+		_duration="$(report_duration -r "$_robsddir" -d end -t 60 "$_duration")"
 	else
 		_duration="$(duration_total -s "$_steps")"
-		_duration="$(report_duration "$_duration")"
+		_duration="$(report_duration -r "$_robsddir" "$_duration")"
 	fi
 
 	# Add headers.
@@ -955,7 +926,7 @@ report() {
 			cat "${_builddir}/tags"
 		fi
 
-		report_sizes "$(release_dir "$_builddir")"
+		report_sizes -r "$_robsddir" "$(release_dir "$_builddir")"
 	} >>"$_tmp"
 
 	_i=1
@@ -979,7 +950,8 @@ report() {
 		printf '\n'
 		printf '> %s:\n' "$_name"
 		printf 'Exit: %d\n' "$_exit"
-		printf 'Duration: %s\n' "$(report_duration -d "$_name" "$_duration")"
+		printf 'Duration: %s\n' \
+			"$(report_duration -d "$_name" -r "$_robsddir" "$_duration")"
 		printf 'Log: %s\n' "$(basename "$_log")"
 		report_log -e "$_exit" -n "$_name" -l "$_log" \
 			-t "${_builddir}/tmp" >"${_builddir}/tmp/log"
@@ -997,7 +969,7 @@ report() {
 	rm "$_tmp"
 }
 
-# report_duration [-d step] [-t threshold] duration
+# report_duration [-d step] [-t threshold] -r robsd-dir duration
 #
 # Format the given duration to a human readable representation.
 # If option `-d' is given, the duration delta for the given step relative
@@ -1007,6 +979,7 @@ report_duration() {
 	local _d
 	local _delta
 	local _prev
+	local _robsddir
 	local _sign
 	local _step=""
 	local _threshold=0
@@ -1015,13 +988,16 @@ report_duration() {
 		case "$1" in
 		-d)	shift; _step="$1";;
 		-t)	shift; _threshold="$1";;
+		-r)	shift; _robsddir="$1";;
 		*)	break;;
 		esac
 		shift
 	done
+	: "${_robsddir:?}"
 	_d="$1"; : "${_d:?}"
 
-	if [ -z "$_step" ] || ! _prev="$(duration_prev "$_step")"; then
+	if [ -z "$_step" ] ||
+	   ! _prev="$(duration_prev -r "$_robsddir" "$_step")"; then
 		format_duration "$_d"
 		return 0
 	fi
@@ -1106,7 +1082,7 @@ report_log() {
 	esac
 }
 
-# report_size file
+# report_size -r robsd-dir file
 #
 # If the given file is significantly larger than the same file in the previous
 # release, a human readable representation of the size and delta is reported.
@@ -1116,17 +1092,26 @@ report_size() {
 	local _name
 	local _path
 	local _prev
+	local _robsddir
 	local _s1
 	local _s2
 	local _threshold
 
+	while [ $# -gt 0 ]; do
+		case "$1" in
+		-r)	shift; _robsddir="$1";;
+		*)	break;;
+		esac
+		shift
+	done
+	: "${_robsddir:?}"
 	_f="$1"; : "${_f:?}"
 
 	_name="$(basename "$_f")"
 
 	[ -e "$_f" ] || return 0
 
-	_prev="$(prev_release)"
+	_prev="$(prev_release -r "$_robsddir")"
 	[ -z "$_prev" ] && return 0
 
 	_path="$(release_dir "$_prev")/${_name}"
@@ -1145,20 +1130,29 @@ report_size() {
 		"($(format_size -s "$_delta"))"
 }
 
-# report_sizes release-dir
+# report_sizes -r robsd-dir release-dir
 #
 # Report significant growth of any file present in the given release directory.
 report_sizes() {
 	local _dir
 	local _f
+	local _robsddir
 	local _siz
 
+	while [ $# -gt 0 ]; do
+		case "$1" in
+		-r)	shift; _robsddir="$1";;
+		*)	break;;
+		esac
+		shift
+	done
+	: "${_robsddir:?}"
 	_dir="$1"; : "${_dir:?}"
 
 	[ -d "$_dir" ] || return 0
 
 	find "$_dir" -type f | sort | while read -r _f; do
-		_siz="$(report_size "$_f")"
+		_siz="$(report_size -r "$_robsddir" "$_f")"
 		[ -z "$_siz" ] && continue
 
 		echo "Size: ${_siz}"
@@ -1708,39 +1702,40 @@ step_value() {
 	echo "${_STEP[$_i]}"
 }
 
-# trap_exit -r root-dir [-b build-dir] [-s stat-pid]
+# trap_exit -r robsd-dir [-b build-dir] [-s stat-pid]
 #
 # Exit trap handler. The log dir may not be present if we failed very early on.
 trap_exit() {
 	local _err="$?"
 	local _builddir=""
-	local _rootdir=""
+	local _robsddir=""
 	local _statpid=""
 
 	info "trap exit ${_err}"
 
 	while [ $# -gt 0 ]; do
 		case "$1" in
+		-r)	shift; _robsddir="$1";;
 		-b)	shift; _builddir="$1";;
-		-r)	shift; _rootdir="$1";;
 		-s)	shift; _statpid="$1";;
 		*)	break;;
 		esac
 		shift
 	done
-	: "${_rootdir:?}"
+	: "${_robsddir:?}"
 
 	[ -z "$_statpid" ] || kill "$_statpid" || :
 
 	[ -n "$_builddir" ] || return "$_err"
 
-	lock_release "$_rootdir" "$_builddir" || :
+	lock_release "$_robsddir" "$_builddir" || :
 
 	# Generate the report if a step failed or the end step is reached.
 	if [ "$_err" -ne 0 ] ||
 	   step_eval -n end "${_builddir}/steps" 2>/dev/null
 	then
-		if report -b "$_builddir" && [ "$DETACH" -ne 0 ]; then
+		if report -r "$_robsddir" -b "$_builddir" &&
+		   [ "$DETACH" -ne 0 ]; then
 			# Do not send mail during interactive invocations.
 			sendmail root <"${_builddir}/report"
 		fi

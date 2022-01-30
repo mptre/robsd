@@ -19,7 +19,13 @@ usage() {
 setmode "robsd-regress"
 setprogname "robsd-regress"
 [ "$(id -u)" -ne 0 ] && fatal "must be run as root"
-config_load "$(config_path)"
+config_load <<'EOF'
+ROBSDDIR="${robsddir}"
+KEEP="${keep}"
+BSDDIFF="${bsd-diff}"
+BSDSRCDIR="${bsd-srcdir}"
+REGRESSUSER="${regress-user}"
+EOF
 
 _comment=""
 _statpid=""

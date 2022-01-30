@@ -1,29 +1,52 @@
 set -u
 
-# robsd_config [-] [mode]
+# robsd_config [-PR] [-]
 robsd_config() {
 	local _stdin=0
 	local _mode="robsd"
 
 	while [ "$#" -gt 0 ]; do
 		case "$1" in
+		-P)	_mode="robsd-ports";;
+		-R)	_mode="robsd-regress";;
 		-)	_stdin=1;;
 		*)	break;;
 		esac
 		shift
 	done
-	[ "$#" -gt 0 ] && _mode="$1"
 
-	ROBSDCONF="${TSHDIR}/${_mode}.conf"; export ROBSDCONF
+	ROBSDCONF="${TSHDIR}/robsd.conf"; export ROBSDCONF
 	{
-		cat <<-EOF
-		BSDSRCDIR=${TSHDIR}
-		ROBSDDIR=${TSHDIR}
-		CVSROOT=example.com:/cvs
-		CVSUSER=nobody
-		DESTDIR=/var/empty
-		XSRCDIR=${TSHDIR}
-		EOF
+		case "$_mode" in
+		robsd)
+			cat <<-EOF
+			destdir "/var/empty"
+			bsd-srcdir "${TSHDIR}"
+			cvs-root "example.com:/cvs"
+			cvs-user "nobody"
+			x11-srcdir "${TSHDIR}"
+			EOF
+			;;
+		robsd-ports)
+			cat <<-EOF
+			chroot "${TSHDIR}"
+			cvs-root "example.com:/cvs"
+			cvs-user "nobody"
+			ports-dir "/ports"
+			ports-user "nobody"
+			EOF
+			;;
+		robsd-regress)
+			cat <<-EOF
+			bsd-srcdir "${TSHDIR}"
+			cvs-user "nobody"
+			regress-user "nobody"
+			EOF
+			;;
+		*)
+			;;
+		esac
+
 		[ "$_stdin" -eq 1 ] && cat
 	} >"$ROBSDCONF"
 }
@@ -96,11 +119,9 @@ EOF
 }
 
 ROBSDDIR="$TSHDIR"; export ROBSDDIR
-DETACH=0; export DETACH
 HOOK=""; export HOOK
 PATH="/bin:/sbin:/usr/bin:/usr/sbin:/usr/X11R6/bin"; export PATH
 TMP1="${TSHDIR}/tmp1"; export TMP1
-SKIPIGNORE=""; export SKIPIGNORE
 
 . "${EXECDIR}/util.sh"
 

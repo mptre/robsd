@@ -1,5 +1,29 @@
 . "${EXECDIR}/util.sh"
 
+config_load <<'EOF'
+ROBSDDIR="${robsddir}"
+CVSUSER="${cvs-user}"
+CVSROOT="${cvs-root}"; export CVSROOT
+EOF
+
+case "$_MODE" in
+robsd)
+	config_load <<-'EOF'
+	BSDSRCDIR="${bsd-srcdir}"
+	XSRCDIR="${x11-srcdir}"
+	EOF
+	;;
+robsd-ports)
+	config_load <<-'EOF'
+	CHROOT="${chroot}"
+	PORTSDIR="${ports-dir}"
+	EOF
+	;;
+*)
+	exit 1
+	;;
+esac
+
 _tmpdir="${BUILDDIR}/tmp"
 
 {
@@ -12,7 +36,7 @@ _tmpdir="${BUILDDIR}/tmp"
 
 	unpriv "$CVSUSER" "cd ${_d} && exec cvs -q -d ${CVSROOT} update -Pd" 2>&1 |
 	tee "$_up" |
-	cvs_log -r "$_d" -t "$_tmpdir" -u "$CVSUSER" |
+	cvs_log -r "$ROBSDDIR" -t "$_tmpdir" -u "$CVSUSER" -c "$_d" |
 	tee "$_ci"
 
 	find "$_d" -type f -name Root -delete
