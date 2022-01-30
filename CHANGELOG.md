@@ -1,3 +1,19 @@
+# 7.3.0 - 2022-01-30
+
+## News
+
+- Clean and try to rebuild the kernel once on failure.
+  (a4e6abe)
+  (Anton Lindqvist)
+
+- Detect early dpb ports build failures.
+  (fd0c15b)
+  (Anton Lindqvist)
+
+- Handle diffs with files in new directories.
+  (ba3f0c8, 6d8d2da)
+  (Anton Lindqvist)
+
 # 7.2.0 - 2022-01-08
 
 ## Bug fixes
