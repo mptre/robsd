@@ -183,7 +183,7 @@ cvs_date() {
 	fi
 }
 
-# cvs_log -r robsd-dir -t tmp-dir -u user -c cvs-dir
+# cvs_log -r robsd-dir -t tmp-dir  -c cvs-dir -h cvs-host -u cvs-user
 #
 # Generate a descending log of all commits since the last release build for the
 # given repository. Individual revisions are group by commit id and sorted by
@@ -204,14 +204,17 @@ cvs_log() {
 		case "$1" in
 		-r)	shift; _robsddir="$1";;
 		-t)	shift; _tmp="${1}/cvs";;
-		-u)	shift; _user="$1";;
 		-c)	shift; _repo="$1";;
+		-h)	shift; _host="$1";;
+		-u)	shift; _user="$1";;
 		*)	break;;
 		esac
 		shift
 	done
-	: "${_repo:?}"
+	: "${_robsddir:?}"
 	: "${_tmp:?}"
+	: "${_repo:?}"
+	: "${_host:?}"
 	: "${_user:?}"
 
 	[ -d "$_tmp" ] && rm -r "$_tmp"
@@ -229,7 +232,7 @@ cvs_log() {
 
 	grep '^[MPU]\>' |
 	cut -d ' ' -f 2 |
-	unpriv "$_user" "cd ${_repo} && xargs cvs -q log -N -l -d '>${_date}'" |
+	unpriv "$_user" "cd ${_repo} && xargs cvs -q -d ${_host} log -N -l -d '>${_date}'" |
 	tee "${_tmp}/cvs.log" |
 	while read -r _line; do
 		case "$_line" in

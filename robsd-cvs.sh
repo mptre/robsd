@@ -3,7 +3,7 @@
 config_load <<'EOF'
 ROBSDDIR="${robsddir}"
 CVSUSER="${cvs-user}"
-CVSROOT="${cvs-root}"; export CVSROOT
+CVSROOT="${cvs-root}"
 EOF
 
 case "$_MODE" in
@@ -36,7 +36,7 @@ _tmpdir="${BUILDDIR}/tmp"
 
 	unpriv "$CVSUSER" "cd ${_d} && exec cvs -q -d ${CVSROOT} update -Pd" 2>&1 |
 	tee "$_up" |
-	cvs_log -r "$ROBSDDIR" -t "$_tmpdir" -u "$CVSUSER" -c "$_d" |
+	cvs_log -r "$ROBSDDIR" -t "$_tmpdir" -c "$_d" -h "$CVSROOT" -u "$CVSUSER" |
 	tee "$_ci"
 
 	find "$_d" -type f -name Root -delete

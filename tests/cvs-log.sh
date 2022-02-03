@@ -97,13 +97,14 @@ if testcase "basic"; then
 
 	EOF
 
-	cvs_log -r "$ROBSDDIR" -t "${TSHDIR}/.cvs" -u nobody -c . <"$TMP1" >"${TSHDIR}/act"
+	cvs_log -r "$ROBSDDIR" -t "${TSHDIR}/.cvs" \
+		-c "$TSHDIR" -h example.com:/cvs -u nobody <"$TMP1" >"${TSHDIR}/act"
 	assert_file "${TSHDIR}/exp" "${TSHDIR}/act"
 fi
 
 if testcase "previous build absent"; then
-	if ! cvs_log -r "$ROBSDDIR" -t "${TSHDIR}/.cvs" -u nobody -c /dev/null \
-	   >"$TMP1" 2>&1; then
+	if ! cvs_log -r "$ROBSDDIR" -t "${TSHDIR}/.cvs" \
+	   -c "$TSHDIR" -h example.com:/cvs -u nobody >"$TMP1" 2>&1; then
 		fail - "expected exit zero" <"$TMP1"
 	fi
 fi
