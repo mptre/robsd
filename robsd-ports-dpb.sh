@@ -28,6 +28,7 @@ _ncpu="$(sysctl -n hw.ncpuonline)"
 dpb -c -B "$CHROOT" -j "$_ncpu" -p "$_ncpu" $PORTS
 
 _fail=0
+_tmpdir="${BUILDDIR}/tmp"
 for _p in $PORTS; do
 	_id="$(step_id "$_p")"
 	_dst="${BUILDDIR}/$(log_id -b "$BUILDDIR" -n "$_p" -s "$_id")"
@@ -41,12 +42,14 @@ for _p in $PORTS; do
 		HOOK="" step_end -d "$((_t1 - _t0))" -e "$_exit" -l "$_dst" \
 			-n "$_p" -s "$_id" "${BUILDDIR}/steps"
 	elif grep "!: ${_p} " "/${CHROOT}${PORTSDIR}/logs/${_arch}/engine.log" \
-	     >"$_dst"
+	     >"${_tmpdir}/grep"
 	then
+		mv "${_tmpdir}/grep" "$_dst"
 		_fail=1
 		HOOK="" step_end -d 0 -e 1 -l "$_dst" \
 			-n "$_p" -s "$_id" "${BUILDDIR}/steps"
 	fi
 done
+rm -f "${_tmpdir}/grep"
 
 exit "$_fail"

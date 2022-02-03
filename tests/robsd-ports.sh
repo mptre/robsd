@@ -43,6 +43,12 @@ if testcase "basic"; then
 	if step_eval -n devel/updated "${_builddir}/steps" 2>/dev/null; then
 		fail - "unexpected step devel/updated" <"${_builddir}/steps"
 	fi
+	_find="${TSHDIR}/find"
+	find "$_builddir" -type f -name '*-updated.log' >"${_find}"
+	if [ -s "$_find" ]; then
+		fail - "unexpected step devel/updated log" <"$_find"
+	fi
+
 	if ! step_eval -n devel/outdated "${_builddir}/steps" 2>/dev/null; then
 		fail - "expected step devel/outdated" <"${_builddir}/steps"
 	fi
