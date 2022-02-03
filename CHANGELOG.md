@@ -1,3 +1,14 @@
+# 8.0.0 - 2022-02-03
+
+## Changes
+
+- Rework configuration.
+  Introducing the robsd-config utility in charge of the configuration.
+  This gives a better view of the configuration required by each step as the
+  configuration no longer is expressed using global variables.
+  (d934099)
+  (Anton Lindqvist)
+
 # 7.3.0 - 2022-01-30
 
 ## News
