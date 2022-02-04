@@ -26,8 +26,9 @@ ROBSDDIR="${robsddir}"
 CHROOT="${chroot}"
 KEEP="${keep}"
 SKIP="${skip}"
-PORTSDIFF="${ports-diff}"
 PORTS="${ports}"
+PORTSDIFF="${ports-diff}"
+PORTSDIR="${ports-dir}"
 EOF
 
 _comment=""
@@ -74,8 +75,8 @@ if [ "$_step" -eq 1 ]; then
 		} >"${BUILDDIR}/comment"
 	fi
 
-	# shellcheck disable=SC2086
-	diff_copy -d "${CHROOT}${PORTSDIR:-}" "${BUILDDIR}/ports.diff" $PORTSDIFF
+	# shellcheck disable=SC2086,SC2153
+	diff_copy -d "${CHROOT}${PORTSDIR}" "${BUILDDIR}/ports.diff" $PORTSDIFF
 
 	if [ -n "$SKIP" ]; then
 		info "skipping steps: ${SKIP}"

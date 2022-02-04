@@ -33,9 +33,18 @@ if testcase "basic"; then
 	execdir "${EXECDIR}"
 	ports { "devel/updated" "devel/outdated" }
 	EOF
-	mkdir "$ROBSDDIR"
+	mkdir "$ROBSDDIR" "${TSHDIR}/ports"
+	echo '# comment' >"${TSHDIR}/ports/Makefile"
+	cat <<-EOF >"${TSHDIR}/ports.diff"
+	--- Makefile
+	+++ Makefile
+	@@ -1 +1,2 @@
+	 # comment 
+	+# comment 
+	EOF
 
-	if ! robsd_ports -d -s cvs -s proot >"$TMP1" 2>&1; then
+	if ! robsd_ports -d -P "${TSHDIR}/ports.diff" -s cvs -s proot \
+	   >"$TMP1" 2>&1; then
 		fail - "expected exit zero" <"$TMP1"
 	fi
 	_builddir="$(find "${ROBSDDIR}" -type d -mindepth 1 -maxdepth 1)"
@@ -57,6 +66,7 @@ if testcase "basic"; then
 	sed -e '/running as pid/d' "${_builddir}/robsd.log" >"$TMP1"
 	assert_file - "$TMP1" <<-EOF
 	robsd-ports: using directory ${_builddir} at step 1
+	robsd-ports: using diff ${TSHDIR}/ports.diff rooted in ${TSHDIR}/ports
 	robsd-ports: skipping steps: cvs proot
 	robsd-ports: step env
 	robsd-ports: step cvs skipped
@@ -65,6 +75,7 @@ if testcase "basic"; then
 	robsd-ports: step dpb
 	robsd-ports: step distrib
 	robsd-ports: step revert
+	robsd-ports: reverting diff ${_builddir}/ports.diff.1
 	robsd-ports: step end
 	robsd-ports: trap exit 0
 	EOF
