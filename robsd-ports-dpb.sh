@@ -50,6 +50,11 @@ for _p in $PORTS; do
 			-n "$_p" -s "$_id" "${BUILDDIR}/steps"
 	fi
 done
-rm -f "${_tmpdir}/grep"
 
+# Look for errors in all paths, including dependencies not caught above.
+grep -Rs '^Error: ' "${CHROOT}${PORTSDIR}/logs/${_arch}/paths" |
+tee "${_tmpdir}/grep"
+[ -s "${_tmpdir}/grep" ] && _fail=1
+
+rm -f "${_tmpdir}/grep"
 exit "$_fail"

@@ -12,6 +12,11 @@ case "$@" in
 	!: devel/broken is marked as broken
 	ENGINE
 	;;
+*devel/dependency*)
+	cat <<-ERROR >"${TSHDIR}/ports/logs/$(machine)/paths/devel/error.log"
+	Error: job failed with 512 on localhost at 1643980551
+	ERROR
+	;;
 *)
 	;;
 esac
@@ -130,4 +135,23 @@ if testcase "port flagged as broken"; then
 	assert_file - "$(step_value log)" <<-EOF
 	!: devel/broken is marked as broken
 	EOF
+fi
+
+if testcase "port dependency failure"; then
+	:
+	robsd_config -P - <<-EOF
+	robsddir "${ROBSDDIR}"
+	execdir "${EXECDIR}"
+	ports { "devel/dependency" }
+	EOF
+	mkdir "$ROBSDDIR"
+
+	if robsd_ports -d -s cvs -s proot >"$TMP1" 2>&1; then
+		fail - "expected exit non-zero" <"$TMP1"
+	fi
+	_builddir="$(find "${ROBSDDIR}" -type d -mindepth 1 -maxdepth 1)"
+	if ! step_eval -n dpb "${_builddir}/steps" 2>/dev/null; then
+		fail - "expected step dpb" <"${_builddir}/steps"
+	fi
+	assert_eq 1 "$(step_value exit)" "expected non-zero dpb exit"
 fi
