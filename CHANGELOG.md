@@ -1,3 +1,12 @@
+# 8.0.1 - 2022-02-04
+
+## Bug fixes
+
+- Fix SUDO regression in robsd-regress causing the environment variable to not
+  be exported.
+  (d292b4e)
+  (Anton Lindqvist)
+
 # 8.0.0 - 2022-02-03
 
 ## Changes
