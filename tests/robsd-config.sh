@@ -102,7 +102,7 @@ fi
 
 if testcase "regress pseudo invalid flags"; then
 	echo 'regress { "bin/csh:A" }' >"$CONFIG"
-	robsd_config -R -e | grep 'unknown regress flag' >"$TMP1"
+	robsd_config -R -e | grep -v -e mandatory >"$TMP1"
 	assert_file - "$TMP1" <<-EOF
 	robsd-config: ${CONFIG}:1: unknown regress flag 'A'
 	EOF
@@ -110,7 +110,7 @@ fi
 
 if testcase "regress pseudo empty flags"; then
 	echo 'regress { "bin/csh:" }' >"$CONFIG"
-	robsd_config -R -e | grep 'empty regress flags' >"$TMP1"
+	robsd_config -R -e | grep -v -e mandatory >"$TMP1"
 	assert_file - "$TMP1" <<-EOF
 	robsd-config: ${CONFIG}:1: empty regress flags
 	EOF
@@ -198,7 +198,7 @@ fi
 
 if testcase "invalid empty mandatory"; then
 	echo 'cvs-root ""' >"$CONFIG"
-	robsd_config -e | grep empty >"$TMP1"
+	robsd_config -e | grep -v -e mandatory >"$TMP1"
 	assert_file - "$TMP1" <<-EOF
 	robsd-config: ${CONFIG}:1: empty string
 	EOF
@@ -209,7 +209,7 @@ if testcase "invalid variable value"; then
 	bsd-objdir 1
 	bsd-srcdir 1
 	EOF
-	robsd_config -e | grep want >"$TMP1"
+	robsd_config -e | grep -v -e mandatory >"$TMP1"
 	assert_file - "$TMP1" <<-EOF
 	robsd-config: ${CONFIG}:1: want STRING, got INTEGER
 	robsd-config: ${CONFIG}:2: want STRING, got INTEGER
@@ -221,7 +221,7 @@ if testcase "invalid keyword"; then
 	one 1
 	two 2
 	EOF
-	robsd_config -e | grep unknown >"$TMP1"
+	robsd_config -e | grep -v -e mandatory >"$TMP1"
 	assert_file - "$TMP1" <<-EOF
 	robsd-config: ${CONFIG}:1: unknown keyword 'one'
 	EOF
@@ -241,7 +241,7 @@ if testcase "invalid user"; then
 	cat <<-EOF >"$CONFIG"
 	cvs-user "unknown"
 	EOF
-	robsd_config -e | grep 'user .* not found' >"$TMP1"
+	robsd_config -e | grep -v -e mandatory >"$TMP1"
 	assert_file - "$TMP1" <<-EOF
 	robsd-config: ${CONFIG}:1: user 'unknown' not found
 	EOF
@@ -252,7 +252,7 @@ if testcase "invalid template missing {"; then
 	cat <<-'EOF' >"$STDIN"
 	FOO=$
 	EOF
-	robsd_config - -e <<-EOF
+	robsd_config -e - <<-EOF
 	robsd-config: /dev/stdin:1: invalid substitution, expected '{'
 	EOF
 fi
@@ -262,7 +262,7 @@ if testcase "invalid template missing }"; then
 	cat <<-'EOF' >"$STDIN"
 	FOO=${
 	EOF
-	robsd_config - -e <<-EOF
+	robsd_config -e - <<-EOF
 	robsd-config: /dev/stdin:1: invalid substitution, expected '}'
 	EOF
 fi
@@ -272,7 +272,7 @@ if testcase "invalid template empty variable name"; then
 	cat <<-'EOF' >"$STDIN"
 	FOO=${}
 	EOF
-	robsd_config - -e <<-EOF
+	robsd_config -e - <<-EOF
 	robsd-config: /dev/stdin:1: invalid substitution, empty variable name
 	EOF
 fi
@@ -282,7 +282,7 @@ if testcase "invalid template unknown variable name"; then
 	cat <<-'EOF' >"$STDIN"
 	FOO=${foo}
 	EOF
-	robsd_config - -e <<-EOF
+	robsd_config -e - <<-EOF
 	robsd-config: /dev/stdin:1: invalid substitution, unknown variable 'foo'
 	EOF
 fi
