@@ -66,7 +66,7 @@ if testcase "new directory"; then
 	fi
 	assert_file - "$TMP1" <<-EOF
 	robsd-test: reverting diff ${DIFF}
-	robsd-test: removing empty directory patch/dir
+	robsd-test: removing empty directory ${TSHDIR}/patch/dir
 	EOF
 
 	if [ -d "${TSHDIR}/patch/dir" ]; then

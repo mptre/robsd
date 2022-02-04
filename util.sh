@@ -434,7 +434,7 @@ diff_revert() (
 		sort |
 		uniq |
 		while read -r _p; do
-			info "removing empty directory ${_p}"
+			info "removing empty directory ${_root}/${_p}"
 			rmdir "$_p"
 		done
 	fi
