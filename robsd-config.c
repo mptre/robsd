@@ -214,7 +214,7 @@ static const struct grammar robsd_regress[] = {
 	{ "hook",		STRING,		parser_string,	0,		NULL },
 	{ "keep",		INTEGER,	parser_integer,	0,		NULL },
 	{ "rdonly",		INTEGER,	parser_integer,	0,		NULL },
-	{ "sudo",		STRING,		parser_string,	0,		"doas	-n" },
+	{ "sudo",		STRING,		parser_string,	0,		"doas -n" },
 	{ "bsd-diff",		LIST,		parser_glob,	0,		NULL },
 	{ "bsd-srcdir",		STRING,		parser_dir,	0,		"/usr/src" },
 	{ "cvs-user",		STRING,		parser_user,	MANDATORY,	NULL },
