@@ -30,9 +30,9 @@ Dump the current environment.
 This is a no operation only used to collect data useful while debugging.
 .It cvs
 Update the
-.Ev BSDSRCDIR
+.Ic bsd-srcdir
 and
-.Ev XSRCDIR
+.Ic x11-srcdir
 source directories using the configured upstream, see
 .Xr robsd.conf 5 .
 .It patch
@@ -91,7 +91,7 @@ Auxillary step used to generate
 Each invocation is identified by a directory created by
 .Nm
 rooted in
-.Ev ROBSDDIR
+.Ic robsddir
 and is named after the current date.
 The directory contains the entries as follows.
 In addition, each executed step has a corresponding log file in the same
@@ -143,9 +143,9 @@ Do not detach
 into the background.
 .It Fl S Ar src-patch
 Patch to apply to
-.Ev BSDSRCDIR .
+.Ic bsd-srcdir .
 The patch path names can be relative to any directory in
-.Ev BSDSRCDIR .
+.Ic bsd-srcdir .
 The same patch will be reverted by the revert step, see above.
 In addition, a copy of the patch is saved to a file named
 .Pa src.diff.N
@@ -153,9 +153,9 @@ in the invocation directory where N is incremented for every given patch.
 May be given multiple times.
 .It Fl S Ar xenocara-patch
 Patch to apply to
-.Ev XSRCDIR .
+.Ic x11-srcdir .
 The patch path names can be relative to any directory in
-.Ev XSRCDIR .
+.Ic x11-srcdir .
 The same patch will be reverted by the revert step, see above.
 In addition, a copy of the patch is saved to a file named
 .Pa xenocara.diff.N
