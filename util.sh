@@ -1301,7 +1301,10 @@ robsd() {
 		esac
 
 		# Reboot in progress?
-		[ "$_name" = "reboot" ] && return 0
+		if [ "$_name" = "reboot" ] &&
+		   [ "$(config_value reboot)" -eq 1 ]; then
+			return 0
+		fi
 
 		# Does robsd-kill want us dead?
 		lock_alive "$ROBSDDIR" "$BUILDDIR" || return 1
