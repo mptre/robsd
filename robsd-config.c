@@ -107,17 +107,19 @@ struct parser {
 	struct lexer	pr_lx;
 };
 
-static int	 parser_exec(struct parser *, struct variable_list *,
+static int	parser_exec(struct parser *, struct variable_list *,
     const struct grammar *);
-static int	 parser_exec1(struct parser *, struct variable_list *,
+static int	parser_exec1(struct parser *, struct variable_list *,
     const struct grammar *, const char *);
-static void	*parser_string(struct parser *, struct variable_list *);
-static void	*parser_integer(struct parser *, struct variable_list *);
-static void	*parser_glob(struct parser *, struct variable_list *);
-static void	*parser_dir(struct parser *, struct variable_list *);
-static void	*parser_list(struct parser *, struct variable_list *);
-static void	*parser_user(struct parser *, struct variable_list *);
-static void	*parser_regress(struct parser *, struct variable_list *);
+static int	parser_string(struct parser *, struct variable_list *, void **);
+static int	parser_integer(struct parser *, struct variable_list *,
+    void **);
+static int	parser_glob(struct parser *, struct variable_list *, void **);
+static int	parser_dir(struct parser *, struct variable_list *, void **);
+static int	parser_list(struct parser *, struct variable_list *, void **);
+static int	parser_user(struct parser *, struct variable_list *, void **);
+static int	parser_regress(struct parser *, struct variable_list *,
+    void **);
 
 /*
  * grammar ---------------------------------------------------------------------
@@ -126,8 +128,8 @@ static void	*parser_regress(struct parser *, struct variable_list *);
 struct grammar {
 	const char		*gr_kw;
 	enum variable_type	 gr_type;
-	void			*(*gr_fn)(struct parser *,
-	    struct variable_list *);
+	int			 (*gr_fn)(struct parser *,
+	    struct variable_list *, void **);
 	unsigned int		 gr_flags;
 #define MANDATORY	0x00000001u
 
@@ -895,7 +897,7 @@ parser_exec1(struct parser *pr, struct variable_list *variables,
 
 	for (i = 0; grammar[i].gr_kw != NULL; i++) {
 		const struct grammar *gr = &grammar[i];
-		void *val = NULL;
+		void *val;
 		int error = 0;
 
 		if (strcmp(gr->gr_kw, name) != 0)
@@ -906,8 +908,7 @@ parser_exec1(struct parser *pr, struct variable_list *variables,
 			    "variable '%s' already defined", name);
 			error = 1;
 		}
-		val = gr->gr_fn(pr, variables);
-		if (val != NULL)
+		if (gr->gr_fn(pr, variables, &val) == 0)
 			variables_append(variables, gr->gr_type, name, val);
 		else
 			error = 1;
@@ -918,28 +919,33 @@ parser_exec1(struct parser *pr, struct variable_list *variables,
 	return -1;
 }
 
-static void *
-parser_string(struct parser *pr, struct variable_list *UNUSED(variables))
+static int
+parser_string(struct parser *pr, struct variable_list *UNUSED(variables),
+    void **val)
 {
 	struct token tk;
 
 	if (!lexer_expect(&pr->pr_lx, TOKEN_STRING, &tk))
-		return NULL;
-	return tk.tk_str;
+		return 1;
+	*val = tk.tk_str;
+	return 0;
 }
 
-static void *
-parser_integer(struct parser *pr, struct variable_list *UNUSED(variables))
+static int
+parser_integer(struct parser *pr, struct variable_list *UNUSED(variables),
+    void **val)
 {
 	struct token tk;
 
 	if (!lexer_expect(&pr->pr_lx, TOKEN_INTEGER, &tk))
-		return NULL;
-	return (void *)tk.tk_int;
+		return 1;
+	*val = tk.tk_int;
+	return 0;
 }
 
-static void *
-parser_glob(struct parser *pr, struct variable_list *UNUSED(variables))
+static int
+parser_glob(struct parser *pr, struct variable_list *UNUSED(variables),
+    void **val)
 {
 	glob_t g;
 	struct token tk;
@@ -948,7 +954,7 @@ parser_glob(struct parser *pr, struct variable_list *UNUSED(variables))
 	int error;
 
 	if (!lexer_expect(&pr->pr_lx, TOKEN_STRING, &tk))
-		return NULL;
+		return 1;
 	error = glob(tk.tk_str, GLOB_NOCHECK, NULL, &g);
 	if (error) {
 		lexer_warn(&pr->pr_lx, "glob: %d", error);
@@ -962,39 +968,43 @@ parser_glob(struct parser *pr, struct variable_list *UNUSED(variables))
 out:
 	token_free(&tk);
 	globfree(&g);
-	return strings;
+	*val = strings;
+	return 0;
 }
 
-static void *
-parser_dir(struct parser *pr, struct variable_list *UNUSED(variables))
+static int
+parser_dir(struct parser *pr, struct variable_list *UNUSED(variables),
+    void **val)
 {
 	struct stat st;
 	struct token tk;
 
 	if (!lexer_expect(&pr->pr_lx, TOKEN_STRING, &tk))
-		return NULL;
+		return 1;
 	if (stat(tk.tk_str, &st) == -1) {
 		lexer_warn(&pr->pr_lx, "%s", tk.tk_str);
 		token_free(&tk);
-		return NULL;
+		return 1;
 	}
 	if (!S_ISDIR(st.st_mode)) {
 		lexer_warnx(&pr->pr_lx, "%s: is not a directory", tk.tk_str);
 		token_free(&tk);
-		return NULL;
+		return 1;
 	}
 
-	return tk.tk_str;
+	*val = tk.tk_str;
+	return 0;
 }
 
-static void *
-parser_list(struct parser *pr, struct variable_list *UNUSED(variables))
+static int
+parser_list(struct parser *pr, struct variable_list *UNUSED(variables),
+    void **val)
 {
 	struct token tk;
 	struct string_list *strings = NULL;
 
 	if (!lexer_expect(&pr->pr_lx, TOKEN_LBRACE, &tk))
-		return NULL;
+		return 1;
 	strings = strings_alloc();
 	for (;;) {
 		if (lexer_peek(&pr->pr_lx, TOKEN_RBRACE))
@@ -1007,38 +1017,39 @@ parser_list(struct parser *pr, struct variable_list *UNUSED(variables))
 	if (!lexer_expect(&pr->pr_lx, TOKEN_RBRACE, &tk))
 		goto err;
 
-	return strings;
+	*val = strings;
+	return 0;
 
 err:
 	strings_free(strings);
-	return NULL;
+	return 1;
 }
 
-static void *
-parser_user(struct parser *pr, struct variable_list *variables)
+static int
+parser_user(struct parser *pr, struct variable_list *variables, void **val)
 {
 	char *user;
 
-	user = parser_string(pr, variables);
-	if (user == NULL)
-		return NULL;
+	if (parser_string(pr, variables, (void **)&user))
+		return 1;
 	if (getpwnam(user) == NULL) {
 		lexer_warnx(&pr->pr_lx, "user '%s' not found", user);
 		free(user);
-		return NULL;
+		return 1;
 	}
-	return user;
+
+	*val = user;
+	return 0;
 }
 
-static void *
-parser_regress(struct parser *pr, struct variable_list *variables)
+static int
+parser_regress(struct parser *pr, struct variable_list *variables, void **val)
 {
 	struct string_list *regress, *root, *skip;
 	struct string *st;
 
-	regress = parser_list(pr, variables);
-	if (regress == NULL)
-		return NULL;
+	if (parser_list(pr, variables, (void **)&regress))
+		return 1;
 
 	root = strings_alloc();
 	skip = strings_alloc();
@@ -1073,7 +1084,8 @@ parser_regress(struct parser *pr, struct variable_list *variables)
 	variables_append(variables, LIST, "regress-root", root);
 	variables_append(variables, LIST, "regress-skip", skip);
 
-	return regress;
+	*val = regress;
+	return 0;
 }
 
 static struct string_list *
