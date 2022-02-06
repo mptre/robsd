@@ -119,6 +119,7 @@ if testcase "reboot"; then
 	robsd_config - <<-EOF
 	robsddir "${ROBSDDIR}"
 	execdir "${WRKDIR}/exec"
+	reboot yes
 	EOF
 	mkdir -p "$ROBSDDIR"
 
