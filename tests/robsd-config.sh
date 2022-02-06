@@ -40,8 +40,6 @@ default_config() {
 	cat <<-EOF
 	robsddir "/var/empty"
 	destdir "/var/empty"
-	cvs-root "example.com:/cvs"
-	cvs-user "nobody"
 	EOF
 }
 
@@ -50,8 +48,6 @@ default_ports_config() {
 	cat <<-EOF
 	robsddir "${TSHDIR}"
 	chroot "/var/empty"
-	cvs-root "example.com:/cvs"
-	cvs-user "nobody"
 	ports-dir "${TSHDIR}"
 	ports-user "nobody"
 	ports { "devel/knfmt" "mail/mdsort" }
@@ -62,7 +58,6 @@ default_ports_config() {
 default_regress_config() {
 	cat <<-EOF
 	robsddir "/var/empty"
-	cvs-user "nobody"
 	regress-user "nobody"
 	regress { "bin/csh:R" "bin/ksh:RS" "bin/ls" }
 	EOF
@@ -169,21 +164,21 @@ fi
 if testcase "invalid directory missing"; then
 	{ default_config; echo 'execdir "/nein"'; } >"$CONFIG"
 	robsd_config -e - <<-EOF
-	robsd-config: ${CONFIG}:5: /nein: No such file or directory
+	robsd-config: ${CONFIG}:3: /nein: No such file or directory
 	EOF
 fi
 
 if testcase "invalid not a directory"; then
 	{ default_config; printf 'execdir "%s"\n' "$CONFIG"; } >"$CONFIG"
 	robsd_config -e - <<-EOF
-	robsd-config: ${CONFIG}:5: ${CONFIG}: is not a directory
+	robsd-config: ${CONFIG}:3: ${CONFIG}: is not a directory
 	EOF
 fi
 
 if testcase "invalid already defined"; then
 	{ default_config; echo 'robsddir "/var/empty"'; } >"$CONFIG"
 	robsd_config -e - <<-EOF
-	robsd-config: ${CONFIG}:5: variable 'robsddir' already defined
+	robsd-config: ${CONFIG}:3: variable 'robsddir' already defined
 	EOF
 fi
 
@@ -191,16 +186,15 @@ if testcase "invalid missing mandatory"; then
 	robsd_config -e - <<-EOF
 	robsd-config: ${CONFIG}: mandatory variable 'robsddir' missing
 	robsd-config: ${CONFIG}: mandatory variable 'destdir' missing
-	robsd-config: ${CONFIG}: mandatory variable 'cvs-root' missing
-	robsd-config: ${CONFIG}: mandatory variable 'cvs-user' missing
 	EOF
 fi
 
 if testcase "invalid empty mandatory"; then
-	echo 'cvs-root ""' >"$CONFIG"
+	echo 'robsddir ""' >"$CONFIG"
 	robsd_config -e | grep -v -e mandatory >"$TMP1"
 	assert_file - "$TMP1" <<-EOF
 	robsd-config: ${CONFIG}:1: empty string
+	robsd-config: ${CONFIG}:1: : No such file or directory
 	EOF
 fi
 

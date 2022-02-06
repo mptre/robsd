@@ -2,9 +2,13 @@
 
 config_load <<'EOF'
 ROBSDDIR="${robsddir}"
-CVSUSER="${cvs-user}"
 CVSROOT="${cvs-root}"
+CVSUSER="${cvs-user}"
 EOF
+
+if [ -z "$CVSROOT" ] || [ -z "$CVSUSER" ]; then
+	exit 0
+fi
 
 case "$_MODE" in
 robsd)
