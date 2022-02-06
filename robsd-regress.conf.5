@@ -34,7 +34,7 @@ Number of invocations to keep in
 see
 .Xr robsd-regress-clean 8 .
 Defaults to keeping everything.
-.It Ic rdonly Ar number
+.It Ic rdonly yes | no
 Mount
 .Ic bsd-srcdir
 read-only before running any regression tests.
@@ -42,6 +42,8 @@ Used to detect object directory ignorance.
 Requires
 .Ic bsd-srcdir
 to reside on a dedicated partition.
+Defaults to
+.Ic no .
 .It Ic sudo Dq Ar command
 Command used to elevate privileges, defaults to
 .Dq doas -n .

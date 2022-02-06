@@ -111,11 +111,27 @@ if testcase "regress pseudo empty flags"; then
 	EOF
 fi
 
-if testcase "string default value"; then
-	default_config >"$CONFIG"
-	echo "HOOK=\${hook}" >"$STDIN"
-	robsd_config - <<-EOF
-	HOOK=
+if testcase "boolean yes"; then
+	{ default_regress_config; echo 'rdonly yes'; } >"$CONFIG"
+	echo "RDONLY=\${rdonly}" >"$STDIN"
+	robsd_config -R - <<-EOF
+	RDONLY=1
+	EOF
+fi
+
+if testcase "boolean no"; then
+	{ default_regress_config; echo 'rdonly no'; } >"$CONFIG"
+	echo "RDONLY=\${rdonly}" >"$STDIN"
+	robsd_config -R - <<-EOF
+	RDONLY=0
+	EOF
+fi
+
+if testcase "boolean default value"; then
+	default_regress_config >"$CONFIG"
+	echo "RDONLY=\${rdonly}" >"$STDIN"
+	robsd_config -R - <<-EOF
+	RDONLY=0
 	EOF
 fi
 
@@ -126,6 +142,15 @@ if testcase "integer default value"; then
 	KEEP=0
 	EOF
 fi
+
+if testcase "string default value"; then
+	default_config >"$CONFIG"
+	echo "HOOK=\${hook}" >"$STDIN"
+	robsd_config - <<-EOF
+	HOOK=
+	EOF
+fi
+
 
 if testcase "list default value"; then
 	default_config >"$CONFIG"

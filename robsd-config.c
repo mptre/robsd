@@ -72,6 +72,7 @@ struct token {
 		TOKEN_LBRACE,
 		TOKEN_RBRACE,
 		TOKEN_KEYWORD,
+		TOKEN_BOOLEAN,
 		TOKEN_INTEGER,
 		TOKEN_STRING,
 		TOKEN_UNKNOWN,
@@ -111,6 +112,8 @@ static int	parser_exec(struct parser *, struct variable_list *,
     const struct grammar *);
 static int	parser_exec1(struct parser *, struct variable_list *,
     const struct grammar *, const char *);
+static int	parser_boolean(struct parser *, struct variable_list *,
+    void **);
 static int	parser_string(struct parser *, struct variable_list *, void **);
 static int	parser_integer(struct parser *, struct variable_list *,
     void **);
@@ -215,7 +218,7 @@ static const struct grammar robsd_regress[] = {
 	{ "execdir",		STRING,		parser_dir,	0,		"/usr/local/libexec/robsd" },
 	{ "hook",		STRING,		parser_string,	0,		NULL },
 	{ "keep",		INTEGER,	parser_integer,	0,		NULL },
-	{ "rdonly",		INTEGER,	parser_integer,	0,		NULL },
+	{ "rdonly",		INTEGER,	parser_boolean,	0,		NULL },
 	{ "sudo",		STRING,		parser_string,	0,		"doas -n" },
 	{ "bsd-diff",		LIST,		parser_glob,	0,		NULL },
 	{ "bsd-srcdir",		STRING,		parser_dir,	0,		"/usr/src" },
@@ -679,6 +682,17 @@ again:
 		}
 		lexer_ungetc(lx, ch);
 
+		if (strncmp("yes", buf, buflen) == 0) {
+			tk->tk_type = TOKEN_BOOLEAN;
+			tk->tk_int = 1;
+			return 0;
+		}
+		if (strncmp("no", buf, buflen) == 0) {
+			tk->tk_type = TOKEN_BOOLEAN;
+			tk->tk_int = 0;
+			return 0;
+		}
+
 		tk->tk_type = TOKEN_KEYWORD;
 		tk->tk_str = strndup(buf, buflen);
 		if (tk->tk_str == NULL)
@@ -817,6 +831,7 @@ token_free(struct token *tk)
 	case TOKEN_EOF:
 	case TOKEN_LBRACE:
 	case TOKEN_RBRACE:
+	case TOKEN_BOOLEAN:
 	case TOKEN_INTEGER:
 	case TOKEN_UNKNOWN:
 		break;
@@ -836,6 +851,8 @@ tokenstr(enum token_type type)
 		return "RBRACE";
 	case TOKEN_KEYWORD:
 		return "KEYWORD";
+	case TOKEN_BOOLEAN:
+		return "BOOLEAN";
 	case TOKEN_INTEGER:
 		return "INTEGER";
 	case TOKEN_STRING:
@@ -908,6 +925,18 @@ parser_exec1(struct parser *pr, struct variable_list *variables,
 
 	lexer_warnx(&pr->pr_lx, "unknown keyword '%s'", name);
 	return -1;
+}
+
+static int
+parser_boolean(struct parser *pr, struct variable_list *UNUSED(variables),
+    void **val)
+{
+	struct token tk;
+
+	if (!lexer_expect(&pr->pr_lx, TOKEN_BOOLEAN, &tk))
+		return 1;
+	*val = (void *)tk.tk_int;
+	return 0;
 }
 
 static int
