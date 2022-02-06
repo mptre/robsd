@@ -28,7 +28,7 @@ struct variable {
 		void			*va_val;
 		char			*va_str;
 		struct string_list	*va_list;
-		int			*va_int;
+		int			 va_int;
 	};
 
 	enum variable_type {
@@ -79,7 +79,7 @@ struct token {
 
 	union {
 		char	*tk_str;
-		int64_t	*tk_int;
+		int64_t	 tk_int;
 	};
 };
 
@@ -389,7 +389,6 @@ variables_free(struct variable_list *variables)
 		TAILQ_REMOVE(variables, va, va_entry);
 		switch (va->va_type) {
 		case INTEGER:
-			free(va->va_int);
 			break;
 		case STRING:
 			free(va->va_str);
@@ -498,7 +497,7 @@ variables_interpolate1(struct variable_list *variables,
 
 		switch (va->va_type) {
 		case INTEGER:
-			printf("%d", *va->va_int);
+			printf("%d", va->va_int);
 			break;
 
 		case STRING:
@@ -551,12 +550,9 @@ variables_find(struct variable_list *variables, const struct grammar *grammar,
 		vadef.va_type = grammar[i].gr_type;
 		val = grammar[i].gr_default;
 		switch (vadef.va_type) {
-		case INTEGER: {
-			static int def = 0;
-
-			vadef.va_val = &def;
+		case INTEGER:
+			vadef.va_int = 0;
 			break;
-		}
 
 		case STRING:
 			vadef.va_val = val == NULL ? "" : val;
@@ -714,10 +710,7 @@ again:
 			return 1;
 
 		tk->tk_type = TOKEN_INTEGER;
-		tk->tk_int = malloc(sizeof(tk->tk_int));
-		if (tk->tk_int == NULL)
-			err(1, NULL);
-		*tk->tk_int = val;
+		tk->tk_int = val;
 		return 0;
 	}
 
@@ -821,12 +814,10 @@ token_free(struct token *tk)
 	case TOKEN_STRING:
 		free(tk->tk_str);
 		break;
-	case TOKEN_INTEGER:
-		free(tk->tk_int);
-		break;
 	case TOKEN_EOF:
 	case TOKEN_LBRACE:
 	case TOKEN_RBRACE:
+	case TOKEN_INTEGER:
 	case TOKEN_UNKNOWN:
 		break;
 	}
@@ -939,7 +930,7 @@ parser_integer(struct parser *pr, struct variable_list *UNUSED(variables),
 
 	if (!lexer_expect(&pr->pr_lx, TOKEN_INTEGER, &tk))
 		return 1;
-	*val = tk.tk_int;
+	*val = (void *)tk.tk_int;
 	return 0;
 }
 
