@@ -23,9 +23,8 @@ ${CHROOT}${PORTSDIR}/logs/${_arch}
 ${CHROOT}${PORTSDIR}/distfiles/build-stats/${_arch}
 EOF
 
-_ncpu="$(sysctl -n hw.ncpuonline)"
 # shellcheck disable=SC2086
-dpb -c -B "$CHROOT" -j "$_ncpu" -p "$_ncpu" $PORTS
+dpb -c -B "$CHROOT" $PORTS
 
 _fail=0
 _tmpdir="${BUILDDIR}/tmp"
