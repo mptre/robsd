@@ -176,6 +176,7 @@ static const struct grammar robsd[] = {
 	{ "execdir",		STRING,		parser_dir,	0,		"/usr/local/libexec/robsd" },
 	{ "hook",		STRING,		parser_string,	0,		NULL },
 	{ "keep",		INTEGER,	parser_integer,	0,		NULL },
+	{ "reboot",		INTEGER,	parser_boolean,	0,		NULL },
 	{ "skip",		LIST,		parser_list,	0,		NULL },
 	{ "bsd-diff",		LIST,		parser_glob,	0,		NULL },
 	{ "bsd-objdir",		STRING,		parser_dir,	0,		"/usr/obj" },

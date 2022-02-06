@@ -53,8 +53,13 @@ the
 kernel configuration is used.
 .It reboot
 Reboot the machine before continuing the build, exercising the new kernel.
-The release build is resumed from
+.Nm
+is resumed from
 .Xr rc.firsttime 8 .
+This step is optional and requires
+.Ic reboot
+to be enabled, see
+.Xr robsd.conf 5 .
 .It base
 Build and install the base system.
 Afterwards, update the machine using
