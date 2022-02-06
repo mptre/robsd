@@ -172,6 +172,7 @@ static __dead void	usage(void);
 
 static const struct grammar robsd[] = {
 	{ "robsddir",		STRING,		parser_dir,	MANDATORY,	NULL },
+	{ "builduser",		STRING,		parser_user,	0,		"build" },
 	{ "destdir",		STRING,		parser_dir,	MANDATORY,	NULL },
 	{ "execdir",		STRING,		parser_dir,	0,		"/usr/local/libexec/robsd" },
 	{ "hook",		STRING,		parser_string,	0,		NULL },
@@ -181,7 +182,6 @@ static const struct grammar robsd[] = {
 	{ "bsd-diff",		LIST,		parser_glob,	0,		NULL },
 	{ "bsd-objdir",		STRING,		parser_dir,	0,		"/usr/obj" },
 	{ "bsd-srcdir",		STRING,		parser_dir,	0,		"/usr/src" },
-	{ "builduser",		STRING,		parser_user,	0,		"build" },
 	{ "cvs-root",		STRING,		parser_string,	0,		NULL },
 	{ "cvs-user",		STRING,		parser_user,	0,		NULL },
 	{ "distrib-host",	STRING,		parser_string,	0,		NULL },
