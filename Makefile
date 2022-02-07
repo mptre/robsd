@@ -1,4 +1,4 @@
-VERSION=	8.0.1
+VERSION=	9.0.0
 
 PROG_robsd-config=	robsd-config
 SRCS_robsd-config=	robsd-config.c
