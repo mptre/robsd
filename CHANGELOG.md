@@ -2,6 +2,10 @@
 
 ## Changes
 
+- Turn rdonly regress configuration variable into a boolean.
+  (5262967)
+  (Anton Lindqvist)
+
 - Make reboot step optional, it can be enabled using the new reboot
   configuration variable.
   (b469abd)
