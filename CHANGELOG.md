@@ -1,3 +1,29 @@
+# 9.0.0 - 2022-02-07
+
+## Changes
+
+- Make reboot step optional, it can be enabled using the new reboot
+  configuration variable.
+  (b469abd)
+  (Anton Lindqvist)
+
+## News
+
+- Detect ports dependency failures.
+  (a6138be)
+  (Anton Lindqvist)
+
+- Make cvs step optional based on presence of configuration.
+  (fc9b4eb)
+  (Anton Lindqvist)
+
+## Bug fixes
+
+- Close common file descriptors in robsd-stat, allowing boot process to continue
+  while resuming from rc.firsttime.
+  (4e2850b)
+  (Anton Lindqvist)
+
 # 8.0.1 - 2022-02-04
 
 ## Bug fixes
