@@ -13,6 +13,12 @@ SHELLCHECKFLAGS!=	echo ${SHELLCHECKFLAGS}
 
 NCPU!!=	sysctl -n hw.ncpuonline
 
+format:
+.if defined(KNFMT)
+	cd ${.CURDIR} && knfmt -i ${KNFMT}
+.endif
+.PHONY: format
+
 lint: _SUBDIRUSE
 .if defined(KNFMT)
 	cd ${.CURDIR} && knfmt -d ${KNFMT}
