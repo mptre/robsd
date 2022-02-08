@@ -1,9 +1,12 @@
 mkls "$@" \
+KNFMT \
+	*.[ch] \
+	-- \
 SCRIPTS \
 	!(mkls).sh \
 	-- \
 DISTFILES \
-	*.c *.md !(mkls).sh \
+	*.c *.h *.md !(mkls).sh \
 	robsd?(-clean|-kill|-ports|-regress|-rescue) \
 	robsd*.conf.5 \
 	robsd?(-clean|-kill|-ports|-regress|-rescue|-stat).[0-9] \

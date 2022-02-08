@@ -1,7 +1,9 @@
 VERSION=	9.0.0
 
 PROG_robsd-config=	robsd-config
-SRCS_robsd-config=	robsd-config.c
+SRCS_robsd-config+=	robsd-config.c
+SRCS_robsd-config+=	config.c
+SRCS_robsd-config+=	util.c
 OBJS_robsd-config=	${SRCS_robsd-config:.c=.o}
 DEPS_robsd-config=	${SRCS_robsd-config:.c=.d}
 
@@ -17,9 +19,12 @@ DEPS_robsd-stat=	${SRCS_robsd-stat:.c=.d}
 
 CFLAGS+=	-Wall -Wextra -MD -MP
 
+KNFMT+=	config.c
+KNFMT+=	extern.h
 KNFMT+=	robsd-config.c
 KNFMT+=	robsd-exec.c
 KNFMT+=	robsd-stat.c
+KNFMT+=	util.c
 
 SCRIPTS+=	robsd-base.sh
 SCRIPTS+=	robsd-checkflist.sh
@@ -50,6 +55,8 @@ DISTFILES+=	LICENSE
 DISTFILES+=	Makefile
 DISTFILES+=	Makefile.inc
 DISTFILES+=	README.md
+DISTFILES+=	config.c
+DISTFILES+=	extern.h
 DISTFILES+=	robsd
 DISTFILES+=	robsd-base.sh
 DISTFILES+=	robsd-checkflist.sh
@@ -125,6 +132,7 @@ DISTFILES+=	tests/t.sh
 DISTFILES+=	tests/util.sh
 DISTFILES+=	util-ports.sh
 DISTFILES+=	util-regress.sh
+DISTFILES+=	util.c
 DISTFILES+=	util.sh
 
 PREFIX=		/usr/local
