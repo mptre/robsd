@@ -50,8 +50,8 @@ main(int argc, char *argv[])
 			usage();
 	}
 
-	config = config_parse(path);
-	if (config == NULL) {
+	config = config_alloc();
+	if (config_parse(config, path)) {
 		error = 1;
 		goto out;
 	}

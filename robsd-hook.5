@@ -1,0 +1,42 @@
+.Dd $Mdocdate: February 9 2022$
+.Dt ROBSD-HOOK 5
+.Os
+.Sh NAME
+.Nm robsd-hook
+.Nd robsd hook configuration
+.Sh DESCRIPTION
+The
+.Xr robsd 8 ,
+.Xr robsd-ports 8
+and
+.Xr robsd-regress 8
+utilities can optionally execute a command after each non-skipped step.
+The command to execute is configured using the
+.Ic hook
+configuration variable and may contain one or many arguments passed to
+.Xr execvp 3 .
+For each argument, variables on the form
+.Dq \(Do Ns Brq Ar variable
+are expanded where
+.Ar variable
+can refer to a configuration variable or one of the following:
+.Pp
+.Bl -tag -compact -width builddir
+.It Ic builddir
+invocation directory rooted in
+.Ic robsddir
+.It Ic exit
+exit code of the step
+.It Ic step
+name of the step
+.El
+.Sh EXAMPLES
+.Bd -literal
+hook { "echo" "step ${step} done" }
+.Ed
+.Sh SEE ALSO
+.Xr robsd-ports.conf 5 ,
+.Xr robsd-regress.conf 5 ,
+.Xr robsd.conf 5
+.Sh AUTHORS
+.An Anton Lindqvist Aq Mt anton@basename.se

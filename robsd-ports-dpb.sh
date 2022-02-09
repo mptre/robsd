@@ -38,15 +38,15 @@ for _p in $PORTS; do
 		_t1="$(duration '^>>> Ended ' <"$_log")"
 		_exit="$(! grep -q '^Error: job failed ' "$_log"; echo $?)"
 		[ "$_exit" -eq 0 ] || _fail=1
-		HOOK="" step_end -d "$((_t1 - _t0))" -e "$_exit" -l "$_dst" \
-			-n "$_p" -s "$_id" "${BUILDDIR}/steps"
+		step_end -d "$((_t1 - _t0))" -e "$_exit" -l "$_dst" -n "$_p" \
+			-s "$_id" "${BUILDDIR}/steps"
 	elif grep "!: ${_p} " "/${CHROOT}${PORTSDIR}/logs/${_arch}/engine.log" \
 	     >"${_tmpdir}/grep"
 	then
 		mv "${_tmpdir}/grep" "$_dst"
 		_fail=1
-		HOOK="" step_end -d 0 -e 1 -l "$_dst" \
-			-n "$_p" -s "$_id" "${BUILDDIR}/steps"
+		step_end -d 0 -e 1 -l "$_dst" -n "$_p" \
+			-s "$_id" "${BUILDDIR}/steps"
 	fi
 done
 

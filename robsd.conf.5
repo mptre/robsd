@@ -18,22 +18,10 @@ Directory rooted on a filesystem mounted with the
 .Xr mount 8
 option, see
 .Xr release 8 .
-.It Ic hook Dq Ar path
-Command to invoke after each non-skipped step.
-The command will be given the following arguments:
-.Pp
-.Bl -enum -compact
-.It
-Release build directory rooted in
-.Ic robsddir .
-.It
-Name of the step.
-.It
-Exit status of the step,
-0 if the step succeeded and non-zero otherwise.
-.It
-The user who started the step.
-.El
+.It Ic hook No { Do Ar path Dc Ar ... No }
+Command to invoke after each non-skipped step,
+see
+.Xr robsd-hook 5 .
 .It Ic keep Ar number
 Number of releases to keep in
 .Ic robsddir ,

@@ -74,3 +74,15 @@ strings_append(struct string_list *strings, char *val)
 		err(1, NULL);
 	TAILQ_INSERT_TAIL(strings, st, st_entry);
 }
+
+unsigned int
+strings_len(const struct string_list *strings)
+{
+	const struct string *st;
+	unsigned int len = 0;
+
+	TAILQ_FOREACH(st, strings, st_entry) {
+		len++;
+	}
+	return len;
+}

@@ -3,7 +3,6 @@ robsd_config() {
 	local _err0=0
 	local _err1=0
 	local _mode="robsd"
-	local _robsdconfig="$ROBSDCONFIG"
 	local _stdin=0
 	local _stdout="${TSHDIR}/stdout"
 
@@ -22,7 +21,7 @@ robsd_config() {
 	[ -e "$CONFIG" ] || : >"$CONFIG"
 	[ -e "$STDIN" ] || : >"$STDIN"
 
-	env "_MODE=${_mode}" "$_robsdconfig" -f "$CONFIG" "$@" - \
+	env "_MODE=${_mode}" "$ROBSDCONFIG" -f "$CONFIG" "$@" - \
 		<"$STDIN" >"$_stdout" 2>&1 || _err1="$?"
 	if [ "$_err0" -ne "$_err1" ]; then
 		fail - "expected exit ${_err0}, got ${_err1}" <"$_stdout"
@@ -48,7 +47,6 @@ default_ports_config() {
 	cat <<-EOF
 	robsddir "${TSHDIR}"
 	chroot "/var/empty"
-	ports-dir "${TSHDIR}"
 	ports-user "nobody"
 	ports { "devel/knfmt" "mail/mdsort" }
 	EOF
@@ -145,9 +143,9 @@ fi
 
 if testcase "string default value"; then
 	default_config >"$CONFIG"
-	echo "HOOK=\${hook}" >"$STDIN"
+	echo "STRING=\${distrib-host}" >"$STDIN"
 	robsd_config - <<-EOF
-	HOOK=
+	STRING=
 	EOF
 fi
 
@@ -157,6 +155,17 @@ if testcase "list default value"; then
 	echo "SKIP=\${skip}" >"$STDIN"
 	robsd_config - <<-EOF
 	SKIP=
+	EOF
+fi
+
+if testcase "hook"; then
+	{
+		default_config
+		echo "hook { \"echo\" \"\${builddir}\" }"
+	} >"$CONFIG"
+	echo "\${hook}" >"$STDIN"
+	robsd_config - <<-'EOF'
+	echo ${builddir}
 	EOF
 fi
 

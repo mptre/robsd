@@ -84,26 +84,21 @@ cleandir() {
 #
 # Load and validate the configuration.
 config_load() {
-	local _args=""
 	local _tmp
-
-	# Testing backdoor.
-	[ -z "${ROBSDCONF:-}" ] || _args="-f ${ROBSDCONF}"
 
 	: "${BUILDDIR:=}"; export BUILDDIR
 	: "${DETACH:=1}"
 	: "${EXECDIR:=/usr/local/libexec/robsd}"; export EXECDIR
 	PATH="${PATH}:/usr/X11R6/bin"; export PATH
 	: "${ROBSDCONFIG:=${EXECDIR}/${_MODE}-config}"
+	: "${ROBSDHOOK:=${EXECDIR}/${_MODE}-hook}"
 	: "${ROBSDSTAT:=${EXECDIR}/robsd-stat}"
 
 	_tmp="$(mktemp -t robsd.XXXXXX)"
-	# shellcheck disable=SC2086
 	{
 		cat
 		echo "EXECDIR=\${execdir}"
-		echo "HOOK=\${hook}"
-	} | "$ROBSDCONFIG" $_args - >"$_tmp"
+	} | "$ROBSDCONFIG" ${ROBSDCONF:+"-f${ROBSDCONF}"} - >"$_tmp"
 	eval "$(<"$_tmp")"
 	rm "$_tmp"
 
@@ -1409,11 +1404,14 @@ step_end() {
 
 	# Only invoke the hook if the step has ended. A duration of -1 is a
 	# sentinel indicating that the step has just begun.
-	if [ -n "$HOOK" ] && [ "$_d" -ne -1 ] && [ "$_name" != "env" ]; then
-		info "invoking hook: ${HOOK}" \
-			"${BUILDDIR} ${_name} ${_e} ${_user}"
+	if [ "$_d" -ne -1 ] &&
+	   [ "$_name" != "env" ]; then
 		# Ignore non-zero exit.
-		"$HOOK" "$BUILDDIR" "$_name" "$_e" "$_user" || :
+		"$ROBSDHOOK" -V ${ROBSDCONF:+"-f${ROBSDCONF}"} \
+			-v "builddir=${BUILDDIR}" \
+			-v "exit=${_e}" \
+			-v "step=${_name}" \
+			|| :
 	fi
 }
 

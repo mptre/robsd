@@ -1,5 +1,6 @@
 #include <sys/queue.h>
 
+#include <assert.h>
 #include <ctype.h>
 #include <err.h>
 #include <glob.h>
@@ -372,6 +373,21 @@ struct grammar {
 	void			*gr_default;
 };
 
+static const struct grammar	*grammar_find(const struct grammar *,
+    const char *);
+
+static const struct grammar *
+grammar_find(const struct grammar *grammar, const char *name)
+{
+	int i;
+
+	for (i = 0; grammar[i].gr_kw != NULL; i++) {
+		if (strcmp(grammar[i].gr_kw, name) == 0)
+			return &grammar[i];
+	}
+	return NULL;
+}
+
 /*
  * config -------------------------------------------------------------------------
  */
@@ -403,19 +419,17 @@ static int	config_parse_regress(struct config *, void **);
 
 static void			 config_append(struct config *,
     enum variable_type, const char *, void *);
-static const struct variable	*config_find(const struct config *,
+static const struct variable	*config_findn(const struct config *,
     const char *, size_t);
 static int			 config_present(const struct config *,
     const char *);
-
-static int	config_interpolate1(const struct config *, const char *, int);
 
 static const struct grammar robsd[] = {
 	{ "robsddir",		STRING,		config_parse_dir,	MANDATORY,	NULL },
 	{ "builduser",		STRING,		config_parse_user,	0,		"build" },
 	{ "destdir",		STRING,		config_parse_dir,	MANDATORY,	NULL },
 	{ "execdir",		STRING,		config_parse_dir,	0,		"/usr/local/libexec/robsd" },
-	{ "hook",		STRING,		config_parse_string,	0,		NULL },
+	{ "hook",		LIST,		config_parse_list,	0,		NULL },
 	{ "keep",		INTEGER,	config_parse_integer,	0,		NULL },
 	{ "reboot",		INTEGER,	config_parse_boolean,	0,		NULL },
 	{ "skip",		LIST,		config_parse_list,	0,		NULL },
@@ -438,7 +452,7 @@ static const struct grammar robsd_ports[] = {
 	{ "robsddir",		STRING,		config_parse_dir,	MANDATORY,	NULL },
 	{ "chroot",		STRING,		config_parse_string,	MANDATORY,	NULL },
 	{ "execdir",		STRING,		config_parse_dir,	0,		"/usr/local/libexec/robsd" },
-	{ "hook",		STRING,		config_parse_string,	0,		NULL },
+	{ "hook",		LIST,		config_parse_list,	0,		NULL },
 	{ "keep",		INTEGER,	config_parse_integer,	0,		NULL },
 	{ "skip",		LIST,		config_parse_list,	0,		NULL },
 	{ "cvs-root",		STRING,		config_parse_string,	0,		NULL },
@@ -457,7 +471,7 @@ static const struct grammar robsd_ports[] = {
 static const struct grammar robsd_regress[] = {
 	{ "robsddir",		STRING,		config_parse_dir,	MANDATORY,	NULL },
 	{ "execdir",		STRING,		config_parse_dir,	0,		"/usr/local/libexec/robsd" },
-	{ "hook",		STRING,		config_parse_string,	0,		NULL },
+	{ "hook",		LIST,		config_parse_list,	0,		NULL },
 	{ "keep",		INTEGER,	config_parse_integer,	0,		NULL },
 	{ "rdonly",		INTEGER,	config_parse_boolean,	0,		NULL },
 	{ "sudo",		STRING,		config_parse_string,	0,		"doas -n" },
@@ -470,7 +484,7 @@ static const struct grammar robsd_regress[] = {
 };
 
 struct config *
-config_parse(const char *path)
+config_alloc(void)
 {
 	struct config *config;
 	int mode;
@@ -478,7 +492,6 @@ config_parse(const char *path)
 	config = calloc(1, sizeof(*config));
 	if (config == NULL)
 		err(1, NULL);
-	config->cf_path = path;
 	TAILQ_INIT(&config->cf_variables);
 
 	mode = config_mode(getprogname());
@@ -497,33 +510,32 @@ config_parse(const char *path)
 		mode = CONFIG_ROBSD;
 	switch (mode) {
 	case CONFIG_ROBSD:
-		if (path == NULL)
-			config->cf_path = "/etc/robsd.conf";
+		config->cf_path = "/etc/robsd.conf";
 		config->cf_grammar = robsd;
 		break;
 	case CONFIG_ROBSD_PORTS:
-		if (path == NULL)
-			config->cf_path = "/etc/robsd-ports.conf";
+		config->cf_path = "/etc/robsd-ports.conf";
 		config->cf_grammar = robsd_ports;
 		break;
 	case CONFIG_ROBSD_REGRESS:
-		if (path == NULL)
-			config->cf_path = "/etc/robsd-regress.conf";
+		config->cf_path = "/etc/robsd-regress.conf";
 		config->cf_grammar = robsd_regress;
 		break;
 	}
 
-	if (lexer_init(&config->cf_lx, config->cf_path))
-		goto err;
-
-	if (config_exec(config))
-		goto err;
-
 	return config;
+}
 
-err:
-	config_free(config);
-	return NULL;
+int
+config_parse(struct config *config, const char *path)
+{
+	if (path != NULL)
+		config->cf_path = path;
+	if (lexer_init(&config->cf_lx, config->cf_path))
+		return 1;
+	if (config_exec(config))
+		return 1;
+	return 0;
 }
 
 void
@@ -551,6 +563,27 @@ config_free(struct config *config)
 		free(va->va_name);
 		free(va);
 	}
+}
+
+int
+config_append_string(struct config *config, const char *name, const char *val)
+{
+	char *p;
+
+	if (grammar_find(config->cf_grammar, name))
+		return 1;
+
+	p = strdup(val);
+	if (p == NULL)
+		err(1, NULL);
+	config_append(config, STRING, name, p);
+	return 0;
+}
+
+const struct variable *
+config_find(const struct config *config, const char *name)
+{
+	return config_findn(config, name, strlen(name));
 }
 
 int
@@ -585,6 +618,7 @@ config_interpolate(const struct config *config)
 	int lno = 0;
 
 	for (;;) {
+		char *line;
 		ssize_t buflen;
 
 		buflen = getline(&buf, &bufsiz, fh);
@@ -595,13 +629,103 @@ config_interpolate(const struct config *config)
 			error = 1;
 			break;
 		}
-		error = config_interpolate1(config, buf, ++lno);
-		if (error)
+		line = config_interpolate_str(config, buf, ++lno);
+		if (line == NULL) {
+			error = 1;
 			break;
+		}
+		printf("%s", line);
+		free(line);
 	}
 
 	free(buf);
 	return error;
+}
+
+char *
+config_interpolate_str(const struct config *config, const char *str, int lno)
+{
+	struct buffer *buf;
+	char *bp = NULL;
+
+	buf = buffer_alloc(1024);
+
+	for (;;) {
+		const struct variable *va;
+		const char *p, *ve, *vs;
+		size_t len;
+
+		p = strchr(str, '$');
+		if (p == NULL)
+			break;
+		vs = &p[1];
+		if (*vs != '{') {
+			log_warnx("/dev/stdin", lno,
+			    "invalid substitution, expected '{'");
+			goto out;
+		}
+		vs += 1;
+		ve = strchr(vs, '}');
+		if (ve == NULL) {
+			log_warnx("/dev/stdin", lno,
+			    "invalid substitution, expected '}'");
+			goto out;
+		}
+		len = ve - vs;
+		if (len == 0) {
+			log_warnx("/dev/stdin", lno,
+			    "invalid substitution, empty variable name");
+			goto out;
+		}
+
+		va = config_findn(config, vs, len);
+		if (va == NULL) {
+			log_warnx("/dev/stdin", lno,
+			    "invalid substitution, unknown variable '%.*s'",
+			    (int)len, vs);
+			goto out;
+		}
+
+		buffer_append(buf, str, p - str);
+
+		switch (va->va_type) {
+		case INTEGER:
+			buffer_appendv(buf, "%d", va->va_int);
+			break;
+
+		case STRING:
+			buffer_appendv(buf, "%s", va->va_str);
+			break;
+
+		case LIST: {
+			const struct string *st;
+
+			TAILQ_FOREACH(st, va->va_list, st_entry) {
+				buffer_appendv(buf, "%s%s", st->st_val,
+				    TAILQ_LAST(va->va_list, string_list) == st
+				    ? "" : " ");
+			}
+			break;
+		}
+		}
+
+		str = &ve[1];
+	}
+	/* Output any remaining tail. */
+	buffer_append(buf, str, strlen(str));
+
+	buffer_appendc(buf, '\0');
+	bp = buffer_release(buf);
+out:
+	buffer_free(buf);
+	return bp;
+}
+
+const struct string_list *
+variable_list(const struct variable *va)
+{
+	assert(va->va_type == LIST);
+	return va->va_list;
 }
 
 static int
@@ -650,30 +774,27 @@ out:
 static int
 config_exec1(struct config *config, const char *name)
 {
-	int i;
+	const struct grammar *gr;
+	void *val;
+	int error = 0;
 
-	for (i = 0; config->cf_grammar[i].gr_kw != NULL; i++) {
-		const struct grammar *gr = &config->cf_grammar[i];
-		void *val;
-		int error = 0;
-
-		if (strcmp(gr->gr_kw, name) != 0)
-			continue;
-
-		if (config_present(config, name)) {
-			lexer_warnx(&config->cf_lx,
-			    "variable '%s' already defined", name);
-			error = 1;
-		}
-		if (gr->gr_fn(config, &val) == 0)
-			config_append(config, gr->gr_type, name, val);
-		else
-			error = 1;
-		return error;
+	gr = grammar_find(config->cf_grammar, name);
+	if (gr == NULL) {
+		lexer_warnx(&config->cf_lx, "unknown keyword '%s'", name);
+		return -1;
 	}
 
-	lexer_warnx(&config->cf_lx, "unknown keyword '%s'", name);
-	return -1;
+	if (config_present(config, name)) {
+		lexer_warnx(&config->cf_lx,
+		    "variable '%s' already defined", name);
+		error = 1;
+	}
+	if (gr->gr_fn(config, &val) == 0)
+		config_append(config, gr->gr_type, name, val);
+	else
+		error = 1;
+
+	return error;
 }
 
 static int
@@ -871,7 +992,7 @@ config_append(struct config *config, enum variable_type type, const char *name,
 }
 
 static const struct variable *
-config_find(const struct config *config, const char *name, size_t namelen)
+config_findn(const struct config *config, const char *name, size_t namelen)
 {
 	static struct variable vadef;
 	const struct variable *va;
@@ -926,75 +1047,5 @@ config_present(const struct config *config, const char *name)
 		if (strcmp(va->va_name, name) == 0)
 			return 1;
 	}
-	return 0;
-}
-
-static int
-config_interpolate1(const struct config *config, const char *str, int lno)
-{
-	for (;;) {
-		const struct variable *va;
-		const char *p, *ve, *vs;
-		size_t len;
-
-		p = strchr(str, '$');
-		if (p == NULL)
-			break;
-		vs = &p[1];
-		if (*vs != '{') {
-			log_warnx("/dev/stdin", lno,
-			    "invalid substitution, expected '{'");
-			return 1;
-		}
-		vs += 1;
-		ve = strchr(vs, '}');
-		if (ve == NULL) {
-			log_warnx("/dev/stdin", lno,
-			    "invalid substitution, expected '}'");
-			return 1;
-		}
-		len = ve - vs;
-		if (len == 0) {
-			log_warnx("/dev/stdin", lno,
-			    "invalid substitution, empty variable name");
-			return 1;
-		}
-
-		va = config_find(config, vs, len);
-		if (va == NULL) {
-			log_warnx("/dev/stdin", lno,
-			    "invalid substitution, unknown variable '%.*s'",
-			    (int)len, vs);
-			return 1;
-		}
-
-		printf("%.*s", (int)(p - str), str);
-
-		switch (va->va_type) {
-		case INTEGER:
-			printf("%d", va->va_int);
-			break;
-
-		case STRING:
-			printf("%s", va->va_str);
-			break;
-
-		case LIST: {
-			const struct string *st;
-
-			TAILQ_FOREACH(st, va->va_list, st_entry) {
-				printf("%s%s", st->st_val,
-				    TAILQ_LAST(va->va_list, string_list) == st
-				    ? "" : " ");
-			}
-			break;
-		}
-		}
-
-		str = &ve[1];
-	}
-	/* Output any remaining tail. */
-	printf("%s", str);
-
 	return 0;
 }

@@ -2,6 +2,7 @@ VERSION=	9.0.0
 
 PROG_robsd-config=	robsd-config
 SRCS_robsd-config+=	robsd-config.c
+SRCS_robsd-config+=	buffer.c
 SRCS_robsd-config+=	config.c
 SRCS_robsd-config+=	util.c
 OBJS_robsd-config=	${SRCS_robsd-config:.c=.o}
@@ -12,6 +13,14 @@ SRCS_robsd-exec=	robsd-exec.c
 OBJS_robsd-exec=	${SRCS_robsd-exec:.c=.o}
 DEPS_robsd-exec=	${SRCS_robsd-exec:.c=.d}
 
+PROG_robsd-hook=	robsd-hook
+SRCS_robsd-hook+=	robsd-hook.c
+SRCS_robsd-hook+=	buffer.c
+SRCS_robsd-hook+=	config.c
+SRCS_robsd-hook+=	util.c
+OBJS_robsd-hook=	${SRCS_robsd-hook:.c=.o}
+DEPS_robsd-hook=	${SRCS_robsd-hook:.c=.d}
+
 PROG_robsd-stat=	robsd-stat
 SRCS_robsd-stat=	robsd-stat.c
 OBJS_robsd-stat=	${SRCS_robsd-stat:.c=.o}
@@ -19,10 +28,12 @@ DEPS_robsd-stat=	${SRCS_robsd-stat:.c=.d}
 
 CFLAGS+=	-Wall -Wextra -MD -MP
 
+KNFMT+=	buffer.c
 KNFMT+=	config.c
 KNFMT+=	extern.h
 KNFMT+=	robsd-config.c
 KNFMT+=	robsd-exec.c
+KNFMT+=	robsd-hook.c
 KNFMT+=	robsd-stat.c
 KNFMT+=	util.c
 
@@ -55,6 +66,7 @@ DISTFILES+=	LICENSE
 DISTFILES+=	Makefile
 DISTFILES+=	Makefile.inc
 DISTFILES+=	README.md
+DISTFILES+=	buffer.c
 DISTFILES+=	config.c
 DISTFILES+=	extern.h
 DISTFILES+=	robsd
@@ -68,6 +80,7 @@ DISTFILES+=	robsd-distrib.sh
 DISTFILES+=	robsd-env.sh
 DISTFILES+=	robsd-exec.c
 DISTFILES+=	robsd-hash.sh
+DISTFILES+=	robsd-hook.c
 DISTFILES+=	robsd-image.sh
 DISTFILES+=	robsd-kernel.sh
 DISTFILES+=	robsd-kill
@@ -119,6 +132,7 @@ DISTFILES+=	tests/report-size.sh
 DISTFILES+=	tests/report-skip.sh
 DISTFILES+=	tests/report.sh
 DISTFILES+=	tests/robsd-config.sh
+DISTFILES+=	tests/robsd-hook.sh
 DISTFILES+=	tests/robsd-ports.sh
 DISTFILES+=	tests/robsd-regress.sh
 DISTFILES+=	tests/robsd-rescue.sh
@@ -143,6 +157,7 @@ INSTALL?=	install
 INSTALL_MAN?=	${INSTALL}
 
 MANLINT+=	robsd-clean.8
+MANLINT+=	robsd-hook.5
 MANLINT+=	robsd-ports.8
 MANLINT+=	robsd-ports.conf.5
 MANLINT+=	robsd-regress.8
@@ -162,10 +177,13 @@ SHLINT+=	robsd-rescue
 
 SUBDIR+=	tests
 
-all: ${PROG_robsd-config} ${PROG_robsd-exec} ${PROG_robsd-stat}
+all: ${PROG_robsd-config} ${PROG_robsd-hook} ${PROG_robsd-exec} ${PROG_robsd-stat}
 
 ${PROG_robsd-config}: ${OBJS_robsd-config}
 	${CC} ${DEBUG} -o ${PROG_robsd-config} ${OBJS_robsd-config} ${LDFLAGS}
+
+${PROG_robsd-hook}: ${OBJS_robsd-hook}
+	${CC} ${DEBUG} -o ${PROG_robsd-hook} ${OBJS_robsd-hook} ${LDFLAGS}
 
 ${PROG_robsd-exec}: ${OBJS_robsd-exec}
 	${CC} ${DEBUG} -o ${PROG_robsd-exec} ${OBJS_robsd-exec} ${LDFLAGS}
@@ -177,6 +195,7 @@ clean:
 	rm -f \
 		${DEPS_robsd-config} ${OBJS_robsd-config} ${PROG_robsd-config} \
 		${DEPS_robsd-exec} ${OBJS_robsd-exec} ${PROG_robsd-exec} \
+		${DEPS_robsd-hook} ${OBJS_robsd-hook} ${PROG_robsd-hook} \
 		${DEPS_robsd-stat} ${OBJS_robsd-stat} ${PROG_robsd-stat}
 .PHONY: clean
 
@@ -215,12 +234,16 @@ install: all
 	${INSTALL} -m 0555 ${PROG_robsd-config} ${DESTDIR}${LIBEXECDIR}/robsd
 # robsd-exec
 	${INSTALL} -m 0555 ${PROG_robsd-exec} ${DESTDIR}${LIBEXECDIR}/robsd
+# robsd-hook
+	${INSTALL} -m 0555 ${PROG_robsd-hook} ${DESTDIR}${LIBEXECDIR}/robsd
+	${INSTALL_MAN} ${.CURDIR}/robsd-hook.5 ${DESTDIR}${MANDIR}/man5
 # robsd-ports
 	${INSTALL} -m 0555 ${.CURDIR}/robsd-ports ${DESTDIR}${BINDIR}
 	ln -f ${DESTDIR}${BINDIR}/robsd-clean ${DESTDIR}${BINDIR}/robsd-ports-clean
 	ln -f ${DESTDIR}${BINDIR}/robsd-kill ${DESTDIR}${BINDIR}/robsd-ports-kill
 	ln -f ${DESTDIR}${LIBEXECDIR}/robsd/robsd-exec ${DESTDIR}${LIBEXECDIR}/robsd/robsd-ports-exec
 	ln -f ${DESTDIR}${LIBEXECDIR}/robsd/robsd-config ${DESTDIR}${LIBEXECDIR}/robsd/robsd-ports-config
+	ln -f ${DESTDIR}${LIBEXECDIR}/robsd/robsd-hook ${DESTDIR}${LIBEXECDIR}/robsd/robsd-ports-hook
 	${INSTALL_MAN} ${.CURDIR}/robsd-ports.conf.5 ${DESTDIR}${MANDIR}/man5
 	${INSTALL_MAN} ${.CURDIR}/robsd-ports.8 ${DESTDIR}${MANDIR}/man8
 # robsd-regress
@@ -229,6 +252,7 @@ install: all
 	ln -f ${DESTDIR}${BINDIR}/robsd-kill ${DESTDIR}${BINDIR}/robsd-regress-kill
 	ln -f ${DESTDIR}${LIBEXECDIR}/robsd/robsd-exec ${DESTDIR}${LIBEXECDIR}/robsd/robsd-regress-exec
 	ln -f ${DESTDIR}${LIBEXECDIR}/robsd/robsd-config ${DESTDIR}${LIBEXECDIR}/robsd/robsd-regress-config
+	ln -f ${DESTDIR}${LIBEXECDIR}/robsd/robsd-hook ${DESTDIR}${LIBEXECDIR}/robsd/robsd-regress-hook
 	${INSTALL_MAN} ${.CURDIR}/robsd-regress.conf.5 ${DESTDIR}${MANDIR}/man5
 	${INSTALL_MAN} ${.CURDIR}/robsd-regress.8 ${DESTDIR}${MANDIR}/man8
 # robsd-stat
@@ -241,6 +265,7 @@ test: all
 		"EXECDIR=${.CURDIR}" \
 		"ROBSDCONFIG=${.OBJDIR}/${PROG_robsd-config}" \
 		"ROBSDEXEC=${.OBJDIR}/${PROG_robsd-exec}" \
+		"ROBSDHOOK=${.OBJDIR}/${PROG_robsd-hook}" \
 		"ROBSDSTAT=${.OBJDIR}/${PROG_robsd-stat}" \
 		"TESTFLAGS=${TESTFLAGS}"
 .PHONY: test
@@ -248,4 +273,5 @@ test: all
 .include "${.CURDIR}/Makefile.inc"
 -include ${DEPS_robsd-config}
 -include ${DEPS_robsd-exec}
+-include ${DEPS_robsd-hook}
 -include ${DEPS_robsd-stat}

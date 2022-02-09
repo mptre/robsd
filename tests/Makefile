@@ -20,6 +20,7 @@ TESTS+=	report-size.sh
 TESTS+=	report-skip.sh
 TESTS+=	report.sh
 TESTS+=	robsd-config.sh
+TESTS+=	robsd-hook.sh
 TESTS+=	robsd-ports.sh
 TESTS+=	robsd-regress.sh
 TESTS+=	robsd-rescue.sh
