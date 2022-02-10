@@ -198,7 +198,7 @@ ports_step_skip() {
 
 # ports_steps
 #
-# Get the step names in execution order.
+# Get the step names in order of execution.
 ports_steps() {
 	xargs printf '%s\n' <<-EOF
 	env

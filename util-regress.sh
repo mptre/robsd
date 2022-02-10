@@ -147,7 +147,7 @@ regress_step_after() {
 
 # regress_steps
 #
-# Get the step names in execution order.
+# Get the step names in order of execution.
 regress_steps() {
 	xargs printf '%s\n' <<-EOF
 	env
