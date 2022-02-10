@@ -1,3 +1,14 @@
+# v10.0.0 - 2022-02-10
+
+## Changes
+
+- Rework hook configuration.
+  Introducing the robsd-hook utlitity in charge of executing any configured hook.
+  In addition, the hook configuration is also interpolated instead of passing a
+  fixed set of arguments.
+  (14a5156)
+  (Anton Lindqvist)
+
 # 9.0.0 - 2022-02-07
 
 ## Changes
