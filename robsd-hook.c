@@ -88,10 +88,8 @@ main(int argc, char *argv[])
 	}
 
 	va = config_find(config, "hook");
-	if (va == NULL) {
-		fprintf(stderr, "NO HOOK!\n");
+	if (va == NULL)
 		goto out;
-	}
 	strings = variable_list(va);
 	nargs = strings_len(strings);
 	if (nargs == 0)
