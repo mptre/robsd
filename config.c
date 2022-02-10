@@ -1,3 +1,4 @@
+#include <sys/stat.h>
 #include <sys/queue.h>
 
 #include <assert.h>
