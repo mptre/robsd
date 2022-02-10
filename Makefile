@@ -80,6 +80,7 @@ DISTFILES+=	robsd-distrib.sh
 DISTFILES+=	robsd-env.sh
 DISTFILES+=	robsd-exec.c
 DISTFILES+=	robsd-hash.sh
+DISTFILES+=	robsd-hook.5
 DISTFILES+=	robsd-hook.c
 DISTFILES+=	robsd-image.sh
 DISTFILES+=	robsd-kernel.sh
