@@ -563,6 +563,8 @@ config_free(struct config *config)
 		free(va->va_name);
 		free(va);
 	}
+
+	free(config);
 }
 
 int
