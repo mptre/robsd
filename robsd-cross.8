@@ -1,0 +1,131 @@
+.Dd $Mdocdate: February 10 2022$
+.Dt ROBSD-CROSS 8
+.Os
+.Sh NAME
+.Nm robsd-cross
+.Nd cross compile OpenBSD
+.Sh SYNOPSIS
+.Nm robsd
+.Op Fl d
+.Op Fl c Ar comment
+.Op Fl s Ar step
+.Op Fl t Ar tag
+.Ar target
+.Nm
+.Op Fl d
+.Fl r Ar path
+.Sh DESCRIPTION
+The
+.Nm
+utility builds a cross compiler tool chain and kernel for
+.Ar target .
+The process is divided into the steps as follows:
+.Bl -tag -width cross-distrib
+.It env
+Dump the current environment.
+This is a no operation only used to collect data useful while debugging.
+.It cross-dirs
+Create
+.Ic crossdir
+and populate it with the rudimentary directory layout.
+.It cross-tools
+Build the compiler tool chain.
+.It cross-distrib
+Build remaining parts of the target distribution.
+.It kernel
+Build a new kernel using the
+.Ic kernel
+configuration, see
+.Xr robsd-cross.conf 5 .
+.It end
+Auxillary step used to generate
+.Pa report .
+.El
+.Pp
+Each invocation is identified by a directory created by
+.Nm
+rooted in
+.Ic robsddir
+and is named after the current date.
+The directory contains the entries as follows.
+In addition, each executed step has a corresponding log file in the same
+directory.
+.Bl -tag -width robsd.log
+.It Pa comment
+File used to annotate the invocation which is included in
+.Pa report .
+By default, it contains a list of all applied patches.
+.It Pa report
+A summary delivered as a mail to root while running in the background once
+.Nm
+exits.
+.It Pa robsd.log
+Standard output and error from
+.Nm
+while running in the background.
+.It Pa stat.csv
+Collected statistics, see
+.Xr robsd-stat 8 .
+.It Pa steps
+Internal representation of the executed steps.
+This file should never be edited manually.
+.It Pa tags
+Tags included in
+.Pa report .
+.It Pa target
+The
+.Ar target
+argument.
+.El
+.Pp
+.Nm
+is configured using
+.Xr robsd-cross.conf 5
+and must be run as root.
+Some steps can however operate on behalf of another user.
+By default,
+.Nm
+runs in the background and must be killed using
+.Xr robsd-cross-kill 8
+to ensure a clean exit.
+.Pp
+The options are as follows:
+.Bl -tag -width Ds
+.It Fl d
+Do not detach
+.Nm
+into the background.
+.It Fl c Ar comment
+Path to comment included in
+.Pa report .
+.It Fl r Ar path
+Resume a release build located at
+.Ar path .
+If the last executed step failed or aborted, it will be executed again.
+Otherwise, the next step will be executed.
+.It Fl s Ar step
+Skip
+.Ar step ,
+see enumerated steps above.
+May be given multiple times.
+.It Fl t Ar tag
+Arbitrary tag used to annotate the invocation which is included in
+.Pa report .
+May be given multiple times.
+.It Ar target
+The architecture to cross compile.
+.El
+.Sh FILES
+.Bl -tag -width "/etc/robsd-cross.conf"
+.It Pa /etc/robsd-cross.conf
+The default configuration file.
+.El
+.Sh DIAGNOSTICS
+.Ex -std
+.Sh SEE ALSO
+.Xr robsd-cross.conf 5 ,
+.Xr robsd-cross-clean 8 ,
+.Xr robsd-cross-kill 8 ,
+.Xr robsd-stat 8
+.Sh AUTHORS
+.An Anton Lindqvist Aq Mt anton@basename.se

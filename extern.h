@@ -10,6 +10,7 @@
 
 struct config		*config_alloc(void);
 void			 config_free(struct config *);
+int			 config_set_builddir(struct config *, const char *);
 int			 config_parse(struct config *, const char *);
 int			 config_append_string(struct config *, const char *,
     const char *);
@@ -24,6 +25,8 @@ const struct string_list *variable_list(const struct variable *);
 /*
  * log -------------------------------------------------------------------------
  */
+void	log_warn(const char *, int, const char *, ...)
+	__attribute__((format(printf, 3, 4)));
 void	log_warnx(const char *, int, const char *, ...)
 	__attribute__((format(printf, 3, 4)));
 void	logv(void (*)(const char *, ...), const char *, int, const char *,

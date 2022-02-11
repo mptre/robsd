@@ -8,7 +8,12 @@
 .Nm
 is the configuration file for
 .Xr robsd-ports 8 .
-The following variables are recognized.
+The string value type enclosed in
+.Dq double-quotes
+may refer to other configuration variables on the form
+.No \(Do Ns Brq Ar variable .
+.Pp
+The following variables are recognized:
 .Bl -tag -width Ds
 .It Ic robsddir Dq Ar path
 Directory used to store invocations.

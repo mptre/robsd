@@ -1,4 +1,4 @@
-# robsd_config [-PRe] [-] [-- robsd-config-argument ...]
+# robsd_config [-CPRe] [-] [-- robsd-config-argument ...]
 robsd_config() {
 	local _err0=0
 	local _err1=0
@@ -8,6 +8,7 @@ robsd_config() {
 
 	while [ $# -gt 0 ]; do
 		case "$1" in
+		-C)	_mode="robsd-cross";;
 		-P)	_mode="robsd-ports";;
 		-R)	_mode="robsd-regress";;
 		-e)	_err0="1";;
@@ -39,6 +40,17 @@ default_config() {
 	cat <<-EOF
 	robsddir "/var/empty"
 	destdir "/var/empty"
+	execdir "/var/empty"
+	x11-srcdir "/var/empty"
+	EOF
+}
+
+# default_cross_config
+default_cross_config() {
+	cat <<-EOF
+	robsddir "${TSHDIR}"
+	crossdir "/var/empty"
+	execdir "/var/empty"
 	EOF
 }
 
@@ -47,6 +59,7 @@ default_ports_config() {
 	cat <<-EOF
 	robsddir "${TSHDIR}"
 	chroot "/var/empty"
+	execdir "/var/empty"
 	ports-user "nobody"
 	ports { "devel/knfmt" "mail/mdsort" }
 	EOF
@@ -56,6 +69,7 @@ default_ports_config() {
 default_regress_config() {
 	cat <<-EOF
 	robsddir "/var/empty"
+	execdir "/var/empty"
 	regress-user "nobody"
 	regress { "bin/csh:R" "bin/ksh:RS" "bin/ls" }
 	EOF
@@ -67,6 +81,21 @@ STDIN="${TSHDIR}/stdin"
 if testcase "robsd"; then
 	default_config >"$CONFIG"
 	robsd_config
+fi
+
+if testcase "cross"; then
+	default_cross_config >"$CONFIG"
+	echo "CROSSDIR=\${crossdir}" >"$STDIN"
+	robsd_config -C - <<-EOF
+	CROSSDIR=/var/empty
+	EOF
+fi
+
+if testcase "cross target"; then
+	echo 'target "am64"' >"$CONFIG"
+	robsd_config -C -e - <<-EOF
+	robsd-config: ${CONFIG}:1: variable cannot be defined
+	EOF
 fi
 
 if testcase "ports"; then
@@ -95,7 +124,7 @@ fi
 
 if testcase "regress pseudo invalid flags"; then
 	echo 'regress { "bin/csh:A" }' >"$CONFIG"
-	robsd_config -R -e | grep -v -e mandatory >"$TMP1"
+	robsd_config -R -e | grep -e flag >"$TMP1"
 	assert_file - "$TMP1" <<-EOF
 	robsd-config: ${CONFIG}:1: unknown regress flag 'A'
 	EOF
@@ -103,7 +132,7 @@ fi
 
 if testcase "regress pseudo empty flags"; then
 	echo 'regress { "bin/csh:" }' >"$CONFIG"
-	robsd_config -R -e | grep -v -e mandatory >"$TMP1"
+	robsd_config -R -e | grep -e flags >"$TMP1"
 	assert_file - "$TMP1" <<-EOF
 	robsd-config: ${CONFIG}:1: empty regress flags
 	EOF
@@ -149,6 +178,16 @@ if testcase "string default value"; then
 	EOF
 fi
 
+if testcase "string interpolation"; then
+	{
+		default_config
+		echo "bsd-srcdir \"\${robsddir}\""
+	} >"$CONFIG"
+	echo "\${bsd-srcdir}" >"$STDIN"
+	robsd_config - <<-EOF
+	/var/empty
+	EOF
+fi
 
 if testcase "list default value"; then
 	default_config >"$CONFIG"
@@ -158,14 +197,25 @@ if testcase "list default value"; then
 	EOF
 fi
 
+if testcase "list interpolation"; then
+	{
+		default_config
+		echo "skip { \"ROBSDDIR=\${robsddir}\" }"
+	} >"$CONFIG"
+	echo "\${skip}" >"$STDIN"
+	robsd_config - <<-EOF
+	ROBSDDIR=/var/empty
+	EOF
+fi
+
 if testcase "hook"; then
 	{
 		default_config
-		echo "hook { \"echo\" \"\${builddir}\" }"
+		echo "hook { \"echo\" \"\${robsddir}\" }"
 	} >"$CONFIG"
 	echo "\${hook}" >"$STDIN"
 	robsd_config - <<-'EOF'
-	echo ${builddir}
+	echo /var/empty
 	EOF
 fi
 
@@ -196,39 +246,43 @@ if testcase "invalid grammar"; then
 fi
 
 if testcase "invalid directory missing"; then
-	{ default_config; echo 'execdir "/nein"'; } >"$CONFIG"
+	{ default_config; echo 'bsd-srcdir "/nein"'; } >"$CONFIG"
 	robsd_config -e - <<-EOF
-	robsd-config: ${CONFIG}:3: /nein: No such file or directory
+	robsd-config: ${CONFIG}:5: /nein: No such file or directory
 	EOF
 fi
 
 if testcase "invalid not a directory"; then
-	{ default_config; printf 'execdir "%s"\n' "$CONFIG"; } >"$CONFIG"
+	{ default_config; printf 'bsd-srcdir "%s"\n' "$CONFIG"; } >"$CONFIG"
 	robsd_config -e - <<-EOF
-	robsd-config: ${CONFIG}:3: ${CONFIG}: is not a directory
+	robsd-config: ${CONFIG}:5: ${CONFIG}: is not a directory
 	EOF
 fi
 
 if testcase "invalid already defined"; then
 	{ default_config; echo 'robsddir "/var/empty"'; } >"$CONFIG"
 	robsd_config -e - <<-EOF
-	robsd-config: ${CONFIG}:3: variable 'robsddir' already defined
+	robsd-config: ${CONFIG}:5: variable 'robsddir' already defined
 	EOF
 fi
 
 if testcase "invalid missing mandatory"; then
-	robsd_config -e - <<-EOF
+	robsd_config -e | grep -e mandatory >"$TMP1"
+	assert_file - "$TMP1" <<-EOF
 	robsd-config: ${CONFIG}: mandatory variable 'robsddir' missing
 	robsd-config: ${CONFIG}: mandatory variable 'destdir' missing
 	EOF
 fi
 
 if testcase "invalid empty mandatory"; then
-	echo 'robsddir ""' >"$CONFIG"
+	{
+		echo 'robsddir ""'
+		echo 'execdir "/var/empty"'
+		echo 'x11-srcdir "/var/empty"'
+	} >"$CONFIG"
 	robsd_config -e | grep -v -e mandatory >"$TMP1"
 	assert_file - "$TMP1" <<-EOF
 	robsd-config: ${CONFIG}:1: empty string
-	robsd-config: ${CONFIG}:1: : No such file or directory
 	EOF
 fi
 

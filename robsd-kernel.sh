@@ -1,21 +1,28 @@
 . "${EXECDIR}/util.sh"
 
-kernel_path() {
-	local _n _s
-
-	_n="$(sysctl -n hw.ncpu)"
-	_s="$(test "$_n" -gt 1 && echo '.MP')"
-
-	printf 'arch/%s/compile/GENERIC%s\n' "$(machine)" "$_s"
-}
-
 config_load <<'EOF'
+BUILDUSER="${builduser}"
+KERNEL="${kernel}"
 BSDOBJDIR="${bsd-objdir}"; export BSDOBJDIR
 BSDSRCDIR="${bsd-srcdir}"; export BSDSRCDIR
-BUILDUSER="${builduser}"
 EOF
 
-cd "${BSDSRCDIR}/sys/$(kernel_path)"
+case "$_MODE" in
+robsd-cross)
+	config_load <<-'EOF'
+	CROSSDIR="${crossdir}"
+	TARGET="${target}"
+	EOF
+	# shellcheck disable=SC2046
+	eval export $(cd "$BSDSRCDIR" && make -f Makefile.cross \
+		      "TARGET=${TARGET}" "CROSSDIR=${CROSSDIR}" cross-env)
+	;;
+*)
+	TARGET="$(machine)"
+	;;
+esac
+
+cd "${BSDSRCDIR}/sys/arch/${TARGET}/compile/${KERNEL}"
 
 # Cannot create object directory symlink as build user.
 make obj
@@ -29,5 +36,10 @@ make clean
 make config
 make
 EOF
+
+case "$_MODE" in
+robsd-cross)	exit 0;;
+*)		;;
+esac
 
 make install

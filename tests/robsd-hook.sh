@@ -36,6 +36,8 @@ default_config() {
 	cat <<-EOF
 	robsddir "/var/empty"
 	destdir "/var/empty"
+	execdir "/var/empty"
+	x11-srcdir "/var/empty"
 	EOF
 }
 
@@ -44,6 +46,7 @@ default_ports_config() {
 	cat <<-EOF
 	robsddir "${TSHDIR}"
 	chroot "/var/empty"
+	execdir "/var/empty"
 	ports-user "nobody"
 	ports { "devel/knfmt" "mail/mdsort" }
 	EOF
@@ -53,6 +56,7 @@ default_ports_config() {
 default_regress_config() {
 	cat <<-EOF
 	robsddir "/var/empty"
+	execdir "/var/empty"
 	regress-user "nobody"
 	regress { "bin/csh:R" "bin/ksh:RS" "bin/ls" }
 	EOF

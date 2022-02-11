@@ -40,17 +40,10 @@ This step is optional and requires presence of certain configuration, see
 Apply patches including sticky ones, see
 .Xr robsd.conf 5 .
 .It kernel
-Build and install a new kernel.
-The
-.Pa GENERIC.MP
-kernel configuration is favored on multiprocessor machines based on
-.Va hw.ncpu ,
-see
-.Xr sysctl 8 .
-Otherwise,
-the
-.Pa GENERIC
-kernel configuration is used.
+Build and install a new kernel using the
+.Ic kernel
+configuration, see
+.Xr robsd.conf 5 .
 .It reboot
 Reboot the machine before continuing the build, exercising the new kernel.
 .Nm
@@ -196,6 +189,7 @@ The default configuration file.
 .Xr robsd.conf 5 ,
 .Xr release 8 ,
 .Xr robsd-clean 8 ,
+.Xr robsd-cross 8 ,
 .Xr robsd-kill 8 ,
 .Xr robsd-ports 8 ,
 .Xr robsd-regress 8 ,

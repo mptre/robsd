@@ -23,14 +23,26 @@ main(int argc, char *argv[])
 	if (pledge("stdio rpath getpw", NULL) == -1)
 		err(1, "pledge");
 
-	while ((ch = getopt(argc, argv, "f:")) != -1) {
+	config = config_alloc();
+
+	while ((ch = getopt(argc, argv, "b:f:")) != -1) {
 		switch (ch) {
+		case 'b':
+			if (config_set_builddir(config, optarg)) {
+				error = 1;
+				goto out;
+			}
+			break;
+
 		case 'f': {
 			int n;
 
 			n = snprintf(bufpath, sizeof(bufpath), "%s", optarg);
-			if (n < 0 || n >= (ssize_t)sizeof(bufpath))
-				errc(1, ENAMETOOLONG, "%s", optarg);
+			if (n < 0 || n >= (ssize_t)sizeof(bufpath)) {
+				warnc(ENAMETOOLONG, "%s", optarg);
+				error = 1;
+				goto out;
+			}
 			path = bufpath;
 			break;
 		}
@@ -50,19 +62,18 @@ main(int argc, char *argv[])
 			usage();
 	}
 
-	config = config_alloc();
 	if (config_parse(config, path)) {
+		error = 1;
+		goto out;
+	}
+
+	if (config_validate(config)) {
 		error = 1;
 		goto out;
 	}
 
 	if (pledge("stdio", NULL) == -1)
 		err(1, "pledge");
-
-	if (config_validate(config)) {
-		error = 1;
-		goto out;
-	}
 
 	if (dointerpolate)
 		error = config_interpolate(config);
@@ -75,6 +86,7 @@ out:
 static __dead void
 usage(void)
 {
-	fprintf(stderr, "usage: robsd-config [-n] [-f file] [-]\n");
+	fprintf(stderr, "usage: robsd-config [-n] [-b build-dir] [-f file] "
+	    "[-]\n");
 	exit(1);
 }

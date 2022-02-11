@@ -1,3 +1,4 @@
+. "${EXECDIR:-/usr/local/libexec/robsd}/util-cross.sh"
 . "${EXECDIR:-/usr/local/libexec/robsd}/util-ports.sh"
 . "${EXECDIR:-/usr/local/libexec/robsd}/util-regress.sh"
 
@@ -98,13 +99,16 @@ config_load() {
 	{
 		cat
 		echo "EXECDIR=\${execdir}"
-	} | "$ROBSDCONFIG" ${ROBSDCONF:+"-f${ROBSDCONF}"} - >"$_tmp"
+	} | "$ROBSDCONFIG" \
+		-b "${BUILDDIR}" ${ROBSDCONF:+"-f${ROBSDCONF}"} - >"$_tmp"
 	eval "$(<"$_tmp")"
 	rm "$_tmp"
 
 	case "$_MODE" in
 	robsd)
 		MAKEFLAGS="-j$(sysctl -n hw.ncpuonline)"; export MAKEFLAGS
+		;;
+	robsd-cross)
 		;;
 	robsd-ports)
 		ports_config_load
@@ -895,11 +899,15 @@ report() {
 		_duration="$(report_duration -r "$_robsddir" "$_duration")"
 	fi
 
-	# Add headers.
-	cat <<-EOF >"$_tmp"
-	Subject: ${_MODE}: $(hostname -s): ${_status}
-
-	EOF
+	# Add subject header.
+	{
+		printf 'Subject: %s: %s: ' "$_MODE" "$(hostname -s)"
+		case "$_MODE" in
+		robsd-cross)	cross_report_subject;;
+		*)		;;
+		esac
+		printf '%s\n\n' "$_status"
+	} >"$_tmp"
 
 	# Add comment to the beginning of the report.
 	if [ -e "${_builddir}/comment" ]; then
@@ -1629,6 +1637,9 @@ steps() {
 		distrib
 		end
 		EOF
+		;;
+	robsd-cross)
+		cross_steps
 		;;
 	robsd-ports)
 		ports_steps

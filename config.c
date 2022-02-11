@@ -4,6 +4,8 @@
 #include <assert.h>
 #include <ctype.h>
 #include <err.h>
+#include <errno.h>
+#include <fcntl.h>
 #include <glob.h>
 #include <limits.h>
 #include <pwd.h>
@@ -349,9 +351,12 @@ struct variable {
 		int			 va_int;
 	};
 
+	int	 va_lno;
+
 	enum variable_type {
 		INTEGER,
 		STRING,
+		DIRECTORY,
 		LIST,
 	} va_type;
 
@@ -400,6 +405,7 @@ struct config {
 	const char		*cf_path;
 	enum {
 		CONFIG_ROBSD,
+		CONFIG_ROBSD_CROSS,
 		CONFIG_ROBSD_PORTS,
 		CONFIG_ROBSD_REGRESS,
 	} cf_mode;
@@ -409,34 +415,37 @@ static int	config_mode(const char *);
 
 static int	config_exec(struct config *);
 static int	config_exec1(struct config *, const char *);
+static int	config_parse_bad(struct config *, void **);
 static int	config_parse_boolean(struct config *, void **);
 static int	config_parse_string(struct config *, void **);
 static int	config_parse_integer(struct config *, void **);
 static int	config_parse_glob(struct config *, void **);
-static int	config_parse_dir(struct config *, void **);
 static int	config_parse_list(struct config *, void **);
 static int	config_parse_user(struct config *, void **);
 static int	config_parse_regress(struct config *, void **);
 
 static void			 config_append(struct config *,
-    enum variable_type, const char *, void *);
+    enum variable_type, const char *, void *, int);
 static const struct variable	*config_findn(const struct config *,
     const char *, size_t);
 static int			 config_present(const struct config *,
     const char *);
 
+static int	config_validate_directory(const struct config *, const char *);
+
 static const struct grammar robsd[] = {
-	{ "robsddir",		STRING,		config_parse_dir,	MANDATORY,	NULL },
+	{ "robsddir",		DIRECTORY,	config_parse_string,	MANDATORY,	NULL },
 	{ "builduser",		STRING,		config_parse_user,	0,		"build" },
-	{ "destdir",		STRING,		config_parse_dir,	MANDATORY,	NULL },
-	{ "execdir",		STRING,		config_parse_dir,	0,		"/usr/local/libexec/robsd" },
+	{ "destdir",		DIRECTORY,	config_parse_string,	MANDATORY,	NULL },
+	{ "execdir",		DIRECTORY,	config_parse_string,	0,		"/usr/local/libexec/robsd" },
 	{ "hook",		LIST,		config_parse_list,	0,		NULL },
 	{ "keep",		INTEGER,	config_parse_integer,	0,		NULL },
+	{ "kernel",		STRING,		config_parse_string,	0,		"GENERIC.MP" },
 	{ "reboot",		INTEGER,	config_parse_boolean,	0,		NULL },
 	{ "skip",		LIST,		config_parse_list,	0,		NULL },
 	{ "bsd-diff",		LIST,		config_parse_glob,	0,		NULL },
-	{ "bsd-objdir",		STRING,		config_parse_dir,	0,		"/usr/obj" },
-	{ "bsd-srcdir",		STRING,		config_parse_dir,	0,		"/usr/src" },
+	{ "bsd-objdir",		DIRECTORY,	config_parse_string,	0,		"/usr/obj" },
+	{ "bsd-srcdir",		DIRECTORY,	config_parse_string,	0,		"/usr/src" },
 	{ "cvs-root",		STRING,		config_parse_string,	0,		NULL },
 	{ "cvs-user",		STRING,		config_parse_user,	0,		NULL },
 	{ "distrib-host",	STRING,		config_parse_string,	0,		NULL },
@@ -444,15 +453,30 @@ static const struct grammar robsd[] = {
 	{ "distrib-signify",	STRING,		config_parse_string,	0,		NULL },
 	{ "distrib-user",	STRING,		config_parse_user,	0,		NULL },
 	{ "x11-diff",		LIST,		config_parse_glob,	0,		NULL },
-	{ "x11-objdir",		STRING,		config_parse_dir,	0,		"/usr/xobj" },
-	{ "x11-srcdir",		STRING,		config_parse_dir,	0,		"/usr/xenocara" },
+	{ "x11-objdir",		DIRECTORY,	config_parse_string,	0,		"/usr/xobj" },
+	{ "x11-srcdir",		DIRECTORY,	config_parse_string,	0,		"/usr/xenocara" },
 	{ NULL,			0,		NULL,			0,		NULL },
 };
 
+static const struct grammar robsd_cross[] = {
+	{ "robsddir",	DIRECTORY,	config_parse_string,	MANDATORY,	NULL },
+	{ "builduser",	STRING,		config_parse_user,	0,		"build" },
+	{ "crossdir",	STRING,		config_parse_string,	MANDATORY,	NULL },
+	{ "execdir",	DIRECTORY,	config_parse_string,	0,		"/usr/local/libexec/robsd" },
+	{ "keep",	INTEGER,	config_parse_integer,	0,		NULL },
+	{ "kernel",	STRING,		config_parse_string,	0,		"GENERIC.MP" },
+	{ "skip",	LIST,		config_parse_list,	0,		NULL },
+	{ "target",	STRING,		config_parse_bad,	0,		NULL },
+	/* Not used but needed by kernel step. */
+	{ "bsd-objdir",	DIRECTORY,	config_parse_string,	0,		"/usr/obj" },
+	{ "bsd-srcdir",	DIRECTORY,	config_parse_string,	0,		"/usr/src" },
+	{ NULL,		0,		NULL,			0,		NULL },
+};
+
 static const struct grammar robsd_ports[] = {
-	{ "robsddir",		STRING,		config_parse_dir,	MANDATORY,	NULL },
+	{ "robsddir",		DIRECTORY,	config_parse_string,	MANDATORY,	NULL },
 	{ "chroot",		STRING,		config_parse_string,	MANDATORY,	NULL },
-	{ "execdir",		STRING,		config_parse_dir,	0,		"/usr/local/libexec/robsd" },
+	{ "execdir",		DIRECTORY,	config_parse_string,	0,		"/usr/local/libexec/robsd" },
 	{ "hook",		LIST,		config_parse_list,	0,		NULL },
 	{ "keep",		INTEGER,	config_parse_integer,	0,		NULL },
 	{ "skip",		LIST,		config_parse_list,	0,		NULL },
@@ -470,14 +494,14 @@ static const struct grammar robsd_ports[] = {
 };
 
 static const struct grammar robsd_regress[] = {
-	{ "robsddir",		STRING,		config_parse_dir,	MANDATORY,	NULL },
-	{ "execdir",		STRING,		config_parse_dir,	0,		"/usr/local/libexec/robsd" },
+	{ "robsddir",		DIRECTORY,	config_parse_string,	MANDATORY,	NULL },
+	{ "execdir",		DIRECTORY,	config_parse_string,	0,		"/usr/local/libexec/robsd" },
 	{ "hook",		LIST,		config_parse_list,	0,		NULL },
 	{ "keep",		INTEGER,	config_parse_integer,	0,		NULL },
 	{ "rdonly",		INTEGER,	config_parse_boolean,	0,		NULL },
 	{ "sudo",		STRING,		config_parse_string,	0,		"doas -n" },
 	{ "bsd-diff",		LIST,		config_parse_glob,	0,		NULL },
-	{ "bsd-srcdir",		STRING,		config_parse_dir,	0,		"/usr/src" },
+	{ "bsd-srcdir",		DIRECTORY,	config_parse_string,	0,		"/usr/src" },
 	{ "cvs-user",		STRING,		config_parse_user,	0,		NULL },
 	{ "regress",		LIST,		config_parse_regress,	MANDATORY,	NULL },
 	{ "regress-user",	STRING,		config_parse_user,	MANDATORY,	NULL },
@@ -509,10 +533,15 @@ config_alloc(void)
 	}
 	if (mode == -1)
 		mode = CONFIG_ROBSD;
+	config->cf_mode = mode;
 	switch (mode) {
 	case CONFIG_ROBSD:
 		config->cf_path = "/etc/robsd.conf";
 		config->cf_grammar = robsd;
+		break;
+	case CONFIG_ROBSD_CROSS:
+		config->cf_path = "/etc/robsd-cross.conf";
+		config->cf_grammar = robsd_cross;
 		break;
 	case CONFIG_ROBSD_PORTS:
 		config->cf_path = "/etc/robsd-ports.conf";
@@ -555,6 +584,7 @@ config_free(struct config *config)
 		case INTEGER:
 			break;
 		case STRING:
+		case DIRECTORY:
 			free(va->va_str);
 			break;
 		case LIST:
@@ -568,6 +598,57 @@ config_free(struct config *config)
 	free(config);
 }
 
+/*
+ * Read the cross target from the file located in the build directory created by
+ * robsd-cross.
+ */
+int
+config_set_builddir(struct config *config, const char *builddir)
+{
+	char path[PATH_MAX];
+	char *buf = NULL;
+	FILE *fh;
+	ssize_t siz;
+	size_t bufsiz = 0;
+	size_t len;
+	int error = 0;
+	int n;
+
+	if (config->cf_mode != CONFIG_ROBSD_CROSS)
+		return 0;
+
+	siz = sizeof(path);
+	n = snprintf(path, siz, "%s/target", builddir);
+	if (n < 0 || n >= siz) {
+		warnc(ENAMETOOLONG, "%s", __func__);
+		return 1;
+	}
+
+	fh = fopen(path, "r");
+	if (fh == NULL) {
+		if (errno == ENOENT)
+			return 0;
+		warn("%s", path);
+		return 1;
+	}
+	if (getline(&buf, &bufsiz, fh) == -1) {
+		warn("%s", path);
+		error = 1;
+	}
+
+	len = strlen(buf);
+	if (len > 0) {
+		buf[len - 1] = '\0';
+		config_append(config, STRING, "target", buf, 0);
+	} else {
+		warnx("%s: empty", path);
+		error = 1;
+	}
+
+	fclose(fh);
+	return error;
+}
+
 int
 config_append_string(struct config *config, const char *name, const char *val)
 {
@@ -579,7 +660,7 @@ config_append_string(struct config *config, const char *name, const char *val)
 	p = strdup(val);
 	if (p == NULL)
 		err(1, NULL);
-	config_append(config, STRING, name, p);
+	config_append(config, STRING, name, p, 0);
 	return 0;
 }
 
@@ -599,13 +680,16 @@ config_validate(const struct config *config)
 		const struct grammar *gr = &config->cf_grammar[i];
 		const char *str = gr->gr_kw;
 
-		if ((gr->gr_flags & MANDATORY) == 0 ||
-		    config_present(config, str))
-			continue;
+		if ((gr->gr_flags & MANDATORY) &&
+		    !config_present(config, str)) {
+			log_warnx(config->cf_path, 0,
+			    "mandatory variable '%s' missing", str);
+			error = 1;
+		}
 
-		log_warnx(config->cf_path, 0,
-		    "mandatory variable '%s' missing", str);
-		error = 1;
+		if (gr->gr_type == DIRECTORY &&
+		    config_validate_directory(config, str))
+			error = 1;
 	}
 
 	return error;
@@ -697,16 +781,31 @@ config_interpolate_str(const struct config *config, const char *str, int lno)
 			break;
 
 		case STRING:
-			buffer_appendv(buf, "%s", va->va_str);
+		case DIRECTORY: {
+			char *vp;
+
+			vp = config_interpolate_str(config, va->va_str, lno);
+			if (vp == NULL)
+				goto out;
+			buffer_appendv(buf, "%s", vp);
+			free(vp);
 			break;
+		}
 
 		case LIST: {
 			const struct string *st;
 
 			TAILQ_FOREACH(st, va->va_list, st_entry) {
-				buffer_appendv(buf, "%s%s", st->st_val,
+				char *vp;
+
+				vp = config_interpolate_str(config, st->st_val,
+				    lno);
+				if (vp == NULL)
+					goto out;
+				buffer_appendv(buf, "%s%s", vp,
 				    TAILQ_LAST(va->va_list, string_list) == st
 				    ? "" : " ");
+				free(vp);
 			}
 			break;
 		}
@@ -734,9 +833,11 @@ variable_list(const struct variable *va)
 static int
 config_mode(const char *progname)
 {
+	if (strncmp(progname, "robsd-cross", 11) == 0)
+		return CONFIG_ROBSD_CROSS;
 	if (strncmp(progname, "robsd-ports", 11) == 0)
 		return CONFIG_ROBSD_PORTS;
-	else if (strncmp(progname, "robsd-regress", 13) == 0)
+	if (strncmp(progname, "robsd-regress", 13) == 0)
 		return CONFIG_ROBSD_REGRESS;
 	return -1;
 }
@@ -793,11 +894,23 @@ config_exec1(struct config *config, const char *name)
 		error = 1;
 	}
 	if (gr->gr_fn(config, &val) == 0)
-		config_append(config, gr->gr_type, name, val);
+		config_append(config, gr->gr_type, name, val,
+		    config->cf_lx.lx_lno);
 	else
 		error = 1;
 
 	return error;
+}
+
+static int
+config_parse_bad(struct config *config, void **UNUSED(val))
+{
+	struct token tk;
+
+	lexer_warnx(&config->cf_lx, "variable cannot be defined");
+	if (lexer_expect(&config->cf_lx, TOKEN_STRING, &tk))
+		token_free(&tk);
+	return 1;
 }
 
 static int
@@ -858,30 +971,6 @@ out:
 	token_free(&tk);
 	globfree(&g);
 	*val = strings;
-	return 0;
-}
-
-static int
-config_parse_dir(struct config *config, void **val)
-{
-	struct stat st;
-	struct token tk;
-
-	if (!lexer_expect(&config->cf_lx, TOKEN_STRING, &tk))
-		return 1;
-	if (stat(tk.tk_str, &st) == -1) {
-		lexer_warn(&config->cf_lx, "%s", tk.tk_str);
-		token_free(&tk);
-		return 1;
-	}
-	if (!S_ISDIR(st.st_mode)) {
-		lexer_warnx(&config->cf_lx, "%s: is not a directory",
-		    tk.tk_str);
-		token_free(&tk);
-		return 1;
-	}
-
-	*val = tk.tk_str;
 	return 0;
 }
 
@@ -969,8 +1058,8 @@ config_parse_regress(struct config *config, void **val)
 		}
 	}
 
-	config_append(config, LIST, "regress-root", root);
-	config_append(config, LIST, "regress-skip", skip);
+	config_append(config, LIST, "regress-root", root, 0);
+	config_append(config, LIST, "regress-skip", skip, 0);
 
 	*val = regress;
 	return 0;
@@ -978,7 +1067,7 @@ config_parse_regress(struct config *config, void **val)
 
 static void
 config_append(struct config *config, enum variable_type type, const char *name,
-    void *val)
+    void *val, int lno)
 {
 	struct variable *va;
 
@@ -986,6 +1075,7 @@ config_append(struct config *config, enum variable_type type, const char *name,
 	if (va == NULL)
 		err(1, NULL);
 	va->va_type = type;
+	va->va_lno = lno;
 	va->va_name = strdup(name);
 	if (va->va_name == NULL)
 		err(1, NULL);
@@ -1025,6 +1115,7 @@ config_findn(const struct config *config, const char *name, size_t namelen)
 			break;
 
 		case STRING:
+		case DIRECTORY:
 			vadef.va_val = val == NULL ? "" : val;
 			break;
 
@@ -1051,4 +1142,36 @@ config_present(const struct config *config, const char *name)
 			return 1;
 	}
 	return 0;
+}
+
+static int
+config_validate_directory(const struct config *config, const char *name)
+{
+	struct stat st;
+	const struct variable *va;
+	char *path;
+	int error = 0;
+
+	va = config_find(config, name);
+	if (va == NULL)
+		return 0;
+	/* Empty string error already reported by the lexer. */
+	if (strlen(va->va_str) == 0)
+		return 0;
+
+	path = config_interpolate_str(config, va->va_str, 0);
+	if (path == NULL) {
+		error = 1;
+	} else if (stat(path, &st) == -1) {
+		log_warn(config->cf_path, va->va_lno, "%s",
+		    path);
+		error = 1;
+	} else if (!S_ISDIR(st.st_mode)) {
+		log_warnx(config->cf_path, va->va_lno,
+		    "%s: is not a directory", path);
+		error = 1;
+	}
+	free(path);
+
+	return error;
 }

@@ -9,6 +9,16 @@
 #include "extern.h"
 
 void
+log_warn(const char *path, int lno, const char *fmt, ...)
+{
+	va_list ap;
+
+	va_start(ap, fmt);
+	logv(warn, path, lno, fmt, ap);
+	va_end(ap);
+}
+
+void
 log_warnx(const char *path, int lno, const char *fmt, ...)
 {
 	va_list ap;

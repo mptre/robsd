@@ -79,13 +79,13 @@ main(int argc, char *argv[])
 		goto out;
 	}
 
-	if (pledge("stdio exec", NULL) == -1)
-		err(1, "pledge");
-
 	if (config_validate(config)) {
 		error = 1;
 		goto out;
 	}
+
+	if (pledge("stdio exec", NULL) == -1)
+		err(1, "pledge");
 
 	va = config_find(config, "hook");
 	if (va == NULL)

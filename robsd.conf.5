@@ -8,7 +8,12 @@
 .Nm
 is the configuration file for
 .Xr robsd 8 .
-The following variables are recognized.
+The string value type enclosed in
+.Dq double-quotes
+may refer to other configuration variables on the form
+.No \(Do Ns Brq Ar variable .
+.Pp
+The following variables are recognized:
 .Bl -tag -width Ds
 .It Ic robsddir Dq Ar path
 Directory to store releases.
@@ -28,6 +33,8 @@ Number of releases to keep in
 see
 .Xr robsd-clean 8 .
 Defaults to keeping everything.
+.It Ic kernel Dq Ar conf
+Kernel configuration, defaults to GENERIC.MP.
 .It Ic reboot yes | no
 Reboot the machine between the kernel and base step.
 Defaults to

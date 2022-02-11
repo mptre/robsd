@@ -1,0 +1,63 @@
+.Dd $Mdocdate: February 10 2022$
+.Dt ROBSD-CROSS.CONF 5
+.Os
+.Sh NAME
+.Nm robsd-cross.conf
+.Nd robsd-cross configuration file
+.Sh DESCRIPTION
+.Nm
+is the configuration file for
+.Xr robsd-cross 8 .
+The string value type enclosed in
+.Dq double-quotes
+may refer to other configuration variables on the form
+.No \(Do Ns Brq Ar variable .
+In addition, the following variables are also available:
+.Pp
+.Bl -tag -compact -width target
+.It Ic target
+target argument passed to
+.Xr robsd-cross 8
+.El
+.Pp
+The following variables are recognized:
+.Bl -tag -width Ds
+.It Ic robsddir Dq Ar path
+Directory used to store invocations.
+.It Ic hook No { Do Ar path Dc Ar ... No }
+Command to invoke after each non-skipped step,
+see
+.Xr robsd-hook 5 .
+.It Ic keep Ar number
+Number of invocations to keep in
+.Ic robsddir ,
+see
+.Xr robsd-cross-clean 8 .
+Defaults to keeping everything.
+.It Ic kernel Dq Ar conf
+Kernel configuration, defaults to GENERIC.MP.
+.It Ic skip No { Do Ar step Dc Ar ... No }
+Steps to skip, see
+.Xr robsd-cross 8
+for a list of all available steps.
+.It Ic bsd-srcdir Dq Ar path
+Source directory for the src tree, defaults to
+.Pa /usr/src .
+.El
+.Sh FILES
+.Bl -tag -width "/etc/robsd-cross.conf"
+.It Pa /etc/robsd.conf
+The default configuration file.
+.El
+.Sh EXAMPLES
+Example configuration:
+.Bd -literal
+robsddir "/home/snapshots"
+crossdir "/home/cross/${target}"
+.Ed
+.Sh SEE ALSO
+.Xr robsd-cross 8 ,
+.Xr robsd-cross-clean 8 ,
+.Xr robsd-cross-kill 8
+.Sh AUTHORS
+.An Anton Lindqvist Aq Mt anton@basename.se

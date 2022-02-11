@@ -39,6 +39,9 @@ KNFMT+=	util.c
 
 SCRIPTS+=	robsd-base.sh
 SCRIPTS+=	robsd-checkflist.sh
+SCRIPTS+=	robsd-cross-dirs.sh
+SCRIPTS+=	robsd-cross-distrib.sh
+SCRIPTS+=	robsd-cross-tools.sh
 SCRIPTS+=	robsd-cvs.sh
 SCRIPTS+=	robsd-distrib.sh
 SCRIPTS+=	robsd-env.sh
@@ -57,6 +60,7 @@ SCRIPTS+=	robsd-release.sh
 SCRIPTS+=	robsd-revert.sh
 SCRIPTS+=	robsd-xbase.sh
 SCRIPTS+=	robsd-xrelease.sh
+SCRIPTS+=	util-cross.sh
 SCRIPTS+=	util-ports.sh
 SCRIPTS+=	util-regress.sh
 SCRIPTS+=	util.sh
@@ -75,6 +79,12 @@ DISTFILES+=	robsd-checkflist.sh
 DISTFILES+=	robsd-clean
 DISTFILES+=	robsd-clean.8
 DISTFILES+=	robsd-config.c
+DISTFILES+=	robsd-cross
+DISTFILES+=	robsd-cross-dirs.sh
+DISTFILES+=	robsd-cross-distrib.sh
+DISTFILES+=	robsd-cross-tools.sh
+DISTFILES+=	robsd-cross.8
+DISTFILES+=	robsd-cross.conf.5
 DISTFILES+=	robsd-cvs.sh
 DISTFILES+=	robsd-distrib.sh
 DISTFILES+=	robsd-env.sh
@@ -133,6 +143,7 @@ DISTFILES+=	tests/report-size.sh
 DISTFILES+=	tests/report-skip.sh
 DISTFILES+=	tests/report.sh
 DISTFILES+=	tests/robsd-config.sh
+DISTFILES+=	tests/robsd-cross.sh
 DISTFILES+=	tests/robsd-hook.sh
 DISTFILES+=	tests/robsd-ports.sh
 DISTFILES+=	tests/robsd-regress.sh
@@ -145,6 +156,7 @@ DISTFILES+=	tests/step-next.sh
 DISTFILES+=	tests/step-value.sh
 DISTFILES+=	tests/t.sh
 DISTFILES+=	tests/util.sh
+DISTFILES+=	util-cross.sh
 DISTFILES+=	util-ports.sh
 DISTFILES+=	util-regress.sh
 DISTFILES+=	util.c
@@ -158,6 +170,8 @@ INSTALL?=	install
 INSTALL_MAN?=	${INSTALL}
 
 MANLINT+=	robsd-clean.8
+MANLINT+=	robsd-cross.8
+MANLINT+=	robsd-cross.conf.5
 MANLINT+=	robsd-hook.5
 MANLINT+=	robsd-ports.8
 MANLINT+=	robsd-ports.conf.5
@@ -171,6 +185,7 @@ MANLINT+=	robsd.conf.5
 SHLINT+=	${SCRIPTS}
 SHLINT+=	robsd
 SHLINT+=	robsd-clean
+SHLINT+=	robsd-cross
 SHLINT+=	robsd-kill
 SHLINT+=	robsd-ports
 SHLINT+=	robsd-regress
@@ -233,6 +248,15 @@ install: all
 	${INSTALL_MAN} ${.CURDIR}/robsd-rescue.8 ${DESTDIR}${MANDIR}/man8
 # robsd-config
 	${INSTALL} -m 0555 ${PROG_robsd-config} ${DESTDIR}${LIBEXECDIR}/robsd
+# robsd-cross
+	${INSTALL} -m 0555 ${.CURDIR}/robsd-cross ${DESTDIR}${BINDIR}
+	ln -f ${DESTDIR}${BINDIR}/robsd-clean ${DESTDIR}${BINDIR}/robsd-cross-clean
+	ln -f ${DESTDIR}${BINDIR}/robsd-kill ${DESTDIR}${BINDIR}/robsd-cross-kill
+	ln -f ${DESTDIR}${LIBEXECDIR}/robsd/robsd-config ${DESTDIR}${LIBEXECDIR}/robsd/robsd-cross-config
+	ln -f ${DESTDIR}${LIBEXECDIR}/robsd/robsd-exec ${DESTDIR}${LIBEXECDIR}/robsd/robsd-cross-exec
+	ln -f ${DESTDIR}${LIBEXECDIR}/robsd/robsd-hook ${DESTDIR}${LIBEXECDIR}/robsd/robsd-cross-hook
+	${INSTALL_MAN} ${.CURDIR}/robsd-cross.conf.5 ${DESTDIR}${MANDIR}/man5
+	${INSTALL_MAN} ${.CURDIR}/robsd-cross.8 ${DESTDIR}${MANDIR}/man8
 # robsd-exec
 	${INSTALL} -m 0555 ${PROG_robsd-exec} ${DESTDIR}${LIBEXECDIR}/robsd
 # robsd-hook

@@ -30,6 +30,14 @@ Some of its noteworthy features:
 
 [robsd]: https://www.basename.se/robsd
 
+### robsd-cross
+
+[robsd-cross(8)](robsd-cross)
+builds a cross compiler tool chain and kernel for another architecture,
+using `${BSDSRCDIR}/Makefile.cross` behind the scenes
+
+[robsd-cross]: https://www.basename.se/robsd-cross
+
 ### robsd-ports
 
 [robsd-ports(8)](robsd-ports)

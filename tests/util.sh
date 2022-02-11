@@ -1,12 +1,13 @@
 set -u
 
-# robsd_config [-PR] [-]
+# robsd_config [-CPR] [-]
 robsd_config() {
 	local _stdin=0
 	local _mode="robsd"
 
 	while [ "$#" -gt 0 ]; do
 		case "$1" in
+		-C)	_mode="robsd-cross";;
 		-P)	_mode="robsd-ports";;
 		-R)	_mode="robsd-regress";;
 		-)	_stdin=1;;
@@ -27,6 +28,12 @@ robsd_config() {
 			x11-srcdir "${TSHDIR}"
 			EOF
 			;;
+		robsd-cross)
+			cat <<-EOF
+			crossdir "${TSHDIR}"
+			bsd-srcdir "${TSHDIR}"
+			EOF
+			;;
 		robsd-ports)
 			cat <<-EOF
 			chroot "${TSHDIR}"
@@ -44,11 +51,16 @@ robsd_config() {
 			EOF
 			;;
 		*)
+			return 1
 			;;
 		esac
 
 		[ "$_stdin" -eq 1 ] && cat
 	} >"$ROBSDCONF"
+
+	if ! grep execdir "$ROBSDCONF"; then
+		echo "execdir \"${TSHDIR}\"" >>"$ROBSDCONF"
+	fi
 }
 
 # robsd_mock
@@ -90,9 +102,13 @@ robsd_mock() {
 	EOF
 	chmod u+x "${_bindir}/sysctl"
 
-	cat <<-EOF >"${_bindir}/su"
+	cat <<-'EOF' >"${_bindir}/su"
 	shift 2 # strip of su login
-	\$@
+	if [ $# -gt 0 ]; then
+		$@
+	else
+		sh
+	fi
 	EOF
 	chmod u+x "${_bindir}/su"
 
