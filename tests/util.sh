@@ -58,7 +58,7 @@ robsd_config() {
 		[ "$_stdin" -eq 1 ] && cat
 	} >"$ROBSDCONF"
 
-	if ! grep execdir "$ROBSDCONF"; then
+	if ! grep -q execdir "$ROBSDCONF"; then
 		echo "execdir \"${TSHDIR}\"" >>"$ROBSDCONF"
 	fi
 }
