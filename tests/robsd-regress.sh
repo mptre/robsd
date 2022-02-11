@@ -4,7 +4,7 @@ ROBSDREGRESS="${EXECDIR}/robsd-regress"
 ROBSDKILL="${EXECDIR}/robsd-kill"
 
 if testcase "basic"; then
-	robsd_config -R - "robsd-regress" <<-EOF
+	robsd_config -R - <<-EOF
 	robsddir "${ROBSDDIR}"
 	execdir "${EXECDIR}"
 	regress { "test/fail" "test/hello" "test/root:R" }
@@ -38,7 +38,7 @@ EOF
 fi
 
 if testcase "failure in non-test step"; then
-	robsd_config -R - "robsd-regress" <<-EOF
+	robsd_config -R - <<-EOF
 	robsddir "${ROBSDDIR}"
 	execdir "${EXECDIR}"
 	regress { "test/nothing" }
@@ -59,7 +59,7 @@ if testcase "failure in non-test step"; then
 fi
 
 if testcase "failure in non-test step, conflicting with test name"; then
-	robsd_config -R - "robsd-regress" <<-EOF
+	robsd_config -R - <<-EOF
 	robsddir "${ROBSDDIR}"
 	execdir "${EXECDIR}"
 	regress { "usr.bin/patch" }
@@ -74,7 +74,7 @@ if testcase "failure in non-test step, conflicting with test name"; then
 fi
 
 if testcase "kill"; then
-	robsd_config -R - "robsd-regress" <<-EOF
+	robsd_config -R - <<-EOF
 	robsddir "${ROBSDDIR}"
 	execdir "${EXECDIR}"
 	regress { "test/sleep" "test/nein" }
