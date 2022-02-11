@@ -10,14 +10,17 @@ kernel_path() {
 }
 
 config_load <<'EOF'
-BSDSRCDIR="${bsd-srcdir}"
+BSDOBJDIR="${bsd-objdir}"; export BSDOBJDIR
+BSDSRCDIR="${bsd-srcdir}"; export BSDSRCDIR
 BUILDUSER="${builduser}"
 EOF
 
 cd "${BSDSRCDIR}/sys/$(kernel_path)"
 
-unpriv "$BUILDUSER" <<EOF
+# Cannot create object directory symlink as build user.
 make obj
+
+unpriv "$BUILDUSER" <<EOF
 make config
 make && exit 0
 
