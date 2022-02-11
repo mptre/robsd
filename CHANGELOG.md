@@ -1,3 +1,21 @@
+# v11.0.0 - 2022-XX-XX
+
+## Changes
+
+- Compile the GENERIC.MP kernel by default, as opposed of choosing the
+  kernel configuration based on the number of CPUs online.
+  The kernel configuration can be specified using the new kernel configuration
+  variable.
+  (25aa85e)
+  (Anton Lindqvist)
+
+## News
+
+- Allow interpolation of configuration variables, making it possible to refer to
+  other configuration variables.
+  (25aa85e)
+  (Anton Lindqvist)
+
 # v10.0.0 - 2022-02-10
 
 ## Changes
