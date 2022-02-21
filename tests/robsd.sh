@@ -170,7 +170,7 @@ if testcase "early failure"; then
 	robsd_config - <<-EOF
 	robsddir "${ROBSDDIR}"
 	EOF
-	echo 'exit 0' >"${BINDIR}/sysctl"
+	echo 'echo 0' >"${BINDIR}/sysctl"
 	mkdir -p "$ROBSDDIR"
 	if PATH="${BINDIR}:${PATH}" sh "$ROBSD" -d >"$TMP1" 2>&1; then
 		fail - "expected exit non-zero" <"$TMP1"

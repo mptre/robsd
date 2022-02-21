@@ -56,14 +56,20 @@ build_init() {
 
 # check_perf
 #
-# Sanity check performance parameters.
+# Sanity check performance parameters. Some architectures does however not
+# support performance tuning.
 check_perf() {
-	case "$(sysctl -n hw.perfpolicy)" in
+	local _perf
+
+	case "$(sysctl -n hw.perfpolicy 2>/dev/null)" in
 	auto|high)	return 0;;
 	*)		;;
 	esac
 
-	[ "$(sysctl -n hw.setperf)" -eq 100 ] && return 0
+	_perf="$(sysctl -n hw.setperf 2>/dev/null)"
+	if [ -z "$_perf" ] || [ "$_perf" -eq 100 ]; then
+		return 0
+	fi
 
 	info "non-optimal performance detected, check hw.perfpolicy and hw.setperf"
 	return 1

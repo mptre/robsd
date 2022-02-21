@@ -1,3 +1,4 @@
+TESTS+=	check-perf.sh
 TESTS+=	cleandir.sh
 TESTS+=	cvs-log.sh
 TESTS+=	diff-apply.sh

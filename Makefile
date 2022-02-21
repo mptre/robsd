@@ -121,6 +121,7 @@ DISTFILES+=	robsd-xrelease.sh
 DISTFILES+=	robsd.8
 DISTFILES+=	robsd.conf.5
 DISTFILES+=	tests/Makefile
+DISTFILES+=	tests/check-perf.sh
 DISTFILES+=	tests/cleandir.sh
 DISTFILES+=	tests/cvs-log.sh
 DISTFILES+=	tests/diff-apply.sh
