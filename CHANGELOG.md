@@ -1,4 +1,4 @@
-# v11.0.0 - 2022-XX-XX
+# v11.0.0 - 2022-02-22
 
 ## Changes
 
@@ -11,9 +11,19 @@
 
 ## News
 
+- Add robsd-cross, used to cross compile the kernel.
+  (25aa85e)
+  (Anton Lindqvist)
+
 - Allow interpolation of configuration variables, making it possible to refer to
   other configuration variables.
   (25aa85e)
+  (Anton Lindqvist)
+
+## Bug fixes
+
+- Some architectures does not support performance tuning.
+  (1d4e4fe)
   (Anton Lindqvist)
 
 # v10.0.0 - 2022-02-10
