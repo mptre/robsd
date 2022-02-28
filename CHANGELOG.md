@@ -1,3 +1,11 @@
+# v11.1.0 - 2022-02-28
+
+## News
+
+- Use bsd.regress.mk markers to split test cases.
+  (51510fc)
+  (Anton Lindqvist)
+
 # v11.0.0 - 2022-02-22
 
 ## Changes
