@@ -237,9 +237,7 @@ install: all
 	${INSTALL} -m 0555 ${.CURDIR}/robsd-kill ${DESTDIR}${BINDIR}
 	${INSTALL} -m 0555 ${.CURDIR}/robsd-rescue ${DESTDIR}${BINDIR}
 	mkdir -p ${DESTDIR}${LIBEXECDIR}/robsd
-.for s in ${SCRIPTS}
-	${INSTALL} -m 0444 ${.CURDIR}/$s ${DESTDIR}${LIBEXECDIR}/robsd/$s
-.endfor
+	cd ${.CURDIR} && ${INSTALL} -m 0444 ${SCRIPTS} ${DESTDIR}${LIBEXECDIR}/robsd
 	@mkdir -p ${DESTDIR}${MANDIR}/man5
 	${INSTALL_MAN} ${.CURDIR}/robsd.conf.5 ${DESTDIR}${MANDIR}/man5
 	@mkdir -p ${DESTDIR}${MANDIR}/man8
