@@ -855,6 +855,7 @@ report() {
 	local _status
 	local _steps
 	local _tmp
+	local _tmpdir
 
 	while [ $# -gt 0 ]; do
 		case "$1" in
@@ -869,7 +870,8 @@ report() {
 
 	_report="${_builddir}/report"
 	_steps="${_builddir}/steps"
-	_tmp="${_builddir}/tmp/report"
+	_tmpdir="${_builddir}/tmp"
+	_tmp="${_tmpdir}/report"
 
 	# The steps file could be empty when a build fails to start due to
 	# another already running build.
@@ -952,7 +954,8 @@ report() {
 		_log="$(step_value log)"
 
 		if [ "$_exit" -eq 0 ] &&
-		   report_skip -b "$_builddir" -n "$_name" -l "$_log"
+		   report_skip -b "$_builddir" -n "$_name" -l "$_log" \
+			-t "$_tmpdir"
 		then
 			continue
 		fi
@@ -1171,7 +1174,7 @@ report_sizes() {
 	done
 }
 
-# report_skip -b build-dir -n step-name -l step-log
+# report_skip -b build-dir -n step-name -l step-log -t tmp-dir
 #
 # Exits zero if the given step should not be included in the report.
 report_skip() {
@@ -1197,6 +1200,7 @@ report_skip() {
 		-b)	shift; _builddir="$1";;
 		-l)	shift; _log="$1";;
 		-n)	shift; _name="$1";;
+		-t)	shift;;
 		*)	break;;
 		esac
 		shift

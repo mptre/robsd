@@ -76,7 +76,7 @@ if testcase "regress"; then
 	EOF
 
 	if (setmode "robsd-regress" &&
-	    report_skip -b "$TSHDIR" -n "bin/cat" -l "/dev/null")
+	    report_skip -b "$TSHDIR" -n "bin/cat" -l "/dev/null" -t "$TSHDIR")
 	then
 		:
 	else

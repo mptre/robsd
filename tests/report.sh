@@ -144,8 +144,6 @@ fi
 if testcase "regress"; then
 	build_init "$BUILDDIR"
 	cat <<-EOF >"${BUILDDIR}/skipped.log"
-	discard me...
-
 	===> test
 	SKIPPED
 	EOF

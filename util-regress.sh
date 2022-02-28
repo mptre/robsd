@@ -40,24 +40,26 @@ regress_report_log() {
 	: "${_log:?}"
 	: "${_tmpdir:?}"
 
-	regress_tests 'FAILED|SKIPPED|: process group exited ' "$_log" |
+	regress_tests -t "$_tmpdir" 'FAILED|SKIPPED|: process group exited ' "$_log" |
 	tee "${_tmpdir}/regress"
 	[ -s "${_tmpdir}/regress" ] || tail "$_log"
 	return 0
 }
 
-# regress_report_skip -b build-dir -n step-name -l step-log
+# regress_report_skip -b build-dir -n step-name -l step-log -t tmp-dir
 #
 # Exits zero if the given step should not be included in the report.
 regress_report_skip() {
 	local _log
 	local _name
+	local _tmpdir
 
 	while [ $# -gt 0 ]; do
 		case "$1" in
 		-b)	shift;;
 		-l)	shift; _log="$1";;
 		-n)	shift; _name="$1";;
+		-t)	shift; _tmpdir="$1";;
 		*)	break;;
 		esac
 		shift
@@ -67,7 +69,8 @@ regress_report_skip() {
 
 	# Do not skip if one or many tests where skipped.
 	if ! regress_skip "$_name" &&
-	   ! regress_tests SKIPPED "$_log" | cmp -s - /dev/null; then
+	   ! regress_tests -t "$_tmpdir" SKIPPED "$_log" | cmp -s - /dev/null
+	then
 		return 1
 	fi
 	return 0
@@ -160,19 +163,32 @@ regress_steps() {
 	EOF
 }
 
-# regress_tests outcome-pattern step-log
+# regress_tests -t tmp-dir outcome-pattern step-log
 #
 # Extract all regress tests from the log matching the given outcome pattern.
 regress_tests() {
 	local _outcome
 	local _log
+	local _split="split${RANDOM}"
+	local _tmpdir
+
+	while [ $# -gt 0 ]; do
+		case "$1" in
+		-t)	shift; _tmpdir="$1";;
+		*)	break;;
+		esac
+		shift
+	done
+	: "${_tmpdir:?}"
 
 	_outcome="$1"; : "${_outcome:?}"
 	_log="$2"; : "${_log:?}"
 
-	awk '
-	/^$/ { buf = ""; next }
-	{ buf = buf "\n" $0 }
-	/^'"$_outcome"'/ { printf("%s\n", buf); buf = "" }
-	' "$_log" | tail -n +2
+	(cd "$_tmpdir" && split -p "^==== .* ====$" "$_log" "$_split")
+
+	grep -Els -e "$_outcome" "${_tmpdir}/${_split}"* |
+	xargs cat |
+	sed -e '/./,$!d' -e :a -e '/^\n*$/{$d;N;ba' -e '}'
+
+	rm -f "${_tmpdir}/${_split}"*
 }

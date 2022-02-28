@@ -93,7 +93,7 @@ ports_report_log() {
 	esac
 }
 
-# ports_report_skip -b build-dir -n step-name -l step-log
+# ports_report_skip -b build-dir -n step-name -l step-log -t tmp-dir
 #
 # Exits zero if the given step should not be included in the report.
 ports_report_skip() {
@@ -105,6 +105,7 @@ ports_report_skip() {
 		-b)	shift;;
 		-l)	shift; _log="$1";;
 		-n)	shift; _name="$1";;
+		-t)	shift;;
 		*)	break;;
 		esac
 		shift
