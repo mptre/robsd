@@ -20,17 +20,17 @@ The
 utility builds a cross compiler tool chain and kernel for
 .Ar target .
 The process is divided into the steps as follows:
-.Bl -tag -width cross-distrib
+.Bl -tag -width distrib
 .It env
 Dump the current environment.
 This is a no operation only used to collect data useful while debugging.
-.It cross-dirs
+.It dirs
 Create
 .Ic crossdir
 and populate it with the rudimentary directory layout.
-.It cross-tools
+.It tools
 Build the compiler tool chain.
-.It cross-distrib
+.It distrib
 Build remaining parts of the target distribution.
 .It kernel
 Build a new kernel using the

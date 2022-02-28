@@ -11,9 +11,9 @@ cross_report_subject() {
 cross_steps() {
 	cat <<-EOF
 	env
-	cross-dirs
-	cross-tools
-	cross-distrib
+	dirs
+	tools
+	distrib
 	kernel
 	end
 	EOF
