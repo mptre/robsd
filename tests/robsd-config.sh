@@ -41,6 +41,7 @@ default_config() {
 	robsddir "/var/empty"
 	destdir "/var/empty"
 	execdir "/var/empty"
+	bsd-srcdir "/var/empty"
 	x11-srcdir "/var/empty"
 	EOF
 }
@@ -51,6 +52,7 @@ default_cross_config() {
 	robsddir "${TSHDIR}"
 	crossdir "/var/empty"
 	execdir "/var/empty"
+	bsd-srcdir "/var/empty"
 	EOF
 }
 
@@ -70,6 +72,7 @@ default_regress_config() {
 	cat <<-EOF
 	robsddir "/var/empty"
 	execdir "/var/empty"
+	bsd-srcdir "/var/empty"
 	regress-user "nobody"
 	regress { "bin/csh:R" "bin/ksh:RS" "bin/ls" }
 	EOF
@@ -181,7 +184,7 @@ fi
 if testcase "string interpolation"; then
 	{
 		default_config
-		echo "bsd-srcdir \"\${robsddir}\""
+		echo "bsd-objdir \"\${robsddir}\""
 	} >"$CONFIG"
 	echo "\${bsd-srcdir}" >"$STDIN"
 	robsd_config - <<-EOF
@@ -246,23 +249,23 @@ if testcase "invalid grammar"; then
 fi
 
 if testcase "invalid directory missing"; then
-	{ default_config; echo 'bsd-srcdir "/nein"'; } >"$CONFIG"
+	{ default_config; echo 'bsd-objdir "/nein"'; } >"$CONFIG"
 	robsd_config -e - <<-EOF
-	robsd-config: ${CONFIG}:5: /nein: No such file or directory
+	robsd-config: ${CONFIG}:6: /nein: No such file or directory
 	EOF
 fi
 
 if testcase "invalid not a directory"; then
-	{ default_config; printf 'bsd-srcdir "%s"\n' "$CONFIG"; } >"$CONFIG"
+	{ default_config; printf 'bsd-objdir "%s"\n' "$CONFIG"; } >"$CONFIG"
 	robsd_config -e - <<-EOF
-	robsd-config: ${CONFIG}:5: ${CONFIG}: is not a directory
+	robsd-config: ${CONFIG}:6: ${CONFIG}: is not a directory
 	EOF
 fi
 
 if testcase "invalid already defined"; then
 	{ default_config; echo 'robsddir "/var/empty"'; } >"$CONFIG"
 	robsd_config -e - <<-EOF
-	robsd-config: ${CONFIG}:5: variable 'robsddir' already defined
+	robsd-config: ${CONFIG}:6: variable 'robsddir' already defined
 	EOF
 fi
 
@@ -278,6 +281,7 @@ if testcase "invalid empty mandatory"; then
 	{
 		echo 'robsddir ""'
 		echo 'execdir "/var/empty"'
+		echo 'bsd-srcdir "/var/empty"'
 		echo 'x11-srcdir "/var/empty"'
 	} >"$CONFIG"
 	robsd_config -e | grep -v -e mandatory >"$TMP1"
