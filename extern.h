@@ -8,7 +8,7 @@
  * config -------------------------------------------------------------------------
  */
 
-struct config		*config_alloc(void);
+struct config		*config_alloc(const char *);
 void			 config_free(struct config *);
 int			 config_set_builddir(struct config *, const char *);
 int			 config_parse(struct config *, const char *);

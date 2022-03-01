@@ -263,9 +263,7 @@ install: all
 	${INSTALL_MAN} ${.CURDIR}/robsd-cross.8 ${DESTDIR}${MANDIR}/man8
 	ln -f ${DESTDIR}${BINDIR}/robsd-clean ${DESTDIR}${BINDIR}/robsd-cross-clean
 	ln -f ${DESTDIR}${BINDIR}/robsd-kill ${DESTDIR}${BINDIR}/robsd-cross-kill
-	ln -f ${DESTDIR}${LIBEXECDIR}/robsd/robsd-config ${DESTDIR}${LIBEXECDIR}/robsd/robsd-cross-config
 	ln -f ${DESTDIR}${LIBEXECDIR}/robsd/robsd-exec ${DESTDIR}${LIBEXECDIR}/robsd/robsd-cross-exec
-	ln -f ${DESTDIR}${LIBEXECDIR}/robsd/robsd-hook ${DESTDIR}${LIBEXECDIR}/robsd/robsd-cross-hook
 # robsd-ports
 	${INSTALL} -m 0555 ${.CURDIR}/robsd-ports ${DESTDIR}${BINDIR}
 	${INSTALL_MAN} ${.CURDIR}/robsd-ports.conf.5 ${DESTDIR}${MANDIR}/man5
@@ -273,8 +271,6 @@ install: all
 	ln -f ${DESTDIR}${BINDIR}/robsd-clean ${DESTDIR}${BINDIR}/robsd-ports-clean
 	ln -f ${DESTDIR}${BINDIR}/robsd-kill ${DESTDIR}${BINDIR}/robsd-ports-kill
 	ln -f ${DESTDIR}${LIBEXECDIR}/robsd/robsd-exec ${DESTDIR}${LIBEXECDIR}/robsd/robsd-ports-exec
-	ln -f ${DESTDIR}${LIBEXECDIR}/robsd/robsd-config ${DESTDIR}${LIBEXECDIR}/robsd/robsd-ports-config
-	ln -f ${DESTDIR}${LIBEXECDIR}/robsd/robsd-hook ${DESTDIR}${LIBEXECDIR}/robsd/robsd-ports-hook
 # robsd-regress
 	${INSTALL} -m 0555 ${.CURDIR}/robsd-regress ${DESTDIR}${BINDIR}
 	${INSTALL_MAN} ${.CURDIR}/robsd-regress.conf.5 ${DESTDIR}${MANDIR}/man5
@@ -282,8 +278,6 @@ install: all
 	ln -f ${DESTDIR}${BINDIR}/robsd-clean ${DESTDIR}${BINDIR}/robsd-regress-clean
 	ln -f ${DESTDIR}${BINDIR}/robsd-kill ${DESTDIR}${BINDIR}/robsd-regress-kill
 	ln -f ${DESTDIR}${LIBEXECDIR}/robsd/robsd-exec ${DESTDIR}${LIBEXECDIR}/robsd/robsd-regress-exec
-	ln -f ${DESTDIR}${LIBEXECDIR}/robsd/robsd-config ${DESTDIR}${LIBEXECDIR}/robsd/robsd-regress-config
-	ln -f ${DESTDIR}${LIBEXECDIR}/robsd/robsd-hook ${DESTDIR}${LIBEXECDIR}/robsd/robsd-regress-hook
 .PHONY: install
 
 test: all

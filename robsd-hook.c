@@ -14,7 +14,7 @@ int
 main(int argc, char *argv[])
 {
 	char bufpath[PATH_MAX];
-	struct config *config;
+	struct config *config = NULL;
 	const struct string *st;
 	const struct string_list *strings;
 	const struct variable *va;
@@ -29,9 +29,7 @@ main(int argc, char *argv[])
 	if (pledge("stdio rpath exec getpw", NULL) == -1)
 		err(1, "pledge");
 
-	config = config_alloc();
-
-	while ((ch = getopt(argc, argv, "Vf:v:")) != -1) {
+	while ((ch = getopt(argc, argv, "Vf:m:v:")) != -1) {
 		switch (ch) {
 		case 'V':
 			verbose++;
@@ -40,6 +38,9 @@ main(int argc, char *argv[])
 		case 'f': {
 			int n;
 
+			if (config == NULL)
+				usage();
+
 			n = snprintf(bufpath, sizeof(bufpath), "%s", optarg);
 			if (n < 0 || n >= (ssize_t)sizeof(bufpath))
 				errc(1, ENAMETOOLONG, "%s", optarg);
@@ -47,8 +48,19 @@ main(int argc, char *argv[])
 			break;
 		}
 
+		case 'm':
+			config = config_alloc(optarg);
+			if (config == NULL) {
+				error = 1;
+				goto out;
+			}
+			break;
+
 		case 'v': {
 			char *name, *val;
+
+			if (config == NULL)
+				usage();
 
 			val = strchr(optarg, '=');
 			if (val == NULL)
@@ -74,12 +86,7 @@ main(int argc, char *argv[])
 	if (argc > 0)
 		usage();
 
-	if (config_parse(config, path)) {
-		error = 1;
-		goto out;
-	}
-
-	if (config_validate(config)) {
+	if (config_parse(config, path) || config_validate(config)) {
 		error = 1;
 		goto out;
 	}
@@ -132,6 +139,6 @@ out:
 static __dead void
 usage(void)
 {
-	fprintf(stderr, "usage: robsd-hook [-v var=val] [-f file]\n");
+	fprintf(stderr, "usage: robsd-hook -m mode [-f file] [-v var=val]\n");
 	exit(1);
 }

@@ -97,16 +97,16 @@ config_load() {
 	: "${DETACH:=1}"
 	: "${EXECDIR:=/usr/local/libexec/robsd}"; export EXECDIR
 	PATH="${PATH}:/usr/X11R6/bin"; export PATH
-	: "${ROBSDCONFIG:=${EXECDIR}/${_MODE}-config}"
-	: "${ROBSDHOOK:=${EXECDIR}/${_MODE}-hook}"
+	: "${ROBSDCONFIG:=${EXECDIR}/robsd-config}"
+	: "${ROBSDHOOK:=${EXECDIR}/robsd-hook}"
 	: "${ROBSDSTAT:=${EXECDIR}/robsd-stat}"
 
 	_tmp="$(mktemp -t robsd.XXXXXX)"
 	{
 		cat
 		echo "EXECDIR=\${execdir}"
-	} | "$ROBSDCONFIG" \
-		-b "${BUILDDIR}" ${ROBSDCONF:+"-f${ROBSDCONF}"} - >"$_tmp"
+	} | "$ROBSDCONFIG" -m "$_MODE" -b "${BUILDDIR}" \
+		${ROBSDCONF:+"-f${ROBSDCONF}"} - >"$_tmp"
 	eval "$(<"$_tmp")"
 	rm "$_tmp"
 
@@ -1425,7 +1425,7 @@ step_end() {
 	if [ "$_d" -ne -1 ] &&
 	   [ "$_name" != "env" ]; then
 		# Ignore non-zero exit.
-		"$ROBSDHOOK" -V ${ROBSDCONF:+"-f${ROBSDCONF}"} \
+		"$ROBSDHOOK" -m "$_MODE" -V ${ROBSDCONF:+"-f${ROBSDCONF}"} \
 			-v "builddir=${BUILDDIR}" \
 			-v "exit=${_e}" \
 			-v "step=${_name}" \

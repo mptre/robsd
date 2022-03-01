@@ -15,7 +15,7 @@ main(int argc, char *argv[])
 {
 	char bufpath[PATH_MAX];
 	const char *path = NULL;
-	struct config *config;
+	struct config *config = NULL;
 	int dointerpolate = 0;
 	int error = 0;
 	int ch;
@@ -23,11 +23,11 @@ main(int argc, char *argv[])
 	if (pledge("stdio rpath getpw", NULL) == -1)
 		err(1, "pledge");
 
-	config = config_alloc();
-
-	while ((ch = getopt(argc, argv, "b:f:")) != -1) {
+	while ((ch = getopt(argc, argv, "b:f:m:")) != -1) {
 		switch (ch) {
 		case 'b':
+			if (config == NULL)
+				usage();
 			if (config_set_builddir(config, optarg)) {
 				error = 1;
 				goto out;
@@ -36,6 +36,9 @@ main(int argc, char *argv[])
 
 		case 'f': {
 			int n;
+
+			if (config == NULL)
+				usage();
 
 			n = snprintf(bufpath, sizeof(bufpath), "%s", optarg);
 			if (n < 0 || n >= (ssize_t)sizeof(bufpath)) {
@@ -47,13 +50,21 @@ main(int argc, char *argv[])
 			break;
 		}
 
+		case 'm':
+			config = config_alloc(optarg);
+			if (config == NULL) {
+				error = 1;
+				goto out;
+			}
+			break;
+
 		default:
 			usage();
 		}
 	}
 	argc -= optind;
 	argv += optind;
-	if (argc > 1)
+	if (argc > 1 || config == NULL)
 		usage();
 	if (argc == 1) {
 		if (strcmp(argv[0], "-") == 0)
@@ -62,12 +73,7 @@ main(int argc, char *argv[])
 			usage();
 	}
 
-	if (config_parse(config, path)) {
-		error = 1;
-		goto out;
-	}
-
-	if (config_validate(config)) {
+	if (config_parse(config, path) || config_validate(config)) {
 		error = 1;
 		goto out;
 	}
@@ -86,7 +92,7 @@ out:
 static __dead void
 usage(void)
 {
-	fprintf(stderr, "usage: robsd-config [-n] [-b build-dir] [-f file] "
+	fprintf(stderr, "usage: robsd-config -m mode [-b build-dir] [-f file] "
 	    "[-]\n");
 	exit(1);
 }

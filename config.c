@@ -509,32 +509,17 @@ static const struct grammar robsd_regress[] = {
 };
 
 struct config *
-config_alloc(void)
+config_alloc(const char *mode)
 {
 	struct config *config;
-	int mode;
 
 	config = calloc(1, sizeof(*config));
 	if (config == NULL)
 		err(1, NULL);
 	TAILQ_INIT(&config->cf_variables);
 
-	mode = config_mode(getprogname());
-	if (mode == -1) {
-		const char *progname;
-
-		/*
-		 * Testing backdoor, but since _MODE is exported under normal executing
-		 * as well give the actual program name higher precedence.
-		 */
-		progname = getenv("_MODE");
-		if (progname != NULL)
-			mode = config_mode(progname);
-	}
-	if (mode == -1)
-		mode = CONFIG_ROBSD;
-	config->cf_mode = mode;
-	switch (mode) {
+	config->cf_mode = config_mode(mode);
+	switch (config->cf_mode) {
 	case CONFIG_ROBSD:
 		config->cf_path = "/etc/robsd.conf";
 		config->cf_grammar = robsd;
@@ -839,7 +824,7 @@ config_mode(const char *progname)
 		return CONFIG_ROBSD_PORTS;
 	if (strncmp(progname, "robsd-regress", 13) == 0)
 		return CONFIG_ROBSD_REGRESS;
-	return -1;
+	return CONFIG_ROBSD;
 }
 
 static int

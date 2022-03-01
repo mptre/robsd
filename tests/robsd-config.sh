@@ -22,7 +22,7 @@ robsd_config() {
 	[ -e "$CONFIG" ] || : >"$CONFIG"
 	[ -e "$STDIN" ] || : >"$STDIN"
 
-	env "_MODE=${_mode}" "$ROBSDCONFIG" -f "$CONFIG" "$@" - \
+	"$ROBSDCONFIG" -m "$_mode" -f "$CONFIG" "$@" - \
 		<"$STDIN" >"$_stdout" 2>&1 || _err1="$?"
 	if [ "$_err0" -ne "$_err1" ]; then
 		fail - "expected exit ${_err0}, got ${_err1}" <"$_stdout"

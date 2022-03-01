@@ -18,7 +18,7 @@ robsd_hook() {
 	done
 	[ "${1:-}" == "--" ] && shift
 
-	env "_MODE=${_mode}" "$ROBSDHOOK" -f "$CONFIG" "$@" \
+	"$ROBSDHOOK" -m "$_mode" -f "$CONFIG" "$@" \
 		>"$_stdout" 2>&1 || _err1="$?"
 	if [ "$_err0" -ne "$_err1" ]; then
 		fail - "expected exit ${_err0}, got ${_err1}" <"$_stdout"
