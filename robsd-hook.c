@@ -118,7 +118,7 @@ main(int argc, char *argv[])
 	}
 
 	if (verbose > 0) {
-		fprintf(stdout, "%s: exec", getprogname());
+		fprintf(stdout, "robsd-hook: exec");
 		for (i = 0; i < nargs; i++)
 			fprintf(stdout, " \"%s\"", args[i]);
 		fprintf(stdout, "\n");
