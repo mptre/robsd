@@ -98,6 +98,15 @@ if testcase "cross"; then
 fi
 
 if testcase "cross target"; then
+	default_cross_config >"$CONFIG"
+	echo "arm64" >"$TSHDIR/target"
+	echo "\${target}" >"$STDIN"
+	robsd_config -C - -- -b "$TSHDIR" <<-EOF
+	arm64
+	EOF
+fi
+
+if testcase "cross target already defined"; then
 	echo 'target "am64"' >"$CONFIG"
 	robsd_config -C -e - <<-EOF
 	robsd-config: ${CONFIG}:1: variable cannot be defined
@@ -337,6 +346,14 @@ if testcase "invalid user"; then
 	robsd_config -e | grep -v -e mandatory >"$TMP1"
 	assert_file - "$TMP1" <<-EOF
 	robsd-config: ${CONFIG}:1: user 'unknown' not found
+	EOF
+fi
+
+if testcase "invalid unterminated string"; then
+	printf 'robsddir "' >"$CONFIG"
+	robsd_config -e | grep -v -e mandatory >"$TMP1"
+	assert_file - "$TMP1" <<-EOF
+	robsd-config: ${CONFIG}:1: unterminated string
 	EOF
 fi
 
