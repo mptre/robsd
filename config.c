@@ -24,6 +24,7 @@ struct lexer {
 	const char	*lx_path;
 	FILE		*lx_fh;
 	int		 lx_lno;
+	int		 lx_err;
 };
 
 struct token {
@@ -52,9 +53,9 @@ static int	lexer_read(struct lexer *, struct token *);
 static int	lexer_expect(struct lexer *, enum token_type, struct token *);
 static int	lexer_peek(struct lexer *, enum token_type);
 
-static void	lexer_warn(const struct lexer *, const char *, ...)
+static void	lexer_warn(struct lexer *, const char *, ...)
 	__attribute__((format(printf, 2, 3)));
-static void	lexer_warnx(const struct lexer *, const char *, ...)
+static void	lexer_warnx(struct lexer *, const char *, ...)
 	__attribute__((format(printf, 2, 3)));
 
 static void		 token_free(struct token *);
@@ -272,9 +273,11 @@ lexer_peek(struct lexer *lx, enum token_type type)
 }
 
 static void
-lexer_warn(const struct lexer *lx, const char *fmt, ...)
+lexer_warn(struct lexer *lx, const char *fmt, ...)
 {
 	va_list ap;
+
+	lx->lx_err++;
 
 	va_start(ap, fmt);
 	logv(warn, lx->lx_path, lx->lx_lno, fmt, ap);
@@ -282,9 +285,11 @@ lexer_warn(const struct lexer *lx, const char *fmt, ...)
 }
 
 static void
-lexer_warnx(const struct lexer *lx, const char *fmt, ...)
+lexer_warnx(struct lexer *lx, const char *fmt, ...)
 {
 	va_list ap;
+
+	lx->lx_err++;
 
 	va_start(ap, fmt);
 	logv(warnx, lx->lx_path, lx->lx_lno, fmt, ap);
@@ -857,6 +862,8 @@ config_exec(struct config *config)
 
 out:
 	token_free(&tk);
+	if (config->cf_lx.lx_err > 0)
+		return 1;
 	return error;
 }
 
