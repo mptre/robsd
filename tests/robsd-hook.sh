@@ -37,6 +37,9 @@ default_config() {
 	robsddir "/var/empty"
 	destdir "/var/empty"
 	execdir "/var/empty"
+	bsd-objdir "/var/empty"
+	bsd-srcdir "/var/empty"
+	x11-objdir "/var/empty"
 	x11-srcdir "/var/empty"
 	EOF
 }
