@@ -91,8 +91,7 @@ strings_len(const struct string_list *strings)
 	const struct string *st;
 	unsigned int len = 0;
 
-	TAILQ_FOREACH(st, strings, st_entry) {
+	TAILQ_FOREACH(st, strings, st_entry)
 		len++;
-	}
 	return len;
 }

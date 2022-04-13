@@ -114,9 +114,8 @@ waiteof(int fd, int timoms)
 			if (errno == EAGAIN) {
 				usleep(slpms * 1000);
 				timoms -= slpms;
-				if (timoms <= 0) {
+				if (timoms <= 0)
 					return 1;
-				}
 			} else {
 				warn("read");
 				return 1;
