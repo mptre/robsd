@@ -15,13 +15,13 @@ NCPU!!=	sysctl -n hw.ncpuonline
 
 format:
 .if defined(KNFMT)
-	cd ${.CURDIR} && knfmt -i ${KNFMT}
+	cd ${.CURDIR} && knfmt -is ${KNFMT}
 .endif
 .PHONY: format
 
 lint: _SUBDIRUSE
 .if defined(KNFMT)
-	cd ${.CURDIR} && knfmt -d ${KNFMT}
+	cd ${.CURDIR} && knfmt -ds ${KNFMT}
 .endif
 .if defined(MANLINT)
 	cd ${.CURDIR} && mandoc -Tlint -Wstyle ${MANLINT}
