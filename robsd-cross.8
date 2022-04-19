@@ -19,6 +19,8 @@ The
 .Nm
 utility builds a cross compiler tool chain and kernel for
 .Ar target .
+The tool chain once built is accessible using
+.Xr robsd-crossenv 8 .
 The process is divided into the steps as follows:
 .Bl -tag -width distrib
 .It env
@@ -126,6 +128,7 @@ The default configuration file.
 .Xr robsd-cross.conf 5 ,
 .Xr robsd-cross-clean 8 ,
 .Xr robsd-cross-kill 8 ,
+.Xr robsd-crossenv 8 ,
 .Xr robsd-stat 8
 .Sh AUTHORS
 .An Anton Lindqvist Aq Mt anton@basename.se

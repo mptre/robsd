@@ -1,0 +1,25 @@
+.Dd $Mdocdate: April 19 2022 $
+.Dt ROBSD-CROSSENV 8
+.Os
+.Sh NAME
+.Nm robsd-crossenv
+.Nd robsd cross compilation environment
+.Sh SYNOPSIS
+.Nm robsd-crossenv
+.Ar target utility
+.Op Ar argument ...
+.Sh DESCRIPTION
+The
+.Nm
+utility executes
+.Ar utility
+in a cross compilation environment targeting
+.Ar target ,
+built using
+.Xr robsd-cross 8 .
+.Sh DIAGNOSTICS
+.Ex -std
+.Sh SEE ALSO
+.Xr robsd-cross 8
+.Sh AUTHORS
+.An Anton Lindqvist Aq Mt anton@basename.se

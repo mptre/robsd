@@ -85,6 +85,8 @@ DISTFILES+=	robsd-cross-distrib.sh
 DISTFILES+=	robsd-cross-tools.sh
 DISTFILES+=	robsd-cross.8
 DISTFILES+=	robsd-cross.conf.5
+DISTFILES+=	robsd-crossenv
+DISTFILES+=	robsd-crossenv.8
 DISTFILES+=	robsd-cvs.sh
 DISTFILES+=	robsd-distrib.sh
 DISTFILES+=	robsd-env.sh
@@ -173,6 +175,7 @@ INSTALL_MAN?=	${INSTALL}
 MANLINT+=	robsd-clean.8
 MANLINT+=	robsd-cross.8
 MANLINT+=	robsd-cross.conf.5
+MANLINT+=	robsd-crossenv.8
 MANLINT+=	robsd-hook.5
 MANLINT+=	robsd-ports.8
 MANLINT+=	robsd-ports.conf.5
@@ -187,6 +190,7 @@ SHLINT+=	${SCRIPTS}
 SHLINT+=	robsd
 SHLINT+=	robsd-clean
 SHLINT+=	robsd-cross
+SHLINT+=	robsd-crossenv
 SHLINT+=	robsd-kill
 SHLINT+=	robsd-ports
 SHLINT+=	robsd-regress
@@ -257,8 +261,10 @@ install: all
 	${INSTALL_MAN} ${.CURDIR}/robsd-stat.8 ${DESTDIR}${MANDIR}/man8
 # robsd-cross
 	${INSTALL} -m 0555 ${.CURDIR}/robsd-cross ${DESTDIR}${BINDIR}
+	${INSTALL} -m 0555 ${.CURDIR}/robsd-crossenv ${DESTDIR}${BINDIR}
 	${INSTALL_MAN} ${.CURDIR}/robsd-cross.conf.5 ${DESTDIR}${MANDIR}/man5
 	${INSTALL_MAN} ${.CURDIR}/robsd-cross.8 ${DESTDIR}${MANDIR}/man8
+	${INSTALL_MAN} ${.CURDIR}/robsd-crossenv.8 ${DESTDIR}${MANDIR}/man8
 	ln -f ${DESTDIR}${BINDIR}/robsd-clean ${DESTDIR}${BINDIR}/robsd-cross-clean
 	ln -f ${DESTDIR}${BINDIR}/robsd-kill ${DESTDIR}${BINDIR}/robsd-cross-kill
 	ln -f ${DESTDIR}${LIBEXECDIR}/robsd/robsd-exec ${DESTDIR}${LIBEXECDIR}/robsd/robsd-cross-exec

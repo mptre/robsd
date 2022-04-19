@@ -7,8 +7,8 @@ SCRIPTS \
 	-- \
 DISTFILES \
 	*.c *.h *.md !(mkls).sh \
-	robsd?(-clean|-cross|-kill|-ports|-regress|-rescue) \
-	*.5 robsd?(-clean|-cross|-kill|-ports|-regress|-rescue|-stat).[0-9] \
+	robsd?(-clean|-cross|-crossenv|-kill|-ports|-regress|-rescue) \
+	*.5 robsd?(-clean|-cross|-crossenv|-kill|-ports|-regress|-rescue|-stat).[0-9] \
 	LICENSE Makefile Makefile.inc \
 	tests/*.sh \
 	tests/Makefile

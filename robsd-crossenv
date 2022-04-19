@@ -1,0 +1,28 @@
+#!/bin/ksh
+
+set -eu
+
+usage() {
+	xargs 1>&2 <<-EOF
+	usage: robsd-crossenv target utility [argument ...]
+	EOF
+	exit 1
+}
+
+. "${EXECDIR:-/usr/local/libexec/robsd}/util.sh"
+
+setmode "robsd-cross"
+setprogname "robsd-cross"
+
+[ $# -lt 2 ] && usage
+
+config_load <<'EOF'
+BSDSRCDIR="${bsd-srcdir}"
+CROSSDIR="${crossdir}"
+EOF
+
+_target="$1"; shift
+_env="$(make -f "${BSDSRCDIR}/Makefile.cross" \
+	"TARGET=${_target}" "CROSSDIR=${CROSSDIR}${_target}" cross-env)"
+eval "export ${_env}"
+"$@"
