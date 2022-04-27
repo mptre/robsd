@@ -34,6 +34,8 @@ done
 		break
 	done
 	echo "Build id: ${BUILDDIR##*/}"
+	echo -n "Build tags: "
+	xargs <"${BUILDDIR}/tags"
 
 	if [ -e "${BUILDDIR}/comment" ]; then
 		echo
