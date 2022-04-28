@@ -1,3 +1,15 @@
+# v11.2.0 - 2022-04-28
+
+## News
+
+- Add robsd-crossenv utility.
+  (00e2def)
+  (Anton Lindqvist)
+
+- Zero pad log file names even further.
+  (81f2af4)
+  (Anton Lindqvist)
+
 # v11.1.0 - 2022-02-28
 
 ## News
