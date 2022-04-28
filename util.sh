@@ -736,7 +736,7 @@ log_id() {
 		;;
 	esac
 
-	_id="$(printf '%02d-%s.log' "$_step" "$_name")"
+	_id="$(printf '%03d-%s.log' "$_step" "$_name")"
 	_dups="$(find "$_builddir" -name "${_id}*" | wc -l)"
 	if [ "$_dups" -gt 0 ]; then
 		printf '%s.%d' "$_id" "$_dups"
