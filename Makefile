@@ -1,4 +1,4 @@
-VERSION=	11.2.0
+VERSION=	11.3.0
 
 PROG_robsd-config=	robsd-config
 SRCS_robsd-config+=	robsd-config.c
