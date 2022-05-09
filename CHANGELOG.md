@@ -1,3 +1,11 @@
+# v11.3.0 - 2022-05-09
+
+## News
+
+- Include the name of the failed and skipped regress tests in report.
+  (b1a9bfc)
+  (Anton Lindqvist)
+
 # v11.2.0 - 2022-04-28
 
 ## News
