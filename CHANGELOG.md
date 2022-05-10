@@ -1,3 +1,11 @@
+# v11.4.0 - 2022-05-10
+
+## News
+
+- Report disabled regress test cases.
+  (3624d7e)
+  (Anton Lindqvist)
+
 # v11.3.1 - 2022-05-10
 
 ## Bug fixes
