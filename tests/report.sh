@@ -216,8 +216,8 @@ if testcase "regress"; then
 	Exit: 1
 	Duration: 00:00:01
 	Log: error.log
-	X-Fail: error
-	X-Skip: skip
+	Fail: error
+	Skip: skip
 
 	cc -O2 -pipe  -Wall  -MD -MP  -c log.c
 	error: unable to open output file 'log.o': 'Read-only file system'

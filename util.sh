@@ -969,7 +969,7 @@ report() {
 			"$(report_duration -d "$_name" -r "$_robsddir" "$_duration")"
 		printf 'Log: %s\n' "$(basename "$_log")"
 		# Honor step specific headers.
-		grep -s '^X-' "$_log" || :
+		[ -e "$_log" ] && sed -n -e 's/^X-//p' "$_log"
 
 		report_log -e "$_exit" -n "$_name" -l "$_log" \
 			-t "${_builddir}/tmp" >"${_builddir}/tmp/log"
