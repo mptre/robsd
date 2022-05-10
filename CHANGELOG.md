@@ -1,3 +1,11 @@
+# v11.3.1 - 2022-05-10
+
+## Bug fixes
+
+- Normalize step specific headers included in report.
+  (1405c17)
+  (Anton Lindqvist)
+
 # v11.3.0 - 2022-05-09
 
 ## News
