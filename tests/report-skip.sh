@@ -92,10 +92,13 @@ if testcase "regress skip"; then
 	cat <<-EOF >"$TMP1"
 	==== t0 ====
 	SKIPPED
+
+	==== t1 ====
+	DISABLED
 	EOF
 
 	if (setmode "robsd-regress" &&
-	    report_skip -b "$TSHDIR" -n "bin/w" -l "$TMP1")
+	    report_skip -b "$TSHDIR" -n "bin/w" -l "$TMP1" -t "$TSHDIR")
 	then
 		:
 	else

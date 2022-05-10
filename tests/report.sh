@@ -144,8 +144,11 @@ fi
 if testcase "regress"; then
 	build_init "$BUILDDIR"
 	cat <<-EOF >"${BUILDDIR}/skipped.log"
-	===> test
+	==== t0 ====
 	SKIPPED
+
+	==== t1 ====
+	DISABLED
 	EOF
 	cat <<-EOF >"${BUILDDIR}/nein.log"
 	==== t0 ====
@@ -169,17 +172,22 @@ if testcase "regress"; then
 	===> test
 	SKIPPED
 	EOF
+	cat <<-EOF >"${BUILDDIR}/disabled.log"
+	==== t0 ====
+	DISABLED
+	EOF
 	cat <<-EOF >"$STEPS"
 	step="1" name="skipped" exit="0" duration="10" log="${BUILDDIR}/skipped.log" user="root" time="0"
 	step="2" name="nein" exit="1" duration="1" log="${BUILDDIR}/nein.log" user="root" time="0"
 	step="3" name="error" exit="1" duration="1" log="${BUILDDIR}/error.log" user="root" time="0"
 	step="4" name="skipignore" exit="0" duration="1" log="${BUILDDIR}/skipignore.log" user="root" time="0"
-	step="5" name="end" exit="0" duration="12" log="/dev/null" user="root" time="0"
+	step="5" name="disabled" exit="0" duration="10" log="${BUILDDIR}/disabled.log" user="root" time="0"
+	step="6" name="end" exit="0" duration="12" log="/dev/null" user="root" time="0"
 	EOF
 
 	robsd_config -R - <<-EOF
 	robsddir "$ROBSDDIR"
-	regress { "skipped" "nein" "error" "skipignore:S" }
+	regress { "skipped" "nein" "error" "skipignore:S" "disabled:S" }
 	EOF
 	(setmode "robsd-regress" && report -r "$ROBSDDIR" -b "$BUILDDIR")
 
@@ -196,8 +204,11 @@ if testcase "regress"; then
 	Duration: 00:00:10
 	Log: skipped.log
 
-	===> test
+	==== t0 ====
 	SKIPPED
+
+	==== t1 ====
+	DISABLED
 
 	> nein:
 	Exit: 1

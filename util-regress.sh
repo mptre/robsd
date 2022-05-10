@@ -40,7 +40,7 @@ regress_report_log() {
 	: "${_log:?}"
 	: "${_tmpdir:?}"
 
-	regress_tests -t "$_tmpdir" 'FAILED|SKIPPED|: process group exited ' "$_log" |
+	regress_tests -t "$_tmpdir" 'DISABLED|FAILED|SKIPPED|: process group exited ' "$_log" |
 	tee "${_tmpdir}/regress"
 	[ -s "${_tmpdir}/regress" ] || tail "$_log"
 	return 0
@@ -69,7 +69,7 @@ regress_report_skip() {
 
 	# Do not skip if one or many tests where skipped.
 	if ! regress_skip "$_name" &&
-	   ! regress_tests -t "$_tmpdir" SKIPPED "$_log" | cmp -s - /dev/null
+	   ! regress_tests -t "$_tmpdir" 'DISABLED|SKIPPED' "$_log" | cmp -s - /dev/null
 	then
 		return 1
 	fi
