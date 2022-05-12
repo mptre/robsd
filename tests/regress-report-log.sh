@@ -14,11 +14,10 @@ if testcase "skipped"; then
 	regress_report_log -e 0 -n test -l "$LOG" -t "$TSHDIR" >"$TMP1"
 
 	assert_file - "$TMP1" <<-EOF
-	cc   -o optionstest optionstest.o apps.o -lcrypto -lssl
-
 	===> x509
 	missing package p5-IO-Socket-SSL
 	SKIPPED
+
 	===> second
 	SKIPPED
 	EOF
@@ -82,10 +81,6 @@ if testcase "robsd-exec fallback"; then
 	regress_report_log -e 0 -n test -l "$LOG" -t "$TSHDIR" >"$TMP1"
 
 	assert_file - "$TMP1" <<-EOF
-	===> tlsext
-	more lines than the tail(1) default of 10
-	...
-	...
 	...
 	...
 	...

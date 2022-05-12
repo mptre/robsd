@@ -20,30 +20,22 @@ regress_failed() {
 #
 # Get an excerpt of the given step log.
 regress_report_log() {
-	local _exit
-	local _name
 	local _log
-	local _tmpdir
+	local _robsdregresslog="${ROBSDREGRESSLOG:-${EXECDIR}/robsd-regress-log}"
 
 	while [ $# -gt 0 ]; do
 		case "$1" in
-		-e)	shift; _exit="$1";;
-		-n)	shift; _name="$1";;
+		-e)	shift;;
+		-n)	shift;;
 		-l)	shift; _log="$1";;
-		-t)	shift; _tmpdir="$1";;
+		-t)	shift;;
 		*)	break;;
 		esac
 		shift
 	done
-	: "${_exit:?}"
-	: "${_name:?}"
 	: "${_log:?}"
-	: "${_tmpdir:?}"
 
-	regress_tests -t "$_tmpdir" 'DISABLED|FAILED|SKIPPED|: process group exited ' "$_log" |
-	tee "${_tmpdir}/regress"
-	[ -s "${_tmpdir}/regress" ] || tail "$_log"
-	return 0
+	"$_robsdregresslog" -FS "$_log" || tail "$_log"
 }
 
 # regress_report_skip -b build-dir -n step-name -l step-log -t tmp-dir
@@ -52,6 +44,7 @@ regress_report_log() {
 regress_report_skip() {
 	local _log
 	local _name
+	local _robsdregresslog="${ROBSDREGRESSLOG:-${EXECDIR}/robsd-regress-log}"
 	local _tmpdir
 
 	while [ $# -gt 0 ]; do
@@ -68,9 +61,7 @@ regress_report_skip() {
 	: "${_name:?}"
 
 	# Do not skip if one or many tests where skipped.
-	if ! regress_skip "$_name" &&
-	   ! regress_tests -t "$_tmpdir" 'DISABLED|SKIPPED' "$_log" | cmp -s - /dev/null
-	then
+	if ! regress_skip "$_name" && "$_robsdregresslog" -Sn "$_log"; then
 		return 1
 	fi
 	return 0
@@ -161,34 +152,4 @@ regress_steps() {
 	revert
 	end
 	EOF
-}
-
-# regress_tests -t tmp-dir outcome-pattern step-log
-#
-# Extract all regress tests from the log matching the given outcome pattern.
-regress_tests() {
-	local _outcome
-	local _log
-	local _split="split${RANDOM}"
-	local _tmpdir
-
-	while [ $# -gt 0 ]; do
-		case "$1" in
-		-t)	shift; _tmpdir="$1";;
-		*)	break;;
-		esac
-		shift
-	done
-	: "${_tmpdir:?}"
-
-	_outcome="$1"; : "${_outcome:?}"
-	_log="$2"; : "${_log:?}"
-
-	(cd "$_tmpdir" && split -p "^==== .* ====$" "$_log" "$_split")
-
-	grep -Els -e "$_outcome" "${_tmpdir}/${_split}"* |
-	xargs cat |
-	sed -e '/./,$!d' -e :a -e '/^\n*$/{$d;N;ba' -e '}'
-
-	rm -f "${_tmpdir}/${_split}"*
 }
