@@ -135,9 +135,9 @@ parselog(const char *path, unsigned int flags)
 			nfound++;
 		}
 	}
-
-	fclose(fh);
+	free(line);
 	buffer_free(bf);
+	fclose(fh);
 
 	if (error)
 		return -1;
