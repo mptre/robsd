@@ -13,7 +13,14 @@ regress_failed() {
 	local _log
 
 	_log="$1"; : "${_log:?}"
-	grep -q '^FAILED$' "$_log"
+	regress_log -Fn "$_log"
+}
+
+# regress_log [robsd-regress-log-argument ...]
+#
+# Exec wrapper for robsd-regress-log.
+regress_log() {
+	"${ROBSDREGRESSLOG:-${EXECDIR}/robsd-regress-log}" "$@"
 }
 
 # regress_report_log -e step-exit -n step-name -l step-log -t tmp-dir
@@ -21,7 +28,6 @@ regress_failed() {
 # Get an excerpt of the given step log.
 regress_report_log() {
 	local _log
-	local _robsdregresslog="${ROBSDREGRESSLOG:-${EXECDIR}/robsd-regress-log}"
 
 	while [ $# -gt 0 ]; do
 		case "$1" in
@@ -35,7 +41,7 @@ regress_report_log() {
 	done
 	: "${_log:?}"
 
-	"$_robsdregresslog" -FS "$_log" || tail "$_log"
+	regress_log -FS "$_log" || tail "$_log"
 }
 
 # regress_report_skip -b build-dir -n step-name -l step-log -t tmp-dir
@@ -44,7 +50,6 @@ regress_report_log() {
 regress_report_skip() {
 	local _log
 	local _name
-	local _robsdregresslog="${ROBSDREGRESSLOG:-${EXECDIR}/robsd-regress-log}"
 	local _tmpdir
 
 	while [ $# -gt 0 ]; do
@@ -61,7 +66,7 @@ regress_report_skip() {
 	: "${_name:?}"
 
 	# Do not skip if one or many tests where skipped.
-	if ! regress_skip "$_name" && "$_robsdregresslog" -Sn "$_log"; then
+	if ! regress_skip "$_name" && regress_log -Sn "$_log"; then
 		return 1
 	fi
 	return 0
