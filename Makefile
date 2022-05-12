@@ -93,6 +93,7 @@ DISTFILES+=	compat-strlcpy.c
 DISTFILES+=	compat-unveil.c
 DISTFILES+=	compat-warnc.c
 DISTFILES+=	config.c
+DISTFILES+=	configure
 DISTFILES+=	extern.h
 DISTFILES+=	robsd
 DISTFILES+=	robsd-base.sh
