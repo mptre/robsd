@@ -105,7 +105,7 @@ EOF
 	_robsdkill="${TSHDIR}/robsd-regress-kill"
 	cp "$ROBSDKILL" "$_robsdkill"
 	PATH="${BINDIR}:${PATH}" ROBSDEXEC="$_exec" sh "$_robsdkill"
-	while pgrep -q -f "$ROBSDREGRESS"; do
+	while pgrep -q -f "${ROBSDREGRESS}$"; do
 		sleep .1
 	done
 
