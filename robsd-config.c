@@ -1,3 +1,5 @@
+#include "config.h"
+
 #include <err.h>
 #include <errno.h>
 #include <limits.h>

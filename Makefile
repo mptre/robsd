@@ -1,15 +1,21 @@
+include ${.CURDIR}/config.mk
+
 VERSION=	11.4.0
 
 PROG_robsd-config=	robsd-config
 SRCS_robsd-config+=	robsd-config.c
 SRCS_robsd-config+=	buffer.c
 SRCS_robsd-config+=	config.c
+SRCS_robsd-config+=	compat-errc.c
+SRCS_robsd-config+=	compat-pledge.c
+SRCS_robsd-config+=	compat-warnc.c
 SRCS_robsd-config+=	util.c
 OBJS_robsd-config=	${SRCS_robsd-config:.c=.o}
 DEPS_robsd-config=	${SRCS_robsd-config:.c=.d}
 
 PROG_robsd-exec=	robsd-exec
-SRCS_robsd-exec=	robsd-exec.c
+SRCS_robsd-exec+=	robsd-exec.c
+SRCS_robsd-exec+=	compat-pledge.c
 OBJS_robsd-exec=	${SRCS_robsd-exec:.c=.o}
 DEPS_robsd-exec=	${SRCS_robsd-exec:.c=.d}
 
@@ -17,6 +23,9 @@ PROG_robsd-hook=	robsd-hook
 SRCS_robsd-hook+=	robsd-hook.c
 SRCS_robsd-hook+=	buffer.c
 SRCS_robsd-hook+=	config.c
+SRCS_robsd-hook+=	compat-errc.c
+SRCS_robsd-hook+=	compat-pledge.c
+SRCS_robsd-hook+=	compat-warnc.c
 SRCS_robsd-hook+=	util.c
 OBJS_robsd-hook=	${SRCS_robsd-hook:.c=.o}
 DEPS_robsd-hook=	${SRCS_robsd-hook:.c=.d}
@@ -24,15 +33,15 @@ DEPS_robsd-hook=	${SRCS_robsd-hook:.c=.d}
 PROG_robsd-regress-log=		robsd-regress-log
 SRCS_robsd-regress-log+=	robsd-regress-log.c
 SRCS_robsd-regress-log+=	buffer.c
+SRCS_robsd-regress-log+=	compat-pledge.c
+SRCS_robsd-regress-log+=	compat-unveil.c
 OBJS_robsd-regress-log=		${SRCS_robsd-regress-log:.c=.o}
 DEPS_robsd-regress-log=		${SRCS_robsd-regress-log:.c=.d}
 
 PROG_robsd-stat=	robsd-stat
-SRCS_robsd-stat=	robsd-stat.c
+SRCS_robsd-stat+=	robsd-stat.c
 OBJS_robsd-stat=	${SRCS_robsd-stat:.c=.o}
 DEPS_robsd-stat=	${SRCS_robsd-stat:.c=.d}
-
-CFLAGS+=	-Wall -Wextra -MD -MP
 
 KNFMT+=	buffer.c
 KNFMT+=	config.c
@@ -78,6 +87,11 @@ DISTFILES+=	Makefile
 DISTFILES+=	Makefile.inc
 DISTFILES+=	README.md
 DISTFILES+=	buffer.c
+DISTFILES+=	compat-errc.c
+DISTFILES+=	compat-pledge.c
+DISTFILES+=	compat-strlcpy.c
+DISTFILES+=	compat-unveil.c
+DISTFILES+=	compat-warnc.c
 DISTFILES+=	config.c
 DISTFILES+=	extern.h
 DISTFILES+=	robsd
@@ -310,7 +324,7 @@ test: all
 		"TESTFLAGS=${TESTFLAGS}"
 .PHONY: test
 
-.include "${.CURDIR}/Makefile.inc"
+include ${.CURDIR}/Makefile.inc
 -include ${DEPS_robsd-config}
 -include ${DEPS_robsd-exec}
 -include ${DEPS_robsd-hook}

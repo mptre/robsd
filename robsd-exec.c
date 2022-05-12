@@ -1,3 +1,5 @@
+#include "config.h"
+
 #include <sys/wait.h>
 
 #include <err.h>
