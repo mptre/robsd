@@ -173,8 +173,8 @@ static void
 reg_init(void)
 {
 	char errbuf[512];
-	int error;
 	int flags = REG_NOSUB | REG_NEWLINE;
+	int error;
 
 	error = regcomp(&reg_subdir, "^===>", flags);
 	if (error) {
