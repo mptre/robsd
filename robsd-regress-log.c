@@ -105,7 +105,7 @@ parselog(const char *path, unsigned int flags)
 	fh = fopen(path, "r");
 	if (fh == NULL) {
 		warn("open: %s", path);
-		return 1;
+		return -1;
 	}
 
 	bf = buffer_alloc(1 << 20);
