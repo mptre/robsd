@@ -1,3 +1,15 @@
+# v11.5.0 - 2022-05-12
+
+## News
+
+- Improve extraction of failed and skipped regress test cases.
+  (117d8fc)
+  (Anton Lindqvist)
+
+- Add configure script, paving the way for compilation on Linux.
+  (e4794ca)
+  (Anton Lindqvist)
+
 # v11.4.0 - 2022-05-10
 
 ## News
