@@ -1,3 +1,12 @@
+# v11.5.1 - 2022-05-13
+
+## Bug fixes
+
+- Honor the regress skip configuration when including failing test cases in
+  report.
+  (9e2aec4)
+  (Anton Lindqvist)
+
 # v11.5.0 - 2022-05-12
 
 ## News
