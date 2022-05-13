@@ -27,12 +27,14 @@ regress_log() {
 #
 # Get an excerpt of the given step log.
 regress_report_log() {
+	local _name
 	local _log
+	local _skip=""
 
 	while [ $# -gt 0 ]; do
 		case "$1" in
 		-e)	shift;;
-		-n)	shift;;
+		-n)	shift; _name="$1";;
 		-l)	shift; _log="$1";;
 		-t)	shift;;
 		*)	break;;
@@ -40,8 +42,10 @@ regress_report_log() {
 		shift
 	done
 	: "${_log:?}"
+	: "${_name:?}"
 
-	regress_log -FS "$_log" || tail "$_log"
+	regress_skip "$_name" || _skip="yes"
+	regress_log -F ${_skip:+-S} "$_log" || tail "$_log"
 }
 
 # regress_report_skip -b build-dir -n step-name -l step-log -t tmp-dir
