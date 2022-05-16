@@ -75,6 +75,10 @@ Directory on
 .Ic distrib-host
 to upload the release files to during the distrib step.
 Note, this directory will be wiped before uploading the new release files.
+.It Ic distrib-signify Dq Ar path
+Path to
+.Xr signify 1
+private key used to optionally sign the release files with.
 .It Ic distrib-user Dq Ar user
 User to perform
 .Xr scp 1
