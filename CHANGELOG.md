@@ -1,3 +1,11 @@
+# v11.5.2 - 2022-05-17
+
+## Bug fixes
+
+- Never let regress fail early.
+  (74652ef)
+  (Anton Lindqvist)
+
 # v11.5.1 - 2022-05-13
 
 ## Bug fixes
