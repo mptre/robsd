@@ -1,3 +1,14 @@
+# v11.6.0 - 2022-05-18
+
+## News
+
+- Teach regress to dump installed packages as part of the env step.
+  Helpful while debugging failures that depend on packages.
+  (e8d8145)
+  (Anton Lindqvist)
+
+## Bug fixes
+
 # v11.5.2 - 2022-05-17
 
 ## Bug fixes
