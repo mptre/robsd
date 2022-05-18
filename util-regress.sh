@@ -6,6 +6,15 @@ regress_config_load() {
 	unset MAKEFLAGS
 }
 
+# regress_dump
+#
+# Additional data added to env step.
+regress_dump() {
+	# Since some regression tests depends on packages, making the installed
+	# versions visible can aid debugging.
+	pkg_info -aq
+}
+
 # regress_failed step-log
 #
 # Exits zero if the given regress step log indicate failure.
