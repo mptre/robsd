@@ -10,7 +10,7 @@ _err=0
 _log="${BUILDDIR}/tmp/regress"; : >"$_log"; chmod 666 "$_log"
 _make="make -C ${BSDSRCDIR}/regress/${1} REGRESS_LOG=${_log} REGRESS_FAIL_EARLY=no"
 if regress_root "$1"; then
-	exec $_make || _err="$?"
+	$_make || _err="$?"
 else
 	export SUDO
 	unpriv "$REGRESSUSER" "$_make" || _err="$?"
