@@ -1,3 +1,11 @@
+# v11.6.1 - 2022-05-26
+
+## Bug fixes
+
+- Fix detection of failed and skipped regress tests while running as root.
+  (c9cc023)
+  (Anton Lindqvist)
+
 # v11.6.0 - 2022-05-18
 
 ## News
