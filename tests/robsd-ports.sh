@@ -48,24 +48,13 @@ if testcase "basic"; then
 	+# comment 
 	EOF
 
+	mkdir -p "${TSHDIR}/ports/packages/$(machine)/all"
+
 	if ! robsd_ports -d -P "${TSHDIR}/ports.diff" -s cvs -s proot \
 	   >"$TMP1" 2>&1; then
 		fail - "expected exit zero" <"$TMP1"
 	fi
 	_builddir="$(find "${ROBSDDIR}" -type d -mindepth 1 -maxdepth 1)"
-
-	if step_eval -n devel/updated "${_builddir}/steps" 2>/dev/null; then
-		fail - "unexpected step devel/updated" <"${_builddir}/steps"
-	fi
-	_find="${TSHDIR}/find"
-	find "$_builddir" -type f -name '*-updated.log' >"${_find}"
-	if [ -s "$_find" ]; then
-		fail - "unexpected step devel/updated log" <"$_find"
-	fi
-
-	if ! step_eval -n devel/outdated "${_builddir}/steps" 2>/dev/null; then
-		fail - "expected step devel/outdated" <"${_builddir}/steps"
-	fi
 
 	# Remove unstable output.
 	sed -e '/running as pid/d' "${_builddir}/robsd.log" >"$TMP1"
@@ -94,6 +83,8 @@ if testcase "skip"; then
 	EOF
 	mkdir "$ROBSDDIR"
 
+	mkdir -p "${TSHDIR}/ports/packages/$(machine)/all"
+
 	if ! robsd_ports -d -s cvs -s proot -s distrib >"$TMP1" 2>&1; then
 		fail - "expected exit zero" <"$TMP1"
 	fi
@@ -114,44 +105,4 @@ if testcase "skip"; then
 	robsd-ports: step end
 	robsd-ports: trap exit 0
 	EOF
-fi
-
-if testcase "port flagged as broken"; then
-	robsd_config -P - <<-EOF
-	robsddir "${ROBSDDIR}"
-	execdir "${EXECDIR}"
-	ports { "devel/broken" }
-	EOF
-	mkdir "$ROBSDDIR"
-
-	if robsd_ports -d -s cvs -s proot >"$TMP1" 2>&1; then
-		fail - "expected exit non-zero" <"$TMP1"
-	fi
-	_builddir="$(find "${ROBSDDIR}" -type d -mindepth 1 -maxdepth 1)"
-
-	if ! step_eval -n devel/broken "${_builddir}/steps" 2>/dev/null; then
-		fail - "expected step devel/broken" <"${_builddir}/steps"
-	fi
-	assert_file - "$(step_value log)" <<-EOF
-	!: devel/broken is marked as broken
-	EOF
-fi
-
-if testcase "port dependency failure"; then
-	:
-	robsd_config -P - <<-EOF
-	robsddir "${ROBSDDIR}"
-	execdir "${EXECDIR}"
-	ports { "devel/dependency" }
-	EOF
-	mkdir "$ROBSDDIR"
-
-	if robsd_ports -d -s cvs -s proot >"$TMP1" 2>&1; then
-		fail - "expected exit non-zero" <"$TMP1"
-	fi
-	_builddir="$(find "${ROBSDDIR}" -type d -mindepth 1 -maxdepth 1)"
-	if ! step_eval -n dpb "${_builddir}/steps" 2>/dev/null; then
-		fail - "expected step dpb" <"${_builddir}/steps"
-	fi
-	assert_eq 1 "$(step_value exit)" "expected non-zero dpb exit"
 fi

@@ -238,19 +238,8 @@ if testcase "regress"; then
 fi
 
 if testcase "ports"; then
-	build_init "${ROBSDDIR}/2019-02-21"
-	cat <<-EOF >"${ROBSDDIR}/2019-02-21/steps"
-	step="1" name="mail/mdsort" exit="0" duration="10" log="/dev/null" user="root" time="0"
-	EOF
-
-	build_init "${ROBSDDIR}/2019-02-22"
-	cat <<-EOF >"${ROBSDDIR}/2019-02-22/steps"
-	step="1" name="mail/mdsort" exit="1" duration="1" log="/dev/null" user="root" time="0"
-	EOF
-
 	build_init "$BUILDDIR"
 	cat <<-EOF >"$STEPS"
-	step="1" name="mail/mdsort" exit="0" duration="20" log="mail-mdsort.log" user="root" time="0"
 	step="2" name="dpb" exit="0" duration="20" log="dpb.log" user="root" time="0"
 	EOF
 
@@ -266,45 +255,14 @@ if testcase "ports"; then
 	Duration: 00:00:20
 	Build: ${BUILDDIR}
 
-	> mail/mdsort:
+	> dpb:
 	Exit: 0
-	Duration: 00:00:20 (+00:00:10)
-	Log: mail-mdsort.log
+	Duration: 00:00:20
+	Log: dpb.log
 	EOF
 fi
 
 if testcase "ports failure"; then
-	build_init "$BUILDDIR"
-	cat <<-EOF >"$STEPS"
-	step="1" name="mail/mdsort" exit="1" duration="20" log="/dev/null" user="root" time="0"
-	step="2" name="dpb" exit="1" duration="20" log="/dev/null" user="root" time="0"
-	EOF
-
-	# shellcheck disable=SC2034
-	(PORTS="mail/mdsort"; setmode "robsd-ports";
-	 report -r "$ROBSDDIR" -b "$BUILDDIR")
-
-	assert_file - "$REPORT" <<-EOF
-	Subject: robsd-ports: $(hostname -s): 1 failure
-
-	> stats:
-	Status: 1 failure
-	Duration: 00:00:20
-	Build: ${BUILDDIR}
-
-	> mail/mdsort:
-	Exit: 1
-	Duration: 00:00:20
-	Log: null
-
-	> dpb:
-	Exit: 1
-	Duration: 00:00:20
-	Log: null
-	EOF
-fi
-
-if testcase "ports dpb failure"; then
 	build_init "$BUILDDIR"
 	cat <<-EOF >"$STEPS"
 	step="1" name="dpb" exit="1" duration="20" log="/dev/null" user="root" time="0"
@@ -315,10 +273,10 @@ if testcase "ports dpb failure"; then
 	 report -r "$ROBSDDIR" -b "$BUILDDIR")
 
 	assert_file - "$REPORT" <<-EOF
-	Subject: robsd-ports: $(hostname -s): 1 failure
+	Subject: robsd-ports: $(hostname -s): failed in dpb
 
 	> stats:
-	Status: 1 failure
+	Status: failed in dpb
 	Duration: 00:00:20
 	Build: ${BUILDDIR}
 

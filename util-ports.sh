@@ -36,12 +36,6 @@ ports_duration_total() {
 		# Could be present if the report is re-generated.
 		[ "$_name" = "end" ] && continue
 
-		# Ports are already covered by the dpb duration.
-		case "$PORTS" in
-		*${_name}*)	continue;;
-		*)		;;
-		esac
-
 		_d="$(step_value duration)"
 		_tot=$((_tot + _d))
 	done
@@ -84,11 +78,19 @@ ports_report_log() {
 			cat "$_f"; echo
 		done
 		;;
+	dpb)
+		if [ "$_exit" = 0 ]; then
+			diff -U0 -L packages.orig -L packages \
+				"${_tmpdir}/"packages{.orig,} 2>/dev/null || :
+		else
+			tail "$_log"
+		fi
+		;;
 	distrib)
 		cat "$_log"
 		;;
 	*)
-		[ "$_exit" -eq 0 ] || tail "$_log"
+		tail "$_log"
 		;;
 	esac
 }
@@ -114,87 +116,10 @@ ports_report_skip() {
 	: "${_name:?}"
 
 	case "$_name" in
-	env|proot|dpb|distrib|end)
-		return 0
-		;;
-	cvs)
-		return 1
-		;;
-	*)
-		! echo "$PORTS" | grep -q "\<${_name}\>"
-		;;
+	cvs)	return 1;;
+	dpb)	return 1;;
+	*)	return 0;;
 	esac
-}
-
-# ports_report_status -s steps
-#
-# Get the report status subject.
-ports_report_status() {
-	local _n
-	local _steps
-
-	while [ $# -gt 0 ]; do
-		case "$1" in
-		-s)	shift; _steps="$1";;
-		*)	break;;
-		esac
-		shift
-	done
-	: "${_steps:?}"
-
-	_n="$(step_failures "$_steps")"
-	[ "$_n" -gt 0 ] || return 0
-
-	if [ "$_n" -gt 1 ] &&
-	   step_eval -n dpb "$_steps" 2>/dev/null &&
-	   [ "$(step_value exit)" -ne 0 ]; then
-		_n=$((_n - 1))
-	fi
-
-	if [ "$_n" -gt 1 ]; then
-		echo "${_n} failures"
-	else
-		echo "${_n} failure"
-	fi
-}
-
-# ports_step_after -b build-dir -e step-exit -n step-name
-#
-# After step hook, exits 0 if we can continue.
-ports_step_after() {
-	local _exit
-
-	while [ $# -gt 0 ]; do
-		case "$1" in
-		-b)	shift;;
-		-e)	shift; _exit="$1";;
-		-n)	shift;;
-		*)	break;;
-		esac
-		shift
-	done
-	: "${_exit:?}"
-
-	return "$_exit"
-}
-
-# ports_step_skip -n step-name
-#
-# Exits zero if the step has been skipped.
-ports_step_skip() {
-	local _name
-
-	while [ $# -gt 0 ]; do
-		case "$1" in
-		-n)	shift; _name="$1";;
-		*)	break;;
-		esac
-		shift
-	done
-	: "${_name:?}"
-
-	# Ports are already covered the dpb step.
-	echo "$PORTS" | grep -q "\<${_name}\>"
 }
 
 # ports_steps
@@ -206,7 +131,6 @@ ports_steps() {
 	cvs
 	proot
 	patch
-	${PORTS}
 	dpb
 	distrib
 	revert

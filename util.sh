@@ -878,15 +878,12 @@ report() {
 	[ -s "$_steps" ] || return 1
 
 	case "$_MODE" in
-	robsd-ports)
-		_status="$(ports_report_status -s "$_steps")"
-		;;
 	robsd-regress)
 		_status="$(regress_report_status -s "$_steps")"
 		;;
 	*)
-		# As robsd halts if a step failed, only bother checking the last
-		# non-skipped step.
+		# All other robsd utilities halts if a step failed, only bother
+		# checking the last non-skipped step.
 		while step_eval "-${_i}" "$_steps" 2>/dev/null; do
 			_i=$((_i + 1))
 			step_skip && continue
@@ -1273,14 +1270,6 @@ robsd() {
 			info "step ${_name} skipped"
 			continue
 		fi
-
-		case "$_MODE" in
-		robsd-ports)
-			ports_step_skip -n "$_name" && continue
-			;;
-		*)
-			;;
-		esac
 		info "step ${_name}"
 
 		if [ "$_name" = "end" ]; then
@@ -1303,10 +1292,6 @@ robsd() {
 			-n "$_name" -s "$_s" "${BUILDDIR}/steps"
 
 		case "$_MODE" in
-		robsd-ports)
-			ports_step_after -b "$BUILDDIR" -e "$_exit" \
-				-n "$_name" || return 1
-			;;
 		robsd-regress)
 			regress_step_after -b "$BUILDDIR" -e "$_exit" \
 				-n "$_name" || return 1
