@@ -10,7 +10,7 @@ usage() {
 # last_release
 last_release() {
 	find "$ROBSDDIR" -type d -mindepth 1 -maxdepth 1 |
-	grep -v -e "${ROBSDDIR}/attic" |
+	grep -v -e "$KEEPDIR" |
 	sort -nr |
 	head -1
 }
@@ -24,6 +24,7 @@ setprogname "robsd-rescue"
 [ "$(id -u)" -ne 0 ] && fatal "must be run as root"
 config_load <<-'EOF'
 ROBSDDIR="${robsddir}"
+KEEPDIR="${keep-dir}"
 BSDSRCDIR="${bsd-srcdir}"
 CVSUSER="${cvs-user}"
 EOF

@@ -765,6 +765,7 @@ path_strip() {
 # Get the previous count number of release directories. Where count defaults
 # to 1. If count is 0 means all previous release directories.
 prev_release() {
+	local _attic
 	local _count
 	local _robsddir
 
@@ -778,9 +779,12 @@ prev_release() {
 	: "${_robsddir:?}"
 	_count="${1:-1}"
 
+	# Be silent during testing.
+	_attic="$(config_value keep-dir 2>/dev/null || :)"
+
 	find "$_robsddir" -type d -mindepth 1 -maxdepth 1 |
 	sort -nr |
-	grep -v -e "$BUILDDIR" -e "${_robsddir}/attic" |
+	grep -v -e "$BUILDDIR" ${_attic:+-e ${_attic}} |
 	{
 		if [ "$_count" -gt 0 ]; then
 			head "-${_count}"
@@ -793,10 +797,10 @@ prev_release() {
 # purge dir count
 #
 # Keep the latest count number of release directories in dir.
-# The older ones will be moved to the attic, keeping only the relevant files.
-# All purged directories are written to stdout.
+# The older ones will be moved to the keep-dir, preserving only the relevant
+# files. All purged directories are written to stdout.
 purge() {
-	local _attic="${ROBSDDIR}/attic"
+	local _attic
 	local _d
 	local _dir
 	local _dst
@@ -805,6 +809,8 @@ purge() {
 
 	_dir="$1"; : "${_dir:?}"
 	_n="$2"; : "${_n:?}"
+
+	_attic="$(config_value keep-dir)"
 
 	find "$_dir" -type d -mindepth 1 -maxdepth 1 |
 	grep -v "$_attic" |

@@ -106,13 +106,6 @@ if testcase "cross target"; then
 	EOF
 fi
 
-if testcase "cross target already defined"; then
-	echo 'target "am64"' >"$CONFIG"
-	robsd_config -C -e - <<-EOF
-	robsd-config: ${CONFIG}:1: variable cannot be defined
-	EOF
-fi
-
 if testcase "ports"; then
 	default_ports_config >"$CONFIG"
 	echo "PORTS=\${ports}" >"$STDIN"
@@ -245,6 +238,19 @@ if testcase "comment"; then
 	KEEP=0
 	EOF
 fi
+
+if testcase "read only variables"; then
+	echo 'keep-dir "/tmp"' >"$CONFIG"
+	robsd_config -e - <<-EOF
+	robsd-config: ${CONFIG}:1: variable cannot be defined
+	EOF
+
+	echo 'target "amd64"' >"$CONFIG"
+	robsd_config -C -e - <<-EOF
+	robsd-config: ${CONFIG}:1: variable cannot be defined
+	EOF
+fi
+
 
 if testcase "invalid missing file"; then
 	robsd_config -e -- -f /nein >/dev/null

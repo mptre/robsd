@@ -242,6 +242,10 @@ if testcase "ports"; then
 	cat <<-EOF >"$STEPS"
 	step="2" name="dpb" exit="0" duration="20" log="dpb.log" user="root" time="0"
 	EOF
+	robsd_config -P - <<-EOF
+	robsddir "$ROBSDDIR"
+	ports { "keep/quiet" }
+	EOF
 
 	# shellcheck disable=SC2034
 	(PORTS="mail/mdsort"; setmode "robsd-ports";
@@ -266,6 +270,10 @@ if testcase "ports failure"; then
 	build_init "$BUILDDIR"
 	cat <<-EOF >"$STEPS"
 	step="1" name="dpb" exit="1" duration="20" log="/dev/null" user="root" time="0"
+	EOF
+	robsd_config -P - <<-EOF
+	robsddir "$ROBSDDIR"
+	ports { "keep/quiet" }
 	EOF
 
 	# shellcheck disable=SC2034

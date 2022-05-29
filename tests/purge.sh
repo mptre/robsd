@@ -10,6 +10,9 @@ if testcase "basic"; then
 		touch "${_d}/tmp/cvs.log"
 	done
 	touch -t 201903012233.44 "${ROBSDDIR}/2019-03-01"
+	robsd_config - <<-EOF
+	robsddir "${TSHDIR}"
+	EOF
 
 	assert_eq "${ROBSDDIR}/2019-03-01" "$(purge "$ROBSDDIR" 1)"
 
@@ -36,6 +39,9 @@ fi
 if testcase "missing log files"; then
 	# shellcheck disable=SC2086
 	mkdir -p ${ROBSDDIR}/2019-03-0{1,2}/rel
+	robsd_config - <<-EOF
+	robsddir "${TSHDIR}"
+	EOF
 
 	assert_eq "${ROBSDDIR}/2019-03-01" "$(purge "$ROBSDDIR" 1)"
 	assert_eq "" "$(find "${ROBSDDIR}/attic/2019/03/01" -type f)"
@@ -45,6 +51,9 @@ if testcase "attic already present"; then
 	# shellcheck disable=SC2086
 	mkdir -p ${ROBSDDIR}/2019-03-0{1,2}
 	mkdir -p "${ROBSDDIR}/attic"
+	robsd_config - <<-EOF
+	robsddir "${TSHDIR}"
+	EOF
 
 	assert_eq "${ROBSDDIR}/2019-03-01" "$(purge "$ROBSDDIR" 1)"
 

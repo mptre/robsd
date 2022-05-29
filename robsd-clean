@@ -16,8 +16,9 @@ setprogname "${_MODE}-clean"
 [ "$(id -u)" -ne 0 ] && fatal "must be run as root"
 config_load <<'EOF'
 ROBSDDIR="${robsddir}"
+KEEPDIR="${keep-dir}"
 EOF
 
 purge "$ROBSDDIR" "$1" | while read -r _d; do
-	info "moving ${_d} to the attic"
+	info "moving ${_d} to ${KEEPDIR}"
 done
