@@ -42,10 +42,10 @@ main(int argc, char *argv[])
 	struct robsd_stat rs;
 	char **users;
 	FILE *fh = stdout;
-	int ch;
 	int doheader = 0;
 	int nusers = 0;
 	int tick_s = 10;
+	int ch;
 
 	users = reallocarray(NULL, 1, sizeof(*users));
 	if (users == NULL)
@@ -114,10 +114,10 @@ static void
 stat_cpu(struct robsd_stat *rs)
 {
 	int mib[2] = { CTL_KERN, KERN_CPTIME };
+	int i;
 	long cpu[CPUSTATES];
 	long tot = 0;
 	size_t len;
-	int i;
 
 	len = sizeof(cpu);
 	if (sysctl(mib, 2, &cpu, &len, NULL, 0) == -1)
@@ -161,12 +161,12 @@ static int
 stat_directory1(struct robsd_stat *rs, const char *user)
 {
 	int mib[6];
+	int i, nprocs;
 	struct kinfo_proc *kp;
 	size_t kpsiz = sizeof(struct kinfo_proc);
 	size_t maxlen = 0;
 	size_t siz = 0;
 	struct passwd *pw;
-	int i, nprocs;
 
 	rs->rs_directory[0] = '\0';
 
@@ -227,9 +227,9 @@ static void
 stat_loadavg(struct robsd_stat *rs)
 {
 	int mib[2];
+	int ncpu;
 	struct loadavg lavg;
 	size_t len;
-	int ncpu;
 
 	mib[0] = CTL_VM;
 	mib[1] = VM_LOADAVG;

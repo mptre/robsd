@@ -349,8 +349,8 @@ tokenstr(enum token_type type)
  */
 
 struct variable {
-	char	*va_name;
-	size_t	 va_namelen;
+	char			*va_name;
+	size_t			 va_namelen;
 	union {
 		void			*va_val;
 		char			*va_str;
@@ -358,7 +358,7 @@ struct variable {
 		int			 va_int;
 	};
 
-	int	 va_lno;
+	int			 va_lno;
 
 	enum variable_type {
 		INTEGER,
@@ -367,7 +367,7 @@ struct variable {
 		LIST,
 	} va_type;
 
-	TAILQ_ENTRY(variable)	va_entry;
+	TAILQ_ENTRY(variable)	 va_entry;
 };
 
 TAILQ_HEAD(variable_list, variable);

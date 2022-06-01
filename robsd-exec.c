@@ -25,8 +25,8 @@ int
 main(int argc, char *argv[])
 {
 	pid_t pid;
-	int error, status;
 	int pip[2];
+	int error, status;
 
 	if (argc < 2)
 		usage();
