@@ -18,7 +18,7 @@ const struct variable	*config_find(const struct config *, const char *);
 int			 config_validate(const struct config *);
 int			 config_interpolate(const struct config *);
 char			*config_interpolate_str(const struct config *,
-    const char *, int);
+    const char *, const char *, int);
 
 const struct string_list *variable_list(const struct variable *);
 

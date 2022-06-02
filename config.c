@@ -712,7 +712,7 @@ config_interpolate(const struct config *config)
 			error = 1;
 			break;
 		}
-		line = config_interpolate_str(config, buf, ++lno);
+		line = config_interpolate_str(config, buf, "/dev/stdin", ++lno);
 		if (line == NULL) {
 			error = 1;
 			break;
@@ -726,7 +726,8 @@ config_interpolate(const struct config *config)
 }
 
 char *
-config_interpolate_str(const struct config *config, const char *str, int lno)
+config_interpolate_str(const struct config *config, const char *str,
+    const char *path, int lno)
 {
 	struct buffer *buf;
 	char *bp = NULL;
@@ -743,27 +744,27 @@ config_interpolate_str(const struct config *config, const char *str, int lno)
 			break;
 		vs = &p[1];
 		if (*vs != '{') {
-			log_warnx("/dev/stdin", lno,
+			log_warnx(path, lno,
 			    "invalid substitution, expected '{'");
 			goto out;
 		}
 		vs += 1;
 		ve = strchr(vs, '}');
 		if (ve == NULL) {
-			log_warnx("/dev/stdin", lno,
+			log_warnx(path, lno,
 			    "invalid substitution, expected '}'");
 			goto out;
 		}
 		len = ve - vs;
 		if (len == 0) {
-			log_warnx("/dev/stdin", lno,
+			log_warnx(path, lno,
 			    "invalid substitution, empty variable name");
 			goto out;
 		}
 
 		va = config_findn(config, vs, len);
 		if (va == NULL) {
-			log_warnx("/dev/stdin", lno,
+			log_warnx(path, lno,
 			    "invalid substitution, unknown variable '%.*s'",
 			    (int)len, vs);
 			goto out;
@@ -780,7 +781,8 @@ config_interpolate_str(const struct config *config, const char *str, int lno)
 		case DIRECTORY: {
 			char *vp;
 
-			vp = config_interpolate_str(config, va->va_str, lno);
+			vp = config_interpolate_str(config, va->va_str,
+			    path, lno);
 			if (vp == NULL)
 				goto out;
 			buffer_appendv(buf, "%s", vp);
@@ -795,7 +797,7 @@ config_interpolate_str(const struct config *config, const char *str, int lno)
 				char *vp;
 
 				vp = config_interpolate_str(config, st->st_val,
-				    lno);
+				    path, lno);
 				if (vp == NULL)
 					goto out;
 				buffer_appendv(buf, "%s%s", vp,
@@ -1157,7 +1159,8 @@ config_validate_directory(const struct config *config, const char *name)
 	if (strlen(va->va_str) == 0)
 		return 0;
 
-	path = config_interpolate_str(config, va->va_str, 0);
+	path = config_interpolate_str(config, va->va_str, config->cf_path,
+	    va->va_lno);
 	if (path == NULL) {
 		error = 1;
 	} else if (stat(path, &st) == -1) {

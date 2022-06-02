@@ -111,7 +111,7 @@ main(int argc, char *argv[])
 	TAILQ_FOREACH(st, strings, st_entry) {
 		char *arg;
 
-		arg = config_interpolate_str(config, st->st_val, 0);
+		arg = config_interpolate_str(config, st->st_val, NULL, 0);
 		if (arg == NULL) {
 			error = 1;
 			goto out;
