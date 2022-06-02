@@ -17,14 +17,18 @@ EOF
 PATH="${CHROOT}${PORTSDIR}/infrastructure/bin:${PATH}"
 
 _arch="$(machine)"
+_tmpdir="${BUILDDIR}/tmp"
 
 xargs -t rm -rf <<EOF
 ${CHROOT}${PORTSDIR}/logs/${_arch}
 ${CHROOT}${PORTSDIR}/distfiles/build-stats/${_arch}
 EOF
 
-_tmpdir="${BUILDDIR}/tmp"
-ls "${CHROOT}${PORTSDIR}/packages/${_arch}/all" >"${_tmpdir}/packages.orig" 2>/dev/null || :
+# Could already be present if the clean step was not skipped.
+_packages="${CHROOT}${PORTSDIR}/packages/${_arch}/all"
+if ! [ -e "${_tmpdir}/packages.orig" ]; then
+	ls "$_packages" >"${_tmpdir}/packages.orig" 2>/dev/null || :
+fi
 
 # shellcheck disable=SC2086
 dpb -c -B "$CHROOT" $PORTS
@@ -32,5 +36,5 @@ dpb -c -B "$CHROOT" $PORTS
 # Look for errors.
 ! grep -m 1 'E='"${CHROOT}${PORTSDIR}/logs/${_arch}/stats.log"
 
-ls "${CHROOT}${PORTSDIR}/packages/${_arch}/all" >"${_tmpdir}/packages"
+ls "${_packages}" >"${_tmpdir}/packages"
 diff -U0 -L packages.orig -L packages "${_tmpdir}/packages.orig" "${_tmpdir}/packages" || :

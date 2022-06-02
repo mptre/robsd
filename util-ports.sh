@@ -129,6 +129,7 @@ ports_steps() {
 	xargs printf '%s\n' <<-EOF
 	env
 	cvs
+	clean
 	proot
 	patch
 	dpb
