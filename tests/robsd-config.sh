@@ -151,6 +151,12 @@ if testcase "regress quiet"; then
 	EOF
 fi
 
+if testcase "regress interpolation inet"; then
+	default_regress_config >"$CONFIG"
+	echo "\${inet}" >"$STDIN"
+	robsd_config -R >/dev/null
+fi
+
 if testcase "regress invalid flags"; then
 	echo 'regress "bin/csh" noway' >"$CONFIG"
 	robsd_config -R -e | grep -e noway >"$TMP1"
@@ -255,11 +261,6 @@ fi
 if testcase "read only variables"; then
 	echo 'keep-dir "/tmp"' >"$CONFIG"
 	robsd_config -e - <<-EOF
-	robsd-config: ${CONFIG}:1: variable cannot be defined
-	EOF
-
-	echo 'target "amd64"' >"$CONFIG"
-	robsd_config -C -e - <<-EOF
 	robsd-config: ${CONFIG}:1: variable cannot be defined
 	EOF
 fi

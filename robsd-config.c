@@ -22,7 +22,7 @@ main(int argc, char *argv[])
 	int error = 0;
 	int ch;
 
-	if (pledge("stdio rpath getpw", NULL) == -1)
+	if (pledge("stdio rpath inet getpw route", NULL) == -1)
 		err(1, "pledge");
 
 	while ((ch = getopt(argc, argv, "b:f:m:")) != -1) {
@@ -30,10 +30,7 @@ main(int argc, char *argv[])
 		case 'b':
 			if (config == NULL)
 				usage();
-			if (config_set_builddir(config, optarg)) {
-				error = 1;
-				goto out;
-			}
+			config_set_builddir(config, optarg);
 			break;
 
 		case 'f': {
@@ -80,7 +77,7 @@ main(int argc, char *argv[])
 		goto out;
 	}
 
-	if (pledge("stdio", NULL) == -1)
+	if (pledge("stdio rpath inet route", NULL) == -1)
 		err(1, "pledge");
 
 	if (dointerpolate)

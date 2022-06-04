@@ -33,4 +33,9 @@ EOF
 	if ! PATH="${BINDIR}:${PATH}" sh "$ROBSDCROSS" -d amd64 >"$TMP1" 2>&1; then
 		fail - "expected exit zero" <"$TMP1"
 	fi
+
+	_builddir="$(find "${ROBSDDIR}" -type d -mindepth 1 -maxdepth 1)"
+	assert_file - "${_builddir}/target" <<-EOF
+	amd64
+	EOF
 fi
