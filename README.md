@@ -12,6 +12,8 @@ It's written in ksh with a dash of C and requires nothing other than what's
 included in OpenBSD.
 
 The project is divided into the utilities as follows.
+All of them are configured using a grammar that should be familiar for anyone
+with prior OpenBSD experience.
 
 [release]: https://man.openbsd.org/release
 
