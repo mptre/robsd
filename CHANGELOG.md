@@ -1,3 +1,21 @@
+# 12.0.0 - 2022-06-04
+
+## Changes
+
+- Rework robsd-regress configration.
+  (87f8ecc)
+  (Anton Lindqvist)
+
+## News
+
+- Add clean step to robsd-ports.
+  (a10607b)
+  (Anton Lindqvist)
+
+- Add inet interpolation variable to robsd-regress.
+  (eed5866)
+  (Anton Lindqvist)
+
 # v11.6.1 - 2022-05-26
 
 ## Bug fixes
