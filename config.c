@@ -520,7 +520,6 @@ static int	config_mode(const char *);
 
 static int	config_exec(struct config *);
 static int	config_exec1(struct config *, struct token *);
-static int	config_parse_bad(struct config *, struct token *, void **);
 static int	config_parse_boolean(struct config *, struct token *, void **);
 static int	config_parse_string(struct config *, struct token *, void **);
 static int	config_parse_integer(struct config *, struct token *, void **);
@@ -549,7 +548,6 @@ static const struct grammar robsd[] = {
 	{ "execdir",		DIRECTORY,	config_parse_string,	0,	"/usr/local/libexec/robsd" },
 	{ "hook",		LIST,		config_parse_list,	0,	NULL },
 	{ "keep",		INTEGER,	config_parse_integer,	0,	NULL },
-	{ "keep-dir",		STRING,		config_parse_bad,	0,	"${robsddir}/attic" },
 	{ "kernel",		STRING,		config_parse_string,	0,	"GENERIC.MP" },
 	{ "reboot",		INTEGER,	config_parse_boolean,	0,	NULL },
 	{ "skip",		LIST,		config_parse_list,	0,	NULL },
@@ -574,7 +572,6 @@ static const struct grammar robsd_cross[] = {
 	{ "crossdir",	STRING,		config_parse_string,	REQ,	NULL },
 	{ "execdir",	DIRECTORY,	config_parse_string,	0,	"/usr/local/libexec/robsd" },
 	{ "keep",	INTEGER,	config_parse_integer,	0,	NULL },
-	{ "keep-dir",	STRING,		config_parse_bad,	0,	"${robsddir}/attic" },
 	{ "kernel",	STRING,		config_parse_string,	0,	"GENERIC.MP" },
 	{ "skip",	LIST,		config_parse_list,	0,	NULL },
 	/* Not used but needed by kernel step. */
@@ -589,7 +586,6 @@ static const struct grammar robsd_ports[] = {
 	{ "execdir",		DIRECTORY,	config_parse_string,	0,	"/usr/local/libexec/robsd" },
 	{ "hook",		LIST,		config_parse_list,	0,	NULL },
 	{ "keep",		INTEGER,	config_parse_integer,	0,	NULL },
-	{ "keep-dir",		STRING,		config_parse_bad,	0,	"${robsddir}/attic" },
 	{ "skip",		LIST,		config_parse_list,	0,	NULL },
 	{ "cvs-root",		STRING,		config_parse_string,	0,	NULL },
 	{ "cvs-user",		STRING,		config_parse_user,	0,	NULL },
@@ -609,7 +605,6 @@ static const struct grammar robsd_regress[] = {
 	{ "execdir",		DIRECTORY,	config_parse_string,	0,		"/usr/local/libexec/robsd" },
 	{ "hook",		LIST,		config_parse_list,	0,		NULL },
 	{ "keep",		INTEGER,	config_parse_integer,	0,		NULL },
-	{ "keep-dir",		STRING,		config_parse_bad,	0,		"${robsddir}/attic" },
 	{ "rdonly",		INTEGER,	config_parse_boolean,	0,		NULL },
 	{ "sudo",		STRING,		config_parse_string,	0,		"doas -n" },
 	{ "bsd-diff",		LIST,		config_parse_glob,	0,		NULL },
@@ -966,16 +961,6 @@ config_exec1(struct config *config, struct token *tk)
 }
 
 static int
-config_parse_bad(struct config *config, struct token *kw, void **UNUSED(val))
-{
-	struct token *tk;
-
-	lexer_warnx(&config->cf_lx, kw->tk_lno, "variable cannot be defined");
-	(void)lexer_expect(&config->cf_lx, TOKEN_STRING, &tk);
-	return 1;
-}
-
-static int
 config_parse_boolean(struct config *config, struct token *UNUSED(kw),
     void **val)
 {
@@ -1166,6 +1151,11 @@ config_append_defaults(struct config *cf)
 		if (str != NULL)
 			config_append(cf, STRING, "target", str, 0);
 	}
+
+	str = config_interpolate_str(cf, "${robsddir}/attic", cf->cf_path, 0);
+	if (str == NULL)
+		return 1;
+	config_append(cf, STRING, "keep-dir", str, 0);
 
 	return 0;
 }

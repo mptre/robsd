@@ -259,9 +259,10 @@ if testcase "comment"; then
 fi
 
 if testcase "read only variables"; then
-	echo 'keep-dir "/tmp"' >"$CONFIG"
-	robsd_config -e - <<-EOF
-	robsd-config: ${CONFIG}:1: variable cannot be defined
+	default_config >"$CONFIG"
+	echo "\${keep-dir}" >"$STDIN"
+	robsd_config - <<-EOF
+	/var/empty/attic
 	EOF
 fi
 
