@@ -511,6 +511,7 @@ struct config {
 		CONFIG_ROBSD_CROSS,
 		CONFIG_ROBSD_PORTS,
 		CONFIG_ROBSD_REGRESS,
+		CONFIG_UNKNOWN,
 	} cf_mode;
 };
 
@@ -645,6 +646,10 @@ config_alloc(const char *mode)
 		config->cf_path = "/etc/robsd-regress.conf";
 		config->cf_grammar = robsd_regress;
 		break;
+	case CONFIG_UNKNOWN:
+		warnx("unknown mode '%s'", mode);
+		config_free(config);
+		return NULL;
 	}
 
 	return config;
@@ -925,15 +930,17 @@ variable_list(const struct variable *va)
 }
 
 static int
-config_mode(const char *progname)
+config_mode(const char *mode)
 {
-	if (strncmp(progname, "robsd-cross", 11) == 0)
+	if (strcmp(mode, "robsd") == 0)
+		return CONFIG_ROBSD;
+	if (strcmp(mode, "robsd-cross") == 0)
 		return CONFIG_ROBSD_CROSS;
-	if (strncmp(progname, "robsd-ports", 11) == 0)
+	if (strcmp(mode, "robsd-ports") == 0)
 		return CONFIG_ROBSD_PORTS;
-	if (strncmp(progname, "robsd-regress", 13) == 0)
+	if (strcmp(mode, "robsd-regress") == 0)
 		return CONFIG_ROBSD_REGRESS;
-	return CONFIG_ROBSD;
+	return CONFIG_UNKNOWN;
 }
 
 static int

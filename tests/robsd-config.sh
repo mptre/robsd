@@ -415,3 +415,9 @@ if testcase "invalid template unknown variable name"; then
 	robsd-config: /dev/stdin:1: invalid substitution, unknown variable 'foo'
 	EOF
 fi
+
+if testcase "invalid mode"; then
+	if "$ROBSDCONFIG" -m unknown >"$TMP1" 2>&1; then
+		fail - "expected exit non-zero" <"$TMP1"
+	fi
+fi
