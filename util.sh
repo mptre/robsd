@@ -106,7 +106,7 @@ config_load() {
 		cat
 		echo "EXECDIR=\${execdir}"
 	} | "$ROBSDCONFIG" -m "$_MODE" -b "${BUILDDIR}" \
-		${ROBSDCONF:+"-f${ROBSDCONF}"} - >"$_tmp"
+		${ROBSDCONF:+"-f${ROBSDCONF}"} - >"$_tmp" || return 1
 	eval "$(<"$_tmp")"
 	rm "$_tmp"
 
