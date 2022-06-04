@@ -38,7 +38,7 @@ regress_log() {
 regress_report_log() {
 	local _name
 	local _log
-	local _skip=""
+	local _quiet=""
 
 	while [ $# -gt 0 ]; do
 		case "$1" in
@@ -53,8 +53,8 @@ regress_report_log() {
 	: "${_log:?}"
 	: "${_name:?}"
 
-	regress_skip "$_name" || _skip="yes"
-	regress_log -F ${_skip:+-S} "$_log" || tail "$_log"
+	regress_quiet "$_name" || _quiet="yes"
+	regress_log -F ${_quiet:+-S} "$_log" || tail "$_log"
 }
 
 # regress_report_skip -b build-dir -n step-name -l step-log -t tmp-dir
@@ -79,7 +79,7 @@ regress_report_skip() {
 	: "${_name:?}"
 
 	# Do not skip if one or many tests where skipped.
-	if ! regress_skip "$_name" && regress_log -Sn "$_log"; then
+	if ! regress_quiet "$_name" && regress_log -Sn "$_log"; then
 		return 1
 	fi
 	return 0
@@ -116,18 +116,18 @@ regress_root() {
 	local _test
 
 	_test="$1"; : "${_test:?}"
-	config_value regress-root | grep -q "\<${_test}\>"
+	config_value "regress-${_test}-root" >/dev/null 2>&1
 }
 
-# regress_skip test
+# regress_quiet test
 #
 # Exits zero if the given regress test should be omitted from the report even if
 # some tests where skipped.
-regress_skip() {
+regress_quiet() {
 	local _test
 
 	_test="$1"; : "${_test:?}"
-	config_value regress-skip | grep -q "\<${_test}\>"
+	config_value "regress-${_test}-quiet" >/dev/null 2>&1
 }
 
 # regress_step_after -b build-dir -e step-exit -n step-name

@@ -72,7 +72,7 @@ fi
 if testcase "regress"; then
 	robsd_config -R - <<-EOF
 	robsddir "${ROBSDDIR}"
-	regress {}
+	regress "test"
 	EOF
 
 	if (setmode "robsd-regress" &&
@@ -87,7 +87,7 @@ fi
 if testcase "regress skip"; then
 	robsd_config -R - <<-EOF
 	robsddir "${ROBSDDIR}"
-	regress { "bin/w:S" }
+	regress "bin/w" quiet
 	EOF
 	cat <<-EOF >"$TMP1"
 	==== t0 ====

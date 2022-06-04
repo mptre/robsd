@@ -61,7 +61,9 @@ default_regress_config() {
 	robsddir "/var/empty"
 	execdir "/var/empty"
 	regress-user "nobody"
-	regress { "bin/csh:R" "bin/ksh:RS" "bin/ls" }
+	regress "bin/csh" root
+	regress "bin/ksh" root quiet
+	regress "bin/ls"
 	EOF
 }
 

@@ -8,16 +8,16 @@
  * config -------------------------------------------------------------------------
  */
 
-struct config		*config_alloc(const char *);
-void			 config_free(struct config *);
-int			 config_set_builddir(struct config *, const char *);
-int			 config_parse(struct config *, const char *);
-int			 config_append_string(struct config *, const char *,
+struct config	*config_alloc(const char *);
+void		 config_free(struct config *);
+int		 config_set_builddir(struct config *, const char *);
+int		 config_parse(struct config *, const char *);
+int		 config_append_string(struct config *, const char *,
     const char *);
-const struct variable	*config_find(const struct config *, const char *);
-int			 config_validate(const struct config *);
-int			 config_interpolate(const struct config *);
-char			*config_interpolate_str(const struct config *,
+struct variable	*config_find(struct config *, const char *);
+int		 config_validate(const struct config *);
+int		 config_interpolate(const struct config *);
+char		*config_interpolate_str(const struct config *,
     const char *, const char *, int);
 
 const struct string_list *variable_list(const struct variable *);
@@ -66,5 +66,5 @@ TAILQ_HEAD(string_list, string);
 
 struct string_list	*strings_alloc(void);
 void			 strings_free(struct string_list *);
-void			 strings_append(struct string_list *, char *);
+void			 strings_append(struct string_list *, const char *);
 unsigned int		 strings_len(const struct string_list *);

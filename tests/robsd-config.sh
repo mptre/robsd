@@ -77,7 +77,9 @@ default_regress_config() {
 	execdir "/var/empty"
 	bsd-srcdir "/var/empty"
 	regress-user "nobody"
-	regress { "bin/csh:R" "bin/ksh:RS" "bin/ls" }
+	regress "bin/csh" root
+	regress "bin/ksh" root quiet
+	regress "bin/ls"
 	EOF
 }
 
@@ -122,27 +124,38 @@ if testcase "regress"; then
 	EOF
 fi
 
-if testcase "regress pseudo"; then
-	default_regress_config >"$CONFIG"
-	echo "ROOT=\${regress-root}" >"$STDIN"
+if testcase "regress env"; then
+	{
+		default_regress_config
+		echo 'regress "env" env { "FOO=1" "BAR=2" }'
+	} >"$CONFIG"
+	echo "\${regress-env-env}" >"$STDIN"
 	robsd_config -R - <<-EOF
-	ROOT=bin/csh bin/ksh
+	FOO=1 BAR=2
 	EOF
 fi
 
-if testcase "regress pseudo invalid flags"; then
-	echo 'regress { "bin/csh:A" }' >"$CONFIG"
-	robsd_config -R -e | grep -e flag >"$TMP1"
-	assert_file - "$TMP1" <<-EOF
-	robsd-config: ${CONFIG}:1: unknown regress flag 'A'
+if testcase "regress root"; then
+	default_regress_config >"$CONFIG"
+	echo "\${regress-bin/csh-root} \${regress-bin/ksh-root}" >"$STDIN"
+	robsd_config -R - <<-EOF
+	1 1
 	EOF
 fi
 
-if testcase "regress pseudo empty flags"; then
-	echo 'regress { "bin/csh:" }' >"$CONFIG"
-	robsd_config -R -e | grep -e flags >"$TMP1"
+if testcase "regress quiet"; then
+	default_regress_config >"$CONFIG"
+	echo "\${regress-bin/ksh-quiet}" >"$STDIN"
+	robsd_config -R - <<-EOF
+	1
+	EOF
+fi
+
+if testcase "regress invalid flags"; then
+	echo 'regress "bin/csh" noway' >"$CONFIG"
+	robsd_config -R -e | grep -e noway >"$TMP1"
 	assert_file - "$TMP1" <<-EOF
-	robsd-config: ${CONFIG}:1: empty regress flags
+	robsd-config: ${CONFIG}:1: unknown keyword 'noway'
 	EOF
 fi
 

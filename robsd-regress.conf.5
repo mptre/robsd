@@ -56,24 +56,28 @@ Source directory for the src tree, defaults to
 User to perform
 .Xr patch 1
 operations on behalf of.
-.It Ic regress No { Do Ar path Dc Ar ... No }
-Regression tests to execute,
+.It Xo
+.Ic regress Dq Ar path
+.Bq Ic root
+.Bq Ic quiet
+.Bq Ic env No { Do Ar key=val Dc Ar ... No }
+.Xc
+Regression test to execute where
 .Ar path
 must be relative to
-.Pa ${bsd-srcdir}/regress
-and can optionally be followed by a colon
-.Pq Sq \&:
-and one or many of the following flags:
+.Pa ${bsd-srcdir}/regress .
+May be given multiple times.
+The following optional variables can be used to influence the execution:
 .Pp
-.Bl -tag -compact -width P
-.It R
+.Bl -tag -width quiet -compact
+.It Ic root
 Run the regression test as root as opposed of
 .Ic regress-user .
-.It S
+.It Ic quiet
 Do not report skipped or disabled targets for this regression test.
+.It Ic env
+Add one more many environment variables.
 .El
-.It Ic regress-user Dq Ar user
-User to execute regression tests as.
 .El
 .Sh FILES
 .Bl -tag -width "/etc/robsd-regress.conf"
@@ -85,7 +89,9 @@ Example configuration:
 .Bd -literal
 robsddir "/home/regress"
 regress-user "anton"
-regress { "bin/csh" "bin/ksh" "sys/nfs:R" }
+regress "bin/csh"
+regress "bin/ksh"
+regress "sys/nfs" root
 .Ed
 .Sh SEE ALSO
 .Xr robsd-regress 8 ,

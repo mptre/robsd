@@ -36,12 +36,19 @@ struct lexer {
 struct token {
 	enum token_type {
 		TOKEN_EOF,
+
 		TOKEN_LBRACE,
 		TOKEN_RBRACE,
+
 		TOKEN_KEYWORD,
+		TOKEN_ENV,
+		TOKEN_QUIET,
+		TOKEN_ROOT,
+
 		TOKEN_BOOLEAN,
 		TOKEN_INTEGER,
 		TOKEN_STRING,
+
 		TOKEN_UNKNOWN,
 	} tk_type;
 	int			tk_lno;
@@ -62,6 +69,7 @@ static int	lexer_read(struct lexer *, struct token *);
 static int	lexer_next(struct lexer *, struct token **);
 static int	lexer_expect(struct lexer *, enum token_type, struct token **);
 static int	lexer_peek(struct lexer *, enum token_type);
+static int	lexer_if(struct lexer *, enum token_type, struct token **);
 
 static void	lexer_warn(struct lexer *, int, const char *, ...)
 	__attribute__((format(printf, 3, 4)));
@@ -200,6 +208,19 @@ again:
 		}
 		lexer_ungetc(lx, ch);
 
+		if (strncmp("env", buf, buflen) == 0) {
+			tk->tk_type = TOKEN_ENV;
+			return 0;
+		}
+		if (strncmp("quiet", buf, buflen) == 0) {
+			tk->tk_type = TOKEN_QUIET;
+			return 0;
+		}
+		if (strncmp("root", buf, buflen) == 0) {
+			tk->tk_type = TOKEN_ROOT;
+			return 0;
+		}
+
 		if (strncmp("yes", buf, buflen) == 0) {
 			tk->tk_type = TOKEN_BOOLEAN;
 			tk->tk_int = 1;
@@ -326,6 +347,18 @@ lexer_peek(struct lexer *lx, enum token_type type)
 	return peek;
 }
 
+static int
+lexer_if(struct lexer *lx, enum token_type type, struct token **tk)
+{
+	if (!lexer_next(lx, tk))
+		return 0;
+	if ((*tk)->tk_type != type) {
+		lx->lx_tk = TAILQ_PREV(*tk, token_list, tk_entry);
+		return 0;
+	}
+	return 1;
+}
+
 static void
 lexer_warn(struct lexer *lx, int lno, const char *fmt, ...)
 {
@@ -364,6 +397,9 @@ token_free(struct token *tk)
 	case TOKEN_EOF:
 	case TOKEN_LBRACE:
 	case TOKEN_RBRACE:
+	case TOKEN_ENV:
+	case TOKEN_QUIET:
+	case TOKEN_ROOT:
 	case TOKEN_BOOLEAN:
 	case TOKEN_INTEGER:
 	case TOKEN_UNKNOWN:
@@ -384,6 +420,12 @@ tokenstr(enum token_type type)
 		return "RBRACE";
 	case TOKEN_KEYWORD:
 		return "KEYWORD";
+	case TOKEN_ENV:
+		return "ENV";
+	case TOKEN_QUIET:
+		return "QUIET";
+	case TOKEN_ROOT:
+		return "ROOT";
 	case TOKEN_BOOLEAN:
 		return "BOOLEAN";
 	case TOKEN_INTEGER:
@@ -434,7 +476,8 @@ struct grammar {
 	int			 (*gr_fn)(struct config *, struct token *,
 	    void **);
 	unsigned int		 gr_flags;
-#define MANDATORY	0x00000001u
+#define REQ	0x00000001u
+#define REP	0x00000002u
 
 	void			*gr_default;
 };
@@ -484,7 +527,7 @@ static int	config_parse_list(struct config *, struct token *, void **);
 static int	config_parse_user(struct config *, struct token *, void **);
 static int	config_parse_regress(struct config *, struct token *, void **);
 
-static void			 config_append(struct config *,
+static struct variable		*config_append(struct config *,
     enum variable_type, const char *, void *, int);
 static const struct variable	*config_findn(const struct config *,
     const char *, size_t);
@@ -493,71 +536,73 @@ static int			 config_present(const struct config *,
 
 static int	config_validate_directory(const struct config *, const char *);
 
+static int	regressname(char *, size_t, const char *, const char *);
+
 static const struct grammar robsd[] = {
-	{ "robsddir",		DIRECTORY,	config_parse_string,	MANDATORY,	NULL },
-	{ "builduser",		STRING,		config_parse_user,	0,		"build" },
-	{ "destdir",		DIRECTORY,	config_parse_string,	MANDATORY,	NULL },
-	{ "execdir",		DIRECTORY,	config_parse_string,	0,		"/usr/local/libexec/robsd" },
-	{ "hook",		LIST,		config_parse_list,	0,		NULL },
-	{ "keep",		INTEGER,	config_parse_integer,	0,		NULL },
-	{ "keep-dir",		STRING,		config_parse_bad,	0,		"${robsddir}/attic" },
-	{ "kernel",		STRING,		config_parse_string,	0,		"GENERIC.MP" },
-	{ "reboot",		INTEGER,	config_parse_boolean,	0,		NULL },
-	{ "skip",		LIST,		config_parse_list,	0,		NULL },
-	{ "bsd-diff",		LIST,		config_parse_glob,	0,		NULL },
-	{ "bsd-objdir",		DIRECTORY,	config_parse_string,	0,		"/usr/obj" },
-	{ "bsd-srcdir",		DIRECTORY,	config_parse_string,	0,		"/usr/src" },
-	{ "cvs-root",		STRING,		config_parse_string,	0,		NULL },
-	{ "cvs-user",		STRING,		config_parse_user,	0,		NULL },
-	{ "distrib-host",	STRING,		config_parse_string,	0,		NULL },
-	{ "distrib-path",	STRING,		config_parse_string,	0,		NULL },
-	{ "distrib-signify",	STRING,		config_parse_string,	0,		NULL },
-	{ "distrib-user",	STRING,		config_parse_user,	0,		NULL },
-	{ "x11-diff",		LIST,		config_parse_glob,	0,		NULL },
-	{ "x11-objdir",		DIRECTORY,	config_parse_string,	0,		"/usr/xobj" },
-	{ "x11-srcdir",		DIRECTORY,	config_parse_string,	0,		"/usr/xenocara" },
-	{ NULL,			0,		NULL,			0,		NULL },
+	{ "robsddir",		DIRECTORY,	config_parse_string,	REQ,	NULL },
+	{ "builduser",		STRING,		config_parse_user,	0,	"build" },
+	{ "destdir",		DIRECTORY,	config_parse_string,	REQ,	NULL },
+	{ "execdir",		DIRECTORY,	config_parse_string,	0,	"/usr/local/libexec/robsd" },
+	{ "hook",		LIST,		config_parse_list,	0,	NULL },
+	{ "keep",		INTEGER,	config_parse_integer,	0,	NULL },
+	{ "keep-dir",		STRING,		config_parse_bad,	0,	"${robsddir}/attic" },
+	{ "kernel",		STRING,		config_parse_string,	0,	"GENERIC.MP" },
+	{ "reboot",		INTEGER,	config_parse_boolean,	0,	NULL },
+	{ "skip",		LIST,		config_parse_list,	0,	NULL },
+	{ "bsd-diff",		LIST,		config_parse_glob,	0,	NULL },
+	{ "bsd-objdir",		DIRECTORY,	config_parse_string,	0,	"/usr/obj" },
+	{ "bsd-srcdir",		DIRECTORY,	config_parse_string,	0,	"/usr/src" },
+	{ "cvs-root",		STRING,		config_parse_string,	0,	NULL },
+	{ "cvs-user",		STRING,		config_parse_user,	0,	NULL },
+	{ "distrib-host",	STRING,		config_parse_string,	0,	NULL },
+	{ "distrib-path",	STRING,		config_parse_string,	0,	NULL },
+	{ "distrib-signify",	STRING,		config_parse_string,	0,	NULL },
+	{ "distrib-user",	STRING,		config_parse_user,	0,	NULL },
+	{ "x11-diff",		LIST,		config_parse_glob,	0,	NULL },
+	{ "x11-objdir",		DIRECTORY,	config_parse_string,	0,	"/usr/xobj" },
+	{ "x11-srcdir",		DIRECTORY,	config_parse_string,	0,	"/usr/xenocara" },
+	{ NULL,			0,		NULL,			0,	NULL },
 };
 
 static const struct grammar robsd_cross[] = {
-	{ "robsddir",	DIRECTORY,	config_parse_string,	MANDATORY,	NULL },
-	{ "builduser",	STRING,		config_parse_user,	0,		"build" },
-	{ "crossdir",	STRING,		config_parse_string,	MANDATORY,	NULL },
-	{ "execdir",	DIRECTORY,	config_parse_string,	0,		"/usr/local/libexec/robsd" },
-	{ "keep",	INTEGER,	config_parse_integer,	0,		NULL },
-	{ "keep-dir",	STRING,		config_parse_bad,	0,		"${robsddir}/attic" },
-	{ "kernel",	STRING,		config_parse_string,	0,		"GENERIC.MP" },
-	{ "skip",	LIST,		config_parse_list,	0,		NULL },
-	{ "target",	STRING,		config_parse_bad,	0,		NULL },
+	{ "robsddir",	DIRECTORY,	config_parse_string,	REQ,	NULL },
+	{ "builduser",	STRING,		config_parse_user,	0,	"build" },
+	{ "crossdir",	STRING,		config_parse_string,	REQ,	NULL },
+	{ "execdir",	DIRECTORY,	config_parse_string,	0,	"/usr/local/libexec/robsd" },
+	{ "keep",	INTEGER,	config_parse_integer,	0,	NULL },
+	{ "keep-dir",	STRING,		config_parse_bad,	0,	"${robsddir}/attic" },
+	{ "kernel",	STRING,		config_parse_string,	0,	"GENERIC.MP" },
+	{ "skip",	LIST,		config_parse_list,	0,	NULL },
+	{ "target",	STRING,		config_parse_bad,	0,	NULL },
 	/* Not used but needed by kernel step. */
-	{ "bsd-objdir",	DIRECTORY,	config_parse_string,	0,		"/usr/obj" },
-	{ "bsd-srcdir",	DIRECTORY,	config_parse_string,	0,		"/usr/src" },
-	{ NULL,		0,		NULL,			0,		NULL },
+	{ "bsd-objdir",	DIRECTORY,	config_parse_string,	0,	"/usr/obj" },
+	{ "bsd-srcdir",	DIRECTORY,	config_parse_string,	0,	"/usr/src" },
+	{ NULL,		0,		NULL,			0,	NULL },
 };
 
 static const struct grammar robsd_ports[] = {
-	{ "robsddir",		DIRECTORY,	config_parse_string,	MANDATORY,	NULL },
-	{ "chroot",		STRING,		config_parse_string,	MANDATORY,	NULL },
-	{ "execdir",		DIRECTORY,	config_parse_string,	0,		"/usr/local/libexec/robsd" },
-	{ "hook",		LIST,		config_parse_list,	0,		NULL },
-	{ "keep",		INTEGER,	config_parse_integer,	0,		NULL },
-	{ "keep-dir",		STRING,		config_parse_bad,	0,		"${robsddir}/attic" },
-	{ "skip",		LIST,		config_parse_list,	0,		NULL },
-	{ "cvs-root",		STRING,		config_parse_string,	0,		NULL },
-	{ "cvs-user",		STRING,		config_parse_user,	0,		NULL },
-	{ "distrib-host",	STRING,		config_parse_string,	0,		NULL },
-	{ "distrib-path",	STRING,		config_parse_string,	0,		NULL },
-	{ "distrib-signify",	STRING,		config_parse_string,	0,		NULL },
-	{ "distrib-user",	STRING,		config_parse_user,	0,		NULL },
-	{ "ports",		LIST,		config_parse_list,	MANDATORY,	NULL },
-	{ "ports-diff",		LIST,		config_parse_glob,	0,		NULL },
-	{ "ports-dir",		STRING,		config_parse_string,	0,		"/usr/ports" },
-	{ "ports-user",		STRING,		config_parse_user,	MANDATORY,	NULL },
-	{ NULL,			0,		NULL,			0,		NULL },
+	{ "robsddir",		DIRECTORY,	config_parse_string,	REQ,	NULL },
+	{ "chroot",		STRING,		config_parse_string,	REQ,	NULL },
+	{ "execdir",		DIRECTORY,	config_parse_string,	0,	"/usr/local/libexec/robsd" },
+	{ "hook",		LIST,		config_parse_list,	0,	NULL },
+	{ "keep",		INTEGER,	config_parse_integer,	0,	NULL },
+	{ "keep-dir",		STRING,		config_parse_bad,	0,	"${robsddir}/attic" },
+	{ "skip",		LIST,		config_parse_list,	0,	NULL },
+	{ "cvs-root",		STRING,		config_parse_string,	0,	NULL },
+	{ "cvs-user",		STRING,		config_parse_user,	0,	NULL },
+	{ "distrib-host",	STRING,		config_parse_string,	0,	NULL },
+	{ "distrib-path",	STRING,		config_parse_string,	0,	NULL },
+	{ "distrib-signify",	STRING,		config_parse_string,	0,	NULL },
+	{ "distrib-user",	STRING,		config_parse_user,	0,	NULL },
+	{ "ports",		LIST,		config_parse_list,	REQ,	NULL },
+	{ "ports-diff",		LIST,		config_parse_glob,	0,	NULL },
+	{ "ports-dir",		STRING,		config_parse_string,	0,	"/usr/ports" },
+	{ "ports-user",		STRING,		config_parse_user,	REQ,	NULL },
+	{ NULL,			0,		NULL,			0,	NULL },
 };
 
 static const struct grammar robsd_regress[] = {
-	{ "robsddir",		DIRECTORY,	config_parse_string,	MANDATORY,	NULL },
+	{ "robsddir",		DIRECTORY,	config_parse_string,	REQ,		NULL },
 	{ "execdir",		DIRECTORY,	config_parse_string,	0,		"/usr/local/libexec/robsd" },
 	{ "hook",		LIST,		config_parse_list,	0,		NULL },
 	{ "keep",		INTEGER,	config_parse_integer,	0,		NULL },
@@ -567,8 +612,8 @@ static const struct grammar robsd_regress[] = {
 	{ "bsd-diff",		LIST,		config_parse_glob,	0,		NULL },
 	{ "bsd-srcdir",		DIRECTORY,	config_parse_string,	0,		"/usr/src" },
 	{ "cvs-user",		STRING,		config_parse_user,	0,		NULL },
-	{ "regress",		LIST,		config_parse_regress,	MANDATORY,	NULL },
-	{ "regress-user",	STRING,		config_parse_user,	MANDATORY,	NULL },
+	{ "regress",		LIST,		config_parse_regress,	REQ|REP,	NULL },
+	{ "regress-user",	STRING,		config_parse_user,	REQ,		NULL },
 	{ NULL,			0,		NULL,			0,		NULL },
 };
 
@@ -711,10 +756,10 @@ config_append_string(struct config *config, const char *name, const char *val)
 	return 0;
 }
 
-const struct variable *
-config_find(const struct config *config, const char *name)
+struct variable *
+config_find(struct config *config, const char *name)
 {
-	return config_findn(config, name, strlen(name));
+	return (struct variable *)config_findn(config, name, strlen(name));
 }
 
 int
@@ -727,7 +772,7 @@ config_validate(const struct config *config)
 		const struct grammar *gr = &config->cf_grammar[i];
 		const char *str = gr->gr_kw;
 
-		if ((gr->gr_flags & MANDATORY) &&
+		if ((gr->gr_flags & REQ) &&
 		    !config_present(config, str)) {
 			log_warnx(config->cf_path, 0,
 			    "mandatory variable '%s' missing", str);
@@ -937,15 +982,18 @@ config_exec1(struct config *config, struct token *tk)
 		return -1;
 	}
 
-	if (config_present(config, tk->tk_str)) {
+	if ((gr->gr_flags & REP) == 0 && config_present(config, tk->tk_str)) {
 		lexer_warnx(&config->cf_lx, tk->tk_lno,
 		    "variable '%s' already defined", tk->tk_str);
 		error = 1;
 	}
-	if (gr->gr_fn(config, tk, &val) == 0)
-		config_append(config, gr->gr_type, tk->tk_str, val, tk->tk_lno);
-	else
+	if (gr->gr_fn(config, tk, &val) == 0) {
+		if (val != NULL)
+			config_append(config, gr->gr_type, tk->tk_str, val,
+			    tk->tk_lno);
+	} else {
 		error = 1;
+	}
 
 	return error;
 }
@@ -1072,53 +1120,61 @@ config_parse_user(struct config *config, struct token *kw, void **val)
 }
 
 static int
-config_parse_regress(struct config *config, struct token *kw, void **val)
+config_parse_regress(struct config *config, struct token *UNUSED(kw),
+    void **val)
 {
-	struct string_list *regress, *root, *skip;
-	struct string *st;
+	struct lexer *lx = &config->cf_lx;
+	struct token *tk;
+	struct variable *regress;
+	const char *path;
 
-	if (config_parse_list(config, kw, (void **)&regress))
+	if (!lexer_expect(lx, TOKEN_STRING, &tk))
 		return 1;
+	path = tk->tk_str;
 
-	root = strings_alloc();
-	skip = strings_alloc();
+	for (;;) {
+		char name[128];
 
-	TAILQ_FOREACH(st, regress, st_entry) {
-		char *p;
+		if (lexer_if(lx, TOKEN_ENV, &tk)) {
+			struct token_list *env;
 
-		p = strchr(st->st_val, ':');
-		if (p == NULL)
-			continue;
-
-		*p++ = '\0';
-		if (*p == '\0') {
-			lexer_warnx(&config->cf_lx, kw->tk_lno,
-			    "empty regress flags");
-			continue;
-		}
-		for (; *p != '\0'; p++) {
-			switch (*p) {
-			case 'R':
-				strings_append(root, st->st_val);
-				break;
-			case 'S':
-				strings_append(skip, st->st_val);
-				break;
-			default:
-				lexer_warnx(&config->cf_lx, kw->tk_lno,
-				    "unknown regress flag '%c'", *p);
+			if (config_parse_list(config, tk, (void **)&env))
+				return 1;
+			if (regressname(name, sizeof(name), path, "env")) {
+				lexer_warnx(lx, tk->tk_lno, "name too long");
+				return 1;
 			}
+			config_append(config, LIST, name, env, tk->tk_lno);
+		} else if (lexer_if(lx, TOKEN_QUIET, &tk)) {
+			if (regressname(name, sizeof(name), path, "quiet")) {
+				lexer_warnx(lx, tk->tk_lno, "name too long");
+				return 1;
+			}
+			config_append(config, INTEGER, name, (void *)1,
+			    tk->tk_lno);
+		} else if (lexer_if(lx, TOKEN_ROOT, &tk)) {
+			if (regressname(name, sizeof(name), path, "root")) {
+				lexer_warnx(lx, tk->tk_lno, "name too long");
+				return 1;
+			}
+			config_append(config, INTEGER, name, (void *)1,
+			    tk->tk_lno);
+		} else {
+			break;
 		}
 	}
 
-	config_append(config, LIST, "regress-root", root, 0);
-	config_append(config, LIST, "regress-skip", skip, 0);
+	regress = config_find(config, "regress");
+	if (regress == NULL)
+		regress = config_append(config, LIST, "regress",
+		    strings_alloc(), 0);
+	strings_append(regress->va_list, path);
 
-	*val = regress;
+	*val = NULL;
 	return 0;
 }
 
-static void
+static struct variable *
 config_append(struct config *config, enum variable_type type, const char *name,
     void *val, int lno)
 {
@@ -1135,6 +1191,7 @@ config_append(struct config *config, enum variable_type type, const char *name,
 	va->va_namelen = strlen(name);
 	va->va_val = val;
 	TAILQ_INSERT_TAIL(&config->cf_variables, va, va_entry);
+	return va;
 }
 
 static const struct variable *
@@ -1156,7 +1213,7 @@ config_findn(const struct config *config, const char *name, size_t namelen)
 		void *val;
 
 		if (strncmp(gr->gr_kw, name, namelen) != 0 ||
-		    (gr->gr_flags & MANDATORY))
+		    (gr->gr_flags & REQ))
 			continue;
 
 		memset(&vadef, 0, sizeof(vadef));
@@ -1205,7 +1262,7 @@ config_validate_directory(const struct config *config, const char *name)
 	char *path;
 	int error = 0;
 
-	va = config_find(config, name);
+	va = config_findn(config, name, strlen(name));
 	if (va == NULL)
 		return 0;
 	/* Empty string error already reported by the lexer. */
@@ -1228,4 +1285,15 @@ config_validate_directory(const struct config *config, const char *name)
 	free(path);
 
 	return error;
+}
+
+static int
+regressname(char *buf, size_t bufsiz, const char *path, const char *suffix)
+{
+	int n;
+
+	n = snprintf(buf, bufsiz, "regress-%s-%s", path, suffix);
+	if (n < 0 || (size_t)n >= bufsiz)
+		return 1;
+	return 0;
 }

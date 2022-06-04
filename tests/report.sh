@@ -187,7 +187,11 @@ if testcase "regress"; then
 
 	robsd_config -R - <<-EOF
 	robsddir "$ROBSDDIR"
-	regress { "skipped" "nein" "error" "skipignore:S" "disabled:S" }
+	regress "skipped"
+	regress "nein"
+	regress "error"
+	regress "skipignore" quiet
+	regress "disabled" quiet
 	EOF
 	(setmode "robsd-regress" && report -r "$ROBSDDIR" -b "$BUILDDIR")
 

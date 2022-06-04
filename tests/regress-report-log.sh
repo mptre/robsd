@@ -3,7 +3,7 @@ LOG="${TSHDIR}/log"
 if testcase "skipped"; then
 	robsd_config -R - <<-EOF
 	robsddir "${TSHDIR}"
-	regress { "test" }
+	regress "test"
 	EOF
 
 	cat <<-EOF >"$LOG"
@@ -32,7 +32,7 @@ fi
 if testcase "skipped many lines"; then
 	robsd_config -R - <<-EOF
 	robsddir "${TSHDIR}"
-	regress { "test" }
+	regress "test"
 	EOF
 
 	cat <<-EOF >"$LOG"
@@ -65,7 +65,7 @@ fi
 if testcase "skipped no lines"; then
 	robsd_config -R - <<-EOF
 	robsddir "${TSHDIR}"
-	regress { "test" }
+	regress "test"
 	EOF
 	cat <<-EOF >"$LOG"
 	==== test
@@ -84,7 +84,7 @@ fi
 if testcase "tail fallback"; then
 	robsd_config -R - <<-EOF
 	robsddir "${TSHDIR}"
-	regress { "test" }
+	regress "test"
 	EOF
 
 	cat <<-EOF >"$LOG"
@@ -124,7 +124,7 @@ fi
 if testcase "failed"; then
 	robsd_config -R - <<-EOF
 	robsddir "${TSHDIR}"
-	regress { "test" }
+	regress "test"
 	EOF
 
 	cat <<-EOF >"$LOG"
@@ -162,7 +162,7 @@ fi
 if testcase "failed and skipped"; then
 	robsd_config -R - <<-EOF
 	robsddir "${TSHDIR}"
-	regress { "test:S" }
+	regress "test" quiet
 	EOF
 
 	cat <<-EOF >"$LOG"

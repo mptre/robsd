@@ -7,7 +7,10 @@ if testcase "basic"; then
 	robsd_config -R - <<-EOF
 	robsddir "${ROBSDDIR}"
 	execdir "${EXECDIR}"
-	regress { "test/fail" "test/hello" "test/root:R" }
+	regress "test/fail"
+	regress "test/hello"
+	regress "test/root" root
+	regress "test/env" env { "FOO=1" "BAR=2" }
 	EOF
 	mkdir "$ROBSDDIR"
 	mkdir -p "${TSHDIR}/regress/test/fail"
@@ -25,6 +28,11 @@ EOF
 all:
 	echo SUDO=\${SUDO} >${TSHDIR}/root
 EOF
+	mkdir -p "${TSHDIR}/regress/test/env"
+	cat <<EOF >"${TSHDIR}/regress/test/env/Makefile"
+all:
+	echo FOO=\${FOO} BAR=\${BAR} >${TSHDIR}/env
+EOF
 
 	if ! PATH="${BINDIR}:${PATH}" sh "$ROBSDREGRESS" -d >"$TMP1" 2>&1; then
 		fail - "expected exit zero" <"$TMP1"
@@ -35,13 +43,16 @@ EOF
 	assert_file - "${TSHDIR}/root" <<-EOF
 	SUDO=
 	EOF
+	assert_file - "${TSHDIR}/env" <<-EOF
+	FOO=1 BAR=2
+	EOF
 fi
 
 if testcase "failure in non-test step"; then
 	robsd_config -R - <<-EOF
 	robsddir "${ROBSDDIR}"
 	execdir "${EXECDIR}"
-	regress { "test/nothing" }
+	regress "test/nothing"
 	EOF
 	mkdir "$ROBSDDIR"
 	# Make the env step fail.
@@ -62,7 +73,7 @@ if testcase "failure in non-test step, conflicting with test name"; then
 	robsd_config -R - <<-EOF
 	robsddir "${ROBSDDIR}"
 	execdir "${EXECDIR}"
-	regress { "usr.bin/patch" }
+	regress "usr.bin/patch"
 	EOF
 	mkdir "$ROBSDDIR"
 	: >"${TSHDIR}/patch"
@@ -77,7 +88,8 @@ if testcase "kill"; then
 	robsd_config -R - <<-EOF
 	robsddir "${ROBSDDIR}"
 	execdir "${EXECDIR}"
-	regress { "test/sleep" "test/nein" }
+	regress "test/sleep"
+	regress "test/nein"
 	EOF
 	mkdir "$ROBSDDIR"
 	mkdir -p "${TSHDIR}/regress/test/sleep"

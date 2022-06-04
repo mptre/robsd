@@ -72,7 +72,7 @@ strings_free(struct string_list *strings)
 }
 
 void
-strings_append(struct string_list *strings, char *val)
+strings_append(struct string_list *strings, const char *val)
 {
 	struct string *st;
 
