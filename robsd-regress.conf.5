@@ -65,25 +65,24 @@ User to perform
 operations on behalf of.
 .It Xo
 .Ic regress Dq Ar path
-.Bq Ic root
-.Bq Ic quiet
-.Bq Ic env No { Do Ar key=val Dc Ar ... No }
+.Op Ar options
 .Xc
 Regression test to execute where
 .Ar path
 must be relative to
 .Pa ${bsd-srcdir}/regress .
 May be given multiple times.
-The following optional variables can be used to influence the execution:
-.Pp
-.Bl -tag -width quiet -compact
+The following
+.Ar options
+can be used to influence the execution:
+.Bl -tag -width Ds
+.It Ic env No { Do Ar key=val Dc Ar ... No }
+Add one more many environment variables.
+.It Ic quiet
+Do not report skipped or disabled targets for this regression test.
 .It Ic root
 Run the regression test as root as opposed of
 .Ic regress-user .
-.It Ic quiet
-Do not report skipped or disabled targets for this regression test.
-.It Ic env
-Add one more many environment variables.
 .El
 .El
 .Sh FILES
