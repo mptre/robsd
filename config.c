@@ -145,11 +145,10 @@ struct config {
 		CONFIG_ROBSD_CROSS,
 		CONFIG_ROBSD_PORTS,
 		CONFIG_ROBSD_REGRESS,
-		CONFIG_UNKNOWN,
 	} cf_mode;
 };
 
-static int	config_mode(const char *);
+static int	config_mode(const char *, int *);
 
 static int	config_exec(struct config *);
 static int	config_exec1(struct config *, struct token *);
@@ -252,13 +251,19 @@ struct config *
 config_alloc(const char *mode)
 {
 	struct config *cf;
+	int m;
+
+	if (config_mode(mode, &m)) {
+		warnx("unknown mode '%s'", mode);
+		return NULL;
+	}
 
 	cf = calloc(1, sizeof(*cf));
 	if (cf == NULL)
 		err(1, NULL);
+	cf->cf_mode = m;
 	TAILQ_INIT(&cf->cf_variables);
 
-	cf->cf_mode = config_mode(mode);
 	switch (cf->cf_mode) {
 	case CONFIG_ROBSD:
 		cf->cf_path = "/etc/robsd.conf";
@@ -276,10 +281,6 @@ config_alloc(const char *mode)
 		cf->cf_path = "/etc/robsd-regress.conf";
 		cf->cf_grammar = robsd_regress;
 		break;
-	case CONFIG_UNKNOWN:
-		warnx("unknown mode '%s'", mode);
-		config_free(cf);
-		return NULL;
 	}
 
 	return cf;
@@ -889,17 +890,19 @@ grammar_find(const struct grammar *grammar, const char *name)
 }
 
 static int
-config_mode(const char *mode)
+config_mode(const char *mode, int *res)
 {
 	if (strcmp(mode, "robsd") == 0)
-		return CONFIG_ROBSD;
-	if (strcmp(mode, "robsd-cross") == 0)
-		return CONFIG_ROBSD_CROSS;
-	if (strcmp(mode, "robsd-ports") == 0)
-		return CONFIG_ROBSD_PORTS;
-	if (strcmp(mode, "robsd-regress") == 0)
-		return CONFIG_ROBSD_REGRESS;
-	return CONFIG_UNKNOWN;
+		*res = CONFIG_ROBSD;
+	else if (strcmp(mode, "robsd-cross") == 0)
+		*res = CONFIG_ROBSD_CROSS;
+	else if (strcmp(mode, "robsd-ports") == 0)
+		*res = CONFIG_ROBSD_PORTS;
+	else if (strcmp(mode, "robsd-regress") == 0)
+		*res = CONFIG_ROBSD_REGRESS;
+	else
+		return 1;
+	return 0;
 }
 
 static int
