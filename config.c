@@ -1107,15 +1107,13 @@ config_parse_regress(struct config *cf, struct token *UNUSED(kw),
 				lexer_warnx(lx, tk->tk_lno, "name too long");
 				return 1;
 			}
-			config_append(cf, INTEGER, name, (void *)1,
-			    tk->tk_lno);
+			config_append(cf, INTEGER, name, (void *)1, tk->tk_lno);
 		} else if (lexer_if(lx, TOKEN_ROOT, &tk)) {
 			if (regressname(name, sizeof(name), path, "root")) {
 				lexer_warnx(lx, tk->tk_lno, "name too long");
 				return 1;
 			}
-			config_append(cf, INTEGER, name, (void *)1,
-			    tk->tk_lno);
+			config_append(cf, INTEGER, name, (void *)1, tk->tk_lno);
 		} else {
 			break;
 		}
@@ -1139,13 +1137,6 @@ config_append_defaults(struct config *cf)
 {
 	char *str;
 
-	if (cf->cf_mode == CONFIG_ROBSD_REGRESS) {
-		str = ifgrinet("egress");
-		if (str == NULL)
-			return 1;
-		config_append(cf, STRING, "inet", str, 0);
-	}
-
 	if (cf->cf_mode == CONFIG_ROBSD_CROSS &&
 	    cf->cf_builddir != NULL) {
 		/*
@@ -1155,6 +1146,13 @@ config_append_defaults(struct config *cf)
 		str = crosstarget(cf->cf_builddir);
 		if (str != NULL)
 			config_append(cf, STRING, "target", str, 0);
+	}
+
+	if (cf->cf_mode == CONFIG_ROBSD_REGRESS) {
+		str = ifgrinet("egress");
+		if (str == NULL)
+			return 1;
+		config_append(cf, STRING, "inet", str, 0);
 	}
 
 	str = config_interpolate_str(cf, "${robsddir}/attic", cf->cf_path, 0);
