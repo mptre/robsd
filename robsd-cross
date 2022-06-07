@@ -15,13 +15,22 @@ usage() {
 	exit 1
 }
 
+# target arg ...
+#
+# Get the target argument, which is expected to be the last one.
+target() (
+	shift $(($# - 1))
+	echo "$1"
+)
+
 . "${EXECDIR:-/usr/local/libexec/robsd}/util.sh"
 
 setmode "robsd-cross"
 setprogname "robsd-cross"
 [ "$(id -u)" -ne 0 ] && fatal "must be run as root"
 
-config_load <<'EOF'
+_target="$(target "$@")"
+config_load -v "target=${_target}" <<'EOF'
 ROBSDDIR="${robsddir}"
 KEEP="${keep}"
 SKIP="${skip}"

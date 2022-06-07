@@ -1,6 +1,7 @@
 . "${EXECDIR}/util.sh"
 
-config_load <<'EOF'
+_target="$(<"${BUILDDIR}/target")"
+config_load -v "target=${_target}" <<'EOF'
 CROSSDIR="${crossdir}"
 BSDSRCDIR="${bsd-srcdir}"
 TARGET="${target}"

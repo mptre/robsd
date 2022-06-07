@@ -25,14 +25,8 @@ main(int argc, char *argv[])
 	if (pledge("stdio rpath inet getpw route", NULL) == -1)
 		err(1, "pledge");
 
-	while ((ch = getopt(argc, argv, "b:f:m:")) != -1) {
+	while ((ch = getopt(argc, argv, "f:m:v:")) != -1) {
 		switch (ch) {
-		case 'b':
-			if (config == NULL)
-				usage();
-			config_set_builddir(config, optarg);
-			break;
-
 		case 'f': {
 			int n;
 
@@ -52,6 +46,14 @@ main(int argc, char *argv[])
 		case 'm':
 			config = config_alloc(optarg);
 			if (config == NULL) {
+				error = 1;
+				goto out;
+			}
+			break;
+
+		case 'v':
+			if (config == NULL ||
+			    config_append_var(config, optarg)) {
 				error = 1;
 				goto out;
 			}
@@ -91,7 +93,7 @@ out:
 static __dead void
 usage(void)
 {
-	fprintf(stderr, "usage: robsd-config -m mode [-b build-dir] [-f file] "
+	fprintf(stderr, "usage: robsd-config -m mode [-f file] [-v var=val]"
 	    "[-]\n");
 	exit(1);
 }

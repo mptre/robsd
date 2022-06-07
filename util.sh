@@ -87,9 +87,10 @@ cleandir() {
 	done
 }
 
-# config_load
+# config_load [robsd-config-argument ...]
 #
 # Load and validate the configuration.
+# shellcheck disable=SC2120
 config_load() {
 	local _tmp
 
@@ -105,8 +106,8 @@ config_load() {
 	{
 		cat
 		echo "EXECDIR=\${execdir}"
-	} | "$ROBSDCONFIG" -m "$_MODE" -b "${BUILDDIR}" \
-		${ROBSDCONF:+"-f${ROBSDCONF}"} - >"$_tmp" || return 1
+	} | "$ROBSDCONFIG" -m "$_MODE" ${ROBSDCONF:+"-f${ROBSDCONF}"} "$@" - \
+		>"$_tmp" || return 1
 	eval "$(<"$_tmp")"
 	rm "$_tmp"
 

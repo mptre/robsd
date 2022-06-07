@@ -58,26 +58,13 @@ main(int argc, char *argv[])
 			}
 			break;
 
-		case 'v': {
-			char *name, *val;
-
-			if (config == NULL)
-				usage();
-
-			val = strchr(optarg, '=');
-			if (val == NULL)
-				errx(1, "missing variable separator: %s",
-				    optarg);
-			name = strndup(optarg, val - optarg);
-			if (name == NULL)
-				err(1, NULL);
-			val++;	/* consume '=' */
-			if (config_append_string(config, name, val))
-				errx(1, "variable '%s' cannot be defined",
-				    name);
-			free(name);
+		case 'v':
+			if (config == NULL ||
+			    config_append_var(config, optarg)) {
+				error = 1;
+				goto out;
+			}
 			break;
-		}
 
 		default:
 			usage();

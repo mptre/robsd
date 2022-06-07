@@ -99,15 +99,6 @@ if testcase "cross"; then
 	EOF
 fi
 
-if testcase "cross target"; then
-	default_cross_config >"$CONFIG"
-	echo "arm64" >"$TSHDIR/target"
-	echo "\${target}" >"$STDIN"
-	robsd_config -C - -- -b "$TSHDIR" <<-EOF
-	arm64
-	EOF
-fi
-
 if testcase "ports"; then
 	default_ports_config >"$CONFIG"
 	echo "PORTS=\${ports}" >"$STDIN"

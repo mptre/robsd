@@ -108,6 +108,6 @@ fi
 if testcase "invalid variable missing separator"; then
 	default_config >"$CONFIG"
 	robsd_hook -e - -- -v extra <<-EOF
-	robsd-hook: missing variable separator: extra
+	robsd-hook: missing variable separator in 'extra'
 	EOF
 fi

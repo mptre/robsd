@@ -10,8 +10,8 @@
 
 struct config	*config_alloc(const char *);
 void		 config_free(struct config *);
-void		 config_set_builddir(struct config *, const char *);
 int		 config_parse(struct config *, const char *);
+int		 config_append_var(struct config *, const char *);
 int		 config_append_string(struct config *, const char *,
     const char *);
 struct variable	*config_find(struct config *, const char *);

@@ -18,16 +18,16 @@ setprogname "robsd-cross"
 
 _target="$1"; shift
 
-config_load <<'EOF'
+config_load -v "target=${_target}" <<'EOF'
 BSDSRCDIR="${bsd-srcdir}"
 CROSSDIR="${crossdir}"
 EOF
 
-if ! [ -d "${CROSSDIR}${_target}" ]; then
-	fatal "${CROSSDIR}${_target}: no such directory"
+if ! [ -d "$CROSSDIR" ]; then
+	fatal "${CROSSDIR}: no such directory"
 fi
 
 _env="$(make -f "${BSDSRCDIR}/Makefile.cross" \
-	"TARGET=${_target}" "CROSSDIR=${CROSSDIR}${_target}" cross-env)"
+	"TARGET=${_target}" "CROSSDIR=${CROSSDIR}" cross-env)"
 eval "export ${_env} BSDSRCDIR=${BSDSRCDIR}"
 "$@"

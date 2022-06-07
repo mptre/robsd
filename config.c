@@ -139,7 +139,6 @@ struct config {
 	struct variable_list	 cf_variables;
 	const struct grammar	*cf_grammar;
 	const char		*cf_path;
-	const char		*cf_builddir;
 	enum {
 		CONFIG_ROBSD,
 		CONFIG_ROBSD_CROSS,
@@ -170,8 +169,7 @@ static int			 config_present(const struct config *,
 
 static int	config_validate_directory(const struct config *, const char *);
 
-static char	*crosstarget(const char *);
-static int	 regressname(char *, size_t, const char *, const char *);
+static int	regressname(char *, size_t, const char *, const char *);
 
 static const struct grammar robsd[] = {
 	{ "robsddir",		DIRECTORY,	config_parse_string,	REQ,	NULL },
@@ -314,12 +312,6 @@ config_free(struct config *cf)
 	free(cf);
 }
 
-void
-config_set_builddir(struct config *cf, const char *builddir)
-{
-	cf->cf_builddir = builddir;
-}
-
 int
 config_parse(struct config *cf, const char *path)
 {
@@ -330,6 +322,28 @@ config_parse(struct config *cf, const char *path)
 	if (config_exec(cf))
 		return 1;
 	return 0;
+}
+
+int
+config_append_var(struct config *cf, const char *str)
+{
+	char *name, *val;
+	int error;
+
+	val = strchr(str, '=');
+	if (val == NULL) {
+		warnx("missing variable separator in '%s'", str);
+		return 1;
+	}
+	name = strndup(str, val - str);
+	if (name == NULL)
+		err(1, NULL);
+	val++;	/* consume '=' */
+	error = config_append_string(cf, name, val);
+	if (error)
+		warnx("variable '%s' cannot be defined", name);
+	free(name);
+	return error;
 }
 
 int
@@ -1137,17 +1151,6 @@ config_append_defaults(struct config *cf)
 {
 	char *str;
 
-	if (cf->cf_mode == CONFIG_ROBSD_CROSS &&
-	    cf->cf_builddir != NULL) {
-		/*
-		 * Ignore errors as the configuration is loaded before the
-		 * target file is created.
-		 */
-		str = crosstarget(cf->cf_builddir);
-		if (str != NULL)
-			config_append(cf, STRING, "target", str, 0);
-	}
-
 	if (cf->cf_mode == CONFIG_ROBSD_REGRESS) {
 		str = ifgrinet("egress");
 		if (str == NULL)
@@ -1274,54 +1277,6 @@ config_validate_directory(const struct config *cf, const char *name)
 	free(path);
 
 	return error;
-}
-
-/*
- * Read the cross target from the file located in the build directory created by
- * robsd-cross.
- */
-static char *
-crosstarget(const char *builddir)
-{
-	char path[PATH_MAX];
-	char *buf = NULL;
-	char *target = NULL;
-	FILE *fh;
-	ssize_t pathsiz;
-	size_t bufsiz = 0;
-	size_t len;
-	int n;
-
-	pathsiz = sizeof(path);
-	n = snprintf(path, pathsiz, "%s/target", builddir);
-	if (n < 0 || n >= pathsiz) {
-		warnc(ENAMETOOLONG, "%s", __func__);
-		return NULL;
-	}
-
-	fh = fopen(path, "r");
-	if (fh == NULL) {
-		if (errno != ENOENT)
-			warn("%s", path);
-		return NULL;
-	}
-	if (getline(&buf, &bufsiz, fh) == -1) {
-		warn("%s", path);
-		goto out;
-	}
-
-	len = strlen(buf);
-	if (len == 0) {
-		warnx("%s: empty", path);
-		free(buf);
-		goto out;
-	}
-	buf[len - 1] = '\0';
-	target = buf;
-
-out:
-	fclose(fh);
-	return target;
 }
 
 static int

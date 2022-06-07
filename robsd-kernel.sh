@@ -9,7 +9,8 @@ EOF
 
 case "$_MODE" in
 robsd-cross)
-	config_load <<-'EOF'
+	_target="$(<"${BUILDDIR}/target")"
+	config_load -v "target=${_target}" <<-'EOF'
 	CROSSDIR="${crossdir}"
 	TARGET="${target}"
 	EOF
