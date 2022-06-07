@@ -158,6 +158,8 @@ static int	config_parse_glob(struct config *, struct token *, void **);
 static int	config_parse_list(struct config *, struct token *, void **);
 static int	config_parse_user(struct config *, struct token *, void **);
 static int	config_parse_regress(struct config *, struct token *, void **);
+static int	config_parse_directory(struct config *, struct token *,
+    void **);
 
 static int			 config_append_defaults(struct config *);
 static struct variable		*config_append(struct config *,
@@ -167,23 +169,21 @@ static const struct variable	*config_findn(const struct config *,
 static int			 config_present(const struct config *,
     const char *);
 
-static int	config_validate_directory(const struct config *, const char *);
-
 static int	regressname(char *, size_t, const char *, const char *);
 
 static const struct grammar robsd[] = {
-	{ "robsddir",		DIRECTORY,	config_parse_string,	REQ,	NULL },
+	{ "robsddir",		DIRECTORY,	config_parse_directory,	REQ,	NULL },
 	{ "builduser",		STRING,		config_parse_user,	0,	"build" },
-	{ "destdir",		DIRECTORY,	config_parse_string,	REQ,	NULL },
-	{ "execdir",		DIRECTORY,	config_parse_string,	0,	"/usr/local/libexec/robsd" },
+	{ "destdir",		DIRECTORY,	config_parse_directory,	REQ,	NULL },
+	{ "execdir",		DIRECTORY,	config_parse_directory,	0,	"/usr/local/libexec/robsd" },
 	{ "hook",		LIST,		config_parse_list,	0,	NULL },
 	{ "keep",		INTEGER,	config_parse_integer,	0,	NULL },
 	{ "kernel",		STRING,		config_parse_string,	0,	"GENERIC.MP" },
 	{ "reboot",		INTEGER,	config_parse_boolean,	0,	NULL },
 	{ "skip",		LIST,		config_parse_list,	0,	NULL },
 	{ "bsd-diff",		LIST,		config_parse_glob,	0,	NULL },
-	{ "bsd-objdir",		DIRECTORY,	config_parse_string,	0,	"/usr/obj" },
-	{ "bsd-srcdir",		DIRECTORY,	config_parse_string,	0,	"/usr/src" },
+	{ "bsd-objdir",		DIRECTORY,	config_parse_directory,	0,	"/usr/obj" },
+	{ "bsd-srcdir",		DIRECTORY,	config_parse_directory,	0,	"/usr/src" },
 	{ "cvs-root",		STRING,		config_parse_string,	0,	NULL },
 	{ "cvs-user",		STRING,		config_parse_user,	0,	NULL },
 	{ "distrib-host",	STRING,		config_parse_string,	0,	NULL },
@@ -191,29 +191,29 @@ static const struct grammar robsd[] = {
 	{ "distrib-signify",	STRING,		config_parse_string,	0,	NULL },
 	{ "distrib-user",	STRING,		config_parse_user,	0,	NULL },
 	{ "x11-diff",		LIST,		config_parse_glob,	0,	NULL },
-	{ "x11-objdir",		DIRECTORY,	config_parse_string,	0,	"/usr/xobj" },
-	{ "x11-srcdir",		DIRECTORY,	config_parse_string,	0,	"/usr/xenocara" },
+	{ "x11-objdir",		DIRECTORY,	config_parse_directory,	0,	"/usr/xobj" },
+	{ "x11-srcdir",		DIRECTORY,	config_parse_directory,	0,	"/usr/xenocara" },
 	{ NULL,			0,		NULL,			0,	NULL },
 };
 
 static const struct grammar robsd_cross[] = {
-	{ "robsddir",	DIRECTORY,	config_parse_string,	REQ,	NULL },
+	{ "robsddir",	DIRECTORY,	config_parse_directory,	REQ,	NULL },
 	{ "builduser",	STRING,		config_parse_user,	0,	"build" },
 	{ "crossdir",	STRING,		config_parse_string,	REQ,	NULL },
-	{ "execdir",	DIRECTORY,	config_parse_string,	0,	"/usr/local/libexec/robsd" },
+	{ "execdir",	DIRECTORY,	config_parse_directory,	0,	"/usr/local/libexec/robsd" },
 	{ "keep",	INTEGER,	config_parse_integer,	0,	NULL },
 	{ "kernel",	STRING,		config_parse_string,	0,	"GENERIC.MP" },
 	{ "skip",	LIST,		config_parse_list,	0,	NULL },
 	/* Not used but needed by kernel step. */
-	{ "bsd-objdir",	DIRECTORY,	config_parse_string,	0,	"/usr/obj" },
-	{ "bsd-srcdir",	DIRECTORY,	config_parse_string,	0,	"/usr/src" },
+	{ "bsd-objdir",	DIRECTORY,	config_parse_directory,	0,	"/usr/obj" },
+	{ "bsd-srcdir",	DIRECTORY,	config_parse_directory,	0,	"/usr/src" },
 	{ NULL,		0,		NULL,			0,	NULL },
 };
 
 static const struct grammar robsd_ports[] = {
-	{ "robsddir",		DIRECTORY,	config_parse_string,	REQ,	NULL },
+	{ "robsddir",		DIRECTORY,	config_parse_directory,	REQ,	NULL },
 	{ "chroot",		STRING,		config_parse_string,	REQ,	NULL },
-	{ "execdir",		DIRECTORY,	config_parse_string,	0,	"/usr/local/libexec/robsd" },
+	{ "execdir",		DIRECTORY,	config_parse_directory,	0,	"/usr/local/libexec/robsd" },
 	{ "hook",		LIST,		config_parse_list,	0,	NULL },
 	{ "keep",		INTEGER,	config_parse_integer,	0,	NULL },
 	{ "skip",		LIST,		config_parse_list,	0,	NULL },
@@ -231,14 +231,14 @@ static const struct grammar robsd_ports[] = {
 };
 
 static const struct grammar robsd_regress[] = {
-	{ "robsddir",		DIRECTORY,	config_parse_string,	REQ,		NULL },
-	{ "execdir",		DIRECTORY,	config_parse_string,	0,		"/usr/local/libexec/robsd" },
+	{ "robsddir",		DIRECTORY,	config_parse_directory,	REQ,		NULL },
+	{ "execdir",		DIRECTORY,	config_parse_directory,	0,		"/usr/local/libexec/robsd" },
 	{ "hook",		LIST,		config_parse_list,	0,		NULL },
 	{ "keep",		INTEGER,	config_parse_integer,	0,		NULL },
 	{ "rdonly",		INTEGER,	config_parse_boolean,	0,		NULL },
 	{ "sudo",		STRING,		config_parse_string,	0,		"doas -n" },
 	{ "bsd-diff",		LIST,		config_parse_glob,	0,		NULL },
-	{ "bsd-srcdir",		DIRECTORY,	config_parse_string,	0,		"/usr/src" },
+	{ "bsd-srcdir",		DIRECTORY,	config_parse_directory,	0,		"/usr/src" },
 	{ "cvs-user",		STRING,		config_parse_user,	0,		NULL },
 	{ "regress",		LIST,		config_parse_regress,	REQ|REP,	NULL },
 	{ "regress-user",	STRING,		config_parse_user,	REQ,		NULL },
@@ -976,10 +976,6 @@ config_validate(const struct config *cf)
 			    "mandatory variable '%s' missing", str);
 			error = 1;
 		}
-
-		if (gr->gr_type == DIRECTORY &&
-		    config_validate_directory(cf, str))
-			error = 1;
 	}
 
 	return error;
@@ -1149,6 +1145,36 @@ config_parse_regress(struct config *cf, struct token *UNUSED(kw),
 	return 0;
 }
 
+static int
+config_parse_directory(struct config *cf, struct token *kw, void **val)
+{
+	struct stat st;
+	const char *str;
+	char *path;
+	int error = 0;
+
+	if (config_parse_string(cf, kw, val))
+		return 1;
+	str = *val;
+	/* Empty string error already reported by the lexer. */
+	if (str[0] == '\0')
+		return 1;
+
+	path = config_interpolate_str(cf, str, cf->cf_path, kw->tk_lno);
+	if (path == NULL) {
+		error = 1;
+	} else if (stat(path, &st) == -1) {
+		lexer_warn(&cf->cf_lx, kw->tk_lno, "%s", path);
+		error = 1;
+	} else if (!S_ISDIR(st.st_mode)) {
+		lexer_warnx(&cf->cf_lx, kw->tk_lno, "%s: is not a directory",
+		    path);
+		error = 1;
+	}
+	free(path);
+	return error;
+}
+
 /*
  * Append read-only variables accessible during interpolation.
  */
@@ -1250,39 +1276,6 @@ config_present(const struct config *cf, const char *name)
 			return 1;
 	}
 	return 0;
-}
-
-static int
-config_validate_directory(const struct config *cf, const char *name)
-{
-	struct stat st;
-	const struct variable *va;
-	char *path;
-	int error = 0;
-
-	va = config_findn(cf, name, strlen(name));
-	if (va == NULL)
-		return 0;
-	/* Empty string error already reported by the lexer. */
-	if (strlen(va->va_str) == 0)
-		return 0;
-
-	path = config_interpolate_str(cf, va->va_str, cf->cf_path,
-	    va->va_lno);
-	if (path == NULL) {
-		error = 1;
-	} else if (stat(path, &st) == -1) {
-		log_warn(cf->cf_path, va->va_lno, "%s",
-		    path);
-		error = 1;
-	} else if (!S_ISDIR(st.st_mode)) {
-		log_warnx(cf->cf_path, va->va_lno,
-		    "%s: is not a directory", path);
-		error = 1;
-	}
-	free(path);
-
-	return error;
 }
 
 static int
