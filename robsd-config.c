@@ -93,7 +93,7 @@ out:
 static __dead void
 usage(void)
 {
-	fprintf(stderr, "usage: robsd-config -m mode [-f file] [-v var=val]"
+	fprintf(stderr, "usage: robsd-config -m mode [-f file] [-v var=val] "
 	    "[-]\n");
 	exit(1);
 }
