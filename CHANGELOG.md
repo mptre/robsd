@@ -1,3 +1,11 @@
+# 12.0.2 - 2022-06-07
+
+## Bug fixes
+
+- Use the canonical arch in robsd-ports.
+  (6f4ca64)
+  (Anton Lindqvist)
+
 # 12.0.1 - 2022-06-07
 
 ## Bug fixes
