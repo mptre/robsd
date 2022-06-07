@@ -6,7 +6,6 @@
 #include <assert.h>
 #include <ctype.h>
 #include <err.h>
-#include <errno.h>
 #include <fcntl.h>
 #include <glob.h>
 #include <limits.h>
