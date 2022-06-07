@@ -1,3 +1,11 @@
+# 12.0.1 - 2022-06-07
+
+## Bug fixes
+
+- Fix missing target regression in robsd-crossenv.
+  (a7f980b)
+  (Anton Lindqvist)
+
 # 12.0.0 - 2022-06-04
 
 ## Changes
