@@ -34,7 +34,7 @@ fi
 dpb -c -B "$CHROOT" $PORTS
 
 # Look for errors.
-! grep -m 1 'E='"${CHROOT}${PORTSDIR}/logs/${_arch}/stats.log"
+! grep -m 1 'E=' "${CHROOT}${PORTSDIR}/logs/${_arch}/stats.log"
 
 ls "${_packages}" >"${_tmpdir}/packages"
 diff -U0 -L packages.orig -L packages "${_tmpdir}/packages.orig" "${_tmpdir}/packages" || :
