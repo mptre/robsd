@@ -5,7 +5,7 @@ CHROOT="${chroot}"
 PORTSDIR="${ports-dir}"
 EOF
 
-_arch="$(machine)"
+_arch="$(arch -s)"
 _tmpdir="${BUILDDIR}/tmp"
 
 # Take note of all packages before deletion.

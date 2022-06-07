@@ -16,7 +16,7 @@ EOF
 
 PATH="${CHROOT}${PORTSDIR}/infrastructure/bin:${PATH}"
 
-_arch="$(machine)"
+_arch="$(arch -s)"
 _tmpdir="${BUILDDIR}/tmp"
 
 xargs -t rm -rf <<EOF
