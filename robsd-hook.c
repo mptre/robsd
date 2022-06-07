@@ -72,7 +72,7 @@ main(int argc, char *argv[])
 	}
 	argc -= optind;
 	argv += optind;
-	if (argc > 0)
+	if (argc > 0 || config == NULL)
 		usage();
 
 	if (config_parse(config, path) || config_validate(config)) {
