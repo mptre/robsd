@@ -150,6 +150,7 @@ static int	config_mode(const char *, int *);
 
 static int	config_exec(struct config *);
 static int	config_exec1(struct config *, struct token *);
+static int	config_validate(const struct config *);
 static int	config_parse_boolean(struct config *, struct token *, void **);
 static int	config_parse_string(struct config *, struct token *, void **);
 static int	config_parse_integer(struct config *, struct token *, void **);
@@ -311,11 +312,15 @@ config_free(struct config *cf)
 	free(cf);
 }
 
-int
-config_parse(struct config *cf, const char *path)
+void
+config_set_path(struct config *cf, const char *path)
 {
-	if (path != NULL)
-		cf->cf_path = path;
+	cf->cf_path = path;
+}
+
+int
+config_parse(struct config *cf)
+{
 	if (lexer_init(&cf->cf_lx, cf->cf_path))
 		return 1;
 	if (config_exec(cf))
@@ -364,31 +369,6 @@ struct variable *
 config_find(struct config *cf, const char *name)
 {
 	return (struct variable *)config_findn(cf, name, strlen(name));
-}
-
-int
-config_validate(const struct config *cf)
-{
-	int error = 0;
-	int i;
-
-	for (i = 0; cf->cf_grammar[i].gr_kw != NULL; i++) {
-		const struct grammar *gr = &cf->cf_grammar[i];
-		const char *str = gr->gr_kw;
-
-		if ((gr->gr_flags & REQ) &&
-		    !config_present(cf, str)) {
-			log_warnx(cf->cf_path, 0,
-			    "mandatory variable '%s' missing", str);
-			error = 1;
-		}
-
-		if (gr->gr_type == DIRECTORY &&
-		    config_validate_directory(cf, str))
-			error = 1;
-	}
-
-	return error;
 }
 
 int
@@ -945,6 +925,8 @@ config_exec(struct config *cf)
 out:
 	if (cf->cf_lx.lx_err > 0)
 		return 1;
+	if (config_validate(cf))
+		return 1;
 	return error;
 }
 
@@ -973,6 +955,31 @@ config_exec1(struct config *cf, struct token *tk)
 			    tk->tk_lno);
 	} else {
 		error = 1;
+	}
+
+	return error;
+}
+
+static int
+config_validate(const struct config *cf)
+{
+	int error = 0;
+	int i;
+
+	for (i = 0; cf->cf_grammar[i].gr_kw != NULL; i++) {
+		const struct grammar *gr = &cf->cf_grammar[i];
+		const char *str = gr->gr_kw;
+
+		if ((gr->gr_flags & REQ) &&
+		    !config_present(cf, str)) {
+			log_warnx(cf->cf_path, 0,
+			    "mandatory variable '%s' missing", str);
+			error = 1;
+		}
+
+		if (gr->gr_type == DIRECTORY &&
+		    config_validate_directory(cf, str))
+			error = 1;
 	}
 
 	return error;

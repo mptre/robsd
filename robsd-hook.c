@@ -15,13 +15,11 @@ static __dead void	usage(void);
 int
 main(int argc, char *argv[])
 {
-	char bufpath[PATH_MAX];
 	struct config *config = NULL;
 	const struct string *st;
 	const struct string_list *strings;
 	const struct variable *va;
 	char **args = NULL;
-	const char *path = NULL;
 	unsigned int i = 0;
 	unsigned int nargs;
 	int error = 0;
@@ -36,20 +34,11 @@ main(int argc, char *argv[])
 		case 'V':
 			verbose++;
 			break;
-
-		case 'f': {
-			int n;
-
+		case 'f':
 			if (config == NULL)
 				usage();
-
-			n = snprintf(bufpath, sizeof(bufpath), "%s", optarg);
-			if (n < 0 || n >= (ssize_t)sizeof(bufpath))
-				errc(1, ENAMETOOLONG, "%s", optarg);
-			path = bufpath;
+			config_set_path(config, optarg);
 			break;
-		}
-
 		case 'm':
 			config = config_alloc(optarg);
 			if (config == NULL) {
@@ -57,7 +46,6 @@ main(int argc, char *argv[])
 				goto out;
 			}
 			break;
-
 		case 'v':
 			if (config == NULL ||
 			    config_append_var(config, optarg)) {
@@ -65,7 +53,6 @@ main(int argc, char *argv[])
 				goto out;
 			}
 			break;
-
 		default:
 			usage();
 		}
@@ -75,7 +62,7 @@ main(int argc, char *argv[])
 	if (argc > 0 || config == NULL)
 		usage();
 
-	if (config_parse(config, path) || config_validate(config)) {
+	if (config_parse(config)) {
 		error = 1;
 		goto out;
 	}

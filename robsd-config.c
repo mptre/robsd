@@ -15,8 +15,6 @@ static __dead void	usage(void);
 int
 main(int argc, char *argv[])
 {
-	char bufpath[PATH_MAX];
-	const char *path = NULL;
 	struct config *config = NULL;
 	int dointerpolate = 0;
 	int error = 0;
@@ -27,22 +25,11 @@ main(int argc, char *argv[])
 
 	while ((ch = getopt(argc, argv, "f:m:v:")) != -1) {
 		switch (ch) {
-		case 'f': {
-			int n;
-
+		case 'f':
 			if (config == NULL)
 				usage();
-
-			n = snprintf(bufpath, sizeof(bufpath), "%s", optarg);
-			if (n < 0 || n >= (ssize_t)sizeof(bufpath)) {
-				warnc(ENAMETOOLONG, "%s", optarg);
-				error = 1;
-				goto out;
-			}
-			path = bufpath;
+			config_set_path(config, optarg);
 			break;
-		}
-
 		case 'm':
 			config = config_alloc(optarg);
 			if (config == NULL) {
@@ -50,7 +37,6 @@ main(int argc, char *argv[])
 				goto out;
 			}
 			break;
-
 		case 'v':
 			if (config == NULL ||
 			    config_append_var(config, optarg)) {
@@ -58,7 +44,6 @@ main(int argc, char *argv[])
 				goto out;
 			}
 			break;
-
 		default:
 			usage();
 		}
@@ -74,7 +59,7 @@ main(int argc, char *argv[])
 			usage();
 	}
 
-	if (config_parse(config, path) || config_validate(config)) {
+	if (config_parse(config)) {
 		error = 1;
 		goto out;
 	}
