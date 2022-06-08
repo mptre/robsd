@@ -23,21 +23,24 @@
 
 struct token {
 	enum token_type {
+		/* sentinels */
+		TOKEN_UNKNOWN,
 		TOKEN_EOF,
 
+		/* literals */
 		TOKEN_LBRACE,
 		TOKEN_RBRACE,
 
+		/* keywords */
 		TOKEN_KEYWORD,
 		TOKEN_ENV,
 		TOKEN_QUIET,
 		TOKEN_ROOT,
 
+		/* types */
 		TOKEN_BOOLEAN,
 		TOKEN_INTEGER,
 		TOKEN_STRING,
-
-		TOKEN_UNKNOWN,
 	} tk_type;
 	int			tk_lno;
 
@@ -522,6 +525,7 @@ token_free(struct token *tk)
 	case TOKEN_STRING:
 		free(tk->tk_str);
 		break;
+	case TOKEN_UNKNOWN:
 	case TOKEN_EOF:
 	case TOKEN_LBRACE:
 	case TOKEN_RBRACE:
@@ -530,7 +534,6 @@ token_free(struct token *tk)
 	case TOKEN_ROOT:
 	case TOKEN_BOOLEAN:
 	case TOKEN_INTEGER:
-	case TOKEN_UNKNOWN:
 		break;
 	}
 	free(tk);
@@ -540,6 +543,8 @@ static const char *
 tokenstr(enum token_type type)
 {
 	switch (type) {
+	case TOKEN_UNKNOWN:
+		break;
 	case TOKEN_EOF:
 		return "EOF";
 	case TOKEN_LBRACE:
@@ -560,8 +565,6 @@ tokenstr(enum token_type type)
 		return "INTEGER";
 	case TOKEN_STRING:
 		return "STRING";
-	case TOKEN_UNKNOWN:
-		break;
 	}
 	return "UNKNOWN";
 }
