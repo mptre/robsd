@@ -38,10 +38,15 @@ _tmpdir="${BUILDDIR}/tmp"
 	_ci="${_tmpdir}/cvs-${_n}-ci.log"
 	_up="${_tmpdir}/cvs-${_n}-up.log"
 
-	unpriv "$CVSUSER" "cd ${_d} && exec cvs -q -d ${CVSROOT} update -Pd" 2>&1 |
-	tee "$_up" |
-	cvs_log -r "$ROBSDDIR" -t "$_tmpdir" -c "$_d" -h "$CVSROOT" -u "$CVSUSER" |
-	tee "$_ci"
+	if ! [ -d "${_d}/CVS" ]; then
+		unpriv "$CVSUSER" "cd ${_d}/.. && exec cvs -qd ${CVSROOT} checkout ${_n}" 2>&1 |
+		tee "$_up"
+	else
+		unpriv "$CVSUSER" "cd ${_d} && exec cvs -qd ${CVSROOT} update -Pd" 2>&1 |
+		tee "$_up" |
+		cvs_log -r "$ROBSDDIR" -t "$_tmpdir" -c "$_d" -h "$CVSROOT" -u "$CVSUSER" |
+		tee "$_ci"
+	fi
 
 	find "$_d" -type f -name Root -delete
 done
