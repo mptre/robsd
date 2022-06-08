@@ -1,3 +1,17 @@
+# 12.1.0 - 2022-06-08
+
+## News
+
+- Perform initial checkout in cvs step if the directory is empty.
+  (44296d1)
+  (Anton Lindqvist)
+
+## Bug fixes
+
+- Don't leave dangling files in /tmp around.
+  (9642686)
+  (Anton Lindqvist)
+
 # 12.0.2 - 2022-06-07
 
 ## Bug fixes
