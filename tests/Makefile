@@ -1,5 +1,6 @@
 TESTS+=	check-perf.sh
 TESTS+=	cleandir.sh
+TESTS+=	config-load.sh
 TESTS+=	cvs-log.sh
 TESTS+=	diff-apply.sh
 TESTS+=	diff-clean.sh
