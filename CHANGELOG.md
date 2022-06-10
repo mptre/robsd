@@ -1,3 +1,16 @@
+# 12.2.0 - 2022-06-10
+
+## News
+
+- Add obj step to robsd-regress used to create object directories for all
+  configured regression tests.
+  (ff66ea7)
+  (Anton Lindqvist)
+
+- Add support for creating additional obj directories to robsd-regress.
+  (e7f888e)
+  (Anton Lindqvist)
+
 # 12.1.0 - 2022-06-08
 
 ## News
