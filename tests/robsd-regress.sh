@@ -17,21 +17,25 @@ if testcase "basic"; then
 	cat <<EOF >"${TSHDIR}/regress/test/fail/Makefile"
 all:
 	exit 66
+obj:
 EOF
 	mkdir -p "${TSHDIR}/regress/test/hello"
 	cat <<EOF >"${TSHDIR}/regress/test/hello/Makefile"
 all:
 	echo hello >${TSHDIR}/hello
+obj:
 EOF
 	mkdir -p "${TSHDIR}/regress/test/root"
 	cat <<EOF >"${TSHDIR}/regress/test/root/Makefile"
 all:
 	echo SUDO=\${SUDO} >${TSHDIR}/root
+obj:
 EOF
 	mkdir -p "${TSHDIR}/regress/test/env"
 	cat <<EOF >"${TSHDIR}/regress/test/env/Makefile"
 all:
 	echo FOO=\${FOO} BAR=\${BAR} >${TSHDIR}/env
+obj:
 EOF
 
 	if ! PATH="${BINDIR}:${PATH}" sh "$ROBSDREGRESS" -d >"$TMP1" 2>&1; then
@@ -97,11 +101,13 @@ if testcase "kill"; then
 all:
 	echo sleep >${TSHDIR}/sleep
 	sleep 3600
+obj:
 EOF
 	mkdir -p "${TSHDIR}/regress/test/nein"
 	cat <<EOF >"${TSHDIR}/regress/test/nein/Makefile"
 all:
 	echo nein >${TSHDIR}/nein
+obj:
 EOF
 	_exec="${TSHDIR}/robsd-regress-exec"
 	cp "$ROBSDEXEC" "$_exec"

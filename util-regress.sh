@@ -164,6 +164,7 @@ regress_steps() {
 	xargs printf '%s\n' <<-EOF
 	env
 	patch
+	obj
 	mount
 	$(config_value regress)
 	umount
