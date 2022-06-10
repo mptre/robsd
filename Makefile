@@ -102,6 +102,7 @@ DISTFILES+=	robsd-base.sh
 DISTFILES+=	robsd-checkflist.sh
 DISTFILES+=	robsd-clean
 DISTFILES+=	robsd-clean.8
+DISTFILES+=	robsd-config.8
 DISTFILES+=	robsd-config.c
 DISTFILES+=	robsd-cross
 DISTFILES+=	robsd-cross-dirs.sh
@@ -201,6 +202,7 @@ INSTALL?=	install
 INSTALL_MAN?=	${INSTALL}
 
 MANLINT+=	robsd-clean.8
+MANLINT+=	robsd-config.8
 MANLINT+=	robsd-cross.8
 MANLINT+=	robsd-cross.conf.5
 MANLINT+=	robsd-crossenv.8

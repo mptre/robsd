@@ -1,0 +1,85 @@
+.Dd $Mdocdate: June 10 2022$
+.Dt ROBSD-CONFIG 8
+.Os
+.Sh NAME
+.Nm robsd-config
+.Nd robsd configuration utility
+.Sh SYNOPSIS
+.Nm robsd-config
+.Fl m Ar mode
+.Op Fl f Ar path
+.Op Fl v Ar var=val
+.Op Fl
+.Sh DESCRIPTION
+The
+.Nm
+utility parses the configuration for all robsd utilities.
+In addition, lines read from standard input are interpolated and written to
+standard output.
+Configuration variables on the form
+.No \(Do Ns Brq Ar variable
+will be replaced with the corresponding value.
+The following additional variables are also available during interpolation for
+all modes:
+.Pp
+.Bl -tag -compact -width keep-dir
+.It Ic keep-dir
+Directory used by
+.Xr robsd-clean 8
+while cleaning out old invocations.
+.El
+.Pp
+Additional variables in robsd-cross mode:
+.Pp
+.Bl -tag -compact -width target
+.It Ic target
+The target argument passed to
+.Xr robsd-cross 8 .
+.El
+.Pp
+Additional variables in robsd-regress mode:
+.Pp
+.Bl -tag -compact -width regress-XXX-quiet
+.It Ic inet
+.Xr inet 4
+address associated with the egress interface.
+.It Ic regress
+All configured regression tests.
+.It Ic regress-*-env
+Environment variables for a given regression test.
+.It Ic regress-*-quiet
+Quiet option for a given regression test.
+.It Ic regress-*-root
+Root option for a given regression test.
+.El
+.Pp
+The options are as follows:
+.Bl -tag -width Ds
+.It Fl f Ar path
+Use the configuration file located at
+.Ar path ,
+as opposed of the default path for the current mode.
+.It Fl m Ar mode
+Mode used to indicate the kind of configuration, must be either robsd,
+robsd-cross, robsd-ports or robsd-regress.
+.It Fl v Ar var=val
+Define an additional configuration variable available during interpolation.
+.It Fl
+Read and interpolates lines from standard input.
+.El
+.Sh EXAMPLES
+.Bd -literal
+$ echo '${regress}' | robsd-config -m robsd-regress -
+bin/csh bin/ksh sys/nfs
+$ echo '${regress-sys/nfs-root}' | robsd-config -m robsd-regress -
+1
+.Ed
+.Sh DIAGNOSTICS
+.Ex -std
+.Sh SEE ALSO
+.Xr robsd-cross.conf 5 ,
+.Xr robsd-ports.conf 5 ,
+.Xr robsd-regress.conf 5 ,
+.Xr robsd.conf 5
+.Sh AUTHORS
+.An Anton Lindqvist Aq Mt anton@basename.se
