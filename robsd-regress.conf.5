@@ -84,6 +84,8 @@ Do not report skipped or disabled targets for this regression test.
 Run the regression test as root as opposed of
 .Ic regress-user .
 .El
+.It Ic regress-user Dq Ar user
+User to run regression tests on behalf of.
 .El
 .Sh FILES
 .Bl -tag -width "/etc/robsd-regress.conf"
@@ -100,6 +102,7 @@ regress "bin/ksh"
 regress "sys/nfs" root
 .Ed
 .Sh SEE ALSO
+.Xr robsd-config 8 ,
 .Xr robsd-regress 8 ,
 .Xr robsd-regress-clean 8 ,
 .Xr robsd-regress-kill 8
