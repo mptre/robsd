@@ -286,6 +286,7 @@ install: all
 	${INSTALL_MAN} ${.CURDIR}/robsd-rescue.8 ${DESTDIR}${MANDIR}/man8
 # robsd-config
 	${INSTALL} -m 0555 ${PROG_robsd-config} ${DESTDIR}${LIBEXECDIR}/robsd
+	${INSTALL_MAN} ${.CURDIR}/robsd-config.8 ${DESTDIR}${MANDIR}/man8
 # robsd-exec
 	${INSTALL} -m 0555 ${PROG_robsd-exec} ${DESTDIR}${LIBEXECDIR}/robsd
 # robsd-hook
