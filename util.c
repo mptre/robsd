@@ -94,6 +94,18 @@ strings_append(struct string_list *strings, const char *val)
 	TAILQ_INSERT_TAIL(strings, st, st_entry);
 }
 
+void
+strings_concat(struct string_list *dst, struct string_list *src)
+{
+	struct string *st;
+
+	while ((st = TAILQ_FIRST(src)) != NULL) {
+		TAILQ_REMOVE(src, st, st_entry);
+		TAILQ_INSERT_TAIL(dst, st, st_entry);
+	}
+	strings_free(src);
+}
+
 unsigned int
 strings_len(const struct string_list *strings)
 {

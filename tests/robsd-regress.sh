@@ -8,7 +8,7 @@ if testcase "basic"; then
 	robsddir "${ROBSDDIR}"
 	execdir "${EXECDIR}"
 	regress "test/fail"
-	regress "test/hello"
+	regress "test/hello" obj { "usr.bin/hello" }
 	regress "test/root" root
 	regress "test/env" env { "FOO=1" "BAR=2" }
 	EOF
@@ -17,6 +17,10 @@ if testcase "basic"; then
 	cat <<EOF >"${TSHDIR}/regress/test/fail/Makefile"
 all:
 	exit 66
+obj:
+EOF
+	mkdir -p "${TSHDIR}/usr.bin/hello"
+	cat <<EOF >"${TSHDIR}/usr.bin/hello/Makefile"
 obj:
 EOF
 	mkdir -p "${TSHDIR}/regress/test/hello"

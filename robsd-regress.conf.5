@@ -73,6 +73,11 @@ can be used to influence the execution:
 .Bl -tag -width Ds
 .It Ic env No { Do Ar key=val Dc Ar ... No }
 Add one more many environment variables.
+.It Ic obj No { Ar path ... No }
+Additional path requiring an object directory where path must be relative to
+.Ic bsd-srcdir .
+The object directory is created by the obj step, see
+.Xr robsd-regress 8 .
 .It Ic quiet
 Do not report skipped or disabled targets for this regression test.
 .It Ic root

@@ -67,6 +67,8 @@ TAILQ_HEAD(string_list, string);
 struct string_list	*strings_alloc(void);
 void			 strings_free(struct string_list *);
 void			 strings_append(struct string_list *, const char *);
+void			 strings_concat(struct string_list *,
+    struct string_list *);
 unsigned int		 strings_len(const struct string_list *);
 
 /*

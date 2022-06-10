@@ -126,6 +126,22 @@ if testcase "regress env"; then
 	EOF
 fi
 
+if testcase "obj"; then
+	default_regress_config >"$CONFIG"
+	echo "OBJ=\${regress-obj}" >"$STDIN"
+	robsd_config -R -e - <<-EOF
+	robsd-config: /dev/stdin:1: invalid substitution, unknown variable 'regress-obj'
+	EOF
+
+	{
+		default_regress_config
+		echo 'regress "obj" obj { "one" "two" }'
+	} >"$CONFIG"
+	robsd_config -R - <<-EOF
+	OBJ=one two
+	EOF
+fi
+
 if testcase "regress root"; then
 	default_regress_config >"$CONFIG"
 	echo "\${regress-bin/csh-root} \${regress-bin/ksh-root}" >"$STDIN"
