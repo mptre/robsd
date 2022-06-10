@@ -1112,7 +1112,7 @@ config_parse_regress(struct config *cf, struct token *UNUSED(kw),
 		char name[128];
 
 		if (lexer_if(lx, TOKEN_ENV, &tk)) {
-			struct token_list *env;
+			struct string_list *env;
 
 			if (config_parse_list(cf, tk, (void **)&env))
 				return 1;
