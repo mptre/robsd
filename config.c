@@ -101,6 +101,8 @@ struct variable {
 	};
 
 	int			 va_lno;
+	unsigned int		 va_flags;
+#define VARIABLE_FLAG_DIRTY	0x00000001u
 
 	enum variable_type {
 		INTEGER,
@@ -167,7 +169,7 @@ static int	config_parse_directory(struct config *, struct token *,
 
 static int			 config_append_defaults(struct config *);
 static struct variable		*config_append(struct config *,
-    enum variable_type, const char *, void *, int);
+    enum variable_type, const char *, void *, int, unsigned int);
 static const struct variable	*config_findn(const struct config *,
     const char *, size_t);
 static int			 config_present(const struct config *,
@@ -296,14 +298,15 @@ config_free(struct config *cf)
 	if (cf == NULL)
 		return;
 
-	lexer_free(&cf->cf_lx);
-
 	while ((va = TAILQ_FIRST(&cf->cf_variables)) != NULL) {
 		TAILQ_REMOVE(&cf->cf_variables, va, va_entry);
 		switch (va->va_type) {
 		case INTEGER:
+			break;
 		case STRING:
 		case DIRECTORY:
+			if (va->va_flags & VARIABLE_FLAG_DIRTY)
+				free(va->va_str);
 			break;
 		case LIST:
 			strings_free(va->va_list);
@@ -313,6 +316,7 @@ config_free(struct config *cf)
 		free(va);
 	}
 
+	lexer_free(&cf->cf_lx);
 	free(cf);
 }
 
@@ -365,7 +369,7 @@ config_append_string(struct config *cf, const char *name, const char *val)
 	p = strdup(val);
 	if (p == NULL)
 		err(1, NULL);
-	config_append(cf, STRING, name, p, 0);
+	config_append(cf, STRING, name, p, 0, 0);
 	return 0;
 }
 
@@ -963,7 +967,7 @@ config_exec1(struct config *cf, struct token *tk)
 	if (gr->gr_fn(cf, tk, &val) == 0) {
 		if (val != NULL)
 			config_append(cf, gr->gr_type, tk->tk_str, val,
-			    tk->tk_lno);
+			    tk->tk_lno, 0);
 	} else {
 		error = 1;
 	}
@@ -1064,16 +1068,11 @@ config_parse_list(struct config *cf, struct token *UNUSED(kw), void **val)
 		return 1;
 	strings = strings_alloc();
 	for (;;) {
-		char *str;
-
 		if (lexer_peek(&cf->cf_lx, TOKEN_RBRACE))
 			break;
 		if (!lexer_expect(&cf->cf_lx, TOKEN_STRING, &tk))
 			goto err;
-		str = strdup(tk->tk_str);
-		if (str == NULL)
-			err(1, NULL);
-		strings_append(strings, str);
+		strings_append(strings, tk->tk_str);
 	}
 	if (!lexer_expect(&cf->cf_lx, TOKEN_RBRACE, &tk))
 		goto err;
@@ -1128,7 +1127,7 @@ config_parse_regress(struct config *cf, struct token *UNUSED(kw),
 				lexer_warnx(lx, tk->tk_lno, "name too long");
 				return 1;
 			}
-			config_append(cf, LIST, name, env, tk->tk_lno);
+			config_append(cf, LIST, name, env, tk->tk_lno, 0);
 		} else if (lexer_if(lx, TOKEN_OBJ, &tk)) {
 			struct string_list *list;
 			struct variable *obj;
@@ -1138,20 +1137,22 @@ config_parse_regress(struct config *cf, struct token *UNUSED(kw),
 			obj = config_find(cf, "regress-obj");
 			if (obj == NULL)
 				obj = config_append(cf, LIST, "regress-obj",
-				    strings_alloc(), 0);
+				    strings_alloc(), 0, 0);
 			strings_concat(obj->va_list, list);
 		} else if (lexer_if(lx, TOKEN_QUIET, &tk)) {
 			if (regressname(name, sizeof(name), path, "quiet")) {
 				lexer_warnx(lx, tk->tk_lno, "name too long");
 				return 1;
 			}
-			config_append(cf, INTEGER, name, (void *)1, tk->tk_lno);
+			config_append(cf, INTEGER, name, (void *)1,
+			    tk->tk_lno, 0);
 		} else if (lexer_if(lx, TOKEN_ROOT, &tk)) {
 			if (regressname(name, sizeof(name), path, "root")) {
 				lexer_warnx(lx, tk->tk_lno, "name too long");
 				return 1;
 			}
-			config_append(cf, INTEGER, name, (void *)1, tk->tk_lno);
+			config_append(cf, INTEGER, name, (void *)1,
+			    tk->tk_lno, 0);
 		} else {
 			break;
 		}
@@ -1160,7 +1161,7 @@ config_parse_regress(struct config *cf, struct token *UNUSED(kw),
 	regress = config_find(cf, "regress");
 	if (regress == NULL)
 		regress = config_append(cf, LIST, "regress",
-		    strings_alloc(), 0);
+		    strings_alloc(), 0, 0);
 	strings_append(regress->va_list, path);
 
 	*val = NULL;
@@ -1209,20 +1210,20 @@ config_append_defaults(struct config *cf)
 		str = ifgrinet("egress");
 		if (str == NULL)
 			return 1;
-		config_append(cf, STRING, "inet", str, 0);
+		config_append(cf, STRING, "inet", str, 0, VARIABLE_FLAG_DIRTY);
 	}
 
 	str = config_interpolate_str(cf, "${robsddir}/attic", cf->cf_path, 0);
 	if (str == NULL)
 		return 1;
-	config_append(cf, STRING, "keep-dir", str, 0);
+	config_append(cf, STRING, "keep-dir", str, 0, VARIABLE_FLAG_DIRTY);
 
 	return 0;
 }
 
 static struct variable *
 config_append(struct config *cf, enum variable_type type, const char *name,
-    void *val, int lno)
+    void *val, int lno, unsigned int flags)
 {
 	struct variable *va;
 
@@ -1231,6 +1232,7 @@ config_append(struct config *cf, enum variable_type type, const char *name,
 		err(1, NULL);
 	va->va_type = type;
 	va->va_lno = lno;
+	va->va_flags = flags;
 	va->va_name = strdup(name);
 	if (va->va_name == NULL)
 		err(1, NULL);
