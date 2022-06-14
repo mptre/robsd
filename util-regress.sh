@@ -163,6 +163,7 @@ regress_step_after() {
 regress_steps() {
 	xargs printf '%s\n' <<-EOF
 	env
+	cvs
 	patch
 	obj
 	mount

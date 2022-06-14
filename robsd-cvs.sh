@@ -23,6 +23,11 @@ robsd-ports)
 	PORTSDIR="${ports-dir}"
 	EOF
 	;;
+robsd-regress)
+	config_load <<-'EOF'
+	BSDSRCDIR="${bsd-srcdir}"
+	EOF
+	;;
 *)
 	exit 1
 	;;
@@ -34,6 +39,7 @@ _tmpdir="${BUILDDIR}/tmp"
 [ "$_MODE" = "robsd" ] && echo src "$BSDSRCDIR"
 [ "$_MODE" = "robsd" ] && echo xenocara "$XSRCDIR"
 [ "$_MODE" = "robsd-ports" ] && echo ports "${CHROOT}${PORTSDIR}"
+[ "$_MODE" = "robsd-regress" ] && echo src "$BSDSRCDIR"
 } | while read -r _m _d; do
 	_ci="${_tmpdir}/cvs-${_m}-ci.log"
 	_up="${_tmpdir}/cvs-${_m}-up.log"

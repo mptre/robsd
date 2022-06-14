@@ -24,6 +24,13 @@ The process is divided into the steps as follows:
 .It env
 Dump the current environment.
 This is a no operation only used to collect data useful while debugging.
+.It cvs
+Update the
+.Ic bsd-srcdir
+source directory.
+This step is optional and requires presence of certain configuration, see
+.Xr robsd-regress.conf 5 .
+An initial checkout will be performed if the directory is empty.
 .It patch
 Apply patches including sticky ones, see
 .Xr robsd-regress.conf 5 .

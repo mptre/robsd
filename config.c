@@ -245,6 +245,7 @@ static const struct grammar robsd_regress[] = {
 	{ "sudo",		STRING,		config_parse_string,	0,		"doas -n" },
 	{ "bsd-diff",		LIST,		config_parse_glob,	0,		NULL },
 	{ "bsd-srcdir",		DIRECTORY,	config_parse_directory,	0,		"/usr/src" },
+	{ "cvs-root",		STRING,		config_parse_string,	0,		NULL },
 	{ "cvs-user",		STRING,		config_parse_user,	0,		NULL },
 	{ "regress",		LIST,		config_parse_regress,	REQ|REP,	NULL },
 	{ "regress-user",	STRING,		config_parse_user,	REQ,		NULL },
