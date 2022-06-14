@@ -126,8 +126,8 @@ struct grammar {
 	int			 (*gr_fn)(struct config *, struct token *,
 	    void **);
 	unsigned int		 gr_flags;
-#define REQ	0x00000001u
-#define REP	0x00000002u
+#define REQ	0x00000001u	/* required */
+#define REP	0x00000002u	/* may be repeated */
 
 	void			*gr_default;
 };
