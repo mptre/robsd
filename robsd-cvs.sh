@@ -34,13 +34,15 @@ _tmpdir="${BUILDDIR}/tmp"
 [ "$_MODE" = "robsd" ] && echo src "$BSDSRCDIR"
 [ "$_MODE" = "robsd" ] && echo xenocara "$XSRCDIR"
 [ "$_MODE" = "robsd-ports" ] && echo ports "${CHROOT}${PORTSDIR}"
-} | while read -r _n _d; do
-	_ci="${_tmpdir}/cvs-${_n}-ci.log"
-	_up="${_tmpdir}/cvs-${_n}-up.log"
+} | while read -r _m _d; do
+	_ci="${_tmpdir}/cvs-${_m}-ci.log"
+	_up="${_tmpdir}/cvs-${_m}-up.log"
 
 	if ! [ -d "${_d}/CVS" ]; then
-		unpriv "$CVSUSER" "cd ${_d}/.. && exec cvs -qd ${CVSROOT} checkout ${_n}" 2>&1 |
-		tee "$_up"
+		unpriv "$CVSUSER" <<-EOF 2>&1 | tee "$_up"
+		cd ${_d}/..
+		exec cvs -qd ${CVSROOT} checkout -d ${_d##*/} ${_m}"
+		EOF
 	else
 		unpriv "$CVSUSER" "cd ${_d} && exec cvs -qd ${CVSROOT} update -Pd" 2>&1 |
 		tee "$_up" |
