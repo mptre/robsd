@@ -6,7 +6,7 @@
 .Nm robsd-cross-clean ,
 .Nm robsd-ports-clean ,
 .Nm robsd-regress-clean
-.Nd clean old builds
+.Nd clean old invocations
 .Sh SYNOPSIS
 .Nm robsd-clean
 .Ar count
@@ -19,21 +19,15 @@
 .Sh DESCRIPTION
 The
 .Nm
-utility cleans out old builds built by
-.Xr robsd 8 ,
-.Xr robsd-ports 8
-or
-.Xr robsd-regress 8
+utility cleans out old invocations,
 keeping only the
 .Ar count
-number of latest builds.
+number of latest ones.
 .Pp
-Old builds are moved to a directory named
+Old invocations are moved to a directory named
 .Pa attic
 rooted in
-.Ic robsddir ,
-see
-.Xr robsd.conf 5 .
+.Ic robsddir .
 Only the following files are kept in order to reduce disk usage:
 .Pa comment ,
 .Pa env.log
@@ -48,7 +42,6 @@ Those files can be used to track various metrics over time.
 .Sh DIAGNOSTICS
 .Ex -std
 .Sh SEE ALSO
-.Xr robsd.conf 5 ,
 .Xr robsd 8 ,
 .Xr robsd-cross 8 ,
 .Xr robsd-ports 8 ,
