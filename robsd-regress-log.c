@@ -13,11 +13,13 @@
 
 static __dead void	usage(void);
 
-#define FLAG_SKIPPED	0x00000001u
-#define FLAG_FAILED	0x00000002u
-#define FLAG_PRINT	0x00000004u
+#define FLAG_FAILED	0x00000001u
+#define FLAG_SKIPPED	0x00000002u
+#define FLAG_ERROR	0x00000004u
+#define FLAG_PRINT	0x00000008u
 
 static int	parselog(const char *, unsigned int);
+static int	iserror(const char *);
 static int	ismarker(const char *);
 static int	isskipped(const char *);
 static int	isfailed(const char *);
@@ -36,8 +38,11 @@ main(int argc, char *argv[])
 	if (pledge("stdio rpath unveil", NULL) == -1)
 		err(1, "pledge");
 
-	while ((ch = getopt(argc, argv, "FSn")) != -1) {
+	while ((ch = getopt(argc, argv, "EFSn")) != -1) {
 		switch (ch) {
+		case 'E':
+			flags |= FLAG_ERROR;
+			break;
 		case 'F':
 			flags |= FLAG_FAILED;
 			break;
@@ -74,7 +79,7 @@ main(int argc, char *argv[])
 static __dead void
 usage(void)
 {
-	fprintf(stderr, "usage: robsd-regress-log [-FSn] path\n");
+	fprintf(stderr, "usage: robsd-regress-log [-EFSn] path\n");
 	exit(1);
 }
 
@@ -82,8 +87,9 @@ usage(void)
  * Parse the given log located at path and extract regress test cases with a
  * specific outcome. The flags may be any combination of the following:
  *
- *     FLAG_SKIPPED    Extract skipped test cases.
  *     FLAG_FAILED     Extract failed test cases.
+ *     FLAG_SKIPPED    Extract skipped test cases.
+ *     FLAG_ERROR      If no test cases are found, extract make errors.
  *     FLAG_PRINT      Output extracted test cases.
  *
  * Returns one of the following:
@@ -97,6 +103,7 @@ parselog(const char *path, unsigned int flags)
 {
 	struct buffer *bf;
 	char *line = NULL;
+	size_t errorlen = 0;
 	size_t linesiz = 0;
 	FILE *fh;
 	int error = 0;
@@ -126,6 +133,9 @@ parselog(const char *path, unsigned int flags)
 			buffer_reset(bf);
 		buffer_append(bf, line, n);
 
+		if ((flags & FLAG_ERROR) && iserror(line))
+			errorlen = bf->bf_len;
+
 		if (((flags & FLAG_SKIPPED) && isskipped(line)) ||
 		    ((flags & FLAG_FAILED) && isfailed(line))) {
 			if (flags & FLAG_PRINT) {
@@ -135,7 +145,12 @@ parselog(const char *path, unsigned int flags)
 			}
 			buffer_reset(bf);
 			nfound++;
+			errorlen = 0;
 		}
+	}
+	if ((flags & FLAG_ERROR) && nfound == 0 && !error && errorlen > 0) {
+		printf("%.*s", (int)errorlen, bf->bf_ptr);
+		nfound++;
 	}
 	free(line);
 	buffer_free(bf);
@@ -144,6 +159,14 @@ parselog(const char *path, unsigned int flags)
 	if (error)
 		return -1;
 	return nfound;
+}
+
+static int
+iserror(const char *str)
+{
+	static const char needle[] = "*** Error ";
+
+	return strncmp(str, needle, sizeof(needle) - 1) == 0;
 }
 
 static int
