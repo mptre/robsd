@@ -1,3 +1,22 @@
+# 12.3.0 - 2022-06-27
+
+## News
+
+- Add cvs step to robsd-regress.
+  (129af92)
+  (Anton Lindqvist)
+
+- Extract make errors visible in robsd-regress report.
+  Used as a fallback when a test suite fails before running any tests.
+  (b2e800d)
+  (Anton Lindqvist)
+
+## Bug fixes
+
+- Fix cvs checkout using a different local directory.
+  (2d1fc20)
+  (Anton Lindqvist)
+
 # 12.2.0 - 2022-06-10
 
 ## News
