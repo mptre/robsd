@@ -1,3 +1,11 @@
+# 12.4.0 - 2022-06-27
+
+## News
+
+- Add arch and machine config interpolation variables.
+  (52b86fb)
+  (Anton Lindqvist)
+
 # 12.3.0 - 2022-06-27
 
 ## News
