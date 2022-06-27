@@ -1207,17 +1207,17 @@ config_append_defaults(struct config *cf)
 {
 	char *str;
 
+	str = config_interpolate_str(cf, "${robsddir}/attic", cf->cf_path, 0);
+	if (str == NULL)
+		return 1;
+	config_append(cf, STRING, "keep-dir", str, 0, VARIABLE_FLAG_DIRTY);
+
 	if (cf->cf_mode == CONFIG_ROBSD_REGRESS) {
 		str = ifgrinet("egress");
 		if (str == NULL)
 			return 1;
 		config_append(cf, STRING, "inet", str, 0, VARIABLE_FLAG_DIRTY);
 	}
-
-	str = config_interpolate_str(cf, "${robsddir}/attic", cf->cf_path, 0);
-	if (str == NULL)
-		return 1;
-	config_append(cf, STRING, "keep-dir", str, 0, VARIABLE_FLAG_DIRTY);
 
 	return 0;
 }
