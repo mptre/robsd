@@ -267,8 +267,14 @@ fi
 
 if testcase "read only variables"; then
 	default_config >"$CONFIG"
-	echo "\${keep-dir}" >"$STDIN"
+	cat <<-'EOF' >"$STDIN"
+	${arch}
+	${machine}
+	${keep-dir}
+	EOF
 	robsd_config - <<-EOF
+	$(arch -s)
+	$(machine)
 	/var/empty/attic
 	EOF
 fi

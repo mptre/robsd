@@ -16,13 +16,17 @@ The
 utility parses the configuration for all robsd utilities.
 In addition, lines read from standard input are interpolated and written to
 standard output.
-Configuration variables on the form
+Interpolation allows configuration variables on the form
 .No \(Do Ns Brq Ar variable
-are replaced with the corresponding value.
+to be substituted with the corresponding value.
 The following additional variables are also available during interpolation for
 all modes:
 .Pp
 .Bl -tag -compact -width keep-dir
+.It Ic arch
+CPU architecture.
+.It Ic machine
+Kernel architecture.
 .It Ic keep-dir
 Directory used by
 .Xr robsd-clean 8

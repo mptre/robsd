@@ -1,5 +1,6 @@
 #include "config.h"
 
+#include <sys/param.h>	/* MACHINE, MACHINE_ARCH */
 #include <sys/stat.h>
 #include <sys/queue.h>
 
@@ -1206,6 +1207,9 @@ static int
 config_append_defaults(struct config *cf)
 {
 	char *str;
+
+	config_append(cf, STRING, "arch", MACHINE_ARCH, 0, 0);
+	config_append(cf, STRING, "machine", MACHINE, 0, 0);
 
 	str = config_interpolate_str(cf, "${robsddir}/attic", cf->cf_path, 0);
 	if (str == NULL)
