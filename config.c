@@ -130,7 +130,7 @@ struct grammar {
 #define REQ	0x00000001u	/* required */
 #define REP	0x00000002u	/* may be repeated */
 
-	void			*gr_default;
+	const void		*gr_default;
 };
 
 static const struct grammar	*grammar_find(const struct grammar *,
@@ -1208,8 +1208,8 @@ config_append_defaults(struct config *cf)
 {
 	char *str;
 
-	config_append(cf, STRING, "arch", MACHINE_ARCH, 0, 0);
-	config_append(cf, STRING, "machine", MACHINE, 0, 0);
+	config_append_string(cf, "arch", MACHINE_ARCH);
+	config_append_string(cf, "machine", MACHINE);
 
 	str = config_interpolate_str(cf, "${robsddir}/attic", cf->cf_path, 0);
 	if (str == NULL)
@@ -1263,7 +1263,7 @@ config_findn(const struct config *cf, const char *name, size_t namelen)
 	/* Look for default value. */
 	for (i = 0; cf->cf_grammar[i].gr_kw != NULL; i++) {
 		const struct grammar *gr = &cf->cf_grammar[i];
-		void *val;
+		const void *val;
 
 		if ((gr->gr_flags & REQ) ||
 		    strncmp(gr->gr_kw, name, namelen) != 0)
@@ -1279,7 +1279,7 @@ config_findn(const struct config *cf, const char *name, size_t namelen)
 
 		case STRING:
 		case DIRECTORY:
-			vadef.va_val = val == NULL ? "" : val;
+			vadef.va_val = (void *)(val == NULL ? "" : val);
 			break;
 
 		case LIST: {
