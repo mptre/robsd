@@ -58,7 +58,8 @@ main(int argc, char *argv[])
 	}
 	argc -= optind;
 	argv += optind;
-	if (argc != 1 || (flags & (FLAG_SKIPPED | FLAG_FAILED)) == 0)
+	if (argc != 1 ||
+	    (flags & (FLAG_FAILED | FLAG_SKIPPED | FLAG_ERROR)) == 0)
 		usage();
 
 	if (unveil(*argv, "r") == -1)
