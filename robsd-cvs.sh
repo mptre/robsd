@@ -47,7 +47,7 @@ _tmpdir="${BUILDDIR}/tmp"
 	if ! [ -d "${_d}/CVS" ]; then
 		unpriv "$CVSUSER" <<-EOF 2>&1 | tee "$_up"
 		cd ${_d}/..
-		exec cvs -qd ${CVSROOT} checkout -d ${_d##*/} ${_m}"
+		exec cvs -qd ${CVSROOT} checkout -d ${_d##*/} ${_m}
 		EOF
 	else
 		unpriv "$CVSUSER" "cd ${_d} && exec cvs -qd ${CVSROOT} update -Pd" 2>&1 |
