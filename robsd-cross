@@ -29,6 +29,7 @@ setmode "robsd-cross"
 setprogname "robsd-cross"
 [ "$(id -u)" -ne 0 ] && fatal "must be run as root"
 
+[ $# -eq 0 ] && usage
 _target="$(target "$@")"
 config_load -v "target=${_target}" <<'EOF'
 ROBSDDIR="${robsddir}"

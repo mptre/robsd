@@ -39,3 +39,12 @@ EOF
 	amd64
 	EOF
 fi
+
+if testcase "missing arguments"; then
+	if PATH="${BINDIR}:${PATH}" sh "$ROBSDCROSS" >"$TMP1" 2>&1; then
+		fail - "expected exit non-zero" <"$TMP1"
+	fi
+	if ! grep -q usage "$TMP1"; then
+		fail - "expected usage" <"$TMP1"
+	fi
+fi
