@@ -395,7 +395,7 @@ diff_list() {
 	_builddir="$1" ; : "${_builddir:?}"
 	_prefix="$2" ; : "${_prefix:?}"
 
-	find "$_builddir" -type f -name "${_prefix}.*" -maxdepth 1 | sort
+	find "$_builddir" -maxdepth 1 -type f -name "${_prefix}.*" | sort
 }
 
 # diff_revert -d dir -t tmp-dir -u user diff
@@ -785,7 +785,7 @@ prev_release() {
 	# Be silent during testing.
 	_attic="$(config_value keep-dir 2>/dev/null || :)"
 
-	find "$_robsddir" -type d -mindepth 1 -maxdepth 1 |
+	find "$_robsddir" -mindepth 1 -maxdepth 1 -type d |
 	sort -nr |
 	grep -v -e "$BUILDDIR" ${_attic:+-e ${_attic}} |
 	{
@@ -815,7 +815,7 @@ purge() {
 
 	_attic="$(config_value keep-dir)"
 
-	find "$_dir" -type d -mindepth 1 -maxdepth 1 |
+	find "$_dir" -mindepth 1 -maxdepth 1 -type d |
 	grep -v "$_attic" |
 	sort -n |
 	tail -r |

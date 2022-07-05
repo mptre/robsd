@@ -9,7 +9,7 @@ usage() {
 
 # last_release
 last_release() {
-	find "$ROBSDDIR" -type d -mindepth 1 -maxdepth 1 |
+	find "$ROBSDDIR" -mindepth 1 -maxdepth 1 -type d |
 	grep -v -e "$KEEPDIR" |
 	sort -nr |
 	head -1
