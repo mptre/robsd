@@ -266,15 +266,19 @@ if testcase "comment"; then
 fi
 
 if testcase "read only variables"; then
+	_arch="$(arch -s 2>/dev/null || arch)"
+	_machine="$(machine 2>/dev/null || arch)"
+
 	default_config >"$CONFIG"
 	cat <<-'EOF' >"$STDIN"
 	${arch}
 	${machine}
 	${keep-dir}
 	EOF
+
 	robsd_config - <<-EOF
-	$(arch -s)
-	$(machine)
+	${_arch}
+	${_machine}
 	/var/empty/attic
 	EOF
 fi
