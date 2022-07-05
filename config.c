@@ -124,8 +124,7 @@ TAILQ_HEAD(variable_list, variable);
 struct grammar {
 	const char		*gr_kw;
 	enum variable_type	 gr_type;
-	int			 (*gr_fn)(struct config *, struct token *,
-	    void **);
+	int			 (*gr_fn)(struct config *, void **);
 	unsigned int		 gr_flags;
 #define REQ	0x00000001u	/* required */
 #define REP	0x00000002u	/* may be repeated */
@@ -158,15 +157,14 @@ static int	config_mode(const char *, int *);
 static int	config_exec(struct config *);
 static int	config_exec1(struct config *, struct token *);
 static int	config_validate(const struct config *);
-static int	config_parse_boolean(struct config *, struct token *, void **);
-static int	config_parse_string(struct config *, struct token *, void **);
-static int	config_parse_integer(struct config *, struct token *, void **);
-static int	config_parse_glob(struct config *, struct token *, void **);
-static int	config_parse_list(struct config *, struct token *, void **);
-static int	config_parse_user(struct config *, struct token *, void **);
-static int	config_parse_regress(struct config *, struct token *, void **);
-static int	config_parse_directory(struct config *, struct token *,
-    void **);
+static int	config_parse_boolean(struct config *, void **);
+static int	config_parse_string(struct config *, void **);
+static int	config_parse_integer(struct config *, void **);
+static int	config_parse_glob(struct config *, void **);
+static int	config_parse_list(struct config *, void **);
+static int	config_parse_user(struct config *, void **);
+static int	config_parse_regress(struct config *, void **);
+static int	config_parse_directory(struct config *, void **);
 
 static int			 config_append_defaults(struct config *);
 static struct variable		*config_append(struct config *,
@@ -966,7 +964,7 @@ config_exec1(struct config *cf, struct token *tk)
 		    "variable '%s' already defined", tk->tk_str);
 		error = 1;
 	}
-	if (gr->gr_fn(cf, tk, &val) == 0) {
+	if (gr->gr_fn(cf, &val) == 0) {
 		if (val != NULL)
 			config_append(cf, gr->gr_type, tk->tk_str, val,
 			    tk->tk_lno, 0);
@@ -999,8 +997,7 @@ config_validate(const struct config *cf)
 }
 
 static int
-config_parse_boolean(struct config *cf, struct token *UNUSED(kw),
-    void **val)
+config_parse_boolean(struct config *cf, void **val)
 {
 	struct token *tk;
 
@@ -1011,7 +1008,7 @@ config_parse_boolean(struct config *cf, struct token *UNUSED(kw),
 }
 
 static int
-config_parse_string(struct config *cf, struct token *UNUSED(kw), void **val)
+config_parse_string(struct config *cf, void **val)
 {
 	struct token *tk;
 
@@ -1022,8 +1019,7 @@ config_parse_string(struct config *cf, struct token *UNUSED(kw), void **val)
 }
 
 static int
-config_parse_integer(struct config *cf, struct token *UNUSED(kw),
-    void **val)
+config_parse_integer(struct config *cf, void **val)
 {
 	struct token *tk;
 
@@ -1034,7 +1030,7 @@ config_parse_integer(struct config *cf, struct token *UNUSED(kw),
 }
 
 static int
-config_parse_glob(struct config *cf, struct token *UNUSED(kw), void **val)
+config_parse_glob(struct config *cf, void **val)
 {
 	glob_t g;
 	struct token *tk;
@@ -1061,7 +1057,7 @@ out:
 }
 
 static int
-config_parse_list(struct config *cf, struct token *UNUSED(kw), void **val)
+config_parse_list(struct config *cf, void **val)
 {
 	struct string_list *strings = NULL;
 	struct token *tk;
@@ -1088,7 +1084,7 @@ err:
 }
 
 static int
-config_parse_user(struct config *cf, struct token *UNUSED(kw), void **val)
+config_parse_user(struct config *cf, void **val)
 {
 	struct token *tk;
 	const char *user;
@@ -1105,8 +1101,7 @@ config_parse_user(struct config *cf, struct token *UNUSED(kw), void **val)
 }
 
 static int
-config_parse_regress(struct config *cf, struct token *UNUSED(kw),
-    void **val)
+config_parse_regress(struct config *cf, void **val)
 {
 	struct lexer *lx = &cf->cf_lx;
 	struct token *tk;
@@ -1123,7 +1118,7 @@ config_parse_regress(struct config *cf, struct token *UNUSED(kw),
 		if (lexer_if(lx, TOKEN_ENV, &tk)) {
 			struct string_list *env;
 
-			if (config_parse_list(cf, tk, (void **)&env))
+			if (config_parse_list(cf, (void **)&env))
 				return 1;
 			if (regressname(name, sizeof(name), path, "env")) {
 				lexer_warnx(lx, tk->tk_lno, "name too long");
@@ -1134,7 +1129,7 @@ config_parse_regress(struct config *cf, struct token *UNUSED(kw),
 			struct string_list *list;
 			struct variable *obj;
 
-			if (config_parse_list(cf, tk, (void **)&list))
+			if (config_parse_list(cf, (void **)&list))
 				return 1;
 			obj = config_find(cf, "regress-obj");
 			if (obj == NULL)
@@ -1171,7 +1166,7 @@ config_parse_regress(struct config *cf, struct token *UNUSED(kw),
 }
 
 static int
-config_parse_directory(struct config *cf, struct token *UNUSED(kw), void **val)
+config_parse_directory(struct config *cf, void **val)
 {
 	struct stat st;
 	struct token *tk;
