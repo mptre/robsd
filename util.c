@@ -123,6 +123,14 @@ strings_len(const struct string_list *strings)
 char *
 ifgrinet(const char *group)
 {
+#ifndef __OpenBSD__
+	char *inet;
+
+	inet = strdup(group);
+	if (inet == NULL)
+		err(1, NULL);
+	return inet;
+#else
 	struct ifgroupreq ifgr;
 	struct ifaddrs *ifap = NULL;
 	struct ifaddrs *ifa;
@@ -183,4 +191,5 @@ out:
 	freeifaddrs(ifap);
 	close(sock);
 	return inet;
+#endif
 }
