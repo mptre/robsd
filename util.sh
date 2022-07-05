@@ -1371,7 +1371,7 @@ step_end() {
 	local _log=""
 	local _name
 	local _s
-	local _skip=""
+	local _skip=0
 	local _user
 
 	while [ $# -gt 0 ]; do
