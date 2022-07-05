@@ -377,7 +377,7 @@ if testcase "invalid integer overflow"; then
 	EOF
 fi
 
-if testcase "invalid user"; then
+if testcase -t memleak "invalid user"; then
 	cat <<-EOF >"$CONFIG"
 	cvs-user "unknown"
 	EOF
