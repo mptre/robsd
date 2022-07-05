@@ -164,6 +164,29 @@ check_strlcpy() {
 	EOF
 }
 
+check_sys_sched()  {
+	compile <<-EOF
+	#include <sys/types.h>
+	#include <sys/time.h>
+	#include <sys/sched.h>
+
+	int main(void) {
+		return 0;
+	}
+	EOF
+}
+
+check_sys_sysctl()  {
+	compile <<-EOF
+	#include <sys/types.h>
+	#include <sys/sysctl.h>
+
+	int main(void) {
+		return 0;
+	}
+	EOF
+}
+
 check_unveil() {
 	compile <<-EOF
 	#include <unistd.h>
@@ -207,6 +230,8 @@ HAVE_PLEDGE=0
 HAVE_QUEUE=0
 HAVE_REALLOCARRAY=0
 HAVE_STRLCPY=0
+HAVE_SYS_SCHED_H=0
+HAVE_SYS_SYSCTL_H=0
 HAVE_UNVEIL=0
 HAVE_WARNC=0
 
@@ -235,6 +260,8 @@ check_pledge && HAVE_PLEDGE=1
 check_queue && HAVE_QUEUE=1
 check_reallocarray && HAVE_REALLOCARRAY=1
 check_strlcpy && HAVE_STRLCPY=1
+check_sys_sched && HAVE_SYS_SCHED_H=1
+check_sys_sysctl sys/sysctl.h && HAVE_SYS_SYSCTL_H=1
 check_unveil && HAVE_UNVEIL=1
 check_warnc && HAVE_WARNC=1
 
@@ -258,6 +285,8 @@ exec 1>config.h
 [ $HAVE_QUEUE -eq 1 ] && printf '#define HAVE_QUEUE\t1\n'
 [ $HAVE_REALLOCARRAY -eq 1 ] && printf '#define HAVE_REALLOCARRAY\t1\n'
 [ $HAVE_STRLCPY -eq 1 ] && printf '#define HAVE_STRLCPY\t1\n'
+[ $HAVE_SYS_SCHED_H -eq 1 ] && printf '#define HAVE_SYS_SCHED_H\t1\n'
+[ $HAVE_SYS_SYSCTL_H -eq 1 ] && printf '#define HAVE_SYS_SYSCTL_H\t1\n'
 [ $HAVE_UNVEIL -eq 1 ] && printf '#define HAVE_UNVEIL\t1\n'
 [ $HAVE_WARNC -eq 1 ] && printf '#define HAVE_WARNC\t1\n'
 

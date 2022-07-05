@@ -40,10 +40,13 @@ DEPS_robsd-regress-log=		${SRCS_robsd-regress-log:.c=.d}
 
 PROG_robsd-stat=	robsd-stat
 SRCS_robsd-stat+=	robsd-stat.c
+SRCS_robsd-stat+=	compat-strlcpy.c
 OBJS_robsd-stat=	${SRCS_robsd-stat:.c=.o}
 DEPS_robsd-stat=	${SRCS_robsd-stat:.c=.d}
 
 KNFMT+=	buffer.c
+KNFMT+=	compat-sys-sched.h
+KNFMT+=	compat-sys-sysctl.h
 KNFMT+=	config.c
 KNFMT+=	extern.h
 KNFMT+=	robsd-config.c
@@ -92,6 +95,8 @@ DISTFILES+=	buffer.c
 DISTFILES+=	compat-errc.c
 DISTFILES+=	compat-pledge.c
 DISTFILES+=	compat-strlcpy.c
+DISTFILES+=	compat-sys-sched.h
+DISTFILES+=	compat-sys-sysctl.h
 DISTFILES+=	compat-unveil.c
 DISTFILES+=	compat-warnc.c
 DISTFILES+=	config.c
