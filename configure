@@ -92,6 +92,28 @@ check_gnu_source() {
 	{ echo "#define _GNU_SOURCE"; cat "$TMP1"; } | compile
 }
 
+check_machine() {
+	compile <<-EOF
+	#include <sys/param.h>
+
+	int main(void) {
+		static const char m[] = MACHINE;
+		return 0;
+	}
+	EOF
+}
+
+check_machine_arch() {
+	compile <<-EOF
+	#include <sys/param.h>
+
+	int main(void) {
+		static const char m[] = MACHINE_ARCH;
+		return 0;
+	}
+	EOF
+}
+
 check_pledge() {
 	compile <<-EOF
 	#include <unistd.h>
@@ -179,6 +201,8 @@ HAVE_DEAD=0
 HAVE_ERRC=0
 HAVE_GLOB_MATCHC=0
 HAVE_GNU_SOURCE=0
+HAVE_MACHINE=0
+HAVE_MACHINE_ARCH=0
 HAVE_PLEDGE=0
 HAVE_QUEUE=0
 HAVE_REALLOCARRAY=0
@@ -205,6 +229,8 @@ check_dead && HAVE_DEAD=1
 check_errc && HAVE_ERRC=1
 check_glob_matchc && HAVE_GLOB_MATCHC=1
 check_gnu_source && HAVE_GNU_SOURCE=1
+check_machine && HAVE_MACHINE=1
+check_machine_arch && HAVE_MACHINE_ARCH=1
 check_pledge && HAVE_PLEDGE=1
 check_queue && HAVE_QUEUE=1
 check_reallocarray && HAVE_REALLOCARRAY=1
@@ -226,6 +252,8 @@ exec 1>config.h
 } | sort | uniq | headers
 
 [ $HAVE_ERRC -eq 1 ] && printf '#define HAVE_ERRC\t1\n'
+[ $HAVE_MACHINE -eq 1 ] || printf '#define MACHINE\t"%s"\n' "$(arch)"
+[ $HAVE_MACHINE_ARCH -eq 1 ] || printf '#define MACHINE_ARCH\t"%s"\n' "$(arch)"
 [ $HAVE_PLEDGE -eq 1 ] && printf '#define HAVE_PLEDGE\t1\n'
 [ $HAVE_QUEUE -eq 1 ] && printf '#define HAVE_QUEUE\t1\n'
 [ $HAVE_REALLOCARRAY -eq 1 ] && printf '#define HAVE_REALLOCARRAY\t1\n'
