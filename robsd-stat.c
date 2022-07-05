@@ -38,11 +38,11 @@ struct robsd_stat {
 static __dead void	usage(void);
 
 /* stat collect routines */
-static void	stat_cpu(struct robsd_stat *);
-static void	stat_directory(struct robsd_stat *, char *const *);
+static int	stat_cpu(struct robsd_stat *);
+static int	stat_directory(struct robsd_stat *, char *const *);
 static int	stat_directory1(struct robsd_stat *, const char *);
-static void	stat_loadavg(struct robsd_stat *);
-static void	stat_time(struct robsd_stat *);
+static int	stat_loadavg(struct robsd_stat *);
+static int	stat_time(struct robsd_stat *);
 
 static void	stat_print(const struct robsd_stat *, FILE *);
 
@@ -57,6 +57,7 @@ main(int argc, char *argv[])
 	int doheader = 0;
 	int nusers = 0;
 	int tick_s = 10;
+	int error = 0;
 	int ch;
 
 	users = reallocarray(NULL, 1, sizeof(*users));
@@ -88,6 +89,7 @@ main(int argc, char *argv[])
 	if (doheader) {
 		/* Keep in sync with the robsd-stat.8 manual. */
 		fprintf(fh, "time,load,user,sys,spin,intr,idle,directory\n");
+		free(users);
 		return 0;
 	}
 
@@ -99,17 +101,21 @@ main(int argc, char *argv[])
 
 	memset(&rs, 0, sizeof(rs));
 	for (;;) {
-		stat_time(&rs);
-		stat_cpu(&rs);
-		stat_loadavg(&rs);
-		stat_directory(&rs, users);
+		if (stat_time(&rs) ||
+		    stat_cpu(&rs) ||
+		    stat_loadavg(&rs) ||
+		    stat_directory(&rs, users)) {
+			error = 1;
+			break;
+		}
+
 		stat_print(&rs, fh);
 		usleep(tick_s * 1000 * 1000);
 	}
 
 	free(users);
 
-	return 0;
+	return error;
 }
 
 static __dead void
@@ -119,7 +125,7 @@ usage(void)
 	exit(1);
 }
 
-static void
+static int
 stat_cpu(struct robsd_stat *rs)
 {
 	int mib[2] = { CTL_KERN, KERN_CPTIME };
@@ -129,8 +135,10 @@ stat_cpu(struct robsd_stat *rs)
 	size_t len;
 
 	len = sizeof(cpu);
-	if (sysctl(mib, 2, &cpu, &len, NULL, 0) == -1)
-		err(1, "sysctl: kern.cp_time");
+	if (sysctl(mib, 2, &cpu, &len, NULL, 0) == -1) {
+		warn("sysctl: kern.cp_time");
+		return 1;
+	}
 
 	for (i = 0; i < CPUSTATES; i++) {
 		if (rs->rs_cpu.c_abs[i] == 0)
@@ -150,6 +158,7 @@ stat_cpu(struct robsd_stat *rs)
 	}
 
 	memcpy(rs->rs_cpu.c_abs, cpu, sizeof(rs->rs_cpu.c_abs));
+	return 0;
 }
 
 /*
@@ -157,13 +166,20 @@ stat_cpu(struct robsd_stat *rs)
  * at by finding the make process started by the given user(s) with the longest
  * current working directory. A surprisingly accurate guess.
  */
-static void
+static int
 stat_directory(struct robsd_stat *rs, char *const *users)
 {
 	for (; *users != NULL; users++) {
-		if (stat_directory1(rs, *users))
-			break;
+		switch (stat_directory1(rs, *users)) {
+		case -1:
+			return 1;
+		case 0:
+			continue;
+		case 1:
+			return 0;
+		}
 	}
+	return 0;
 }
 
 static int
@@ -180,8 +196,10 @@ stat_directory1(struct robsd_stat *rs, const char *user)
 	rs->rs_directory[0] = '\0';
 
 	pw = getpwnam(user);
-	if (pw == NULL)
-		errx(1, "getpwnam: %s: no such user", user);
+	if (pw == NULL) {
+		warnx("getpwnam: %s: no such user", user);
+		return -1;
+	}
 
 	mib[0] = CTL_KERN;
 	mib[1] = KERN_PROC;
@@ -190,8 +208,10 @@ stat_directory1(struct robsd_stat *rs, const char *user)
 	mib[4] = kpsiz;
 	mib[5] = 0;
 
-	if (sysctl(mib, 6, NULL, &siz, NULL, 0) == -1)
-		err(1, "sysctl: kern.proc.uid");
+	if (sysctl(mib, 6, NULL, &siz, NULL, 0) == -1) {
+		warn("sysctl: kern.proc.uid");
+		return -1;
+	}
 	nprocs = siz / kpsiz;
 	if (nprocs == 0)
 		return 0;
@@ -201,8 +221,10 @@ stat_directory1(struct robsd_stat *rs, const char *user)
 	if (kp == NULL)
 		err(1, NULL);
 	mib[5] = nprocs * kpsiz;
-	if (sysctl(mib, 6, kp, &siz, NULL, 0) == -1)
-		err(1, "sysctl: kern.proc.uid");
+	if (sysctl(mib, 6, kp, &siz, NULL, 0) == -1) {
+		warn("sysctl: kern.proc.uid");
+		return -1;
+	}
 	nprocs = siz / kpsiz;
 	if (nprocs == 0)
 		goto out;
@@ -232,7 +254,7 @@ out:
 	return maxlen > 0;
 }
 
-static void
+static int
 stat_loadavg(struct robsd_stat *rs)
 {
 	int mib[2];
@@ -243,26 +265,35 @@ stat_loadavg(struct robsd_stat *rs)
 	mib[0] = CTL_VM;
 	mib[1] = VM_LOADAVG;
 	len = sizeof(lavg);
-	if (sysctl(mib, 2, &lavg, &len, NULL, 0) == -1)
-		err(1, "sysctl: vm.loadavg");
+	if (sysctl(mib, 2, &lavg, &len, NULL, 0) == -1) {
+		warn("sysctl: vm.loadavg");
+		return 1;
+	}
 	rs->rs_loadavg = (double)lavg.ldavg[0] / lavg.fscale;
 
 	mib[0] = CTL_HW;
 	mib[1] = HW_NCPUONLINE;
 	len = sizeof(ncpu);
-	if (sysctl(mib, 2, &ncpu, &len, NULL, 0) == -1)
-		err(1, "sysctl hw.ncpuonline");
+	if (sysctl(mib, 2, &ncpu, &len, NULL, 0) == -1) {
+		warn("sysctl hw.ncpuonline");
+		return 1;
+	}
 	rs->rs_loadavg /= ncpu;
+	return 0;
 }
 
-static void
+static int
 stat_time(struct robsd_stat *rs)
 {
 	struct timespec ts;
 
-	if (clock_gettime(CLOCK_REALTIME, &ts) == -1)
-		err(1, "clock_gettime");
+	if (clock_gettime(CLOCK_REALTIME, &ts) == -1) {
+		warn("clock_gettime");
+		return 1;
+	}
+
 	rs->rs_time = ts.tv_sec + ts.tv_nsec / 1000000000;
+	return 0;
 }
 
 static void
