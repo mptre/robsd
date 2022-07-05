@@ -30,7 +30,7 @@ Some of its noteworthy features:
 * Detection of build time changes.
 * Detection of significant kernel and sets size changes.
 
-[robsd]: https://www.basename.se/robsd
+[robsd]: https://www.basename.se/robsd/robsd.8.html
 
 ### robsd-cross
 
@@ -38,7 +38,7 @@ Some of its noteworthy features:
 builds a cross compiler tool chain and kernel for another architecture,
 using `${BSDSRCDIR}/Makefile.cross` behind the scenes.
 
-[robsd-cross]: https://www.basename.se/robsd-cross
+[robsd-cross]: https://www.basename.se/robsd/robsd-cross.8.html
 
 ### robsd-ports
 
@@ -48,13 +48,13 @@ builds ports using
 behind the scenes.
 
 [dpb]: https://man.openbsd.org/dpb
-[robsd-ports]: https://www.basename.se/robsd-ports
+[robsd-ports]: https://www.basename.se/robsd/robsd-ports.8.html
 
 ### robsd-regress
 
 [robsd-regress(8)][robsd-regress] runs regression tests.
 
-[robsd-regress]: https://www.basename.se/robsd-ports
+[robsd-regress]: https://www.basename.se/robsd/robsd-regress.8.html
 
 ## Installation
 
