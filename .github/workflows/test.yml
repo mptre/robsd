@@ -1,0 +1,66 @@
+name: test
+
+on:
+  - push
+  - pull_request
+
+jobs:
+  test:
+    runs-on: ${{matrix.os}}
+    strategy:
+      matrix:
+        os: [ubuntu-latest]
+        compiler: [gcc, clang]
+        mode: [asan, ubsan, valgrind]
+        exclude:
+          - mode: valgrind
+            os: ubuntu-latest
+            compiler: clang
+
+        include:
+          - os: ubuntu-latest
+            nproc: nproc
+
+          - compiler: gcc
+            cflags: -Wformat-signedness
+
+          - mode: asan
+            debug: -fsanitize=address
+
+          - mode: ubsan
+            debug: -fsanitize=undefined -fno-sanitize-recover=all
+
+          - mode: valgrind
+            deps_mode: valgrind
+            exec: valgrind
+            testflags: -Tmemleak
+            valgrind: --quiet --error-exitcode=1 --leak-check=full --errors-for-leak-kinds=all --show-leak-kinds=all
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: dependenices
+        if: ${{matrix.deps_os || matrix.deps_mode}}
+        run: sudo apt-get update && sudo apt-get install ${{matrix.deps_os}} ${{matrix.deps_mode}}
+
+      - name: test
+        env:
+          CC: ${{matrix.compiler}}
+          CFLAGS: -Werror -Wpedantic -Wshadow -Wwrite-strings ${{matrix.cflags}}
+          CPPFLAGS: ${{matrix.cppflags}}
+          DEBUG: -g -O2 ${{matrix.debug}}
+          EXEC: ${{matrix.exec}}
+          TESTS: robsd-config.sh robsd-hook.sh
+          TESTFLAGS: ${{matrix.testflags}}
+          VALGRIND_OPTS: ${{matrix.valgrind}}
+        run: |
+          set -ex
+          ${CC} -v
+          MAKE="make -j `${{matrix.nproc}}`"
+          ./configure || :
+          cat config.log
+          ${MAKE} test "TESTS=${TESTS}" "TESTFLAGS=${TESTFLAGS}"
+          # Ensure assertions are free from side effects.
+          env CPPFLAGS="${CPPFLAGS} -DNDEBUG" ./configure || :
+          cat config.log
+          ${MAKE} test "TESTS=${TESTS}" "TESTFLAGS=${TESTFLAGS}"
