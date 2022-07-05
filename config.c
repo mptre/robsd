@@ -1088,19 +1088,19 @@ err:
 }
 
 static int
-config_parse_user(struct config *cf, struct token *kw, void **val)
+config_parse_user(struct config *cf, struct token *UNUSED(kw), void **val)
 {
-	char *user;
+	struct token *tk;
+	const char *user;
 
-	if (config_parse_string(cf, kw, (void **)&user))
+	if (!lexer_expect(&cf->cf_lx, TOKEN_STRING, &tk))
 		return 1;
+	user = *val = tk->tk_str;
 	if (getpwnam(user) == NULL) {
-		lexer_warnx(&cf->cf_lx, kw->tk_lno, "user '%s' not found",
+		lexer_warnx(&cf->cf_lx, tk->tk_lno, "user '%s' not found",
 		    user);
 		return 1;
 	}
-
-	*val = user;
 	return 0;
 }
 
@@ -1171,28 +1171,29 @@ config_parse_regress(struct config *cf, struct token *UNUSED(kw),
 }
 
 static int
-config_parse_directory(struct config *cf, struct token *kw, void **val)
+config_parse_directory(struct config *cf, struct token *UNUSED(kw), void **val)
 {
 	struct stat st;
-	const char *str;
+	struct token *tk;
+	const char *dir;
 	char *path;
 	int error = 0;
 
-	if (config_parse_string(cf, kw, val))
+	if (!lexer_expect(&cf->cf_lx, TOKEN_STRING, &tk))
 		return 1;
-	str = *val;
+	dir = *val = tk->tk_str;
 	/* Empty string error already reported by the lexer. */
-	if (str[0] == '\0')
+	if (dir[0] == '\0')
 		return 1;
 
-	path = config_interpolate_str(cf, str, cf->cf_path, kw->tk_lno);
+	path = config_interpolate_str(cf, dir, cf->cf_path, tk->tk_lno);
 	if (path == NULL) {
 		error = 1;
 	} else if (stat(path, &st) == -1) {
-		lexer_warn(&cf->cf_lx, kw->tk_lno, "%s", path);
+		lexer_warn(&cf->cf_lx, tk->tk_lno, "%s", path);
 		error = 1;
 	} else if (!S_ISDIR(st.st_mode)) {
-		lexer_warnx(&cf->cf_lx, kw->tk_lno, "%s: is not a directory",
+		lexer_warnx(&cf->cf_lx, tk->tk_lno, "%s: is not a directory",
 		    path);
 		error = 1;
 	}
