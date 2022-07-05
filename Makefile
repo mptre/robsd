@@ -333,7 +333,9 @@ test: all
 		"TESTFLAGS=${TESTFLAGS}"
 .PHONY: test
 
-include ${.CURDIR}/Makefile.inc
+INC?=	${.CURDIR}/Makefile.inc
+include ${INC}
+
 -include ${DEPS_robsd-config}
 -include ${DEPS_robsd-exec}
 -include ${DEPS_robsd-hook}

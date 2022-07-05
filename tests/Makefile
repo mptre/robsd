@@ -46,4 +46,5 @@ test: ${TESTS:.sh=.fake}
 .sh.fake:
 	sh ${.CURDIR}/t.sh ${TESTFLAGS} ${.CURDIR}/util.sh ${.CURDIR}/$<
 
-include ${.CURDIR}/../Makefile.inc
+INC?=	${.CURDIR}/../Makefile.inc
+include ${INC}
