@@ -34,13 +34,13 @@ robsd_hook() {
 # default_config
 default_config() {
 	cat <<-EOF
-	robsddir "/var/empty"
-	destdir "/var/empty"
-	execdir "/var/empty"
-	bsd-objdir "/var/empty"
-	bsd-srcdir "/var/empty"
-	x11-objdir "/var/empty"
-	x11-srcdir "/var/empty"
+	robsddir "/tmp"
+	destdir "/tmp"
+	execdir "/tmp"
+	bsd-objdir "/tmp"
+	bsd-srcdir "/tmp"
+	x11-objdir "/tmp"
+	x11-srcdir "/tmp"
 	EOF
 }
 
@@ -48,8 +48,8 @@ default_config() {
 default_ports_config() {
 	cat <<-EOF
 	robsddir "${TSHDIR}"
-	chroot "/var/empty"
-	execdir "/var/empty"
+	chroot "/tmp"
+	execdir "/tmp"
 	ports-user "nobody"
 	ports { "devel/knfmt" "mail/mdsort" }
 	EOF
@@ -58,8 +58,8 @@ default_ports_config() {
 # default_regress_config
 default_regress_config() {
 	cat <<-EOF
-	robsddir "/var/empty"
-	execdir "/var/empty"
+	robsddir "/tmp"
+	execdir "/tmp"
 	regress-user "nobody"
 	regress "bin/csh" root
 	regress "bin/ksh" root quiet
@@ -81,7 +81,7 @@ if testcase "robsd-ports"; then
 	{ echo "hook { \"echo\" \"\${chroot}\" \"\${extra}\" }";
 	  default_ports_config; } >"$CONFIG"
 	robsd_hook -P - -- -v extra=extra <<-EOF
-	/var/empty extra
+	/tmp extra
 	EOF
 fi
 
@@ -100,7 +100,7 @@ fi
 
 if testcase "invalid variable reserved"; then
 	default_config >"$CONFIG"
-	robsd_hook -e - -- -v robsddir=/var/empty <<-EOF
+	robsd_hook -e - -- -v robsddir=/tmp <<-EOF
 	robsd-hook: variable 'robsddir' cannot be defined
 	EOF
 fi

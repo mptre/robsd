@@ -38,13 +38,13 @@ robsd_config() {
 # default_config
 default_config() {
 	cat <<-EOF
-	robsddir "/var/empty"
-	destdir "/var/empty"
-	execdir "/var/empty"
-	bsd-objdir "/var/empty"
-	bsd-srcdir "/var/empty"
-	x11-objdir "/var/empty"
-	x11-srcdir "/var/empty"
+	robsddir "/tmp"
+	destdir "/tmp"
+	execdir "/tmp"
+	bsd-objdir "/tmp"
+	bsd-srcdir "/tmp"
+	x11-objdir "/tmp"
+	x11-srcdir "/tmp"
 	EOF
 }
 
@@ -52,10 +52,10 @@ default_config() {
 default_cross_config() {
 	cat <<-EOF
 	robsddir "${TSHDIR}"
-	crossdir "/var/empty"
-	execdir "/var/empty"
-	bsd-objdir "/var/empty"
-	bsd-srcdir "/var/empty"
+	crossdir "/tmp"
+	execdir "/tmp"
+	bsd-objdir "/tmp"
+	bsd-srcdir "/tmp"
 	EOF
 }
 
@@ -63,8 +63,8 @@ default_cross_config() {
 default_ports_config() {
 	cat <<-EOF
 	robsddir "${TSHDIR}"
-	chroot "/var/empty"
-	execdir "/var/empty"
+	chroot "/tmp"
+	execdir "/tmp"
 	ports-user "nobody"
 	ports { "devel/knfmt" "mail/mdsort" }
 	EOF
@@ -73,9 +73,9 @@ default_ports_config() {
 # default_regress_config
 default_regress_config() {
 	cat <<-EOF
-	robsddir "/var/empty"
-	execdir "/var/empty"
-	bsd-srcdir "/var/empty"
+	robsddir "/tmp"
+	execdir "/tmp"
+	bsd-srcdir "/tmp"
 	regress-user "nobody"
 	regress "bin/csh" root
 	regress "bin/ksh" root quiet
@@ -95,7 +95,7 @@ if testcase "cross"; then
 	default_cross_config >"$CONFIG"
 	echo "CROSSDIR=\${crossdir}" >"$STDIN"
 	robsd_config -C - <<-EOF
-	CROSSDIR=/var/empty
+	CROSSDIR=/tmp
 	EOF
 fi
 
@@ -219,7 +219,7 @@ if testcase "string interpolation"; then
 	} >"$CONFIG"
 	echo "\${kernel}" >"$STDIN"
 	robsd_config - <<-EOF
-	/var/empty
+	/tmp
 	EOF
 fi
 
@@ -238,7 +238,7 @@ if testcase "list interpolation"; then
 	} >"$CONFIG"
 	echo "\${skip}" >"$STDIN"
 	robsd_config - <<-EOF
-	ROBSDDIR=/var/empty
+	ROBSDDIR=/tmp
 	EOF
 fi
 
@@ -249,7 +249,7 @@ if testcase "hook"; then
 	} >"$CONFIG"
 	echo "\${hook}" >"$STDIN"
 	robsd_config - <<-'EOF'
-	echo /var/empty
+	echo /tmp
 	EOF
 fi
 
@@ -279,7 +279,7 @@ if testcase "read only variables"; then
 	robsd_config - <<-EOF
 	${_arch}
 	${_machine}
-	/var/empty/attic
+	/tmp/attic
 	EOF
 fi
 
@@ -319,7 +319,7 @@ if testcase "invalid not a directory"; then
 fi
 
 if testcase "invalid already defined"; then
-	{ default_config; echo 'robsddir "/var/empty"'; } >"$CONFIG"
+	{ default_config; echo 'robsddir "/tmp"'; } >"$CONFIG"
 	robsd_config -e - <<-EOF
 	robsd-config: ${CONFIG}:8: variable 'robsddir' already defined
 	EOF
