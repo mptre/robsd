@@ -83,10 +83,7 @@ main(int argc, char *argv[])
 		usage();
 
 	/* Close common file descriptors since we want to act like a daemon. */
-	if (close(0) == -1)
-		err(1, "close: /dev/stdin");
-	if (closefrom(2) == -1)
-		err(1, "closefrom");
+	close(0);
 
 	memset(&rs, 0, sizeof(rs));
 	for (;;) {
