@@ -17,7 +17,7 @@ robsd_config() {
 		esac
 		shift
 	done
-	[ "${1:-}" == "--" ] && shift
+	[ "${1:-}" = "--" ] && shift
 
 	[ -e "$CONFIG" ] || : >"$CONFIG"
 	[ -e "$STDIN" ] || : >"$STDIN"

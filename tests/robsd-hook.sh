@@ -16,7 +16,7 @@ robsd_hook() {
 		esac
 		shift
 	done
-	[ "${1:-}" == "--" ] && shift
+	[ "${1:-}" = "--" ] && shift
 
 	"$ROBSDHOOK" -m "$_mode" -f "$CONFIG" "$@" \
 		>"$_stdout" 2>&1 || _err1="$?"
