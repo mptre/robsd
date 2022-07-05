@@ -369,7 +369,7 @@ config_append_string(struct config *cf, const char *name, const char *val)
 	p = strdup(val);
 	if (p == NULL)
 		err(1, NULL);
-	config_append(cf, STRING, name, p, 0, 0);
+	config_append(cf, STRING, name, p, 0, VARIABLE_FLAG_DIRTY);
 	return 0;
 }
 
