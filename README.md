@@ -1,7 +1,7 @@
 # robsd
 
 This project started out as an attempt to automate the
-[release(8)](release)
+[release(8)][release]
 process on OpenBSD.
 The prime motivation was to roll my own snapshots in order to test my own and
 others changes to the kernel, user space and everything in between.
@@ -19,7 +19,7 @@ with prior OpenBSD experience.
 
 ### robsd
 
-[robsd(8)](robsd)
+[robsd(8)][robsd]
 builds a release according to the release process.
 Some of its noteworthy features:
 
@@ -34,17 +34,17 @@ Some of its noteworthy features:
 
 ### robsd-cross
 
-[robsd-cross(8)](robsd-cross)
+[robsd-cross(8)][robsd-cross]
 builds a cross compiler tool chain and kernel for another architecture,
-using `${BSDSRCDIR}/Makefile.cross` behind the scenes
+using `${BSDSRCDIR}/Makefile.cross` behind the scenes.
 
 [robsd-cross]: https://www.basename.se/robsd-cross
 
 ### robsd-ports
 
-[robsd-ports(8)](robsd-ports)
+[robsd-ports(8)][robsd-ports]
 builds ports using
-[dpb(1)](dpb)
+[dpb(1)][dpb]
 behind the scenes.
 
 [dpb]: https://man.openbsd.org/dpb
@@ -52,7 +52,7 @@ behind the scenes.
 
 ### robsd-regress
 
-[robsd-regress(8)](robsd-regress) runs regression tests.
+[robsd-regress(8)][robsd-regress] runs regression tests.
 
 [robsd-regress]: https://www.basename.se/robsd-ports
 
