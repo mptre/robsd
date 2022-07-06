@@ -39,8 +39,9 @@ make
 EOF
 
 case "$_MODE" in
-robsd-cross)	exit 0;;
-*)		;;
+robsd-cross)
+	;;
+*)
+	make install
+	;;
 esac
-
-make install
