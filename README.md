@@ -1,7 +1,7 @@
 # robsd
 
 This project started out as an attempt to automate the
-[release(8)][release]
+[release(8)](https://man.openbsd.org/release)
 process on OpenBSD.
 The prime motivation was to roll my own snapshots in order to test my own and
 others changes to the kernel, user space and everything in between.
@@ -15,11 +15,9 @@ The project is divided into the utilities as follows.
 All of them are configured using a grammar that should be familiar for anyone
 with prior OpenBSD experience.
 
-[release]: https://man.openbsd.org/release
-
 ### robsd
 
-[robsd(8)][robsd]
+[robsd(8)](https://www.basename.se/robsd/robsd.8.html)
 builds a release according to the release process.
 Some of its noteworthy features:
 
@@ -30,31 +28,23 @@ Some of its noteworthy features:
 * Detection of build time changes.
 * Detection of significant kernel and sets size changes.
 
-[robsd]: https://www.basename.se/robsd/robsd.8.html
-
 ### robsd-cross
 
-[robsd-cross(8)][robsd-cross]
+[robsd-cross(8)](https://www.basename.se/robsd/robsd-cross.8.html)
 builds a cross compiler tool chain and kernel for another architecture,
 using `${BSDSRCDIR}/Makefile.cross` behind the scenes.
 
-[robsd-cross]: https://www.basename.se/robsd/robsd-cross.8.html
-
 ### robsd-ports
 
-[robsd-ports(8)][robsd-ports]
+[robsd-ports(8)](https://www.basename.se/robsd/robsd-ports.8.html)
 builds ports using
-[dpb(1)][dpb]
+[dpb(1)](https://man.openbsd.org/dpb)
 behind the scenes.
-
-[dpb]: https://man.openbsd.org/dpb
-[robsd-ports]: https://www.basename.se/robsd/robsd-ports.8.html
 
 ### robsd-regress
 
-[robsd-regress(8)][robsd-regress] runs regression tests.
-
-[robsd-regress]: https://www.basename.se/robsd/robsd-regress.8.html
+[robsd-regress(8)](https://www.basename.se/robsd/robsd-regress.8.html)
+runs regression tests.
 
 ## Installation
 
