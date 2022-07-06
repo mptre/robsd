@@ -440,3 +440,10 @@ if testcase "invalid mode"; then
 		fail - "expected exit non-zero" <"$TMP1"
 	fi
 fi
+
+if testcase "invalid afl"; then
+	printf 'robsddir \x00"/tmp"\n' >"$CONFIG"
+	robsd_config -e - <<-EOF
+	robsd-config: ${CONFIG}:1: want STRING, got EOF
+	EOF
+fi

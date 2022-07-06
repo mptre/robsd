@@ -812,7 +812,7 @@ lexer_next(struct lexer *lx, struct token **tk)
 {
 	if (lx->lx_tk == NULL)
 		lx->lx_tk = TAILQ_FIRST(&lx->lx_tokens);
-	else
+	else if (lx->lx_tk->tk_type != TOKEN_EOF)
 		lx->lx_tk = TAILQ_NEXT(lx->lx_tk, tk_entry);
 	if (lx->lx_tk == NULL)
 		return 0;
