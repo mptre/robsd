@@ -50,7 +50,7 @@ jobs:
           CPPFLAGS: ${{matrix.cppflags}}
           DEBUG: -g -O2 ${{matrix.debug}}
           EXEC: ${{matrix.exec}}
-          TESTS: robsd-config.sh robsd-hook.sh
+          TESTS: regress-failed.sh regress-report-log.sh robsd-config.sh robsd-hook.sh
           TESTFLAGS: ${{matrix.testflags}}
           VALGRIND_OPTS: ${{matrix.valgrind}}
         run: |
