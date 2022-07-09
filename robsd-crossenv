@@ -27,7 +27,6 @@ if ! [ -d "$CROSSDIR" ]; then
 	fatal "${CROSSDIR}: no such directory"
 fi
 
-_env="$(make -f "${BSDSRCDIR}/Makefile.cross" \
-	"TARGET=${_target}" "CROSSDIR=${CROSSDIR}" cross-env)"
+_env="$(cross_env "$BSDSRCDIR" "$CROSSDIR" "$_target")"
 eval "export ${_env} BSDSRCDIR=${BSDSRCDIR}"
 "$@"

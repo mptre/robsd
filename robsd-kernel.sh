@@ -14,9 +14,8 @@ robsd-cross)
 	CROSSDIR="${crossdir}"
 	TARGET="${target}"
 	EOF
-	# shellcheck disable=SC2046
-	eval export $(cd "$BSDSRCDIR" && make -f Makefile.cross \
-		      "TARGET=${TARGET}" "CROSSDIR=${CROSSDIR}" cross-env)
+	_env="$(cross_env "$BSDSRCDIR" "$CROSSDIR" "$TARGET")"
+	eval "export ${_env}"
 	;;
 *)
 	TARGET="$(machine)"
