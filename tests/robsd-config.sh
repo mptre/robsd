@@ -442,7 +442,8 @@ if testcase "invalid mode"; then
 fi
 
 if testcase "invalid afl"; then
-	printf 'robsddir \x00"/tmp"\n' >"$CONFIG"
+	# shellcheck disable=SC2028
+	echo 'robsddir \00"/tmp"\n' >"$CONFIG"
 	robsd_config -e - <<-EOF
 	robsd-config: ${CONFIG}:1: want STRING, got EOF
 	EOF
