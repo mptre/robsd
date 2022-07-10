@@ -114,10 +114,8 @@ config_load() {
 	[ "$_err" -eq 0 ] || return "$_err"
 
 	case "$_MODE" in
-	robsd)
+	robsd|robsd-cross)
 		MAKEFLAGS="-j$(sysctl -n hw.ncpuonline)"; export MAKEFLAGS
-		;;
-	robsd-cross)
 		;;
 	robsd-ports)
 		ports_config_load
