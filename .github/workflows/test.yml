@@ -45,7 +45,7 @@ jobs:
 
       - name: test
         env:
-          CC: ${{matrix.compiler}}
+          CC: ${{matrix.cc || matrix.compiler}}
           CFLAGS: -Werror -Wpedantic -Wshadow -Wwrite-strings ${{matrix.cflags}}
           CPPFLAGS: ${{matrix.cppflags}}
           DEBUG: -g -O2 ${{matrix.debug}}
@@ -59,8 +59,8 @@ jobs:
           MAKE="make -j `${{matrix.nproc}}`"
           ./configure || :
           cat config.log
-          ${MAKE} test "TESTS=${TESTS}" "TESTFLAGS=${TESTFLAGS}"
+          ${MAKE} test "TESTFLAGS=${TESTFLAGS}" ${TESTS:+"TESTS=${TESTS}"}
           # Ensure assertions are free from side effects.
           env CPPFLAGS="${CPPFLAGS} -DNDEBUG" ./configure || :
           cat config.log
-          ${MAKE} test "TESTS=${TESTS}" "TESTFLAGS=${TESTFLAGS}"
+          ${MAKE} test "TESTFLAGS=${TESTFLAGS}" ${TESTS:+"TESTS=${TESTS}"}
