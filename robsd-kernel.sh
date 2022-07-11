@@ -7,22 +7,7 @@ BSDOBJDIR="${bsd-objdir}"; export BSDOBJDIR
 BSDSRCDIR="${bsd-srcdir}"; export BSDSRCDIR
 EOF
 
-case "$_MODE" in
-robsd-cross)
-	_target="$(<"${BUILDDIR}/target")"
-	config_load -v "target=${_target}" <<-'EOF'
-	CROSSDIR="${crossdir}"
-	TARGET="${target}"
-	EOF
-	_env="$(cross_env "$BSDSRCDIR" "$CROSSDIR" "$TARGET")"
-	eval "export ${_env}"
-	;;
-*)
-	TARGET="$(machine)"
-	;;
-esac
-
-cd "${BSDSRCDIR}/sys/arch/${TARGET}/compile/${KERNEL}"
+cd "${BSDSRCDIR}/sys/arch/$(machine)/compile/${KERNEL}"
 
 # Cannot create object directory symlink as build user.
 make obj
@@ -37,10 +22,4 @@ make config
 make
 EOF
 
-case "$_MODE" in
-robsd-cross)
-	;;
-*)
-	make install
-	;;
-esac
+make install

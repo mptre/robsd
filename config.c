@@ -207,10 +207,7 @@ static const struct grammar robsd_cross[] = {
 	{ "crossdir",	STRING,		config_parse_string,	REQ,	NULL },
 	{ "execdir",	DIRECTORY,	config_parse_directory,	0,	"/usr/local/libexec/robsd" },
 	{ "keep",	INTEGER,	config_parse_integer,	0,	NULL },
-	{ "kernel",	STRING,		config_parse_string,	0,	"GENERIC.MP" },
 	{ "skip",	LIST,		config_parse_list,	0,	NULL },
-	/* Not used but needed by kernel step. */
-	{ "bsd-objdir",	DIRECTORY,	config_parse_directory,	0,	"/usr/obj" },
 	{ "bsd-srcdir",	DIRECTORY,	config_parse_directory,	0,	"/usr/src" },
 	{ NULL,		0,		NULL,			0,	NULL },
 };

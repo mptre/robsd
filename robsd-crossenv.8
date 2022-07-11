@@ -17,6 +17,13 @@ in a cross compilation environment targeting
 .Ar target ,
 built using
 .Xr robsd-cross 8 .
+.Sh EXAMPLES
+Compile the
+.Ox
+kernel targetting arm64:
+.Bd -literal
+$ robsd-crossenv arm64 make -C /sys/arch/arch/compile/GENERIC.MP
+.Ed
 .Sh DIAGNOSTICS
 .Ex -std
 .Sh SEE ALSO

@@ -54,7 +54,6 @@ default_cross_config() {
 	robsddir "${TSHDIR}"
 	crossdir "/tmp"
 	execdir "/tmp"
-	bsd-objdir "/tmp"
 	bsd-srcdir "/tmp"
 	EOF
 }
