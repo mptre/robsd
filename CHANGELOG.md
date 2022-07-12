@@ -1,3 +1,20 @@
+# 13.0.0 - 2022-07-12
+
+## Changes
+
+- Set MAKEFLAGS for robsd-cross.
+  (92fa59a)
+  (Anton Lindqvist)
+
+- Remove kernel step from robsd-cross.
+  (5d03c2c)
+  (Anton Lindqvist)
+
+## Bug fixes
+
+- Fix cvs checkout, caused by a typo in shell command.
+  (d5db529)
+  (Anton Lindqvist)
 # 12.4.0 - 2022-06-27
 
 ## News
