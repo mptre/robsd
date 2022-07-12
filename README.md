@@ -3,8 +3,8 @@
 This project started out as an attempt to automate the
 [release(8)](https://man.openbsd.org/release)
 process on OpenBSD.
-The prime motivation was to roll my own snapshots in order to test my own and
-others changes to the kernel, user space and everything in between.
+The prime motivation was to roll my own snapshots in order to test my and others
+changes to the kernel, user space and everything in between.
 Hence the name robsd as in release OpenBSD.
 The scope later grew and the project is by now a kitchen sink for everything
 related to building, testing and maintaining OpenBSD.
