@@ -1292,7 +1292,7 @@ robsd() {
 		_exit=0
 		_t0="$(date '+%s')"
 		step_begin -l "$_log" -n "$_name" -s "$_s" "${BUILDDIR}/steps"
-		step_exec -f "${BUILDDIR}/fail" -l "$_log" -s "$_name" || \
+		step_exec -f "${BUILDDIR}/tmp/fail" -l "$_log" -s "$_name" ||
 			_exit="$?"
 		_t1="$(date '+%s')"
 		step_end -d "$((_t1 - _t0))" -e "$_exit" -l "$_log" \
