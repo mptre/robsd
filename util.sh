@@ -1502,7 +1502,7 @@ step_eval() {
 	fi
 }
 
-# step_exec -f fail -l log -s step
+# step_exec [-X] -f fail -l log -s step
 #
 # Execute the given script and redirect any output to log.
 step_exec() (
@@ -1512,9 +1512,11 @@ step_exec() (
 	local _log
 	local _robsdexec="${ROBSDEXEC:-${EXECDIR}/${_MODE}-exec}"
 	local _step
+	local _trace="yes"
 
 	while [ $# -gt 0 ]; do
 		case "$1" in
+		-X)	_trace="";;
 		-f)	shift; _fail="$1";;
 		-l)	shift; _log="$1";;
 		-s)	shift; _step="$1";;
@@ -1535,14 +1537,16 @@ step_exec() (
 
 	{
 		if [ "$_MODE" = "robsd-regress" ] && ! [ -e "$_exec" ]; then
-			"$_robsdexec" sh -eux "${EXECDIR}/${_MODE}-exec.sh" \
-				"$_step" || echo "$?" >"$_fail"
+			"$_robsdexec" sh -eu ${_trace:+-x} \
+				"${EXECDIR}/${_MODE}-exec.sh" "$_step" ||
+				echo "$?" >"$_fail"
 
 			# Regress tests can fail but still exit zero, check the
 			# log for failures.
 			regress_failed "$_log" && echo 1 >"$_fail"
 		else
-			"$_robsdexec" sh -eux "$_exec" || echo "$?" >"$_fail"
+			"$_robsdexec" sh -eu ${_trace:+-x} "$_exec" ||
+				echo "$?" >"$_fail"
 		fi
 	} </dev/null 2>&1 | tee "$_log"
 	if [ -e "$_fail" ]; then

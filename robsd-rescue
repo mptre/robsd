@@ -19,14 +19,15 @@ last_release() {
 
 [ $# -ne 0 ] && usage
 
+# shellcheck disable=SC2034
+DETACH=0
+
 setmode "robsd"
 setprogname "robsd-rescue"
 [ "$(id -u)" -ne 0 ] && fatal "must be run as root"
 config_load <<-'EOF'
 ROBSDDIR="${robsddir}"
 KEEPDIR="${keep-dir}"
-BSDSRCDIR="${bsd-srcdir}"
-CVSUSER="${cvs-user}"
 EOF
 
 BUILDDIR="$(last_release)"
@@ -37,15 +38,7 @@ else
 fi
 
 if step_eval -n patch "${BUILDDIR}/steps" 2>/dev/null; then
-	diff_list "$BUILDDIR" "src.diff" |
-	while read -r _diff; do
-		diff_revert -d "$BSDSRCDIR" -t "${BUILDDIR}/tmp" -u "$CVSUSER" "$_diff"
-	done
-
-	diff_list "$BUILDDIR" "xenocara.diff" |
-	while read -r _diff; do
-		diff_revert -d "$XSRCDIR" -t "${BUILDDIR}/tmp" -u "$CVSUSER" "$_diff"
-	done
+	step_exec -X -f "${BUILDDIR}/tmp/fail" -l /dev/null -s revert || :
 else
 	info "step patch not found, cannot revert diff(s)"
 fi
