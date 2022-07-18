@@ -1,4 +1,5 @@
 . "${EXECDIR}/util.sh"
+. "${EXECDIR}/util-regress.sh"
 
 sysctl -n kern.version
 printenv | sort

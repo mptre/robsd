@@ -16,6 +16,7 @@ usage() {
 }
 
 . "${EXECDIR:-/usr/local/libexec/robsd}/util.sh"
+. "${EXECDIR:-/usr/local/libexec/robsd}/util-ports.sh"
 
 setmode "robsd-ports"
 setprogname "robsd-ports"

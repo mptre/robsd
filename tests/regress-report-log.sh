@@ -1,3 +1,5 @@
+. "${EXECDIR}/util-regress.sh"
+
 LOG="${TSHDIR}/log"
 
 if testcase "skipped"; then

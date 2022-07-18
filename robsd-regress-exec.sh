@@ -1,4 +1,5 @@
 . "${EXECDIR}/util.sh"
+. "${EXECDIR}/util-regress.sh"
 
 config_load <<'EOF'
 SUDO="${sudo}"

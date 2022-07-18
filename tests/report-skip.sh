@@ -1,3 +1,6 @@
+. "${EXECDIR}/util-ports.sh"
+. "${EXECDIR}/util-regress.sh"
+
 if testcase "basic"; then
 	if ! report_skip -b "$TSHDIR" -n "end" -l "/dev/null"; then
 		fail "expected end to be skipped"

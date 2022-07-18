@@ -1,4 +1,5 @@
 . "${EXECDIR}/util.sh"
+. "${EXECDIR}/util-ports.sh"
 
 config_load <<'EOF'
 CHROOT="${chroot}"

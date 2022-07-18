@@ -1,3 +1,7 @@
+. "${EXECDIR}/util-cross.sh"
+. "${EXECDIR}/util-ports.sh"
+. "${EXECDIR}/util-regress.sh"
+
 BUILDDIR="${ROBSDDIR}/2019-02-23"
 STEPS="${BUILDDIR}/steps"
 REPORT="${BUILDDIR}/report"

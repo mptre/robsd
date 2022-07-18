@@ -1,4 +1,6 @@
 . "${EXECDIR}/util.sh"
+. "${EXECDIR}/util-ports.sh"
+. "${EXECDIR}/util-regress.sh"
 
 _tmpdir="${BUILDDIR}/tmp"
 

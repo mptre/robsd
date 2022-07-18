@@ -1,3 +1,5 @@
+. "${EXECDIR}/util-ports.sh"
+
 TMP1="${TSHDIR}/tmp1"
 TMP2="${TSHDIR}/tmp2"
 

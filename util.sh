@@ -1,7 +1,3 @@
-. "${EXECDIR:-/usr/local/libexec/robsd}/util-cross.sh"
-. "${EXECDIR:-/usr/local/libexec/robsd}/util-ports.sh"
-. "${EXECDIR:-/usr/local/libexec/robsd}/util-regress.sh"
-
 # abs number
 #
 # Get the absolute value of the given number.

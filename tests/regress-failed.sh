@@ -1,3 +1,5 @@
+. "${EXECDIR}/util-regress.sh"
+
 if testcase "failure"; then
 	cat <<-EOF >"$TMP1"
 	*** Error 1 in edit (Makefile:15 'vi')

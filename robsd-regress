@@ -15,6 +15,7 @@ usage() {
 }
 
 . "${EXECDIR:-/usr/local/libexec/robsd}/util.sh"
+. "${EXECDIR:-/usr/local/libexec/robsd}/util-regress.sh"
 
 setmode "robsd-regress"
 setprogname "robsd-regress"
