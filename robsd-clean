@@ -11,7 +11,7 @@ usage() {
 
 [ $# -eq 1 ] || usage
 
-setmode "$(getmode "$0")"
+setmode -p "$0"
 setprogname "${_MODE}-clean"
 [ "$(id -u)" -ne 0 ] && fatal "must be run as root"
 config_load <<'EOF'

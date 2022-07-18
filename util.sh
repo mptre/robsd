@@ -626,20 +626,6 @@ format_size() {
 	awk '{ printf("%.01f%s", $1 / $2, $3) }'
 }
 
-# getmode path
-#
-# Get the execution mode given the binary path.
-getmode() {
-	local _path
-
-	_path="$1"; : "${_path:?}"
-	case "${_path##*/}" in
-	robsd-ports*)	echo "robsd-ports";;
-	robsd-regress*)	echo "robsd-regress";;
-	*)		echo "robsd";;
-	esac
-}
-
 # info message ...
 #
 # Print the given message to stdout.
@@ -1320,10 +1306,31 @@ robsd() {
 }
 
 # setmode mode
+# setmode -p path
 #
-# Set the execution mode.
+# Set the execution mode or infer it from the given program name.
 setmode() {
-	_MODE="$1"; export _MODE
+	local _mode=""
+	local _path=""
+
+	while [ $# -gt 0 ]; do
+		case "$1" in
+		-p)	shift; _path="$1";;
+		*)	break;;
+		esac
+		shift
+	done
+
+	if [ -n "$_path" ]; then
+		case "${_path##*/}" in
+		robsd-ports*)	_mode="robsd-ports";;
+		robsd-regress*)	_mode="robsd-regress";;
+		*)		_mode="robsd";;
+		esac
+	else
+		_mode="$1"
+	fi
+	_MODE="$_mode"; export _MODE
 }
 
 # setprogname name
