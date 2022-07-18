@@ -1531,7 +1531,7 @@ step_exec() (
 		_exec="${EXECDIR}/robsd-${_step}.sh"
 	fi
 
-	[ -t 0 ] || exec >/dev/null 2>&1
+	[ "$DETACH" -eq 0 ] || exec >/dev/null 2>&1
 
 	{
 		if [ "$_MODE" = "robsd-regress" ] && ! [ -e "$_exec" ]; then
