@@ -8,6 +8,8 @@ usage() {
 }
 
 . "${EXECDIR:-/usr/local/libexec/robsd}/util.sh"
+. "${EXECDIR:-/usr/local/libexec/robsd}/util-ports.sh"
+. "${EXECDIR:-/usr/local/libexec/robsd}/util-regress.sh"
 
 [ $# -eq 1 ] || usage
 
