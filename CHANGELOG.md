@@ -1,3 +1,11 @@
+# 13.1.0 - 2022-07-18
+
+## News
+
+- Stop including all util files.
+  (aed7a5d)
+  (Anton Lindqvist)
+
 # 13.0.0 - 2022-07-12
 
 ## Changes
