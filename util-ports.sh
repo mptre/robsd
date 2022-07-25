@@ -6,43 +6,6 @@ ports_config_load() {
 	unset MAKEFLAGS PKG_PATH
 }
 
-# ports_duration_total -s steps
-#
-# Get the total duration.
-ports_duration_total() {
-	local _d
-	local _i=1
-	local _name
-	local _steps
-	local _tot=0
-
-	while [ $# -gt 0 ]; do
-		case "$1" in
-		-s)	shift; _steps="$1";;
-		*)	break;;
-		esac
-		shift
-	done
-	: "${_steps:?}"
-
-	while step_eval "$_i" "$_steps" 2>/dev/null; do
-		_i=$((_i + 1))
-
-		step_skip && continue
-
-		_name="$(step_value name)"
-
-		# Do not include the previous accumulated build duration.
-		# Could be present if the report is re-generated.
-		[ "$_name" = "end" ] && continue
-
-		_d="$(step_value duration)"
-		_tot=$((_tot + _d))
-	done
-
-	echo "$_tot"
-}
-
 # ports_report_log -e step-exit -n step-name -l step-log -t tmp-dir
 #
 # Get an excerpt of the given step log.
@@ -99,20 +62,18 @@ ports_report_log() {
 #
 # Exits zero if the given step should not be included in the report.
 ports_report_skip() {
-	local _log
 	local _name
 
 	while [ $# -gt 0 ]; do
 		case "$1" in
 		-b)	shift;;
-		-l)	shift; _log="$1";;
+		-l)	shift;;
 		-n)	shift; _name="$1";;
 		-t)	shift;;
 		*)	break;;
 		esac
 		shift
 	done
-	: "${_log:?}"
 	: "${_name:?}"
 
 	case "$_name" in

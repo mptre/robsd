@@ -1,14 +1,6 @@
 . "${EXECDIR}/util.sh"
 . "${EXECDIR}/util-ports.sh"
 
-# duration pattern
-duration() {
-	local _pattern
-
-	_pattern="$1"; : "${_pattern:?}"
-	grep -m 1 "$_pattern" | awk '{print $NF}' | sed 's/\..*//'
-}
-
 config_load <<'EOF'
 CHROOT="${chroot}"
 PORTSDIR="${ports-dir}"
@@ -38,4 +30,3 @@ dpb -c -B "$CHROOT" $PORTS
 ! grep -m 1 'E=' "${CHROOT}${PORTSDIR}/logs/${_arch}/stats.log"
 
 ls "${_packages}" >"${_tmpdir}/packages"
-diff -U0 -L packages.orig -L packages "${_tmpdir}/packages.orig" "${_tmpdir}/packages" || :

@@ -541,15 +541,6 @@ duration_total() {
 	done
 	: "${_steps:?}"
 
-	case "$_MODE" in
-	robsd-ports)
-		ports_duration_total -s "$_steps"
-		return 0
-		;;
-	*)
-		;;
-	esac
-
 	while step_eval "$_i" "$_steps" 2>/dev/null; do
 		_i=$((_i + 1))
 
