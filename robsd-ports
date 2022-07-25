@@ -91,6 +91,9 @@ if [ "$_step" -eq 1 ]; then
 		echo "$_tags" >"${BUILDDIR}/tags"
 	fi
 
+	# List of ports used by the steps.
+	echo "$PORTS" | xargs printf '%s\n' >"${BUILDDIR}/tmp/ports"
+
 	"$ROBSDSTAT" -H >"${BUILDDIR}/stat.csv"
 fi
 

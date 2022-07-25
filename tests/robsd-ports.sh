@@ -3,24 +3,7 @@ robsd_mock >"$TMP1"; read -r _ BINDIR ROBSDDIR <"$TMP1"
 cat <<'EOF' >"${BINDIR}/dpb"
 #!/bin/sh
 
-mkdir -p "${TSHDIR}/ports/logs/$(machine)/paths/devel"
-touch "${TSHDIR}/ports/logs/$(machine)/paths/devel/outdated.log"
-
-case "$@" in
-*devel/broken*)
-	cat <<-ENGINE >"${TSHDIR}/ports/logs/$(machine)/engine.log"
-	!: devel/broken is marked as broken
-	ENGINE
-	;;
-*devel/dependency*)
-	cat <<-ERROR >"${TSHDIR}/ports/logs/$(machine)/paths/devel/error.log"
-	Error: job failed with 512 on localhost at 1643980551
-	ERROR
-	;;
-*)
-	;;
-esac
-
+echo "$@"
 EOF
 chmod u+x "${BINDIR}/dpb"
 
@@ -73,5 +56,10 @@ if testcase "basic"; then
 	robsd-ports: reverting diff ${_builddir}/ports.diff.1
 	robsd-ports: step end
 	robsd-ports: trap exit 0
+	EOF
+
+	assert_file - "${_builddir}/tmp/ports" <<-EOF
+	devel/updated
+	devel/outdated
 	EOF
 fi

@@ -10,7 +10,6 @@ DISTRIBPATH="${distrib-path}"
 DISTRIBUSER="${distrib-user}"
 SIGNIFY="${distrib-signify}"
 PORTSDIR="${ports-dir}"
-PORTS="${ports}"
 EOF
 
 if [ -z "$DISTRIBHOST" ] || [ -z "$DISTRIBPATH" ] || [ -z "$DISTRIBUSER" ]; then
@@ -19,8 +18,7 @@ fi
 
 _tmpdir="${BUILDDIR}/tmp"
 
-echo "$PORTS" |
-chroot "$CHROOT" env SUBDIRLIST=/dev/stdin make -C "$PORTSDIR" run-dir-depends |
+chroot "$CHROOT" env SUBDIRLIST=/dev/stdin make -C "$PORTSDIR" run-dir-depends <"${_tmpdir}/ports" |
 tsort |
 chroot "$CHROOT" env SUBDIRLIST=/dev/stdin make -C "$PORTSDIR" show=PKGFILES |
 grep -v '^===> ' |
