@@ -1,3 +1,19 @@
+# X.X.X - XXXX-XX-XX
+
+## Bug fixes
+
+- Add missing util.sh includes.
+  (e3a37c5)
+  (Anton Lindqvist)
+
+- Tags might be absent during robsd hash step.
+  (7fb0fb4)
+  (Anton Lindqvist)
+
+- Prune on cvs checkout.
+  (8b0d95e)
+  (Anton Lindqvist)
+
 # 13.1.0 - 2022-07-18
 
 ## News
