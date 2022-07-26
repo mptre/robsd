@@ -63,3 +63,23 @@ if testcase "basic"; then
 	devel/outdated
 	EOF
 fi
+
+if testcase "oneshot"; then
+	robsd_config -P - <<-EOF
+	robsddir "${ROBSDDIR}"
+	execdir "${EXECDIR}"
+	ports { "devel/ignored" }
+	EOF
+	mkdir "$ROBSDDIR"
+	mkdir -p "${TSHDIR}/ports/packages/$(machine)/all"
+
+	if ! robsd_ports -d -s cvs -s clean -s proot devel/favored \
+	   >"$TMP1" 2>&1; then
+		fail - "expected exit zero" <"$TMP1"
+	fi
+	_builddir="$(find "${ROBSDDIR}" -type d -mindepth 1 -maxdepth 1)"
+
+	assert_file - "${_builddir}/tmp/ports" <<-EOF
+	devel/favored
+	EOF
+fi

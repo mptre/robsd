@@ -11,6 +11,7 @@
 .Op Fl c Ar comment
 .Op Fl s Ar step
 .Op Fl t Ar tag
+.Op Ar pkgpath ...
 .Nm robsd-ports
 .Op Fl d
 .Fl r Ar path
@@ -133,6 +134,12 @@ see enumerated steps above.
 Arbitrary tag used to annotate the invocation which is included in
 .Pa report .
 May be given multiple times.
+.It Ar pkgpath
+Build the given port expressed as a
+.Xr pkgpath 7
+as opposed of the configured
+.Ic ports .
+The following steps will be skipped: cvs, clean, proot and distrib.
 .El
 .Sh FILES
 .Bl -tag -width /etc/robsd-ports.conf

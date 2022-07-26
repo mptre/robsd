@@ -11,6 +11,7 @@ usage() {
 	[-r path]
 	[-s step]
 	[-t tag]
+	[pkgpath ...]
 	EOF
 	exit 1
 }
@@ -49,7 +50,10 @@ while getopts "dP:c:r:s:t:" opt; do
 	esac
 done
 shift $((OPTIND - 1))
-[ $# -ne 0 ] && usage
+if [ $# -gt 0 ]; then
+	PORTS="$*"
+	SKIP="${SKIP}${SKIP:+ }cvs clean proot distrib"
+fi
 
 trap 'trap_exit -r "$ROBSDDIR" -b "$BUILDDIR" -s "$_statpid"' EXIT
 
