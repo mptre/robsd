@@ -7,7 +7,7 @@ cross_report_subject() {
 
 # cross_steps
 #
-# # Get the step names in order of execution.
+# Get the step names in order of execution.
 cross_steps() {
 	cat <<-EOF
 	env
