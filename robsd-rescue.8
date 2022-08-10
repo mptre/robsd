@@ -11,16 +11,13 @@
 .Sh DESCRIPTION
 The
 .Nm
-utility tries to recover from the last
-.Xr robsd 8
-or
-.Xr robsd-ports 8
-invocation by performing the actions as follows:
+utility tries to recover from the last corresponding robsd invocation by
+performing the actions as follows:
 .Bl -dash
 .It
 Reverting any diff applied to the source directories.
 .It
-Release the build lock, allowing a new release to be built.
+Release the lock, allowing for new invocations.
 .El
 .Sh DIAGNOSTICS
 .Ex -std
