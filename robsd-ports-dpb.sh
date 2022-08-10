@@ -22,7 +22,7 @@ if ! [ -e "${_tmpdir}/packages.orig" ]; then
 	ls "$_packages" >"${_tmpdir}/packages.orig" 2>/dev/null || :
 fi
 
-dpb -c -B "$CHROOT" -J 0 -P "${_tmpdir}/ports"
+dpb -c -B "$CHROOT" -P "${_tmpdir}/ports"
 
 # Look for errors.
 grep -m 1 'E:' "${CHROOT}${PORTSDIR}/logs/${_arch}/engine.log" && exit 1
