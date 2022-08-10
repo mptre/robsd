@@ -2,36 +2,30 @@
 .Dt ROBSD-RESCUE 8
 .Os
 .Sh NAME
-.Nm robsd-rescue
-.Nd recover from failed release builds
+.Nm robsd-rescue ,
+.Nm robsd-ports-rescue
+.Nd recover from failed robsd invocations
 .Sh SYNOPSIS
 .Nm robsd-rescue
+.Nm robsd-ports-rescue
 .Sh DESCRIPTION
 The
 .Nm
 utility tries to recover from the last
 .Xr robsd 8
-release build
-by performing the actions as follows:
+or
+.Xr robsd-ports 8
+invocation by performing the actions as follows:
 .Bl -dash
 .It
-Reverting any diff applied to the
-.Ic bsd-srcdir
-and
-.Ic x11-srcdir
-source directories.
+Reverting any diff applied to the source directories.
 .It
 Release the build lock, allowing a new release to be built.
-.El
-.Sh FILES
-.Bl -tag -width Ds
-.It Pa /etc/robsd.conf
-The default configuration file.
 .El
 .Sh DIAGNOSTICS
 .Ex -std
 .Sh SEE ALSO
-.Xr robsd.conf 5 ,
-.Xr robsd 8
+.Xr robsd 8 ,
+.Xr robsd-ports 8
 .Sh AUTHORS
 .An Anton Lindqvist Aq Mt anton@basename.se
