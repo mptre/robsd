@@ -1722,7 +1722,7 @@ step_value() {
 
 # trap_exit -r robsd-dir [-b build-dir] [-s stat-pid]
 #
-# Exit trap handler. The log dir may not be present if we failed very early on.
+# Exit trap handler. The build dir may not be present if we failed very early on.
 trap_exit() {
 	local _err="$?"
 	local _builddir=""
