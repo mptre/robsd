@@ -1,4 +1,14 @@
-# X.X.X - XXXX-XX-XX
+# 13.2.0 - 2022-09-16
+
+## News
+
+- Add support for building one or more non-configured robsd-ports.
+  (4fe4da0)
+  (Anton Lindqvist)
+
+- Add robsd-ports-rescue.
+  (c6b0078)
+  (Anton Lindqvist)
 
 ## Bug fixes
 
@@ -12,6 +22,10 @@
 
 - Prune on cvs checkout.
   (8b0d95e)
+  (Anton Lindqvist)
+
+- Fix dpb error detection in robsd-ports.
+  (a507d4d)
   (Anton Lindqvist)
 
 # 13.1.0 - 2022-07-18
