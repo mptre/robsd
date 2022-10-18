@@ -1,11 +1,12 @@
 #include "lexer.h"
 
 #include <err.h>
+#include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "extern.h"
 #include "token.h"
+#include "util.h"
 
 struct lexer {
 	TAILQ_HEAD(token_list, token)	 lx_tokens;

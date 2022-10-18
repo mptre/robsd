@@ -23,16 +23,6 @@ char		*config_interpolate_str(const struct config *,
 const struct string_list *variable_list(const struct variable *);
 
 /*
- * log -------------------------------------------------------------------------
- */
-void	log_warn(const char *, int, const char *, ...)
-	__attribute__((format(printf, 3, 4)));
-void	log_warnx(const char *, int, const char *, ...)
-	__attribute__((format(printf, 3, 4)));
-void	logv(void (*)(const char *, ...), const char *, int, const char *,
-    va_list);
-
-/*
  * buffer ----------------------------------------------------------------------
  */
 
@@ -70,9 +60,3 @@ void			 strings_append(struct string_list *, const char *);
 void			 strings_concat(struct string_list *,
     struct string_list *);
 unsigned int		 strings_len(const struct string_list *);
-
-/*
- * util ------------------------------------------------------------------------
- */
-
-char	*ifgrinet(const char *);

@@ -1,3 +1,5 @@
+#include "util.h"
+
 #include <sys/types.h>
 #include <sys/ioctl.h>
 #include <sys/queue.h>

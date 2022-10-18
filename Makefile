@@ -60,6 +60,7 @@ KNFMT+=	robsd-regress-log.c
 KNFMT+=	robsd-stat.c
 KNFMT+=	token.h
 KNFMT+=	util.c
+KNFMT+=	util.h
 
 SCRIPTS+=	robsd-base.sh
 SCRIPTS+=	robsd-checkflist.sh
@@ -205,6 +206,7 @@ DISTFILES+=	util-cross.sh
 DISTFILES+=	util-ports.sh
 DISTFILES+=	util-regress.sh
 DISTFILES+=	util.c
+DISTFILES+=	util.h
 DISTFILES+=	util.sh
 
 PREFIX=		/usr/local

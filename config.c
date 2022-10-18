@@ -19,6 +19,7 @@
 #include "extern.h"
 #include "lexer.h"
 #include "token.h"
+#include "util.h"
 
 /*
  * token -----------------------------------------------------------------------
