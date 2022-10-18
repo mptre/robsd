@@ -9,6 +9,7 @@ SRCS_robsd-config+=	config.c
 SRCS_robsd-config+=	compat-errc.c
 SRCS_robsd-config+=	compat-pledge.c
 SRCS_robsd-config+=	compat-warnc.c
+SRCS_robsd-config+=	lexer.c
 SRCS_robsd-config+=	util.c
 OBJS_robsd-config=	${SRCS_robsd-config:.c=.o}
 DEPS_robsd-config=	${SRCS_robsd-config:.c=.d}
@@ -26,6 +27,7 @@ SRCS_robsd-hook+=	config.c
 SRCS_robsd-hook+=	compat-errc.c
 SRCS_robsd-hook+=	compat-pledge.c
 SRCS_robsd-hook+=	compat-warnc.c
+SRCS_robsd-hook+=	lexer.c
 SRCS_robsd-hook+=	util.c
 OBJS_robsd-hook=	${SRCS_robsd-hook:.c=.o}
 DEPS_robsd-hook=	${SRCS_robsd-hook:.c=.d}
@@ -49,11 +51,14 @@ KNFMT+=	compat-sys-sched.h
 KNFMT+=	compat-sys-sysctl.h
 KNFMT+=	config.c
 KNFMT+=	extern.h
+KNFMT+=	lexer.c
+KNFMT+=	lexer.h
 KNFMT+=	robsd-config.c
 KNFMT+=	robsd-exec.c
 KNFMT+=	robsd-hook.c
 KNFMT+=	robsd-regress-log.c
 KNFMT+=	robsd-stat.c
+KNFMT+=	token.h
 KNFMT+=	util.c
 
 SCRIPTS+=	robsd-base.sh
@@ -102,6 +107,8 @@ DISTFILES+=	compat-warnc.c
 DISTFILES+=	config.c
 DISTFILES+=	configure
 DISTFILES+=	extern.h
+DISTFILES+=	lexer.c
+DISTFILES+=	lexer.h
 DISTFILES+=	robsd
 DISTFILES+=	robsd-base.sh
 DISTFILES+=	robsd-checkflist.sh
@@ -193,6 +200,7 @@ DISTFILES+=	tests/step-next.sh
 DISTFILES+=	tests/step-value.sh
 DISTFILES+=	tests/t.sh
 DISTFILES+=	tests/util.sh
+DISTFILES+=	token.h
 DISTFILES+=	util-cross.sh
 DISTFILES+=	util-ports.sh
 DISTFILES+=	util-regress.sh

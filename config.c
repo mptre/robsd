@@ -17,75 +17,41 @@
 #include <string.h>
 
 #include "extern.h"
+#include "lexer.h"
+#include "token.h"
 
 /*
  * token -----------------------------------------------------------------------
  */
 
-struct token {
-	enum token_type {
-		/* sentinels */
-		TOKEN_UNKNOWN,
-		TOKEN_EOF,
+enum token_type {
+	/* sentinels */
+	TOKEN_UNKNOWN,
 
-		/* literals */
-		TOKEN_LBRACE,
-		TOKEN_RBRACE,
+	/* literals */
+	TOKEN_LBRACE,
+	TOKEN_RBRACE,
 
-		/* keywords */
-		TOKEN_KEYWORD,
-		TOKEN_ENV,
-		TOKEN_OBJ,
-		TOKEN_QUIET,
-		TOKEN_ROOT,
+	/* keywords */
+	TOKEN_KEYWORD,
+	TOKEN_ENV,
+	TOKEN_OBJ,
+	TOKEN_QUIET,
+	TOKEN_ROOT,
 
-		/* types */
-		TOKEN_BOOLEAN,
-		TOKEN_INTEGER,
-		TOKEN_STRING,
-	} tk_type;
-	int			tk_lno;
-
-	union {
-		char	*tk_str;
-		int64_t	 tk_int;
-	};
-
-	TAILQ_ENTRY(token)	tk_entry;
+	/* types */
+	TOKEN_BOOLEAN,
+	TOKEN_INTEGER,
+	TOKEN_STRING,
 };
 
-static void		 token_free(struct token *);
-static const char	*tokenstr(enum token_type);
+static const char	*tokenstr(int);
 
 /*
  * lexer -----------------------------------------------------------------------
  */
 
-struct lexer {
-	TAILQ_HEAD(token_list, token)	 lx_tokens;
-	struct token			*lx_tk;
-
-	const char			*lx_path;
-	FILE				*lx_fh;
-	int				 lx_lno;
-
-	int				 lx_err;
-};
-
-static int	lexer_init(struct lexer *, const char *);
-static void	lexer_free(struct lexer *);
-static int	lexer_getc(struct lexer *, char *);
-static void	lexer_ungetc(struct lexer *, char);
-static int	lexer_read(struct lexer *, struct token *);
-static int	lexer_next(struct lexer *, struct token **);
-static int	lexer_expect(struct lexer *, enum token_type, struct token **);
-static int	lexer_peek(struct lexer *, enum token_type);
-static int	lexer_if(struct lexer *, enum token_type, struct token **);
-
-static void	lexer_warn(struct lexer *, int, const char *, ...)
-	__attribute__((format(printf, 3, 4)));
-static void	lexer_warnx(struct lexer *, int, const char *, ...)
-	__attribute__((format(printf, 3, 4)));
+static int	lexer_read(struct lexer *, struct token *, void *);
 
 /*
  * variable --------------------------------------------------------------------
@@ -140,7 +106,7 @@ static const struct grammar	*grammar_find(const struct grammar *,
  */
 
 struct config {
-	struct lexer		 cf_lx;
+	struct lexer		*cf_lx;
 	struct variable_list	 cf_variables;
 	const struct grammar	*cf_grammar;
 	const char		*cf_path;
@@ -313,7 +279,7 @@ config_free(struct config *cf)
 		free(va);
 	}
 
-	lexer_free(&cf->cf_lx);
+	lexer_free(cf->cf_lx);
 	free(cf);
 }
 
@@ -326,7 +292,14 @@ config_set_path(struct config *cf, const char *path)
 int
 config_parse(struct config *cf)
 {
-	if (lexer_init(&cf->cf_lx, cf->cf_path))
+	cf->cf_lx = lexer_alloc(&(struct lexer_arg){
+		.path = cf->cf_path,
+		.callbacks = {
+			.read = lexer_read,
+			.serialize = tokenstr,
+		},
+	});
+	if (cf->cf_lx == NULL)
 		return 1;
 	if (config_exec(cf))
 		return 1;
@@ -516,7 +489,7 @@ variable_list(const struct variable *va)
 	return va->va_list;
 }
 
-static void
+void
 token_free(struct token *tk)
 {
 	if (tk == NULL)
@@ -528,7 +501,6 @@ token_free(struct token *tk)
 		free(tk->tk_str);
 		break;
 	case TOKEN_UNKNOWN:
-	case TOKEN_EOF:
 	case TOKEN_LBRACE:
 	case TOKEN_RBRACE:
 	case TOKEN_ENV:
@@ -543,13 +515,11 @@ token_free(struct token *tk)
 }
 
 static const char *
-tokenstr(enum token_type type)
+tokenstr(int type)
 {
-	switch (type) {
+	switch ((enum token_type)type) {
 	case TOKEN_UNKNOWN:
 		break;
-	case TOKEN_EOF:
-		return "EOF";
 	case TOKEN_LBRACE:
 		return "LBRACE";
 	case TOKEN_RBRACE:
@@ -571,97 +541,17 @@ tokenstr(enum token_type type)
 	case TOKEN_STRING:
 		return "STRING";
 	}
+	if (type == LEXER_EOF)
+		return "EOF";
 	return "UNKNOWN";
 }
 
 static int
-lexer_init(struct lexer *lx, const char *path)
-{
-	int error = 0;
-
-	lx->lx_fh = fopen(path, "r");
-	if (lx->lx_fh == NULL) {
-		warn("open: %s", path);
-		return 1;
-	}
-	lx->lx_path = path;
-	lx->lx_lno = 1;
-	lx->lx_tk = NULL;
-	TAILQ_INIT(&lx->lx_tokens);
-
-	for (;;) {
-		struct token *tk;
-
-		tk = calloc(1, sizeof(*tk));
-		if (tk == NULL)
-			err(1, NULL);
-		if (lexer_read(lx, tk)) {
-			free(tk);
-			error = 1;
-			goto out;
-		}
-		TAILQ_INSERT_TAIL(&lx->lx_tokens, tk, tk_entry);
-		if (tk->tk_type == TOKEN_EOF)
-			break;
-	}
-
-out:
-	fclose(lx->lx_fh);
-	lx->lx_fh = NULL;
-	return error;
-}
-
-static void
-lexer_free(struct lexer *lx)
-{
-	struct token *tk;
-
-	if (lx == NULL)
-		return;
-
-	while ((tk = TAILQ_FIRST(&lx->lx_tokens)) != NULL) {
-		TAILQ_REMOVE(&lx->lx_tokens, tk, tk_entry);
-		token_free(tk);
-	}
-
-	if (lx->lx_fh != NULL)
-		fclose(lx->lx_fh);
-}
-
-static int
-lexer_getc(struct lexer *lx, char *ch)
-{
-	int rv;
-
-	rv = fgetc(lx->lx_fh);
-	if (rv == EOF) {
-		if (ferror(lx->lx_fh)) {
-			lexer_warn(lx, lx->lx_lno, "fgetc");
-			return 1;
-		}
-		*ch = 0;
-		return 0;
-	}
-	if (rv == '\n')
-		lx->lx_lno++;
-	*ch = rv;
-	return 0;
-}
-
-static void
-lexer_ungetc(struct lexer *lx, char ch)
-{
-	if (ch == '\n' && lx->lx_lno > 1)
-		lx->lx_lno--;
-	(void)ungetc(ch, lx->lx_fh);
-}
-
-static int
-lexer_read(struct lexer *lx, struct token *tk)
+lexer_read(struct lexer *lx, struct token *tk, void *UNUSED(arg))
 {
 #define CONSUME(c) do {							\
 	if (buflen >= sizeof(buf)) {					\
-		lexer_warnx(lx, lx->lx_lno, "token too long");		\
+		lexer_warnx(lx, lexer_get_lno(lx), "token too long");	\
 		return 1;						\
 	}								\
 	buf[buflen++] = (c);						\
@@ -677,10 +567,10 @@ again:
 			return 1;
 	} while (isspace((unsigned char)ch));
 
-	tk->tk_lno = lx->lx_lno;
+	tk->tk_lno = lexer_get_lno(lx);
 
 	if (ch == 0) {
-		tk->tk_type = TOKEN_EOF;
+		tk->tk_type = LEXER_EOF;
 		return 0;
 	}
 
@@ -748,7 +638,7 @@ again:
 			x = ch - '0';
 			if (val > INT_MAX / 10 || val * 10 > INT_MAX - x) {
 				if (!error)
-					lexer_warnx(lx, lx->lx_lno,
+					lexer_warnx(lx, lexer_get_lno(lx),
 					    "integer too big");
 				error = 1;
 			} else {
@@ -772,7 +662,7 @@ again:
 			if (lexer_getc(lx, &ch))
 				return 1;
 			if (ch == 0) {
-				lexer_warnx(lx, lx->lx_lno,
+				lexer_warnx(lx, lexer_get_lno(lx),
 				    "unterminated string");
 				return 1;
 			}
@@ -781,7 +671,7 @@ again:
 			CONSUME(ch);
 		}
 		if (buflen == 0)
-			lexer_warnx(lx, lx->lx_lno, "empty string");
+			lexer_warnx(lx, lexer_get_lno(lx), "empty string");
 		CONSUME('\0');
 
 		tk->tk_type = TOKEN_STRING;
@@ -802,84 +692,6 @@ again:
 
 	tk->tk_type = TOKEN_UNKNOWN;
 	return 0;
-}
-
-static int
-lexer_next(struct lexer *lx, struct token **tk)
-{
-	if (lx->lx_tk == NULL)
-		lx->lx_tk = TAILQ_FIRST(&lx->lx_tokens);
-	else if (lx->lx_tk->tk_type != TOKEN_EOF)
-		lx->lx_tk = TAILQ_NEXT(lx->lx_tk, tk_entry);
-	if (lx->lx_tk == NULL)
-		return 0;
-	*tk = lx->lx_tk;
-	return 1;
-}
-
-static int
-lexer_expect(struct lexer *lx, enum token_type exp, struct token **tk)
-{
-	enum token_type act;
-
-	if (!lexer_next(lx, tk))
-		return 0;
-	act = (*tk)->tk_type;
-	if (exp != act) {
-		lexer_warnx(lx, (*tk)->tk_lno, "want %s, got %s", tokenstr(exp),
-		    tokenstr(act));
-		return 0;
-	}
-	return 1;
-}
-
-static int
-lexer_peek(struct lexer *lx, enum token_type type)
-{
-	struct token *tk;
-	int peek;
-
-	if (!lexer_next(lx, &tk))
-		return 0;
-	peek = tk->tk_type == type;
-	lx->lx_tk = TAILQ_PREV(tk, token_list, tk_entry);
-	return peek;
-}
-
-static int
-lexer_if(struct lexer *lx, enum token_type type, struct token **tk)
-{
-	if (!lexer_next(lx, tk))
-		return 0;
-	if ((*tk)->tk_type != type) {
-		lx->lx_tk = TAILQ_PREV(*tk, token_list, tk_entry);
-		return 0;
-	}
-	return 1;
-}
-
-static void
-lexer_warn(struct lexer *lx, int lno, const char *fmt, ...)
-{
-	va_list ap;
-
-	lx->lx_err++;
-
-	va_start(ap, fmt);
-	logv(warn, lx->lx_path, lno, fmt, ap);
-	va_end(ap);
-}
-
-static void
-lexer_warnx(struct lexer *lx, int lno, const char *fmt, ...)
-{
-	va_list ap;
-
-	lx->lx_err++;
-
-	va_start(ap, fmt);
-	logv(warnx, lx->lx_path, lno, fmt, ap);
-	va_end(ap);
 }
 
 static const struct grammar *
@@ -917,9 +729,9 @@ config_exec(struct config *cf)
 	int error = 0;
 
 	for (;;) {
-		if (lexer_peek(&cf->cf_lx, TOKEN_EOF))
+		if (lexer_peek(cf->cf_lx, LEXER_EOF))
 			break;
-		if (!lexer_expect(&cf->cf_lx, TOKEN_KEYWORD, &tk)) {
+		if (!lexer_expect(cf->cf_lx, TOKEN_KEYWORD, &tk)) {
 			error = 1;
 			break;
 		}
@@ -935,7 +747,7 @@ config_exec(struct config *cf)
 	}
 
 out:
-	if (cf->cf_lx.lx_err > 0)
+	if (lexer_get_error(cf->cf_lx))
 		return 1;
 	if (config_validate(cf))
 		return 1;
@@ -951,13 +763,13 @@ config_exec1(struct config *cf, struct token *tk)
 
 	gr = grammar_find(cf->cf_grammar, tk->tk_str);
 	if (gr == NULL) {
-		lexer_warnx(&cf->cf_lx, tk->tk_lno, "unknown keyword '%s'",
+		lexer_warnx(cf->cf_lx, tk->tk_lno, "unknown keyword '%s'",
 		    tk->tk_str);
 		return -1;
 	}
 
 	if ((gr->gr_flags & REP) == 0 && config_present(cf, tk->tk_str)) {
-		lexer_warnx(&cf->cf_lx, tk->tk_lno,
+		lexer_warnx(cf->cf_lx, tk->tk_lno,
 		    "variable '%s' already defined", tk->tk_str);
 		error = 1;
 	}
@@ -998,7 +810,7 @@ config_parse_boolean(struct config *cf, void **val)
 {
 	struct token *tk;
 
-	if (!lexer_expect(&cf->cf_lx, TOKEN_BOOLEAN, &tk))
+	if (!lexer_expect(cf->cf_lx, TOKEN_BOOLEAN, &tk))
 		return 1;
 	*val = (void *)tk->tk_int;
 	return 0;
@@ -1009,7 +821,7 @@ config_parse_string(struct config *cf, void **val)
 {
 	struct token *tk;
 
-	if (!lexer_expect(&cf->cf_lx, TOKEN_STRING, &tk))
+	if (!lexer_expect(cf->cf_lx, TOKEN_STRING, &tk))
 		return 1;
 	*val = tk->tk_str;
 	return 0;
@@ -1020,7 +832,7 @@ config_parse_integer(struct config *cf, void **val)
 {
 	struct token *tk;
 
-	if (!lexer_expect(&cf->cf_lx, TOKEN_INTEGER, &tk))
+	if (!lexer_expect(cf->cf_lx, TOKEN_INTEGER, &tk))
 		return 1;
 	*val = (void *)tk->tk_int;
 	return 0;
@@ -1035,11 +847,11 @@ config_parse_glob(struct config *cf, void **val)
 	size_t i;
 	int error;
 
-	if (!lexer_expect(&cf->cf_lx, TOKEN_STRING, &tk))
+	if (!lexer_expect(cf->cf_lx, TOKEN_STRING, &tk))
 		return 1;
 	error = glob(tk->tk_str, GLOB_NOCHECK, NULL, &g);
 	if (error) {
-		lexer_warn(&cf->cf_lx, tk->tk_lno, "glob: %d", error);
+		lexer_warn(cf->cf_lx, tk->tk_lno, "glob: %d", error);
 		goto out;
 	}
 
@@ -1059,17 +871,17 @@ config_parse_list(struct config *cf, void **val)
 	struct string_list *strings = NULL;
 	struct token *tk;
 
-	if (!lexer_expect(&cf->cf_lx, TOKEN_LBRACE, &tk))
+	if (!lexer_expect(cf->cf_lx, TOKEN_LBRACE, &tk))
 		return 1;
 	strings = strings_alloc();
 	for (;;) {
-		if (lexer_peek(&cf->cf_lx, TOKEN_RBRACE))
+		if (lexer_peek(cf->cf_lx, TOKEN_RBRACE))
 			break;
-		if (!lexer_expect(&cf->cf_lx, TOKEN_STRING, &tk))
+		if (!lexer_expect(cf->cf_lx, TOKEN_STRING, &tk))
 			goto err;
 		strings_append(strings, tk->tk_str);
 	}
-	if (!lexer_expect(&cf->cf_lx, TOKEN_RBRACE, &tk))
+	if (!lexer_expect(cf->cf_lx, TOKEN_RBRACE, &tk))
 		goto err;
 
 	*val = strings;
@@ -1086,11 +898,11 @@ config_parse_user(struct config *cf, void **val)
 	struct token *tk;
 	const char *user;
 
-	if (!lexer_expect(&cf->cf_lx, TOKEN_STRING, &tk))
+	if (!lexer_expect(cf->cf_lx, TOKEN_STRING, &tk))
 		return 1;
 	user = *val = tk->tk_str;
 	if (getpwnam(user) == NULL) {
-		lexer_warnx(&cf->cf_lx, tk->tk_lno, "user '%s' not found",
+		lexer_warnx(cf->cf_lx, tk->tk_lno, "user '%s' not found",
 		    user);
 		return 1;
 	}
@@ -1100,7 +912,7 @@ config_parse_user(struct config *cf, void **val)
 static int
 config_parse_regress(struct config *cf, void **val)
 {
-	struct lexer *lx = &cf->cf_lx;
+	struct lexer *lx = cf->cf_lx;
 	struct token *tk;
 	struct variable *regress;
 	const char *path;
@@ -1171,7 +983,7 @@ config_parse_directory(struct config *cf, void **val)
 	char *path;
 	int error = 0;
 
-	if (!lexer_expect(&cf->cf_lx, TOKEN_STRING, &tk))
+	if (!lexer_expect(cf->cf_lx, TOKEN_STRING, &tk))
 		return 1;
 	dir = *val = tk->tk_str;
 	/* Empty string error already reported by the lexer. */
@@ -1182,10 +994,10 @@ config_parse_directory(struct config *cf, void **val)
 	if (path == NULL) {
 		error = 1;
 	} else if (stat(path, &st) == -1) {
-		lexer_warn(&cf->cf_lx, tk->tk_lno, "%s", path);
+		lexer_warn(cf->cf_lx, tk->tk_lno, "%s", path);
 		error = 1;
 	} else if (!S_ISDIR(st.st_mode)) {
-		lexer_warnx(&cf->cf_lx, tk->tk_lno, "%s: is not a directory",
+		lexer_warnx(cf->cf_lx, tk->tk_lno, "%s: is not a directory",
 		    path);
 		error = 1;
 	}
