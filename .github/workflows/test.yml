@@ -64,3 +64,23 @@ jobs:
           env CPPFLAGS="${CPPFLAGS} -DNDEBUG" ./configure || :
           cat config.log
           ${MAKE} test "TESTFLAGS=${TESTFLAGS}" ${TESTS:+"TESTS=${TESTS}"}
+
+  clang-tidy:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v2
+      - name: clang-tidy
+        run: |
+          ./configure
+          make lint-clang-tidy
+
+  cppcheck:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v2
+      - name: dependenices
+        run: sudo apt-get update && sudo apt-get install cppcheck
+      - name: cppcheck
+        run: |
+          ./configure
+          make lint-cppcheck
