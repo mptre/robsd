@@ -157,6 +157,17 @@ if testcase "regress quiet"; then
 	EOF
 fi
 
+if testcase "regress packages"; then
+	{
+		default_regress_config
+		echo 'regress "test" packages { "knfmt" "mdsort" }'
+	} >"$CONFIG"
+	echo "\${regress-test-packages}" >"$STDIN"
+	robsd_config -R - <<-EOF
+	knfmt mdsort
+	EOF
+fi
+
 if testcase "regress interpolation inet"; then
 	default_regress_config >"$CONFIG"
 	echo "\${inet}" >"$STDIN"

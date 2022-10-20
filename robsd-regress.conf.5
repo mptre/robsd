@@ -84,6 +84,13 @@ Additional path requiring an object directory where path must be relative to
 .Ic bsd-srcdir .
 The object directory is created by the obj step, see
 .Xr robsd-regress 8 .
+.It Ic packages No { Ar pkg-name ... No }
+Required
+.Xr packages 7
+needed by the regression test.
+The same packages will be removed once the regression test terminates, unless
+the package was already installed.
+Failing to install a package is not considered fatal.
 .It Ic quiet
 Do not report skipped or disabled targets for this regression test.
 .It Ic root

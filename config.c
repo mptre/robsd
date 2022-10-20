@@ -37,6 +37,7 @@ enum token_type {
 	TOKEN_KEYWORD,
 	TOKEN_ENV,
 	TOKEN_OBJ,
+	TOKEN_PACKAGES,
 	TOKEN_QUIET,
 	TOKEN_ROOT,
 
@@ -506,6 +507,7 @@ token_free(struct token *tk)
 	case TOKEN_RBRACE:
 	case TOKEN_ENV:
 	case TOKEN_OBJ:
+	case TOKEN_PACKAGES:
 	case TOKEN_QUIET:
 	case TOKEN_ROOT:
 	case TOKEN_BOOLEAN:
@@ -531,6 +533,8 @@ tokenstr(int type)
 		return "ENV";
 	case TOKEN_OBJ:
 		return "OBJ";
+	case TOKEN_PACKAGES:
+		return "PACKAGES";
 	case TOKEN_QUIET:
 		return "QUIET";
 	case TOKEN_ROOT:
@@ -600,6 +604,10 @@ again:
 		}
 		if (strncmp("obj", buf, buflen) == 0) {
 			tk->tk_type = TOKEN_OBJ;
+			return 0;
+		}
+		if (strncmp("packages", buf, buflen) == 0) {
+			tk->tk_type = TOKEN_PACKAGES;
 			return 0;
 		}
 		if (strncmp("quiet", buf, buflen) == 0) {
@@ -946,6 +954,16 @@ config_parse_regress(struct config *cf, void **val)
 				obj = config_append(cf, LIST, "regress-obj",
 				    strings_alloc(), 0, 0);
 			strings_concat(obj->va_list, list);
+		} else if (lexer_if(lx, TOKEN_PACKAGES, &tk)) {
+			struct string_list *packages;
+
+			if (config_parse_list(cf, (void **)&packages))
+				return 1;
+			if (regressname(name, sizeof(name), path, "packages")) {
+				lexer_warnx(lx, tk->tk_lno, "name too long");
+				return 1;
+			}
+			config_append(cf, LIST, name, packages, tk->tk_lno, 0);
 		} else if (lexer_if(lx, TOKEN_QUIET, &tk)) {
 			if (regressname(name, sizeof(name), path, "quiet")) {
 				lexer_warnx(lx, tk->tk_lno, "name too long");

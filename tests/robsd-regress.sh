@@ -11,6 +11,7 @@ if testcase "basic"; then
 	regress "test/hello" obj { "usr.bin/hello" }
 	regress "test/root" root
 	regress "test/env" env { "FOO=1" "BAR=2" }
+	regress "test/pkg" packages { "quirks" "not-installed" }
 	EOF
 	mkdir "$ROBSDDIR"
 	mkdir -p "${TSHDIR}/regress/test/fail"
@@ -41,6 +42,24 @@ all:
 	echo FOO=\${FOO} BAR=\${BAR} >${TSHDIR}/env
 obj:
 EOF
+	mkdir -p "${TSHDIR}/regress/test/pkg"
+	cat <<EOF >"${TSHDIR}/regress/test/pkg/Makefile"
+all:
+
+obj:
+EOF
+
+	cat <<-EOF >"${BINDIR}/pkg_add"
+	#!/bin/sh
+	echo "pkg_add \${1}" >>${TSHDIR}/pkg
+	EOF
+	chmod u+x "${BINDIR}/pkg_add"
+
+	cat <<-EOF >"${BINDIR}/pkg_delete"
+	#!/bin/sh
+	echo "pkg_delete \${1}" >>${TSHDIR}/pkg
+	EOF
+	chmod u+x "${BINDIR}/pkg_delete"
 
 	if ! PATH="${BINDIR}:${PATH}" sh "$ROBSDREGRESS" -d >"$TMP1" 2>&1; then
 		fail - "expected exit zero" <"$TMP1"
@@ -54,6 +73,13 @@ EOF
 	assert_file - "${TSHDIR}/env" <<-EOF
 	FOO=1 BAR=2
 	EOF
+	assert_file - "${TSHDIR}/pkg" <<-EOF
+	pkg_add not-installed
+	pkg_delete not-installed
+	EOF
+
+	rm "${BINDIR}/pkg_add"
+	rm "${BINDIR}/pkg_delete"
 fi
 
 if testcase "failure in non-test step"; then
