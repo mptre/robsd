@@ -1,0 +1,13 @@
+---
+Checks: |
+  -*,
+  bugprone-*,
+  -bugprone-branch-clone,
+  -bugprone-easily-swappable-parameters,
+  -bugprone-narrowing-conversions,
+  -bugprone-sizeof-expression,
+  cert-c-*,
+  performance-*,
+  portability-*,
+WarningsAsErrors: '*'
+...

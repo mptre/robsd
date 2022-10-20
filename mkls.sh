@@ -2,6 +2,9 @@ mkls "$@" \
 KNFMT \
 	!(compat-*).c !(config).h \
 	-- \
+CLANGTIDY \
+	!(config|compat-*).h !(compat-*).c \
+	-- \
 SCRIPTS \
 	!(mkls).sh \
 	-- \

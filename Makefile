@@ -62,6 +62,20 @@ KNFMT+=	token.h
 KNFMT+=	util.c
 KNFMT+=	util.h
 
+CLANGTIDY+=	buffer.c
+CLANGTIDY+=	config.c
+CLANGTIDY+=	extern.h
+CLANGTIDY+=	lexer.c
+CLANGTIDY+=	lexer.h
+CLANGTIDY+=	robsd-config.c
+CLANGTIDY+=	robsd-exec.c
+CLANGTIDY+=	robsd-hook.c
+CLANGTIDY+=	robsd-regress-log.c
+CLANGTIDY+=	robsd-stat.c
+CLANGTIDY+=	token.h
+CLANGTIDY+=	util.c
+CLANGTIDY+=	util.h
+
 SCRIPTS+=	robsd-base.sh
 SCRIPTS+=	robsd-checkflist.sh
 SCRIPTS+=	robsd-cross-dirs.sh
@@ -337,6 +351,10 @@ install: all
 # robsd-regress-log
 	${INSTALL} -m 0555 ${PROG_robsd-regress-log} ${DESTDIR}${LIBEXECDIR}/robsd
 .PHONY: install
+
+lint-clang-tidy:
+	cd ${.CURDIR} && clang-tidy --quiet ${CLANGTIDY}
+.PHONY: lint-clang-tidy
 
 test: all
 	${MAKE} -C ${.CURDIR}/tests \
