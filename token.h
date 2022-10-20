@@ -1,5 +1,7 @@
 #include <sys/queue.h>
 
+#include <stdint.h>	/* int64_t */
+
 struct token {
 	int			tk_type;
 	int			tk_lno;

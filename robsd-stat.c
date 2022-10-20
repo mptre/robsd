@@ -232,8 +232,8 @@ stat_directory1(struct robsd_stat *rs, const char *user)
 	for (i = 0; i < nprocs; i++) {
 		char cwd[PATH_MAX];
 
-		if (strcmp(kp[i].p_comm, "make") &&
-		    strcmp(kp[i].p_comm, "gmake"))
+		if (strcmp(kp[i].p_comm, "make") != 0 &&
+		    strcmp(kp[i].p_comm, "gmake") != 0)
 			continue;
 
 		mib[0] = CTL_KERN;

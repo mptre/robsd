@@ -1,6 +1,6 @@
 #include <sys/queue.h>
 
-#include <stdarg.h>
+#include <stddef.h>
 
 #define UNUSED(x)	_##x __attribute__((__unused__))
 
