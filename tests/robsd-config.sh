@@ -125,7 +125,7 @@ if testcase "regress env"; then
 	EOF
 fi
 
-if testcase "obj"; then
+if testcase "regress obj"; then
 	default_regress_config >"$CONFIG"
 	echo "OBJ=\${regress-obj}" >"$STDIN"
 	robsd_config -R -e - <<-EOF
