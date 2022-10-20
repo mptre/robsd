@@ -163,6 +163,7 @@ regress_step_after() {
 regress_steps() {
 	xargs printf '%s\n' <<-EOF
 	env
+	pkg-add
 	cvs
 	patch
 	obj
@@ -170,6 +171,7 @@ regress_steps() {
 	$(config_value regress)
 	umount
 	revert
+	pkg-del
 	end
 	EOF
 }

@@ -966,14 +966,19 @@ config_parse_regress(struct config *cf, union variable_value *val)
 			strings_concat(obj->va_val.list, newval.list);
 		} else if (lexer_if(lx, TOKEN_PACKAGES, &tk)) {
 			union variable_value newval;
+			struct variable *packages;
 
 			if (config_parse_list(cf, &newval))
 				return 1;
-			if (regressname(name, sizeof(name), path, "packages")) {
-				lexer_warnx(lx, tk->tk_lno, "name too long");
-				return 1;
+			packages = config_find(cf, "regress-packages");
+			if (packages == NULL) {
+				union variable_value def;
+
+				def.list = strings_alloc();
+				packages = config_append(cf, LIST,
+				    "regress-packages", &def, 0, 0);
 			}
-			config_append(cf, LIST, name, &newval, tk->tk_lno, 0);
+			strings_concat(packages->va_val.list, newval.list);
 		} else if (lexer_if(lx, TOKEN_QUIET, &tk)) {
 			union variable_value newval = {.integer = 1};
 

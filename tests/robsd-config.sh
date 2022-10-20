@@ -162,7 +162,7 @@ if testcase "regress packages"; then
 		default_regress_config
 		echo 'regress "test" packages { "knfmt" "mdsort" }'
 	} >"$CONFIG"
-	echo "\${regress-test-packages}" >"$STDIN"
+	echo "\${regress-packages}" >"$STDIN"
 	robsd_config -R - <<-EOF
 	knfmt mdsort
 	EOF

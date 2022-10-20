@@ -87,10 +87,10 @@ The object directory is created by the obj step, see
 .It Ic packages No { Ar pkg-name ... No }
 Required
 .Xr packages 7
-needed by the regression test.
-The same packages will be removed once the regression test terminates, unless
-the package was already installed.
-Failing to install a package is not considered fatal.
+by the regression test.
+All declared packages will be respectively be added and deleted by the pkg-add
+and pkg-del steps, see
+.Xr robsd-regress 8 .
 .It Ic quiet
 Do not report skipped or disabled targets for this regression test.
 .It Ic root

@@ -24,6 +24,12 @@ The process is divided into the steps as follows:
 .It env
 Dump the current environment.
 This is a no operation only used to collect data useful while debugging.
+.It pkg-add
+Install all
+.Xr packages 7
+associated with the configured regression tests.
+If a package already is installed, it is ignored by the pkg-del step.
+Failing to install a package is not considered fatal.
 .It cvs
 Update or checkout the
 .Ic bsd-srcdir
@@ -49,6 +55,8 @@ Run all configured regression tests synchronously, see
 Inverse of mount step.
 .It revert
 Inverse of patch step.
+.It pkg-del
+Inverse of pkg-add step.
 .It end
 Auxillary step used to generate
 .Pa report .
