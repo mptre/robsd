@@ -9,7 +9,7 @@ Hence the name robsd as in release OpenBSD.
 The scope later grew and the project is by now a kitchen sink for everything
 related to building, testing and maintaining OpenBSD.
 It's written in ksh with a dash of C and requires nothing other than what's
-included in OpenBSD.
+included in base.
 
 The project is divided into the utilities as follows.
 All of them are configured using a grammar that should be familiar for anyone
