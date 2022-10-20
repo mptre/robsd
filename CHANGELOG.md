@@ -1,3 +1,11 @@
+# 13.3.0 - 2022-10-20
+
+## News
+
+- Add support for installing additional packages to robsd-regress.
+  (121c7a1, be92ae3)
+  (Anton Lindqvist)
+
 # 13.2.0 - 2022-09-16
 
 ## News
