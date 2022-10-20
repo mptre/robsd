@@ -461,8 +461,7 @@ if testcase "invalid not found"; then
 fi
 
 if testcase "invalid afl"; then
-	# shellcheck disable=SC2028
-	echo 'robsddir \00"/tmp"\n' >"$CONFIG"
+	printf 'robsddir \00"/tmp"\n' >"$CONFIG"
 	robsd_config -e - <<-EOF
 	robsd-config: ${CONFIG}:1: want STRING, got EOF
 	EOF
