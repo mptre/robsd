@@ -5,6 +5,9 @@ KNFMT \
 CLANGTIDY \
 	!(config|compat-*).h !(compat-*).c \
 	-- \
+CPPCHECK \
+	!(compat-*).c \
+	-- \
 SCRIPTS \
 	!(mkls).sh \
 	-- \

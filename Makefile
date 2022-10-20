@@ -76,6 +76,16 @@ CLANGTIDY+=	token.h
 CLANGTIDY+=	util.c
 CLANGTIDY+=	util.h
 
+CPPCHECK+=	buffer.c
+CPPCHECK+=	config.c
+CPPCHECK+=	lexer.c
+CPPCHECK+=	robsd-config.c
+CPPCHECK+=	robsd-exec.c
+CPPCHECK+=	robsd-hook.c
+CPPCHECK+=	robsd-regress-log.c
+CPPCHECK+=	robsd-stat.c
+CPPCHECK+=	util.c
+
 SCRIPTS+=	robsd-base.sh
 SCRIPTS+=	robsd-checkflist.sh
 SCRIPTS+=	robsd-cross-dirs.sh
@@ -355,6 +365,12 @@ install: all
 lint-clang-tidy:
 	cd ${.CURDIR} && clang-tidy --quiet ${CLANGTIDY}
 .PHONY: lint-clang-tidy
+
+lint-cppcheck:
+	cd ${.CURDIR} && cppcheck --quiet --enable=all --error-exitcode=1 \
+		--max-configs=2 --suppress-xml=cppcheck-suppressions.xml \
+		${CPPCHECK}
+.PHONY: lint-cppcheck
 
 test: all
 	${MAKE} -C ${.CURDIR}/tests \
