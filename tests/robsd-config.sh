@@ -451,6 +451,15 @@ if testcase "invalid mode"; then
 	fi
 fi
 
+if testcase "invalid not found"; then
+	if "$ROBSDCONFIG" -m robsd -f /var/empty/nein >"$TMP1" 2>&1; then
+		fail - "expected exit non-zero" <"$TMP1"
+	fi
+	assert_file - "$TMP1" <<-EOF
+	robsd-config: open: /var/empty/nein: No such file or directory
+	EOF
+fi
+
 if testcase "invalid afl"; then
 	# shellcheck disable=SC2028
 	echo 'robsddir \00"/tmp"\n' >"$CONFIG"

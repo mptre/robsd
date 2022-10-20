@@ -22,18 +22,20 @@ struct lexer {
 struct lexer *
 lexer_alloc(const struct lexer_arg *arg)
 {
+	FILE *fh;
 	struct lexer *lx;
 	int error = 0;
 
-	lx = calloc(1, sizeof(*lx));
-	if (lx == NULL)
-		err(1, NULL);
-	lx->lx_fh = fopen(arg->path, "r");
-	if (lx->lx_fh == NULL) {
+	fh = fopen(arg->path, "r");
+	if (fh == NULL) {
 		warn("open: %s", arg->path);
 		return NULL;
 	}
+	lx = calloc(1, sizeof(*lx));
+	if (lx == NULL)
+		err(1, NULL);
 	lx->lx_arg = arg;
+	lx->lx_fh = fh;
 	lx->lx_lno = 1;
 	lx->lx_tk = NULL;
 	TAILQ_INIT(&lx->lx_tokens);
