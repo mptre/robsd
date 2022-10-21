@@ -52,6 +52,8 @@ EOF
 	cat <<-EOF >"${BINDIR}/pkg_add"
 	#!/bin/sh
 	echo "pkg_add \${1}" >>${TSHDIR}/pkg
+	# Simulate failure, must be ignored.
+	exit 1
 	EOF
 	chmod u+x "${BINDIR}/pkg_add"
 
