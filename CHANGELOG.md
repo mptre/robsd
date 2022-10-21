@@ -1,3 +1,11 @@
+# 13.3.1 - 2022-10-21
+
+## Bug fixes
+
+- Perform one pkg_add invocation during the robsd-regress pkg-add step.
+  (1a2ddfb)
+  (Anton Lindqvist)
+
 # 13.3.0 - 2022-10-20
 
 ## News
