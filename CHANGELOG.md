@@ -1,3 +1,11 @@
+# 13.3.2 - 2022-10-21
+
+## Bug fixes
+
+- Ignore pkg_delete failures in robsd-regress pkg-del step.
+  (a032b0f)
+  (Anton Lindqvist)
+
 # 13.3.1 - 2022-10-21
 
 ## Bug fixes
