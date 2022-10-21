@@ -60,6 +60,8 @@ EOF
 	cat <<-EOF >"${BINDIR}/pkg_delete"
 	#!/bin/sh
 	echo "pkg_delete \${1}" >>${TSHDIR}/pkg
+	# Simulate failure, must be ignored.
+	exit 1
 	EOF
 	chmod u+x "${BINDIR}/pkg_delete"
 
