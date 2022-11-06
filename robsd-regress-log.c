@@ -133,7 +133,7 @@ parselog(const char *path, unsigned int flags)
 
 		if (ismarker(line))
 			buffer_reset(bf);
-		buffer_append(bf, line, n);
+		buffer_puts(bf, line, n);
 
 		if ((flags & FLAG_ERROR) && iserror(line))
 			errorlen = bf->bf_len;

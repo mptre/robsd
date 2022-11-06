@@ -1,5 +1,7 @@
 #include "buffer.h"
 
+#include "config.h"
+
 #include <err.h>
 #include <fcntl.h>
 #include <stdarg.h>
@@ -7,8 +9,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
-
-#include "extern.h"
 
 static void	buffer_grow(struct buffer *, unsigned int);
 
@@ -49,28 +49,34 @@ buffer_read(const char *path)
 		return NULL;
 	}
 
-	bf = buffer_alloc(1024);
+	bf = buffer_read_fd(fd);
+	if (bf == NULL)
+		warn("read: %s", path);
+	close(fd);
+	return bf;
+}
 
+struct buffer *
+buffer_read_fd(int fd)
+{
+	struct buffer *bf;
+
+	bf = buffer_alloc(1024);
 	for (;;) {
 		ssize_t n;
 
 		n = read(fd, &bf->bf_ptr[bf->bf_len], bf->bf_siz - bf->bf_len);
-		if (n == -1) {
-			warn("read: %s", path);
+		if (n == -1)
 			goto err;
-		}
 		if (n == 0)
 			break;
 		bf->bf_len += n;
 		if (bf->bf_len > bf->bf_siz / 2)
 			buffer_grow(bf, 1);
 	}
-
-	close(fd);
 	return bf;
 
 err:
-	close(fd);
 	buffer_free(bf);
 	return NULL;
 }
@@ -86,7 +92,7 @@ buffer_free(struct buffer *bf)
 }
 
 void
-buffer_append(struct buffer *bf, const char *str, size_t len)
+buffer_puts(struct buffer *bf, const char *str, size_t len)
 {
 	if (bf->bf_len + len >= bf->bf_siz) {
 		size_t siz = bf->bf_siz;
@@ -102,23 +108,31 @@ buffer_append(struct buffer *bf, const char *str, size_t len)
 }
 
 void
-buffer_appendc(struct buffer *bf, char ch)
+buffer_putc(struct buffer *bf, char ch)
 {
-	buffer_append(bf, &ch, 1);
+	buffer_puts(bf, &ch, 1);
 }
 
 void
-buffer_appendv(struct buffer *bf, const char *fmt, ...)
+buffer_printf(struct buffer *bf, const char *fmt, ...)
 {
-	va_list ap, cp;
+	va_list ap;
+
+	va_start(ap, fmt);
+	buffer_vprintf(bf, fmt, ap);
+	va_end(ap);
+}
+
+void
+buffer_vprintf(struct buffer *bf, const char *fmt, va_list ap)
+{
+	va_list cp;
 	unsigned int shift = 0;
 	int n;
 
-	va_start(ap, fmt);
 	va_copy(cp, ap);
 
 	n = vsnprintf(NULL, 0, fmt, ap);
-	va_end(ap);
 	if (n < 0)
 		err(1, "vsnprintf");
 
@@ -133,6 +147,22 @@ buffer_appendv(struct buffer *bf, const char *fmt, ...)
 	if (n < 0)
 		err(1, "vsnprintf");
 	bf->bf_len += n;
+}
+
+size_t
+buffer_indent(struct buffer *bf, int indent, int usetabs, size_t pos)
+{
+	if (usetabs) {
+		for (; indent >= 8; indent -= 8) {
+			buffer_putc(bf, '\t');
+			pos += 8 - (pos % 8);
+		}
+	}
+	for (; indent > 0; indent--) {
+		buffer_putc(bf, ' ');
+		pos++;
+	}
+	return pos;
 }
 
 /*

@@ -440,11 +440,11 @@ config_interpolate_str(const struct config *cf, const char *str,
 			goto out;
 		}
 
-		buffer_append(buf, str, p - str);
+		buffer_puts(buf, str, p - str);
 
 		switch (va->va_type) {
 		case INTEGER:
-			buffer_appendv(buf, "%d", va->va_val.integer);
+			buffer_printf(buf, "%d", va->va_val.integer);
 			break;
 
 		case STRING:
@@ -455,7 +455,7 @@ config_interpolate_str(const struct config *cf, const char *str,
 			    path, lno);
 			if (vp == NULL)
 				goto out;
-			buffer_appendv(buf, "%s", vp);
+			buffer_printf(buf, "%s", vp);
 			free(vp);
 			break;
 		}
@@ -471,7 +471,7 @@ config_interpolate_str(const struct config *cf, const char *str,
 				    path, lno);
 				if (vp == NULL)
 					goto out;
-				buffer_appendv(buf, "%s%s", vp,
+				buffer_printf(buf, "%s%s", vp,
 				    last == st ? "" : " ");
 				free(vp);
 			}
@@ -482,9 +482,9 @@ config_interpolate_str(const struct config *cf, const char *str,
 		str = &ve[1];
 	}
 	/* Output any remaining tail. */
-	buffer_append(buf, str, strlen(str));
+	buffer_puts(buf, str, strlen(str));
 
-	buffer_appendc(buf, '\0');
+	buffer_putc(buf, '\0');
 	bp = buffer_release(buf);
 out:
 	buffer_free(buf);
