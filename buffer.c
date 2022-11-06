@@ -120,7 +120,7 @@ buffer_appendv(struct buffer *bf, const char *fmt, ...)
 	if (n < 0)
 		err(1, "vsnprintf");
 
-	while ((bf->bf_siz << shift) - bf->bf_len < (size_t)n)
+	while ((bf->bf_siz << shift) - bf->bf_len <= (size_t)n)
 		shift++;
 	if (shift > 0)
 		buffer_grow(bf, shift);
