@@ -1,3 +1,11 @@
+# 13.3.3 - 2022-11-06
+
+## Bug fixes
+
+- Fix off by one in buffer memory allocation.
+  (f18c687)
+  (Anton Lindqvist)
+
 # 13.3.2 - 2022-10-21
 
 ## Bug fixes
