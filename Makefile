@@ -47,6 +47,7 @@ OBJS_robsd-stat=	${SRCS_robsd-stat:.c=.o}
 DEPS_robsd-stat=	${SRCS_robsd-stat:.c=.d}
 
 KNFMT+=	buffer.c
+KNFMT+=	buffer.h
 KNFMT+=	compat-sys-sched.h
 KNFMT+=	compat-sys-sysctl.h
 KNFMT+=	config.c
@@ -63,6 +64,7 @@ KNFMT+=	util.c
 KNFMT+=	util.h
 
 CLANGTIDY+=	buffer.c
+CLANGTIDY+=	buffer.h
 CLANGTIDY+=	config.c
 CLANGTIDY+=	extern.h
 CLANGTIDY+=	lexer.c
@@ -124,6 +126,7 @@ DISTFILES+=	Makefile
 DISTFILES+=	Makefile.inc
 DISTFILES+=	README.md
 DISTFILES+=	buffer.c
+DISTFILES+=	buffer.h
 DISTFILES+=	compat-errc.c
 DISTFILES+=	compat-pledge.c
 DISTFILES+=	compat-strlcpy.c

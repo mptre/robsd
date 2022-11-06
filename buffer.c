@@ -1,3 +1,5 @@
+#include "buffer.h"
+
 #include <err.h>
 #include <fcntl.h>
 #include <stdarg.h>
