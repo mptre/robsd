@@ -1,3 +1,11 @@
+# 13.4.0 - 2022-11-07
+
+## News
+
+- Allow make target per regress test to be specified.
+  (a01155a)
+  (Anton Lindqvist)
+
 # 13.3.3 - 2022-11-06
 
 ## Bug fixes
