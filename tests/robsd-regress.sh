@@ -12,11 +12,12 @@ if testcase "basic"; then
 	regress "test/root" root
 	regress "test/env" env { "FOO=1" "BAR=2" }
 	regress "test/pkg" packages { "quirks" "not-installed" }
+	regress "test/target" target "one"
 	EOF
 	mkdir "$ROBSDDIR"
 	mkdir -p "${TSHDIR}/regress/test/fail"
 	cat <<EOF >"${TSHDIR}/regress/test/fail/Makefile"
-all:
+regress:
 	exit 66
 obj:
 EOF
@@ -26,29 +27,35 @@ obj:
 EOF
 	mkdir -p "${TSHDIR}/regress/test/hello"
 	cat <<EOF >"${TSHDIR}/regress/test/hello/Makefile"
-all:
+regress:
 	echo hello >${TSHDIR}/hello
 obj:
 EOF
 	mkdir -p "${TSHDIR}/regress/test/root"
 	cat <<EOF >"${TSHDIR}/regress/test/root/Makefile"
-all:
+regress:
 	echo SUDO=\${SUDO} >${TSHDIR}/root
 obj:
 EOF
 	mkdir -p "${TSHDIR}/regress/test/env"
 	cat <<EOF >"${TSHDIR}/regress/test/env/Makefile"
-all:
+regress:
 	echo FOO=\${FOO} BAR=\${BAR} >${TSHDIR}/env
 obj:
 EOF
 	mkdir -p "${TSHDIR}/regress/test/pkg"
 	cat <<EOF >"${TSHDIR}/regress/test/pkg/Makefile"
-all:
+regress:
 
 obj:
 EOF
+	mkdir -p "${TSHDIR}/regress/test/target"
+	cat <<EOF >"${TSHDIR}/regress/test/target/Makefile"
+one:
+	echo target >${TSHDIR}/target
 
+obj:
+EOF
 	cat <<-EOF >"${BINDIR}/pkg_add"
 	#!/bin/sh
 	echo "pkg_add \${1}" >>${TSHDIR}/pkg
@@ -80,6 +87,9 @@ EOF
 	assert_file - "${TSHDIR}/pkg" <<-EOF
 	pkg_add not-installed
 	pkg_delete not-installed
+	EOF
+	assert_file - "${TSHDIR}/target" <<-EOF
+	target
 	EOF
 
 	rm "${BINDIR}/pkg_add"
@@ -132,14 +142,14 @@ if testcase "kill"; then
 	mkdir "$ROBSDDIR"
 	mkdir -p "${TSHDIR}/regress/test/sleep"
 	cat <<EOF >"${TSHDIR}/regress/test/sleep/Makefile"
-all:
+regress:
 	echo sleep >${TSHDIR}/sleep
 	sleep 3600
 obj:
 EOF
 	mkdir -p "${TSHDIR}/regress/test/nein"
 	cat <<EOF >"${TSHDIR}/regress/test/nein/Makefile"
-all:
+regress:
 	echo nein >${TSHDIR}/nein
 obj:
 EOF

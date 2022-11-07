@@ -168,6 +168,17 @@ if testcase "regress packages"; then
 	EOF
 fi
 
+if testcase "regress target"; then
+	{
+		default_regress_config
+		echo 'regress "test" target "one"'
+	} >"$CONFIG"
+	echo "\${regress-test-target}" >"$STDIN"
+	robsd_config -R - <<-EOF
+	one
+	EOF
+fi
+
 if testcase "regress interpolation inet"; then
 	default_regress_config >"$CONFIG"
 	echo "\${inet}" >"$STDIN"

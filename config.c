@@ -41,6 +41,7 @@ enum token_type {
 	TOKEN_PACKAGES,
 	TOKEN_QUIET,
 	TOKEN_ROOT,
+	TOKEN_TARGET,
 
 	/* types */
 	TOKEN_BOOLEAN,
@@ -517,6 +518,7 @@ token_free(struct token *tk)
 	case TOKEN_PACKAGES:
 	case TOKEN_QUIET:
 	case TOKEN_ROOT:
+	case TOKEN_TARGET:
 	case TOKEN_BOOLEAN:
 	case TOKEN_INTEGER:
 		break;
@@ -546,6 +548,8 @@ tokenstr(int type)
 		return "QUIET";
 	case TOKEN_ROOT:
 		return "ROOT";
+	case TOKEN_TARGET:
+		return "TARGET";
 	case TOKEN_BOOLEAN:
 		return "BOOLEAN";
 	case TOKEN_INTEGER:
@@ -623,6 +627,10 @@ again:
 		}
 		if (strncmp("root", buf, buflen) == 0) {
 			tk->tk_type = TOKEN_ROOT;
+			return 0;
+		}
+		if (strncmp("target", buf, buflen) == 0) {
+			tk->tk_type = TOKEN_TARGET;
 			return 0;
 		}
 
@@ -997,6 +1005,17 @@ config_parse_regress(struct config *cf, union variable_value *val)
 				return 1;
 			}
 			config_append(cf, INTEGER, name, &newval,
+			    tk->tk_lno, 0);
+		} else if (lexer_if(lx, TOKEN_TARGET, &tk)) {
+			union variable_value newval;
+
+			if (config_parse_string(cf, &newval))
+				return 1;
+			if (regressname(name, sizeof(name), path, "target")) {
+				lexer_warnx(lx, tk->tk_lno, "name too long");
+				return 1;
+			}
+			config_append(cf, STRING, name, &newval,
 			    tk->tk_lno, 0);
 		} else {
 			break;
