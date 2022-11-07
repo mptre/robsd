@@ -4,9 +4,18 @@
   <suppress>
     <id>missingIncludeSystem</id>
   </suppress>
-  <!-- nofile -->
+  <suppress>
+    <id>redundantContinue</id>
+  </suppress>
   <suppress>
     <id>toomanyconfigs</id>
+  </suppress>
+
+  <!-- buffer.c -->
+  <suppress>
+    <fileName>buffer.c</fileName>
+    <id>unusedFunction</id>
+    <symbolName>buffer_indent</symbolName>
   </suppress>
 
   <!-- config.c -->
