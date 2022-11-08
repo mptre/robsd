@@ -1131,8 +1131,13 @@ config_findn(const struct config *cf, const char *name, size_t namelen)
 	for (i = 0; cf->cf_grammar[i].gr_kw != NULL; i++) {
 		const struct grammar *gr = &cf->cf_grammar[i];
 		const void *val;
+		size_t kwlen;
 
-		if ((gr->gr_flags & REQ) ||
+		if (gr->gr_flags & REQ)
+			continue;
+
+		kwlen = strlen(gr->gr_kw);
+		if (kwlen != namelen ||
 		    strncmp(gr->gr_kw, name, namelen) != 0)
 			continue;
 
