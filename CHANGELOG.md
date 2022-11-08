@@ -1,3 +1,17 @@
+# 14.0.0 - 2022-11-08
+
+## Changes
+
+- Stop requiring a robsd-regress user and instead default to the build user.
+  The user can be specified per regression test.
+  (a774542, 8da8234)
+  (Anton Lindqvist)
+
+## News
+
+- Delete unused dependencies in robsd-regress pkg-del step.
+  (9efadff)
+  (Anton Lindqvist)
 # 13.4.0 - 2022-11-07
 
 ## News
