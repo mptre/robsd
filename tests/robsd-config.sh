@@ -75,7 +75,6 @@ default_regress_config() {
 	robsddir "/tmp"
 	execdir "/tmp"
 	bsd-srcdir "/tmp"
-	regress-user "nobody"
 	regress "bin/csh" root
 	regress "bin/ksh" root quiet
 	regress "bin/ls"
@@ -176,6 +175,17 @@ if testcase "regress target"; then
 	echo "\${regress-test-target} \${regress-bin/ksh-target}" >"$STDIN"
 	robsd_config -R - <<-EOF
 	one regress
+	EOF
+fi
+
+if testcase "regress user"; then
+	{
+		default_regress_config
+		echo 'regress "test" user "nobody"'
+	} >"$CONFIG"
+	echo "\${regress-test-user} \${regress-bin/ksh-user}" >"$STDIN"
+	robsd_config -R - <<-EOF
+	nobody build
 	EOF
 fi
 

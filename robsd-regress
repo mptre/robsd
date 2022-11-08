@@ -25,7 +25,6 @@ ROBSDDIR="${robsddir}"
 KEEP="${keep}"
 BSDDIFF="${bsd-diff}"
 BSDSRCDIR="${bsd-srcdir}"
-REGRESSUSER="${regress-user}"
 EOF
 
 _comment=""
@@ -85,7 +84,7 @@ if [ "$KEEP" -gt 0 ]; then
 	/usr/local/sbin/robsd-regress-clean "$KEEP"
 fi
 
-"$ROBSDSTAT" -u "$REGRESSUSER" -u root >>"${BUILDDIR}/stat.csv" &
+"$ROBSDSTAT" -u build -u root >>"${BUILDDIR}/stat.csv" &
 _statpid="$!"
 
 if [ "$DETACH" -eq 1 ]; then

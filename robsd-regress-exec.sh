@@ -4,7 +4,6 @@
 config_load <<'EOF'
 SUDO="${sudo}"
 BSDSRCDIR="${bsd-srcdir}"
-REGRESSUSER="${regress-user}"
 EOF
 
 _err=0
@@ -16,8 +15,9 @@ _make="${_env} make -C ${BSDSRCDIR}/regress/${1} ${_target}"
 if regress_root "$1"; then
 	$_make || _err="$?"
 else
+	_user="$(config_value "regress-${1}-user")"
 	export SUDO
-	unpriv "$REGRESSUSER" "$_make" || _err="$?"
+	unpriv "$_user" "$_make" || _err="$?"
 fi
 
 # Add extra headers to report.
