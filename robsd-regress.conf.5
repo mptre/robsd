@@ -104,6 +104,7 @@ Defaults to regress.
 .El
 .It Ic regress-user Dq Ar user
 User to run regression tests on behalf of.
+Defaults to build.
 .El
 .Sh FILES
 .Bl -tag -width "/etc/robsd-regress.conf"
@@ -114,7 +115,6 @@ The default configuration file.
 Example configuration:
 .Bd -literal
 robsddir "/home/robsd-regress"
-regress-user "anton"
 regress "bin/csh"
 regress "bin/ksh"
 regress "sys/nfs" root

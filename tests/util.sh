@@ -47,7 +47,6 @@ robsd_config() {
 			cat <<-EOF
 			bsd-srcdir "${TSHDIR}"
 			cvs-user "nobody"
-			regress-user "nobody"
 			EOF
 			;;
 		*)

@@ -60,7 +60,6 @@ default_regress_config() {
 	cat <<-EOF
 	robsddir "/tmp"
 	execdir "/tmp"
-	regress-user "nobody"
 	regress "bin/csh" root
 	regress "bin/ksh" root quiet
 	regress "bin/ls"

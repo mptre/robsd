@@ -87,6 +87,7 @@ EOF
 	assert_file - "${TSHDIR}/pkg" <<-EOF
 	pkg_add not-installed
 	pkg_delete not-installed
+	pkg_delete -a
 	EOF
 	assert_file - "${TSHDIR}/target" <<-EOF
 	target

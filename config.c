@@ -220,7 +220,7 @@ static const struct grammar robsd_regress[] = {
 	{ "cvs-root",		STRING,		config_parse_string,	0,		NULL },
 	{ "cvs-user",		STRING,		config_parse_user,	0,		NULL },
 	{ "regress",		LIST,		config_parse_regress,	REQ|REP,	NULL },
-	{ "regress-user",	STRING,		config_parse_user,	REQ,		NULL },
+	{ "regress-user",	STRING,		config_parse_user,	0,		"build" },
 	{ NULL,			0,		NULL,			0,		NULL },
 };
 
