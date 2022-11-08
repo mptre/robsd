@@ -1024,10 +1024,10 @@ config_parse_regress(struct config *cf, union variable_value *val)
 
 	regress = config_find(cf, "regress");
 	if (regress == NULL) {
-		union variable_value def;
+		union variable_value newval;
 
-		def.list = strings_alloc();
-		regress = config_append(cf, LIST, "regress", &def, 0, 0);
+		newval.list = strings_alloc();
+		regress = config_append(cf, LIST, "regress", &newval, 0, 0);
 	}
 	strings_append(regress->va_val.list, path);
 
