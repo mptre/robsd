@@ -8,6 +8,7 @@
 #include <ctype.h>
 #include <err.h>
 #include <fcntl.h>
+#include <fnmatch.h>
 #include <glob.h>
 #include <limits.h>
 #include <pwd.h>
@@ -101,12 +102,15 @@ struct grammar {
 	unsigned int		 gr_flags;
 #define REQ	0x00000001u	/* required */
 #define REP	0x00000002u	/* may be repeated */
+#define PAT	0x00000004u	/* fnmatch(3) keyword fallback */
 
 	const void		*gr_default;
 };
 
 static const struct grammar	*grammar_find(const struct grammar *,
     const char *);
+static int			 grammar_equals(const struct grammar *,
+    const char *, size_t);
 
 /*
  * config ----------------------------------------------------------------------
@@ -138,6 +142,7 @@ static int	config_parse_list(struct config *, union variable_value *);
 static int	config_parse_user(struct config *, union variable_value *);
 static int	config_parse_regress(struct config *, union variable_value *);
 static int	config_parse_directory(struct config *, union variable_value *);
+static int	config_parse_nop(struct config *, union variable_value *);
 
 static int			 config_append_defaults(struct config *);
 static struct variable		*config_append(struct config *,
@@ -221,6 +226,7 @@ static const struct grammar robsd_regress[] = {
 	{ "cvs-user",		STRING,		config_parse_user,	0,		NULL },
 	{ "regress",		LIST,		config_parse_regress,	REQ|REP,	NULL },
 	{ "regress-user",	STRING,		config_parse_user,	0,		"build" },
+	{ "regress-*-target",	STRING,		config_parse_nop,	PAT,		"regress" },
 	{ NULL,			0,		NULL,			0,		NULL },
 };
 
@@ -731,6 +737,28 @@ grammar_find(const struct grammar *grammar, const char *name)
 }
 
 static int
+grammar_equals(const struct grammar *gr, const char *str, size_t len)
+{
+	size_t kwlen;
+
+	kwlen = strlen(gr->gr_kw);
+	if (kwlen == len && strncmp(gr->gr_kw, str, len) == 0)
+		return 1;
+	if (gr->gr_flags & PAT) {
+		char *buf;
+		int match;
+
+		buf = strndup(str, len);
+		if (buf == NULL)
+			err(1, NULL);
+		match = fnmatch(gr->gr_kw, buf, 0) == 0;
+		free(buf);
+		return match;
+	}
+	return 0;
+}
+
+static int
 config_mode(const char *mode, int *res)
 {
 	if (strcmp(mode, "robsd") == 0)
@@ -1066,6 +1094,12 @@ config_parse_directory(struct config *cf, union variable_value *val)
 	return error;
 }
 
+static int
+config_parse_nop(struct config *UNUSED(cf), union variable_value *UNUSED(val))
+{
+	return 0;
+}
+
 /*
  * Append read-only variables accessible during interpolation.
  */
@@ -1131,14 +1165,11 @@ config_findn(const struct config *cf, const char *name, size_t namelen)
 	for (i = 0; cf->cf_grammar[i].gr_kw != NULL; i++) {
 		const struct grammar *gr = &cf->cf_grammar[i];
 		const void *val;
-		size_t kwlen;
 
 		if (gr->gr_flags & REQ)
 			continue;
 
-		kwlen = strlen(gr->gr_kw);
-		if (kwlen != namelen ||
-		    strncmp(gr->gr_kw, name, namelen) != 0)
+		if (!grammar_equals(gr, name, namelen))
 			continue;
 
 		memset(&vadef, 0, sizeof(vadef));

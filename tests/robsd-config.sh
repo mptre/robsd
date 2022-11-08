@@ -173,9 +173,9 @@ if testcase "regress target"; then
 		default_regress_config
 		echo 'regress "test" target "one"'
 	} >"$CONFIG"
-	echo "\${regress-test-target}" >"$STDIN"
+	echo "\${regress-test-target} \${regress-bin/ksh-target}" >"$STDIN"
 	robsd_config -R - <<-EOF
-	one
+	one regress
 	EOF
 fi
 
