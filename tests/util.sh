@@ -102,7 +102,8 @@ robsd_mock() {
 	chmod u+x "${_bindir}/sysctl"
 
 	cat <<-'EOF' >"${_bindir}/su"
-	shift 2 # strip of su login
+	[ "$1" = "-c" ] && shift 2 # strip if login class
+	shift 2 # strip login and shell arguments
 	if [ $# -gt 0 ]; then
 		$@
 	else

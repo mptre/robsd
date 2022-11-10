@@ -1777,12 +1777,21 @@ trimfile() {
 	done
 }
 
-# unpriv user utility argument ...
-# unpriv user
+# unpriv [-c class] user utility argument ...
+# unpriv [-c class] user
 #
 # Run utility or stdin as the given user.
 unpriv() (
+	local _class=""
 	local _user
+
+	while [ $# -gt 0 ]; do
+		case "$1" in
+		-c)	shift; _class="$1";;
+		*)	break;;
+		esac
+		shift
+	done
 
 	_user="$1"; : "${_user:?}"; shift
 
@@ -1792,8 +1801,8 @@ unpriv() (
 	LOGNAME="$_user"
 	USER="$_user"
 	if [ $# -gt 0 ]; then
-		su "$_user" -c "$@"
+		su ${_class:+-c "$_class"} "$_user" -c "$@"
 	else
-		su "$_user" -sx
+		su ${_class:+-c "$_class"} "$_user" -sx
 	fi
 )

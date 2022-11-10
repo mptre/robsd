@@ -15,9 +15,11 @@ _make="${_env} make -C ${BSDSRCDIR}/regress/${1} ${_target}"
 if regress_root "$1"; then
 	$_make || _err="$?"
 else
-	_user="$(config_value "regress-${1}-user")"
 	export SUDO
-	unpriv "$_user" "$_make" || _err="$?"
+	_user="$(config_value "regress-${1}-user")"
+	# Since we're most likely running as the build user, use a more generous
+	# login class as some regression tests resource hungry.
+	unpriv -c staff "$_user" "exec ${_make}" || _err="$?"
 fi
 
 # Add extra headers to report.
