@@ -1,3 +1,12 @@
+# 14.1.0 - 2022-11-10
+
+## News
+
+- Use the more generous staff login class while running regression tests as the
+  build user. Required by some resource intensive regression tests.
+  (4cfed94)
+  (Anton Lindqvist)
+
 # 14.0.0 - 2022-11-08
 
 ## Changes
