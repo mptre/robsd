@@ -4,6 +4,7 @@
 config_load <<'EOF'
 SUDO="${sudo}"
 BSDSRCDIR="${bsd-srcdir}"
+REGRESSUSER="${regress-user}"
 EOF
 
 _err=0
@@ -16,10 +17,9 @@ if regress_root "$1"; then
 	$_make || _err="$?"
 else
 	export SUDO
-	_user="$(config_value "regress-${1}-user")"
 	# Since we're most likely running as the build user, use a more generous
 	# login class as some regression tests resource hungry.
-	unpriv -c staff "$_user" "exec ${_make}" || _err="$?"
+	unpriv -c staff "$REGRESSUSER" "exec ${_make}" || _err="$?"
 fi
 
 # Add extra headers to report.

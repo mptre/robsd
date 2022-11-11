@@ -178,17 +178,6 @@ if testcase "regress target"; then
 	EOF
 fi
 
-if testcase "regress user"; then
-	{
-		default_regress_config
-		echo 'regress "test" user "nobody"'
-	} >"$CONFIG"
-	echo "\${regress-test-user} \${regress-bin/ksh-user}" >"$STDIN"
-	robsd_config -R - <<-EOF
-	nobody build
-	EOF
-fi
-
 if testcase "regress interpolation inet"; then
 	default_regress_config >"$CONFIG"
 	echo "\${inet}" >"$STDIN"

@@ -94,17 +94,17 @@ pkg-del steps, see
 .It Ic quiet
 Do not report skipped or disabled targets for this regression test.
 .It Ic root
-Run the regression test as root as opposed of the build user.
+Run the regression test as root as opposed of
+.Ic regress-user .
 .It Ic target
 The
 .Xr make 1
 target to build.
 Defaults to regress.
-.It Ic user Dq Ar user
-Run the regression test as
-.Ar user
-as opposed of the build user.
 .El
+.It Ic regress-user Dq Ar user
+User to run regression tests on behalf of.
+Defaults to build.
 .El
 .Sh FILES
 .Bl -tag -width "/etc/robsd-regress.conf"

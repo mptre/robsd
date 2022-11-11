@@ -43,7 +43,6 @@ enum token_type {
 	TOKEN_QUIET,
 	TOKEN_ROOT,
 	TOKEN_TARGET,
-	TOKEN_USER,
 
 	/* types */
 	TOKEN_BOOLEAN,
@@ -226,8 +225,8 @@ static const struct grammar robsd_regress[] = {
 	{ "cvs-root",		STRING,		config_parse_string,	0,		NULL },
 	{ "cvs-user",		STRING,		config_parse_user,	0,		NULL },
 	{ "regress",		LIST,		config_parse_regress,	REQ|REP,	NULL },
+	{ "regress-user",	STRING,		config_parse_user,	0,		"build" },
 	{ "regress-*-target",	STRING,		config_parse_nop,	PAT,		"regress" },
-	{ "regress-*-user",	STRING,		config_parse_nop,	PAT,		"build" },
 	{ NULL,			0,		NULL,			0,		NULL },
 };
 
@@ -526,7 +525,6 @@ token_free(struct token *tk)
 	case TOKEN_QUIET:
 	case TOKEN_ROOT:
 	case TOKEN_TARGET:
-	case TOKEN_USER:
 	case TOKEN_BOOLEAN:
 	case TOKEN_INTEGER:
 		break;
@@ -558,8 +556,6 @@ tokenstr(int type)
 		return "ROOT";
 	case TOKEN_TARGET:
 		return "TARGET";
-	case TOKEN_USER:
-		return "USER";
 	case TOKEN_BOOLEAN:
 		return "BOOLEAN";
 	case TOKEN_INTEGER:
@@ -641,10 +637,6 @@ again:
 		}
 		if (strncmp("target", buf, buflen) == 0) {
 			tk->tk_type = TOKEN_TARGET;
-			return 0;
-		}
-		if (strncmp("user", buf, buflen) == 0) {
-			tk->tk_type = TOKEN_USER;
 			return 0;
 		}
 
@@ -1048,17 +1040,6 @@ config_parse_regress(struct config *cf, union variable_value *val)
 			if (config_parse_string(cf, &newval))
 				return 1;
 			if (regressname(name, sizeof(name), path, "target")) {
-				lexer_warnx(lx, tk->tk_lno, "name too long");
-				return 1;
-			}
-			config_append(cf, STRING, name, &newval,
-			    tk->tk_lno, 0);
-		} else if (lexer_if(lx, TOKEN_USER, &tk)) {
-			union variable_value newval;
-
-			if (config_parse_string(cf, &newval))
-				return 1;
-			if (regressname(name, sizeof(name), path, "user")) {
 				lexer_warnx(lx, tk->tk_lno, "name too long");
 				return 1;
 			}
