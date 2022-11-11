@@ -436,6 +436,7 @@ diff_revert() (
 		sort |
 		uniq |
 		while read -r _p; do
+			isempty "$_p" || continue
 			info "removing empty directory ${_root}/${_p}"
 			rmdir "$_p"
 		done
@@ -624,6 +625,16 @@ info() {
 		_log="${BUILDDIR}/robsd.log"
 	fi
 	echo "${_PROG}: ${*}" | tee -a "$_log"
+}
+
+# isempty path
+#
+# Exits zero if the given file or directory is empty.
+isempty() {
+	local _path
+
+	_path="$1"; : "${_path:?}"
+	! find "$_path" -empty | cmp -s - /dev/null
 }
 
 # lock_acquire root-dir build-dir
