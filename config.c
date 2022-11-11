@@ -18,45 +18,13 @@
 #include <string.h>
 
 #include "buffer.h"
+#include "cdefs.h"
 #include "extern.h"
 #include "lexer.h"
 #include "token.h"
 #include "util.h"
 
-/*
- * token -----------------------------------------------------------------------
- */
-
-enum token_type {
-	/* sentinels */
-	TOKEN_UNKNOWN,
-
-	/* literals */
-	TOKEN_LBRACE,
-	TOKEN_RBRACE,
-
-	/* keywords */
-	TOKEN_KEYWORD,
-	TOKEN_ENV,
-	TOKEN_OBJ,
-	TOKEN_PACKAGES,
-	TOKEN_QUIET,
-	TOKEN_ROOT,
-	TOKEN_TARGET,
-
-	/* types */
-	TOKEN_BOOLEAN,
-	TOKEN_INTEGER,
-	TOKEN_STRING,
-};
-
-static const char	*tokenstr(int);
-
-/*
- * lexer -----------------------------------------------------------------------
- */
-
-static int	lexer_read(struct lexer *, struct token *, void *);
+static struct token	*lexer_read(struct lexer *, void *);
 
 /*
  * variable --------------------------------------------------------------------
@@ -311,8 +279,8 @@ config_parse(struct config *cf)
 	cf->cf_lx = lexer_alloc(&(struct lexer_arg){
 		.path = cf->cf_path,
 		.callbacks = {
-			.read = lexer_read,
-			.serialize = tokenstr,
+			.read		= lexer_read,
+			.serialize	= token_serialize,
 		},
 	});
 	if (cf->cf_lx == NULL)
@@ -505,103 +473,40 @@ variable_list(const struct variable *va)
 	return va->va_val.list;
 }
 
-void
-token_free(struct token *tk)
-{
-	if (tk == NULL)
-		return;
-
-	switch (tk->tk_type) {
-	case TOKEN_KEYWORD:
-	case TOKEN_STRING:
-		free(tk->tk_str);
-		break;
-	case TOKEN_UNKNOWN:
-	case TOKEN_LBRACE:
-	case TOKEN_RBRACE:
-	case TOKEN_ENV:
-	case TOKEN_OBJ:
-	case TOKEN_PACKAGES:
-	case TOKEN_QUIET:
-	case TOKEN_ROOT:
-	case TOKEN_TARGET:
-	case TOKEN_BOOLEAN:
-	case TOKEN_INTEGER:
-		break;
-	}
-	free(tk);
-}
-
-static const char *
-tokenstr(int type)
-{
-	switch ((enum token_type)type) {
-	case TOKEN_UNKNOWN:
-		break;
-	case TOKEN_LBRACE:
-		return "LBRACE";
-	case TOKEN_RBRACE:
-		return "RBRACE";
-	case TOKEN_KEYWORD:
-		return "KEYWORD";
-	case TOKEN_ENV:
-		return "ENV";
-	case TOKEN_OBJ:
-		return "OBJ";
-	case TOKEN_PACKAGES:
-		return "PACKAGES";
-	case TOKEN_QUIET:
-		return "QUIET";
-	case TOKEN_ROOT:
-		return "ROOT";
-	case TOKEN_TARGET:
-		return "TARGET";
-	case TOKEN_BOOLEAN:
-		return "BOOLEAN";
-	case TOKEN_INTEGER:
-		return "INTEGER";
-	case TOKEN_STRING:
-		return "STRING";
-	}
-	if (type == LEXER_EOF)
-		return "EOF";
-	return "UNKNOWN";
-}
-
-static int
-lexer_read(struct lexer *lx, struct token *tk, void *UNUSED(arg))
+static struct token *
+lexer_read(struct lexer *lx, void *UNUSED(arg))
 {
 #define CONSUME(c) do {							\
 	if (buflen >= sizeof(buf)) {					\
-		lexer_warnx(lx, lexer_get_lno(lx), "token too long");	\
-		return 1;						\
+		lexer_warnx(lx, s.lno, "token too long");		\
+		return NULL;						\
 	}								\
 	buf[buflen++] = (c);						\
 } while (0)
 
 	static char buf[512];
+	struct lexer_state s;
+	struct token *tk;
 	unsigned int buflen = 0;
 	char ch;
 
 again:
 	do {
 		if (lexer_getc(lx, &ch))
-			return 1;
+			return NULL;
 	} while (isspace((unsigned char)ch));
 
-	tk->tk_lno = lexer_get_lno(lx);
+	s = lexer_get_state(lx);
 
-	if (ch == 0) {
-		tk->tk_type = LEXER_EOF;
-		return 0;
-	}
+	if (ch == 0)
+		return lexer_emit(lx, &s, LEXER_EOF);
 
 	if (ch == '#') {
 		for (;;) {
 			if (ch == '\n' || ch == 0)
 				break;
 			if (lexer_getc(lx, &ch))
-				return 1;
+				return NULL;
 		}
 		goto again;
 	}
@@ -611,51 +516,39 @@ again:
 		    isdigit((unsigned char)ch) || ch == '-') {
 			CONSUME(ch);
 			if (lexer_getc(lx, &ch))
-				return 1;
+				return NULL;
 		}
 		lexer_ungetc(lx, ch);
 
-		if (strncmp("env", buf, buflen) == 0) {
-			tk->tk_type = TOKEN_ENV;
-			return 0;
-		}
-		if (strncmp("obj", buf, buflen) == 0) {
-			tk->tk_type = TOKEN_OBJ;
-			return 0;
-		}
-		if (strncmp("packages", buf, buflen) == 0) {
-			tk->tk_type = TOKEN_PACKAGES;
-			return 0;
-		}
-		if (strncmp("quiet", buf, buflen) == 0) {
-			tk->tk_type = TOKEN_QUIET;
-			return 0;
-		}
-		if (strncmp("root", buf, buflen) == 0) {
-			tk->tk_type = TOKEN_ROOT;
-			return 0;
-		}
-		if (strncmp("target", buf, buflen) == 0) {
-			tk->tk_type = TOKEN_TARGET;
-			return 0;
-		}
+		if (strncmp("env", buf, buflen) == 0)
+			return lexer_emit(lx, &s, TOKEN_ENV);
+		if (strncmp("obj", buf, buflen) == 0)
+			return lexer_emit(lx, &s, TOKEN_OBJ);
+		if (strncmp("packages", buf, buflen) == 0)
+			return lexer_emit(lx, &s, TOKEN_PACKAGES);
+		if (strncmp("quiet", buf, buflen) == 0)
+			return lexer_emit(lx, &s, TOKEN_QUIET);
+		if (strncmp("root", buf, buflen) == 0)
+			return lexer_emit(lx, &s, TOKEN_ROOT);
+		if (strncmp("target", buf, buflen) == 0)
+			return lexer_emit(lx, &s, TOKEN_TARGET);
 
 		if (strncmp("yes", buf, buflen) == 0) {
-			tk->tk_type = TOKEN_BOOLEAN;
+			tk = lexer_emit(lx, &s, TOKEN_BOOLEAN);
 			tk->tk_int = 1;
-			return 0;
+			return tk;
 		}
 		if (strncmp("no", buf, buflen) == 0) {
-			tk->tk_type = TOKEN_BOOLEAN;
+			tk = lexer_emit(lx, &s, TOKEN_BOOLEAN);
 			tk->tk_int = 0;
-			return 0;
+			return tk;
 		}
 
-		tk->tk_type = TOKEN_KEYWORD;
+		tk = lexer_emit(lx, &s, TOKEN_KEYWORD);
 		tk->tk_str = strndup(buf, buflen);
 		if (tk->tk_str == NULL)
 			err(1, NULL);
-		return 0;
+		return tk;
 	}
 
 	if (isdigit((unsigned char)ch)) {
@@ -668,7 +561,7 @@ again:
 			x = ch - '0';
 			if (val > INT_MAX / 10 || val * 10 > INT_MAX - x) {
 				if (!error)
-					lexer_warnx(lx, lexer_get_lno(lx),
+					lexer_warnx(lx, s.lno,
 					    "integer too big");
 				error = 1;
 			} else {
@@ -676,52 +569,46 @@ again:
 				val += x;
 			}
 			if (lexer_getc(lx, &ch))
-				return 1;
+				return NULL;
 		}
 		lexer_ungetc(lx, ch);
 		if (error)
-			return 1;
+			return NULL;
 
-		tk->tk_type = TOKEN_INTEGER;
+		tk = lexer_emit(lx, &s, TOKEN_INTEGER);
 		tk->tk_int = val;
-		return 0;
+		return tk;
 	}
 
 	if (ch == '"') {
 		for (;;) {
 			if (lexer_getc(lx, &ch))
-				return 1;
+				return NULL;
 			if (ch == 0) {
-				lexer_warnx(lx, lexer_get_lno(lx),
-				    "unterminated string");
-				return 1;
+				lexer_warnx(lx, s.lno, "unterminated string");
+				return NULL;
 			}
 			if (ch == '"')
 				break;
 			CONSUME(ch);
 		}
 		if (buflen == 0)
-			lexer_warnx(lx, lexer_get_lno(lx), "empty string");
+			lexer_warnx(lx, s.lno, "empty string");
 		CONSUME('\0');
 
-		tk->tk_type = TOKEN_STRING;
+		tk = lexer_emit(lx, &s, TOKEN_STRING);
 		tk->tk_str = strndup(buf, buflen);
 		if (tk->tk_str == NULL)
 			err(1, NULL);
-		return 0;
+		return tk;
 	}
 
-	if (ch == '{') {
-		tk->tk_type = TOKEN_LBRACE;
-		return 0;
-	}
-	if (ch == '}') {
-		tk->tk_type = TOKEN_RBRACE;
-		return 0;
-	}
+	if (ch == '{')
+		return lexer_emit(lx, &s, TOKEN_LBRACE);
+	if (ch == '}')
+		return lexer_emit(lx, &s, TOKEN_RBRACE);
 
-	tk->tk_type = TOKEN_UNKNOWN;
-	return 0;
+	return lexer_emit(lx, &s, TOKEN_UNKNOWN);
 }
 
 static const struct grammar *

@@ -10,6 +10,7 @@ SRCS_robsd-config+=	compat-errc.c
 SRCS_robsd-config+=	compat-pledge.c
 SRCS_robsd-config+=	compat-warnc.c
 SRCS_robsd-config+=	lexer.c
+SRCS_robsd-config+=	token.c
 SRCS_robsd-config+=	util.c
 OBJS_robsd-config=	${SRCS_robsd-config:.c=.o}
 DEPS_robsd-config=	${SRCS_robsd-config:.c=.d}
@@ -28,6 +29,7 @@ SRCS_robsd-hook+=	compat-errc.c
 SRCS_robsd-hook+=	compat-pledge.c
 SRCS_robsd-hook+=	compat-warnc.c
 SRCS_robsd-hook+=	lexer.c
+SRCS_robsd-hook+=	token.c
 SRCS_robsd-hook+=	util.c
 OBJS_robsd-hook=	${SRCS_robsd-hook:.c=.o}
 DEPS_robsd-hook=	${SRCS_robsd-hook:.c=.d}
@@ -48,6 +50,7 @@ DEPS_robsd-stat=	${SRCS_robsd-stat:.c=.d}
 
 KNFMT+=	buffer.c
 KNFMT+=	buffer.h
+KNFMT+=	cdefs.h
 KNFMT+=	compat-sys-sched.h
 KNFMT+=	compat-sys-sysctl.h
 KNFMT+=	config.c
@@ -59,12 +62,14 @@ KNFMT+=	robsd-exec.c
 KNFMT+=	robsd-hook.c
 KNFMT+=	robsd-regress-log.c
 KNFMT+=	robsd-stat.c
+KNFMT+=	token.c
 KNFMT+=	token.h
 KNFMT+=	util.c
 KNFMT+=	util.h
 
 CLANGTIDY+=	buffer.c
 CLANGTIDY+=	buffer.h
+CLANGTIDY+=	cdefs.h
 CLANGTIDY+=	config.c
 CLANGTIDY+=	extern.h
 CLANGTIDY+=	lexer.c
@@ -74,6 +79,7 @@ CLANGTIDY+=	robsd-exec.c
 CLANGTIDY+=	robsd-hook.c
 CLANGTIDY+=	robsd-regress-log.c
 CLANGTIDY+=	robsd-stat.c
+CLANGTIDY+=	token.c
 CLANGTIDY+=	token.h
 CLANGTIDY+=	util.c
 CLANGTIDY+=	util.h
@@ -86,6 +92,7 @@ CPPCHECK+=	robsd-exec.c
 CPPCHECK+=	robsd-hook.c
 CPPCHECK+=	robsd-regress-log.c
 CPPCHECK+=	robsd-stat.c
+CPPCHECK+=	token.c
 CPPCHECK+=	util.c
 
 SCRIPTS+=	robsd-base.sh
@@ -127,6 +134,7 @@ DISTFILES+=	Makefile.inc
 DISTFILES+=	README.md
 DISTFILES+=	buffer.c
 DISTFILES+=	buffer.h
+DISTFILES+=	cdefs.h
 DISTFILES+=	compat-errc.c
 DISTFILES+=	compat-pledge.c
 DISTFILES+=	compat-strlcpy.c
@@ -232,6 +240,7 @@ DISTFILES+=	tests/step-next.sh
 DISTFILES+=	tests/step-value.sh
 DISTFILES+=	tests/t.sh
 DISTFILES+=	tests/util.sh
+DISTFILES+=	token.c
 DISTFILES+=	token.h
 DISTFILES+=	util-cross.sh
 DISTFILES+=	util-ports.sh

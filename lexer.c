@@ -5,17 +5,20 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include "cdefs.h"
 #include "token.h"
 #include "util.h"
+
+static const char	*lexer_serialize(const struct lexer *,
+    const struct token *);
 
 struct lexer {
 	TAILQ_HEAD(token_list, token)	 lx_tokens;
 	struct token			*lx_tk;
 
-	const struct lexer_arg		*lx_arg;
+	struct lexer_arg		 lx_arg;
 	FILE				*lx_fh;
 	int				 lx_lno;
-
 	int				 lx_err;
 };
 
@@ -34,7 +37,7 @@ lexer_alloc(const struct lexer_arg *arg)
 	lx = calloc(1, sizeof(*lx));
 	if (lx == NULL)
 		err(1, NULL);
-	lx->lx_arg = arg;
+	lx->lx_arg = *arg;
 	lx->lx_fh = fh;
 	lx->lx_lno = 1;
 	lx->lx_tk = NULL;
@@ -43,11 +46,8 @@ lexer_alloc(const struct lexer_arg *arg)
 	for (;;) {
 		struct token *tk;
 
-		tk = calloc(1, sizeof(*tk));
-		if (tk == NULL)
-			err(1, NULL);
-		if (arg->callbacks.read(lx, tk, arg->callbacks.arg)) {
-			free(tk);
+		tk = arg->callbacks.read(lx, arg->callbacks.arg);
+		if (tk == NULL) {
 			error = 1;
 			goto out;
 		}
@@ -81,6 +81,16 @@ lexer_free(struct lexer *lx)
 	if (lx->lx_fh != NULL)
 		fclose(lx->lx_fh);
 	free(lx);
+}
+
+struct token *
+lexer_emit(struct lexer *UNUSED(lx), const struct lexer_state *s, int type)
+{
+	struct token *tk;
+
+	tk = token_alloc(type);
+	tk->tk_lno = s->lno;
+	return tk;
 }
 
 int
@@ -134,8 +144,8 @@ lexer_expect(struct lexer *lx, int exp, struct token **tk)
 	act = (*tk)->tk_type;
 	if (exp != act) {
 		lexer_warnx(lx, (*tk)->tk_lno, "want %s, got %s",
-		    lx->lx_arg->callbacks.serialize(exp),
-		    lx->lx_arg->callbacks.serialize(act));
+		    lexer_serialize(lx, &(struct token){.tk_type = exp}),
+		    lexer_serialize(lx, *tk));
 		return 0;
 	}
 	return 1;
@@ -172,10 +182,10 @@ lexer_get_error(const struct lexer *lx)
 	return lx->lx_err;
 }
 
-int
-lexer_get_lno(const struct lexer *lx)
+struct lexer_state
+lexer_get_state(const struct lexer *lx)
 {
-	return lx->lx_lno;
+	return (struct lexer_state){.lno = lx->lx_lno};
 }
 
 void
@@ -186,7 +196,7 @@ lexer_warn(struct lexer *lx, int lno, const char *fmt, ...)
 	lx->lx_err++;
 
 	va_start(ap, fmt);
-	logv(warn, lx->lx_arg->path, lno, fmt, ap);
+	logv(warn, lx->lx_arg.path, lno, fmt, ap);
 	va_end(ap);
 }
 
@@ -198,6 +208,14 @@ lexer_warnx(struct lexer *lx, int lno, const char *fmt, ...)
 	lx->lx_err++;
 
 	va_start(ap, fmt);
-	logv(warnx, lx->lx_arg->path, lno, fmt, ap);
+	logv(warnx, lx->lx_arg.path, lno, fmt, ap);
 	va_end(ap);
+}
+
+static const char *
+lexer_serialize(const struct lexer *lx, const struct token *tk)
+{
+	if (tk->tk_type == LEXER_EOF)
+		return "EOF";
+	return lx->lx_arg.callbacks.serialize(tk);
 }
