@@ -4,7 +4,7 @@ extern int unused;
 
 #ifndef HAVE_SYS_SYSCTL_H
 
-#include "extern.h"
+#include "cdefs.h"
 
 enum {
 	CTL_HW,
