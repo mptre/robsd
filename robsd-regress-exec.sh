@@ -18,7 +18,7 @@ if regress_root "$1"; then
 else
 	export SUDO
 	# Since we're most likely running as the build user, use a more generous
-	# login class as some regression tests resource hungry.
+	# login class as some regression tests are resource hungry.
 	unpriv -c staff "$REGRESSUSER" "exec ${_make}" || _err="$?"
 fi
 
