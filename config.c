@@ -58,6 +58,8 @@ struct variable {
 
 TAILQ_HEAD(variable_list, variable);
 
+static void	variable_value_init(union variable_value *, enum variable_type);
+
 /*
  * grammar ---------------------------------------------------------------------
  */
@@ -611,6 +613,20 @@ again:
 	return lexer_emit(lx, &s, TOKEN_UNKNOWN);
 }
 
+static void
+variable_value_init(union variable_value *val, enum variable_type type)
+{
+	switch (type) {
+	case LIST:
+		val->list = strings_alloc();
+		break;
+	case INTEGER:
+	case STRING:
+	case DIRECTORY:
+		break;
+	}
+}
+
 static const struct grammar *
 grammar_find(const struct grammar *grammar, const char *name)
 {
@@ -782,7 +798,6 @@ config_parse_glob(struct config *cf, union variable_value *val)
 {
 	glob_t g;
 	struct token *tk;
-	struct string_list *strings = NULL;
 	size_t i;
 	int error;
 
@@ -794,40 +809,38 @@ config_parse_glob(struct config *cf, union variable_value *val)
 		goto out;
 	}
 
-	strings = strings_alloc();
+	variable_value_init(val, LIST);
 	for (i = 0; i < g.gl_matchc; i++)
-		strings_append(strings, g.gl_pathv[i]);
+		strings_append(val->list, g.gl_pathv[i]);
 
 out:
 	globfree(&g);
-	val->list = strings;
 	return 0;
 }
 
 static int
 config_parse_list(struct config *cf, union variable_value *val)
 {
-	struct string_list *strings = NULL;
 	struct token *tk;
 
 	if (!lexer_expect(cf->cf_lx, TOKEN_LBRACE, &tk))
 		return 1;
-	strings = strings_alloc();
+	variable_value_init(val, LIST);
 	for (;;) {
 		if (lexer_peek(cf->cf_lx, TOKEN_RBRACE))
 			break;
 		if (!lexer_expect(cf->cf_lx, TOKEN_STRING, &tk))
 			goto err;
-		strings_append(strings, tk->tk_str);
+		strings_append(val->list, tk->tk_str);
 	}
 	if (!lexer_expect(cf->cf_lx, TOKEN_RBRACE, &tk))
 		goto err;
 
-	val->list = strings;
 	return 0;
 
 err:
-	strings_free(strings);
+	strings_free(val->list);
+	val->list = NULL;
 	return 1;
 }
 
@@ -883,7 +896,7 @@ config_parse_regress(struct config *cf, union variable_value *val)
 			if (obj == NULL) {
 				union variable_value def;
 
-				def.list = strings_alloc();
+				variable_value_init(&def, LIST);
 				obj = config_append(cf, LIST, "regress-obj",
 				    &def, 0, 0);
 			}
@@ -898,7 +911,7 @@ config_parse_regress(struct config *cf, union variable_value *val)
 			if (packages == NULL) {
 				union variable_value def;
 
-				def.list = strings_alloc();
+				variable_value_init(&def, LIST);
 				packages = config_append(cf, LIST,
 				    "regress-packages", &def, 0, 0);
 			}
@@ -941,7 +954,7 @@ config_parse_regress(struct config *cf, union variable_value *val)
 	if (regress == NULL) {
 		union variable_value newval;
 
-		newval.list = strings_alloc();
+		variable_value_init(&newval, LIST);
 		regress = config_append(cf, LIST, "regress", &newval, 0, 0);
 	}
 	strings_append(regress->va_val.list, path);
