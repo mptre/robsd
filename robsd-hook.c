@@ -9,6 +9,7 @@
 #include <unistd.h>
 
 #include "extern.h"
+#include "vector.h"
 
 static __dead void	usage(void);
 
@@ -16,9 +17,8 @@ int
 main(int argc, char *argv[])
 {
 	struct config *config = NULL;
-	const struct string *st;
-	const struct string_list *strings;
 	const struct variable *va;
+	const union variable_value *val;
 	char **args = NULL;
 	unsigned int i = 0;
 	unsigned int nargs;
@@ -73,8 +73,8 @@ main(int argc, char *argv[])
 	va = config_find(config, "hook");
 	if (va == NULL)
 		goto out;
-	strings = variable_list(va);
-	nargs = strings_len(strings);
+	val = variable_get_value(va);
+	nargs = VECTOR_LENGTH(val->list);
 	if (nargs == 0)
 		goto out;
 
@@ -82,15 +82,16 @@ main(int argc, char *argv[])
 	if (args == NULL)
 		err(1, NULL);
 	args[nargs] = NULL;
-	TAILQ_FOREACH(st, strings, st_entry) {
+	for (i = 0; i < VECTOR_LENGTH(val->list); i++) {
+		const char *str = val->list[i];
 		char *arg;
 
-		arg = config_interpolate_str(config, st->st_val, NULL, 0);
+		arg = config_interpolate_str(config, str, NULL, 0);
 		if (arg == NULL) {
 			error = 1;
 			goto out;
 		}
-		args[i++] = arg;
+		args[i] = arg;
 	}
 
 	if (verbose > 0) {

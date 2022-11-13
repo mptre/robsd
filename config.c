@@ -23,19 +23,13 @@
 #include "lexer.h"
 #include "token.h"
 #include "util.h"
+#include "vector.h"
 
 static struct token	*lexer_read(struct lexer *, void *);
 
 /*
  * variable --------------------------------------------------------------------
  */
-
-union variable_value {
-	const void		*ptr;
-	char			*str;
-	struct string_list	*list;
-	int			 integer;
-};
 
 struct variable {
 	char			*va_name;
@@ -59,6 +53,10 @@ struct variable {
 TAILQ_HEAD(variable_list, variable);
 
 static void	variable_value_init(union variable_value *, enum variable_type);
+static void	variable_value_clear(union variable_value *,
+    enum variable_type);
+static void	variable_value_concat(union variable_value *,
+    union variable_value *);
 
 /*
  * grammar ---------------------------------------------------------------------
@@ -97,6 +95,9 @@ struct config {
 		CONFIG_ROBSD_PORTS,
 		CONFIG_ROBSD_REGRESS,
 	} cf_mode;
+
+	/* Sentinel used for absent list variables during interpolation. */
+	VECTOR(char *)		 cf_empty_list;
 };
 
 static int	config_mode(const char *, int *);
@@ -216,6 +217,8 @@ config_alloc(const char *mode)
 		err(1, NULL);
 	cf->cf_mode = m;
 	TAILQ_INIT(&cf->cf_variables);
+	if (VECTOR_INIT(cf->cf_empty_list) == NULL)
+		err(1, NULL);
 
 	switch (cf->cf_mode) {
 	case CONFIG_ROBSD:
@@ -258,7 +261,7 @@ config_free(struct config *cf)
 				free(va->va_val.str);
 			break;
 		case LIST:
-			strings_free(va->va_val.list);
+			variable_value_clear(&va->va_val, LIST);
 			break;
 		}
 		free(va->va_name);
@@ -266,6 +269,7 @@ config_free(struct config *cf)
 	}
 
 	lexer_free(cf->cf_lx);
+	VECTOR_FREE(cf->cf_empty_list);
 	free(cf);
 }
 
@@ -330,7 +334,7 @@ config_append_string(struct config *cf, const char *name, const char *str)
 }
 
 struct variable *
-config_find(struct config *cf, const char *name)
+config_find(const struct config *cf, const char *name)
 {
 	return (struct variable *)config_findn(cf, name, strlen(name));
 }
@@ -438,18 +442,18 @@ config_interpolate_str(const struct config *cf, const char *str,
 		}
 
 		case LIST: {
-			const struct string *last, *st;
+			size_t i;
 
-			last = TAILQ_LAST(va->va_val.list, string_list);
-			TAILQ_FOREACH(st, va->va_val.list, st_entry) {
+			for (i = 0; i < VECTOR_LENGTH(va->va_val.list); i++) {
+				const char *s = va->va_val.list[i];
 				char *vp;
 
-				vp = config_interpolate_str(cf, st->st_val,
-				    path, lno);
+				if (i > 0)
+					buffer_printf(buf, " ");
+				vp = config_interpolate_str(cf, s, path, lno);
 				if (vp == NULL)
 					goto out;
-				buffer_printf(buf, "%s%s", vp,
-				    last == st ? "" : " ");
+				buffer_printf(buf, "%s", vp);
 				free(vp);
 			}
 			break;
@@ -468,11 +472,10 @@ out:
 	return bp;
 }
 
-const struct string_list *
-variable_list(const struct variable *va)
+const union variable_value *
+variable_get_value(const struct variable *va)
 {
-	assert(va->va_type == LIST);
-	return va->va_val.list;
+	return &va->va_val;
 }
 
 static struct token *
@@ -618,13 +621,42 @@ variable_value_init(union variable_value *val, enum variable_type type)
 {
 	switch (type) {
 	case LIST:
-		val->list = strings_alloc();
+		if (VECTOR_INIT(val->list) == NULL)
+			err(1, NULL);
 		break;
 	case INTEGER:
 	case STRING:
 	case DIRECTORY:
 		break;
 	}
+}
+
+static void
+variable_value_clear(union variable_value *val, enum variable_type type)
+{
+	switch (type) {
+	case LIST: {
+		while (!VECTOR_EMPTY(val->list))
+			free(*VECTOR_POP(val->list));
+		VECTOR_FREE(val->list);
+		break;
+	}
+
+	case INTEGER:
+	case STRING:
+	case DIRECTORY:
+		break;
+	}
+}
+
+static void
+variable_value_concat(union variable_value *dst, union variable_value *src)
+{
+	size_t i;
+
+	for (i = 0; i < VECTOR_LENGTH(src->list); i++)
+		*VECTOR_ALLOC(dst->list) = src->list[i];
+	VECTOR_FREE(src->list);
 }
 
 static const struct grammar *
@@ -810,8 +842,14 @@ config_parse_glob(struct config *cf, union variable_value *val)
 	}
 
 	variable_value_init(val, LIST);
-	for (i = 0; i < g.gl_matchc; i++)
-		strings_append(val->list, g.gl_pathv[i]);
+	for (i = 0; i < g.gl_matchc; i++) {
+		char *str;
+
+		str = strdup(g.gl_pathv[i]);
+		if (str == 0)
+			err(1, NULL);
+		*VECTOR_ALLOC(val->list) = str;
+	}
 
 out:
 	globfree(&g);
@@ -827,11 +865,16 @@ config_parse_list(struct config *cf, union variable_value *val)
 		return 1;
 	variable_value_init(val, LIST);
 	for (;;) {
+		char *str;
+
 		if (lexer_peek(cf->cf_lx, TOKEN_RBRACE))
 			break;
 		if (!lexer_expect(cf->cf_lx, TOKEN_STRING, &tk))
 			goto err;
-		strings_append(val->list, tk->tk_str);
+		str = strdup(tk->tk_str);
+		if (str == NULL)
+			err(1, NULL);
+		*VECTOR_ALLOC(val->list) = str;
 	}
 	if (!lexer_expect(cf->cf_lx, TOKEN_RBRACE, &tk))
 		goto err;
@@ -839,8 +882,7 @@ config_parse_list(struct config *cf, union variable_value *val)
 	return 0;
 
 err:
-	strings_free(val->list);
-	val->list = NULL;
+	variable_value_clear(val, LIST);
 	return 1;
 }
 
@@ -868,6 +910,7 @@ config_parse_regress(struct config *cf, union variable_value *val)
 	struct token *tk;
 	struct variable *regress;
 	const char *path;
+	char *str;
 
 	if (!lexer_expect(lx, TOKEN_STRING, &tk))
 		return 1;
@@ -900,7 +943,7 @@ config_parse_regress(struct config *cf, union variable_value *val)
 				obj = config_append(cf, LIST, "regress-obj",
 				    &def, 0, 0);
 			}
-			strings_concat(obj->va_val.list, newval.list);
+			variable_value_concat(&obj->va_val, &newval);
 		} else if (lexer_if(lx, TOKEN_PACKAGES, &tk)) {
 			union variable_value newval;
 			struct variable *packages;
@@ -915,7 +958,7 @@ config_parse_regress(struct config *cf, union variable_value *val)
 				packages = config_append(cf, LIST,
 				    "regress-packages", &def, 0, 0);
 			}
-			strings_concat(packages->va_val.list, newval.list);
+			variable_value_concat(&packages->va_val, &newval);
 		} else if (lexer_if(lx, TOKEN_QUIET, &tk)) {
 			union variable_value newval = {.integer = 1};
 
@@ -957,7 +1000,10 @@ config_parse_regress(struct config *cf, union variable_value *val)
 		variable_value_init(&newval, LIST);
 		regress = config_append(cf, LIST, "regress", &newval, 0, 0);
 	}
-	strings_append(regress->va_val.list, path);
+	str = strdup(path);
+	if (str == NULL)
+		err(1, NULL);
+	*VECTOR_ALLOC(regress->va_val.list) = str;
 
 	val->ptr = novalue;
 	return 0;
@@ -1086,12 +1132,9 @@ config_findn(const struct config *cf, const char *name, size_t namelen)
 			break;
 		}
 
-		case LIST: {
-			static struct string_list def;
-
-			TAILQ_INIT(&def);
-			vadef.va_val.list = &def;
-		}
+		case LIST:
+			vadef.va_val.list = cf->cf_empty_list;
+			break;
 		}
 		return &vadef;
 	}

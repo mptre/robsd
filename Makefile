@@ -12,6 +12,7 @@ SRCS_robsd-config+=	compat-warnc.c
 SRCS_robsd-config+=	lexer.c
 SRCS_robsd-config+=	token.c
 SRCS_robsd-config+=	util.c
+SRCS_robsd-config+=	vector.c
 OBJS_robsd-config=	${SRCS_robsd-config:.c=.o}
 DEPS_robsd-config=	${SRCS_robsd-config:.c=.d}
 
@@ -31,6 +32,7 @@ SRCS_robsd-hook+=	compat-warnc.c
 SRCS_robsd-hook+=	lexer.c
 SRCS_robsd-hook+=	token.c
 SRCS_robsd-hook+=	util.c
+SRCS_robsd-hook+=	vector.c
 OBJS_robsd-hook=	${SRCS_robsd-hook:.c=.o}
 DEPS_robsd-hook=	${SRCS_robsd-hook:.c=.d}
 
@@ -66,6 +68,8 @@ KNFMT+=	token.c
 KNFMT+=	token.h
 KNFMT+=	util.c
 KNFMT+=	util.h
+KNFMT+=	vector.c
+KNFMT+=	vector.h
 
 CLANGTIDY+=	buffer.c
 CLANGTIDY+=	buffer.h
@@ -83,6 +87,8 @@ CLANGTIDY+=	token.c
 CLANGTIDY+=	token.h
 CLANGTIDY+=	util.c
 CLANGTIDY+=	util.h
+CLANGTIDY+=	vector.c
+CLANGTIDY+=	vector.h
 
 CPPCHECK+=	buffer.c
 CPPCHECK+=	config.c
@@ -94,6 +100,7 @@ CPPCHECK+=	robsd-regress-log.c
 CPPCHECK+=	robsd-stat.c
 CPPCHECK+=	token.c
 CPPCHECK+=	util.c
+CPPCHECK+=	vector.c
 
 SCRIPTS+=	robsd-base.sh
 SCRIPTS+=	robsd-checkflist.sh
@@ -248,6 +255,8 @@ DISTFILES+=	util-regress.sh
 DISTFILES+=	util.c
 DISTFILES+=	util.h
 DISTFILES+=	util.sh
+DISTFILES+=	vector.c
+DISTFILES+=	vector.h
 
 PREFIX=		/usr/local
 BINDIR=		${PREFIX}/sbin
