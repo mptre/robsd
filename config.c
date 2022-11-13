@@ -26,7 +26,31 @@
 #include "util.h"
 #include "vector.h"
 
+enum token_type {
+	/* sentinels */
+	TOKEN_UNKNOWN,
+
+	/* literals */
+	TOKEN_LBRACE,
+	TOKEN_RBRACE,
+
+	/* keywords */
+	TOKEN_KEYWORD,
+	TOKEN_ENV,
+	TOKEN_OBJ,
+	TOKEN_PACKAGES,
+	TOKEN_QUIET,
+	TOKEN_ROOT,
+	TOKEN_TARGET,
+
+	/* types */
+	TOKEN_BOOLEAN,
+	TOKEN_INTEGER,
+	TOKEN_STRING,
+};
+
 static struct token	*lexer_read(struct lexer *, void *);
+static const char	*token_serialize(const struct token *);
 
 /*
  * variable --------------------------------------------------------------------
@@ -541,6 +565,42 @@ again:
 		return lexer_emit(lx, &s, TOKEN_RBRACE);
 
 	return lexer_emit(lx, &s, TOKEN_UNKNOWN);
+}
+
+static const char *
+token_serialize(const struct token *tk)
+{
+	enum token_type type = tk->tk_type;
+
+	switch (type) {
+	case TOKEN_UNKNOWN:
+		break;
+	case TOKEN_LBRACE:
+		return "LBRACE";
+	case TOKEN_RBRACE:
+		return "RBRACE";
+	case TOKEN_KEYWORD:
+		return "KEYWORD";
+	case TOKEN_ENV:
+		return "ENV";
+	case TOKEN_OBJ:
+		return "OBJ";
+	case TOKEN_PACKAGES:
+		return "PACKAGES";
+	case TOKEN_QUIET:
+		return "QUIET";
+	case TOKEN_ROOT:
+		return "ROOT";
+	case TOKEN_TARGET:
+		return "TARGET";
+	case TOKEN_BOOLEAN:
+		return "BOOLEAN";
+	case TOKEN_INTEGER:
+		return "INTEGER";
+	case TOKEN_STRING:
+		return "STRING";
+	}
+	return "UNKNOWN";
 }
 
 static void
