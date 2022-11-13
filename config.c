@@ -20,6 +20,7 @@
 #include "buffer.h"
 #include "cdefs.h"
 #include "extern.h"
+#include "interpolate.h"
 #include "lexer.h"
 #include "token.h"
 #include "util.h"
@@ -342,134 +343,60 @@ config_find(const struct config *cf, const char *name)
 int
 config_interpolate(struct config *cf)
 {
-	FILE *fh = stdin;
-	char *buf = NULL;
-	size_t bufsiz = 0;
-	int error = 0;
-	int lno = 0;
+	char *str;
 
 	if (config_append_defaults(cf))
 		return 1;
 
-	for (;;) {
-		char *line;
-		ssize_t buflen;
-
-		buflen = getline(&buf, &bufsiz, fh);
-		if (buflen == -1) {
-			if (feof(fh))
-				break;
-			warn("getline");
-			error = 1;
-			break;
-		}
-		line = config_interpolate_str(cf, buf, "/dev/stdin", ++lno);
-		if (line == NULL) {
-			error = 1;
-			break;
-		}
-		printf("%s", line);
-		free(line);
-	}
-
-	free(buf);
-	return error;
+	str = interpolate_file("/dev/stdin", &(struct interpolate_arg){
+		.lookup	= config_interpolate_lookup,
+		.arg	= cf,
+	});
+	if (str == NULL)
+		return 1;
+	printf("%s", str);
+	free(str);
+	return 0;
 }
 
 char *
-config_interpolate_str(const struct config *cf, const char *str,
-    const char *path, int lno)
+config_interpolate_lookup(const char *name, size_t namelen, void *arg)
 {
-	struct buffer *buf;
-	char *bp = NULL;
+	const struct config *cf = (const struct config *)arg;
+	struct buffer *bf;
+	const struct variable *va;
+	char *str;
 
-	buf = buffer_alloc(1024);
+	va = config_findn(cf, name, namelen);
+	if (va == NULL)
+		return NULL;
 
-	for (;;) {
-		const struct variable *va;
-		const char *p, *ve, *vs;
-		size_t len;
+	bf = buffer_alloc(128);
+	switch (va->va_type) {
+	case INTEGER:
+		buffer_printf(bf, "%d", va->va_val.integer);
+		break;
 
-		p = strchr(str, '$');
-		if (p == NULL)
-			break;
-		vs = &p[1];
-		if (*vs != '{') {
-			log_warnx(path, lno,
-			    "invalid substitution, expected '{'");
-			goto out;
+	case STRING:
+	case DIRECTORY:
+		buffer_printf(bf, "%s", va->va_val.str);
+		break;
+
+	case LIST: {
+		size_t i;
+
+		for (i = 0; i < VECTOR_LENGTH(va->va_val.list); i++) {
+			if (i > 0)
+				buffer_printf(bf, " ");
+			buffer_printf(bf, "%s", va->va_val.list[i]);
 		}
-		vs += 1;
-		ve = strchr(vs, '}');
-		if (ve == NULL) {
-			log_warnx(path, lno,
-			    "invalid substitution, expected '}'");
-			goto out;
-		}
-		len = ve - vs;
-		if (len == 0) {
-			log_warnx(path, lno,
-			    "invalid substitution, empty variable name");
-			goto out;
-		}
-
-		va = config_findn(cf, vs, len);
-		if (va == NULL) {
-			log_warnx(path, lno,
-			    "invalid substitution, unknown variable '%.*s'",
-			    (int)len, vs);
-			goto out;
-		}
-
-		buffer_puts(buf, str, p - str);
-
-		switch (va->va_type) {
-		case INTEGER:
-			buffer_printf(buf, "%d", va->va_val.integer);
-			break;
-
-		case STRING:
-		case DIRECTORY: {
-			char *vp;
-
-			vp = config_interpolate_str(cf, va->va_val.str,
-			    path, lno);
-			if (vp == NULL)
-				goto out;
-			buffer_printf(buf, "%s", vp);
-			free(vp);
-			break;
-		}
-
-		case LIST: {
-			size_t i;
-
-			for (i = 0; i < VECTOR_LENGTH(va->va_val.list); i++) {
-				const char *s = va->va_val.list[i];
-				char *vp;
-
-				if (i > 0)
-					buffer_printf(buf, " ");
-				vp = config_interpolate_str(cf, s, path, lno);
-				if (vp == NULL)
-					goto out;
-				buffer_printf(buf, "%s", vp);
-				free(vp);
-			}
-			break;
-		}
-		}
-
-		str = &ve[1];
+		break;
 	}
-	/* Output any remaining tail. */
-	buffer_puts(buf, str, strlen(str));
-
-	buffer_putc(buf, '\0');
-	bp = buffer_release(buf);
-out:
-	buffer_free(buf);
-	return bp;
+	}
+	buffer_putc(bf, '\0');
+	str = buffer_release(bf);
+	buffer_free(bf);
+	return str;
 }
 
 const union variable_value *
@@ -1025,7 +952,11 @@ config_parse_directory(struct config *cf, union variable_value *val)
 	if (dir[0] == '\0')
 		return 1;
 
-	path = config_interpolate_str(cf, dir, cf->cf_path, tk->tk_lno);
+	path = interpolate_str(dir, &(struct interpolate_arg){
+		.lookup	= config_interpolate_lookup,
+		.arg	= cf,
+		.lno	= tk->tk_lno,
+	});
 	if (path == NULL) {
 		error = 1;
 	} else if (stat(path, &st) == -1) {
@@ -1057,8 +988,11 @@ config_append_defaults(struct config *cf)
 	config_append_string(cf, "arch", MACHINE_ARCH);
 	config_append_string(cf, "machine", MACHINE);
 
-	val.str = config_interpolate_str(cf, "${robsddir}/attic",
-	    cf->cf_path, 0);
+	val.str = interpolate_str("${robsddir}/attic",
+	    &(struct interpolate_arg){
+		.lookup	= config_interpolate_lookup,
+		.arg	= cf,
+	});
 	if (val.str == NULL)
 		return 1;
 	config_append(cf, STRING, "keep-dir", &val, 0, VARIABLE_FLAG_DIRTY);

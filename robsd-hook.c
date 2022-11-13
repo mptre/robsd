@@ -9,6 +9,7 @@
 #include <unistd.h>
 
 #include "extern.h"
+#include "interpolate.h"
 #include "vector.h"
 
 static __dead void	usage(void);
@@ -86,7 +87,10 @@ main(int argc, char *argv[])
 		const char *str = val->list[i];
 		char *arg;
 
-		arg = config_interpolate_str(config, str, NULL, 0);
+		arg = interpolate_str(str, &(struct interpolate_arg){
+			.lookup	= config_interpolate_lookup,
+			.arg	= config,
+		});
 		if (arg == NULL) {
 			error = 1;
 			goto out;
