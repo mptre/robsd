@@ -98,6 +98,7 @@ config_load() {
 	: "${ROBSDCONFIG:=${EXECDIR}/robsd-config}"
 	: "${ROBSDHOOK:=${EXECDIR}/robsd-hook}"
 	: "${ROBSDSTAT:=${EXECDIR}/robsd-stat}"
+	: "${ROBSDSTEP:=${EXECDIR}/robsd-step}"
 
 	_tmp="$(mktemp -t robsd.XXXXXX)"
 	{
@@ -1371,7 +1372,7 @@ step_begin() {
 step_end() {
 	local _d=-1
 	local _e=0
-	local _log=""
+	local _log="/dev/null"
 	local _name
 	local _s
 	local _skip=0
@@ -1395,30 +1396,16 @@ step_end() {
 
 	_user="$(logname)"
 
-	# Remove any existing entry for the same step, could be present if a
-	# previous execution failed.
-	[ -e "$_file" ] && sed -i -e "/step=\"${_s}\"/d" "$_file"
-
-	# Caution: all values must be quoted and cannot contain spaces.
-	{
-		printf 'step="%d"\n' "$_s"
-		printf 'name="%s"\n' "$_name"
-
-		if [ "$_skip" -eq 1 ]; then
-			printf 'skip="1"\n'
-		else
-			printf 'exit="%d"\n' "$_e"
-			printf 'duration="%d"\n' "$_d"
-			printf 'log="%s"\n' "$_log"
-			printf 'user="%s"\n' "$_user"
-			printf 'time="%d"\n' "$(date '+%s')"
-		fi
-	} | paste -s -d ' ' - >>"$_file"
-
-	# Sort steps as skipped steps are added at the begining.
-	mv "$_file" "${_file}.orig"
-	sort -V "${_file}.orig" >"$_file"
-	rm "${_file}.orig"
+	[ -e "$_file" ] || : >"$_file"
+	"$ROBSDSTEP" -W -f "$_file" -n "$_name" -- \
+		"step=${_s}" \
+		"name=${_name}" \
+		"exit=${_e}" \
+		"duration=${_d}" \
+		"log=${_log}" \
+		"user=${_user}" \
+		"time=$(date '+%s')" \
+		"skip=${_skip}"
 
 	# Only invoke the hook if the step has ended. A duration of -1 is a
 	# sentinel indicating that the step has just begun.
@@ -1437,21 +1424,17 @@ step_end() {
 # step_eval -offset file
 # step_eval -n step-name file
 #
-# Read the given step from file into the _STEP array. The offset argument
-# refers to a line in file. A negative offset starts from the end of file.
+# Read the given step using robsd-step into the _STEP array.
 step_eval() {
+	local _err=0
 	local _file
-	local _i
-	local _k
-	local _n
-	local _name=0
-	local _next
+	local _flag="-l"
 	local _step
-	local _v
+	local _tmp
 
 	while [ $# -gt 0 ]; do
 		case "$1" in
-		-n)	_name=1;;
+		-n)	_flag="-n";;
 		*)	break;;
 		esac
 		shift
@@ -1459,52 +1442,17 @@ step_eval() {
 	_step="$1"; : "${_step:?}"
 	_file="$2"; : "${_file:?}"
 
-	set -A _STEP
-
-	if ! [ -e "$_file" ]; then
-		echo "step_eval: ${_file}: no such file" 1>&2
-		return 1
-	fi
-
-	if [ "$_name" -eq 1 ]; then
-		_line="$(grep -e "name=\"${_step}\"" "$_file" || :)"
-	elif [ "$_step" -lt 0 ]; then
-		_n="$(wc -l "$_file" | awk '{print $1}')"
-		[ $((- _step)) -gt "$_n" ] && return 1
-		_line="$(tail "$_step" "$_file" | head -1)"
-	else
-		_line="$(sed -n -e "${_step}p" "$_file")"
-	fi
-	if [ -z "$_line" ]; then
-		echo "step_eval: ${_file}: step ${_step} not found" 1>&2
-		return 1
-	fi
-
-	while :; do
-		_next="${_line%% *}"
-		_k="${_next%=*}"
-		_v="${_next#*=\"}"; _v="${_v%\"}"
-
-		_i="$(step_field "$_k")"
-		if [ "$_i" -lt 0 ]; then
-			echo "step_eval: ${_file}: unknown field ${_k}" 1>&2
-			return 1
-		fi
-		_STEP[$_i]="$_v"
-
-		_next="${_line#* }"
-		if [ "$_next" = "$_line" ]; then
-			break
-		else
-			_line="$_next"
-		fi
-	done
-
-	if [ ${#_STEP[*]} -eq 0 ]; then
-		return 1
-	else
-		return 0
-	fi
+	_tmp="$(mktemp -t robsd.XXXXXX)"
+	{
+		printf 'set -A _STEP -- '
+		# shellcheck disable=SC2016
+		printf '${step} ${name} ${exit} ${duration} ${log} ${time} '
+		# shellcheck disable=SC2016
+		printf '${user} ${skip}\n'
+	} | "$ROBSDSTEP" -R -f "$_file" "$_flag" "$_step" >"$_tmp" || _err="$?"
+	[ "$_err" -eq 0 ] && eval "$(<"$_tmp")"
+	rm "$_tmp"
+	return "$_err"
 }
 
 # step_exec [-X] -f fail -l log -s step
@@ -1724,7 +1672,7 @@ step_value() {
 	_name="$1"; : "${_name:?}"
 
 	_i="$(step_field "$_name")"
-	if [ "$_i" -lt 0 ] || ! echo "${_STEP[$_i]}" >/dev/null 2>&1; then
+	if [ "$_i" -lt 0 ] || [ -z "${_STEP[$_i]:-}" ]; then
 		echo "step_value: ${_name}: unknown field" 1>&2
 		return 1
 	fi

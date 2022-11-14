@@ -18,15 +18,11 @@ genfile() {
 if testcase "basic"; then
 	# Create a previous release in order to report duration deltas.
 	build_init "${ROBSDDIR}/2019-02-21"
-	cat <<-EOF >"${ROBSDDIR}/2019-02-21/steps"
-	step="2" name="cvs" exit="0" duration="30" log="/dev/null" user="root" time="0"
-	EOF
+	step_serialize -n cvs -d 30 >"${ROBSDDIR}/2019-02-21/steps"
 
 	# Create a previous release in order to report size deltas.
 	build_init "${ROBSDDIR}/2019-02-22"
-	cat <<-EOF >"${ROBSDDIR}/2019-02-22/steps"
-	step="2" name="cvs" skip="1"
-	EOF
+	step_serialize -n cvs -i 1 >"${ROBSDDIR}/2019-02-22/steps"
 	mkdir "${ROBSDDIR}/2019-02-22/rel"
 	genfile 1 "${ROBSDDIR}/2019-02-22/rel/bsd.rd"
 	genfile 1 "${ROBSDDIR}/2019-02-22/rel/base66.tgz"
@@ -38,13 +34,13 @@ if testcase "basic"; then
 	echo "comment goes here" >"${BUILDDIR}/comment"
 	echo "cvs src update" >"${BUILDDIR}/tmp/cvs-src-up.log"
 	echo "cvs src commits" >"${BUILDDIR}/tmp/cvs-src-ci.log"
-	cat <<-EOF >"${BUILDDIR}/steps"
-	step="1" name="env" exit="0" duration="0" log="${BUILDDIR}/env.log" user="root" time="0"
-	step="2" name="cvs" exit="0" duration="60" log="${BUILDDIR}/cvs.log" user="root" time="0"
-	step="3" name="patch" exit="0" duration="0" log="${BUILDDIR}/patch.log" user="root" time="0"
-	step="4" name="kernel" skip="1"
-	step="5" name="end" exit="0" duration="3600" log="/dev/null" user="root" time="0"
-	EOF
+	{
+		step_serialize -s 1 -n env -d 0
+		step_serialize -s 2 -n cvs -d 60 -l cvs.log
+		step_serialize -s 3 -n patch -d 0
+		step_serialize -s 4 -n kernel -i 1
+		step_serialize -s 5 -n end -d 3600
+	} >"${BUILDDIR}/steps"
 	mkdir "${BUILDDIR}/rel"
 	genfile 2 "${BUILDDIR}/rel/bsd.rd"
 	genfile 1 "${BUILDDIR}/rel/base66.tgz"
@@ -81,11 +77,11 @@ if testcase "failure"; then
 	build_init "$BUILDDIR"
 	echo "env log" >"${BUILDDIR}/env.log"
 	echo "cvs log" >"${BUILDDIR}/cvs.log"
-	cat <<-EOF >"$STEPS"
-	step="1" name="cvs" exit="0" duration="11" log="${BUILDDIR}/cvs.log" user="root" time="0"
-	step="2" name="env" exit="1" duration="10" log="${BUILDDIR}/env.log" user="root" time="0"
-	step="3" name="patch" skip="1"
-	EOF
+	{
+		step_serialize -s 1 -n cvs -d 11 -l "${BUILDDIR}/cvs.log"
+		step_serialize -s 2 -n env -d 10 -l "${BUILDDIR}/env.log" -e 1
+		step_serialize -s 3 -n patch -i 1
+	} >"$STEPS"
 	cat <<-EOF >"$TMP1"
 	Subject: robsd: $(hostname -s): failed in env
 
@@ -115,9 +111,7 @@ fi
 if testcase "failure in skipped step"; then
 	build_init "$BUILDDIR"
 	echo "env log" >"${BUILDDIR}/env.log"
-	cat <<-EOF >"$STEPS"
-	step="1" name="env" exit="1" duration="1" log="${BUILDDIR}/env.log" user="root" time="0"
-	EOF
+	step_serialize -s 1 -n env -e 1 -d 1 -l "${BUILDDIR}/env.log" >"$STEPS"
 	cat <<-EOF >"$TMP1"
 	Subject: robsd: $(hostname -s): failed in env
 
@@ -180,14 +174,14 @@ if testcase "regress"; then
 	==== t0 ====
 	DISABLED
 	EOF
-	cat <<-EOF >"$STEPS"
-	step="1" name="skipped" exit="0" duration="10" log="${BUILDDIR}/skipped.log" user="root" time="0"
-	step="2" name="nein" exit="1" duration="1" log="${BUILDDIR}/nein.log" user="root" time="0"
-	step="3" name="error" exit="1" duration="1" log="${BUILDDIR}/error.log" user="root" time="0"
-	step="4" name="skipignore" exit="0" duration="1" log="${BUILDDIR}/skipignore.log" user="root" time="0"
-	step="5" name="disabled" exit="0" duration="10" log="${BUILDDIR}/disabled.log" user="root" time="0"
-	step="6" name="end" exit="0" duration="12" log="/dev/null" user="root" time="0"
-	EOF
+	{
+		step_serialize -s 1 -n skipped -d 10 -l "${BUILDDIR}/skipped.log"
+		step_serialize -s 2 -n nein -e 1 -d 1 -l "${BUILDDIR}/nein.log"
+		step_serialize -s 3 -n error -e 1 -d 1 -l "${BUILDDIR}/error.log"
+		step_serialize -s 4 -n skipignore -d 1 -l "${BUILDDIR}/skipignore.log"
+		step_serialize -s 5 -n disabled -d 10 -l "${BUILDDIR}/disabled.log"
+		step_serialize -s 6 -n end -d 12
+	} >"$STEPS"
 
 	robsd_config -R - <<-EOF
 	robsddir "$ROBSDDIR"
@@ -247,9 +241,7 @@ fi
 
 if testcase "ports"; then
 	build_init "$BUILDDIR"
-	cat <<-EOF >"$STEPS"
-	step="2" name="dpb" exit="0" duration="20" log="dpb.log" user="root" time="0"
-	EOF
+	step_serialize -n dpb -d 20 -l dpb.log >"$STEPS"
 	robsd_config -P - <<-EOF
 	robsddir "$ROBSDDIR"
 	ports { "keep/quiet" }
@@ -276,9 +268,7 @@ fi
 
 if testcase "ports failure"; then
 	build_init "$BUILDDIR"
-	cat <<-EOF >"$STEPS"
-	step="1" name="dpb" exit="1" duration="20" log="/dev/null" user="root" time="0"
-	EOF
+	step_serialize -n dpb -e 1 -d 20 >"$STEPS"
 	robsd_config -P - <<-EOF
 	robsddir "$ROBSDDIR"
 	ports { "keep/quiet" }

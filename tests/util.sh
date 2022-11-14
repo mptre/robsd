@@ -118,6 +118,40 @@ robsd_mock() {
 	echo "$_tmpdir" "$_bindir" "$ROBSDDIR"
 }
 
+# step_serialize [-d duration] [-e exit] [-i skip] [-l log] [-n name] [-s step]
+#                [-t time] [-u user]
+#
+# Serialize the given step into a robsd-step complaint representation.
+step_serialize() {
+	local _duration="1"
+	local _exit="0"
+	local _log="/dev/null"
+	local _name="name"
+	local _skip="0"
+	local _step="1"
+	local _time="1666666666"
+	local _user="root"
+
+	while [ "$#" -gt 0 ]; do
+		case "$1" in
+		-d)	shift; _duration="$1";;
+		-e)	shift; _exit="$1";;
+		-i)	shift; _skip="$1";;
+		-l)	shift; _log="$1";;
+		-n)	shift; _name="$1";;
+		-s)	shift; _step="$1";;
+		-t)	shift; _time="$1";;
+		-u)	shift; _user="$1";;
+		*)	break;;
+		esac
+		shift
+	done
+
+	printf 'step="%s" name="%s" exit="%s" duration="%s" log="%s" user="%s" time="%s" skip="%s"\n' \
+		"${_step}" "${_name}" "${_exit}" "${_duration}" "${_log}" \
+		"${_user}" "${_time}" "${_skip}"
+}
+
 # diff_create
 diff_create() {
 	cat <<EOF

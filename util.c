@@ -41,7 +41,10 @@ logv(void (*pr)(const char *, ...), const char *path, int lno, const char *fmt,
 		(void)snprintf(line, sizeof(line), "%d:", lno);
 
 	(void)vsnprintf(msg, sizeof(msg), fmt, ap);
-	(pr)("%s:%s %s", path, line, msg);
+	(pr)("%s%s%s%s%s",
+	    path ? path : "", path ? ":" : "",
+	    line, path ? " " : "",
+	    msg);
 }
 
 /*

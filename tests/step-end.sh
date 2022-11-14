@@ -18,9 +18,7 @@ if testcase "already present"; then
 	robsd_config - <<-EOF
 	robsddir "${TSHDIR}"
 	EOF
-	cat <<-EOF >"$TMP1"
-	step="2" name="cvs" exit="0" duration="-1"
-	EOF
+	step_serialize -s 2 -n cvs >"$TMP1"
 
 	step_end -d 2 -n cvs -s 2 "$TMP1"
 

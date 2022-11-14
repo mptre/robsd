@@ -4,28 +4,29 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <util.h>
 
 #include "buffer.h"
+#include "util.h"
 
 struct interpolate_context {
 	const struct interpolate_arg	*ic_arg;
 	const char			*ic_path;
 	int				 ic_lno;
-	struct buffer			*ic_bf;
 };
 
-static void	interpolate_context_init(struct interpolate_context *,
-    const struct interpolate_arg *, const char *);
-static void	interpolate_context_reset(struct interpolate_context *);
-
-static int	interpolate(struct interpolate_context *, const char *);
+static int	interpolate(const struct interpolate_context *,
+    struct buffer *, const char *);
 
 char *
 interpolate_file(const char *path, const struct interpolate_arg *arg)
 {
-	struct interpolate_context ic;
+	struct interpolate_context ic = {
+		.ic_arg		= arg,
+		.ic_path	= path,
+		.ic_lno		= arg->lno,
+	};
 	FILE *fh;
+	struct buffer *bf;
 	char *buf = NULL;
 	char *line = NULL;
 	size_t linesiz = 0;
@@ -37,8 +38,7 @@ interpolate_file(const char *path, const struct interpolate_arg *arg)
 		return NULL;
 	}
 
-	interpolate_context_init(&ic, arg, path);
-
+	bf = buffer_alloc(1024);
 	for (;;) {
 		ssize_t n;
 
@@ -51,18 +51,17 @@ interpolate_file(const char *path, const struct interpolate_arg *arg)
 			break;
 		}
 		ic.ic_lno++;
-		if (interpolate(&ic, line)) {
+		if (interpolate(&ic, bf, line)) {
 			error = 1;
 			break;
 		}
 	}
 	if (error == 0) {
-		buffer_putc(ic.ic_bf, '\0');
-		buf = buffer_release(ic.ic_bf);
+		buffer_putc(bf, '\0');
+		buf = buffer_release(bf);
 	}
-
+	buffer_free(bf);
 	free(line);
-	interpolate_context_reset(&ic);
 	fclose(fh);
 	return buf;
 }
@@ -70,38 +69,39 @@ interpolate_file(const char *path, const struct interpolate_arg *arg)
 char *
 interpolate_str(const char *str, const struct interpolate_arg *arg)
 {
-	struct interpolate_context ic;
+	struct interpolate_context ic = {
+		.ic_arg	= arg,
+		.ic_lno	= arg->lno,
+	};
+	struct buffer *bf;
 	char *buf = NULL;
 
-	interpolate_context_init(&ic, arg, NULL);
-	if (interpolate(&ic, str) == 0) {
-		buffer_putc(ic.ic_bf, '\0');
-		buf = buffer_release(ic.ic_bf);
+	bf = buffer_alloc(1024);
+	if (interpolate(&ic, bf, str) == 0) {
+		buffer_putc(bf, '\0');
+		buf = buffer_release(bf);
 	}
-	interpolate_context_reset(&ic);
+	buffer_free(bf);
 	return buf;
 }
 
-static void
-interpolate_context_init(struct interpolate_context *ic,
-    const struct interpolate_arg *ia, const char *path)
+int
+interpolate_buffer(const char *str, struct buffer *bf,
+    const struct interpolate_arg *arg)
 {
-	ic->ic_arg = ia;
-	ic->ic_path = path;
-	ic->ic_lno = ia->lno;
-	ic->ic_bf = buffer_alloc(1024);
-	if (ic->ic_bf == NULL)
-		err(1, NULL);
-}
+	struct interpolate_context ic = {
+		.ic_arg	= arg,
+		.ic_lno	= arg->lno,
+	};
+	int error;
 
-static void
-interpolate_context_reset(struct interpolate_context *ic)
-{
-	buffer_free(ic->ic_bf);
+	error = interpolate(&ic, bf, str);
+	return error;
 }
 
 static int
-interpolate(struct interpolate_context *ic, const char *str)
+interpolate(const struct interpolate_context *ic, struct buffer *bf,
+    const char *str)
 {
 	for (;;) {
 		const char *p, *ve, *vs;
@@ -143,14 +143,14 @@ interpolate(struct interpolate_context *ic, const char *str)
 			return 1;
 		}
 		rep = interpolate_str(lookup, ic->ic_arg);
-		buffer_puts(ic->ic_bf, str, p - str);
-		buffer_puts(ic->ic_bf, rep, strlen(rep));
+		buffer_puts(bf, str, p - str);
+		buffer_puts(bf, rep, strlen(rep));
 		free(rep);
 		free(lookup);
 		str = &ve[1];
 	}
 	/* Output any remaining tail. */
-	buffer_puts(ic->ic_bf, str, strlen(str));
+	buffer_puts(bf, str, strlen(str));
 
 	return 0;
 }

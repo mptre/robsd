@@ -52,6 +52,19 @@ SRCS_robsd-stat+=	compat-strlcpy.c
 OBJS_robsd-stat=	${SRCS_robsd-stat:.c=.o}
 DEPS_robsd-stat=	${SRCS_robsd-stat:.c=.d}
 
+PROG_robsd-step=	robsd-step
+SRCS_robsd-step+=	robsd-step.c
+SRCS_robsd-step+=	buffer.c
+SRCS_robsd-step+=	compat-strtonum.c
+SRCS_robsd-step+=	interpolate.c
+SRCS_robsd-step+=	lexer.c
+SRCS_robsd-step+=	step.c
+SRCS_robsd-step+=	token.c
+SRCS_robsd-step+=	util.c
+SRCS_robsd-step+=	vector.c
+OBJS_robsd-step=	${SRCS_robsd-step:.c=.o}
+DEPS_robsd-step=	${SRCS_robsd-step:.c=.d}
+
 KNFMT+=	buffer.c
 KNFMT+=	buffer.h
 KNFMT+=	cdefs.h
@@ -68,6 +81,9 @@ KNFMT+=	robsd-exec.c
 KNFMT+=	robsd-hook.c
 KNFMT+=	robsd-regress-log.c
 KNFMT+=	robsd-stat.c
+KNFMT+=	robsd-step.c
+KNFMT+=	step.c
+KNFMT+=	step.h
 KNFMT+=	token.c
 KNFMT+=	token.h
 KNFMT+=	util.c
@@ -89,6 +105,9 @@ CLANGTIDY+=	robsd-exec.c
 CLANGTIDY+=	robsd-hook.c
 CLANGTIDY+=	robsd-regress-log.c
 CLANGTIDY+=	robsd-stat.c
+CLANGTIDY+=	robsd-step.c
+CLANGTIDY+=	step.c
+CLANGTIDY+=	step.h
 CLANGTIDY+=	token.c
 CLANGTIDY+=	token.h
 CLANGTIDY+=	util.c
@@ -105,6 +124,8 @@ CPPCHECK+=	robsd-exec.c
 CPPCHECK+=	robsd-hook.c
 CPPCHECK+=	robsd-regress-log.c
 CPPCHECK+=	robsd-stat.c
+CPPCHECK+=	robsd-step.c
+CPPCHECK+=	step.c
 CPPCHECK+=	token.c
 CPPCHECK+=	util.c
 CPPCHECK+=	vector.c
@@ -152,6 +173,7 @@ DISTFILES+=	cdefs.h
 DISTFILES+=	compat-errc.c
 DISTFILES+=	compat-pledge.c
 DISTFILES+=	compat-strlcpy.c
+DISTFILES+=	compat-strtonum.c
 DISTFILES+=	compat-sys-sched.h
 DISTFILES+=	compat-sys-sysctl.h
 DISTFILES+=	compat-unveil.c
@@ -214,10 +236,13 @@ DISTFILES+=	robsd-rescue.8
 DISTFILES+=	robsd-revert.sh
 DISTFILES+=	robsd-stat.8
 DISTFILES+=	robsd-stat.c
+DISTFILES+=	robsd-step.c
 DISTFILES+=	robsd-xbase.sh
 DISTFILES+=	robsd-xrelease.sh
 DISTFILES+=	robsd.8
 DISTFILES+=	robsd.conf.5
+DISTFILES+=	step.c
+DISTFILES+=	step.h
 DISTFILES+=	tests/Makefile
 DISTFILES+=	tests/check-perf.sh
 DISTFILES+=	tests/cleandir.sh
@@ -248,6 +273,7 @@ DISTFILES+=	tests/robsd-hook.sh
 DISTFILES+=	tests/robsd-ports.sh
 DISTFILES+=	tests/robsd-regress.sh
 DISTFILES+=	tests/robsd-rescue.sh
+DISTFILES+=	tests/robsd-step.sh
 DISTFILES+=	tests/robsd.sh
 DISTFILES+=	tests/step-end.sh
 DISTFILES+=	tests/step-eval.sh
@@ -286,6 +312,7 @@ MANLINT+=	robsd-regress.8
 MANLINT+=	robsd-regress.conf.5
 MANLINT+=	robsd-rescue.8
 MANLINT+=	robsd-stat.8
+MANLINT+=	robsd-step.8
 MANLINT+=	robsd.8
 MANLINT+=	robsd.conf.5
 
@@ -302,7 +329,7 @@ SHLINT+=	robsd-rescue
 SUBDIR+=	tests
 
 all: ${PROG_robsd-config} ${PROG_robsd-hook} ${PROG_robsd-exec}
-all: ${PROG_robsd-stat} ${PROG_robsd-regress-log}
+all: ${PROG_robsd-regress-log} ${PROG_robsd-stat} ${PROG_robsd-step}
 
 ${PROG_robsd-config}: ${OBJS_robsd-config}
 	${CC} ${DEBUG} -o ${PROG_robsd-config} ${OBJS_robsd-config} ${LDFLAGS}
@@ -319,13 +346,17 @@ ${PROG_robsd-regress-log}: ${OBJS_robsd-regress-log}
 ${PROG_robsd-stat}: ${OBJS_robsd-stat}
 	${CC} ${DEBUG} -o ${PROG_robsd-stat} ${OBJS_robsd-stat} ${LDFLAGS}
 
+${PROG_robsd-step}: ${OBJS_robsd-step}
+	${CC} ${DEBUG} -o ${PROG_robsd-step} ${OBJS_robsd-step} ${LDFLAGS}
+
 clean:
 	rm -f \
 		${DEPS_robsd-config} ${OBJS_robsd-config} ${PROG_robsd-config} \
 		${DEPS_robsd-exec} ${OBJS_robsd-exec} ${PROG_robsd-exec} \
 		${DEPS_robsd-hook} ${OBJS_robsd-hook} ${PROG_robsd-hook} \
 		${DEPS_robsd-regress-log} ${OBJS_robsd-regress-log} ${PROG_robsd-regress-log} \
-		${DEPS_robsd-stat} ${OBJS_robsd-stat} ${PROG_robsd-stat}
+		${DEPS_robsd-stat} ${OBJS_robsd-stat} ${PROG_robsd-stat} \
+		${DEPS_robsd-step} ${OBJS_robsd-step} ${PROG_robsd-step}
 .PHONY: clean
 
 dist:
@@ -368,6 +399,9 @@ install: all
 # robsd-stat
 	${INSTALL} -m 0555 ${PROG_robsd-stat} ${DESTDIR}${LIBEXECDIR}/robsd
 	${INSTALL_MAN} ${.CURDIR}/robsd-stat.8 ${DESTDIR}${MANDIR}/man8
+# robsd-step
+	${INSTALL} -m 0555 ${PROG_robsd-step} ${DESTDIR}${LIBEXECDIR}/robsd
+	${INSTALL_MAN} ${.CURDIR}/robsd-step.8 ${DESTDIR}${MANDIR}/man8
 # robsd-cross
 	${INSTALL} -m 0555 ${.CURDIR}/robsd-cross ${DESTDIR}${BINDIR}
 	${INSTALL} -m 0555 ${.CURDIR}/robsd-crossenv ${DESTDIR}${BINDIR}
@@ -414,6 +448,7 @@ test: all
 		"ROBSDHOOK=${.OBJDIR}/${PROG_robsd-hook}" \
 		"ROBSDREGRESSLOG=${.OBJDIR}/${PROG_robsd-regress-log}" \
 		"ROBSDSTAT=${.OBJDIR}/${PROG_robsd-stat}" \
+		"ROBSDSTEP=${.OBJDIR}/${PROG_robsd-step}" \
 		"TESTFLAGS=${TESTFLAGS}"
 .PHONY: test
 
@@ -425,3 +460,4 @@ include ${INC}
 -include ${DEPS_robsd-hook}
 -include ${DEPS_robsd-regress-log}
 -include ${DEPS_robsd-stat}
+-include ${DEPS_robsd-step}

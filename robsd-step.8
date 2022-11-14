@@ -1,0 +1,77 @@
+.Dd $Mdocdate: Nov 16 2022$
+.Dt ROBSD-STEP 8
+.Os
+.Sh NAME
+.Nm robsd-step
+.Nd robsd step utility
+.Sh SYNOPSIS
+.Nm robsd-step
+.Fl R
+.Fl f Ar path
+.Op Fl l Ar line
+.Op Fl n Ar name
+.Nm robsd-step
+.Fl W
+.Fl f Ar path
+.Fl n Ar name
+.Fl -
+.Ar key=val ...
+.Sh DESCRIPTION
+The
+.Nm
+utility manages the steps file for all robsd utilities.
+.Pp
+In read mode
+.Pq Fl R ,
+a step is selected to operate on using either
+.Fl i
+or
+.Fl n .
+Lines read from standard input are interpolated and written to
+standard output.
+Interpolation allows fields from the selected step on the form
+.No \(Do Ns Brq Ar field
+to be substituted with the corresponding value.
+.Pp
+In write mode
+.Pq Fl W ,
+a step is written to the steps file.
+Any existing occurrence of the same step will be replaced.
+.Pp
+The options are as follows:
+.Bl -tag -width Ds
+.It Fl f Ar path
+Steps file located at
+.Ar path .
+.It Fl l Ar line
+In read mode, select the step located at line number
+.Ar line
+in
+.Ar path
+to operate on.
+If
+.Ar line
+is negative, the step is selected starting from the last line in
+.Ar path .
+In either case,
+.Ar line
+must be 1-based.
+.It Fl n Ar name
+In read mode, select the step with
+.Ar name
+to operate on.
+.El
+.Sh EXAMPLES
+.Bd -literal
+$ echo 'step ${name} took ${duration} seconds' | robsd-step -R -n cvs steps
+step cvs took 64 seconds
+.Ed
+.Sh DIAGNOSTICS
+.Ex -std
+.Sh SEE ALSO
+.Xr robsd 8 ,
+.Xr robsd-cross 8 ,
+.Xr robsd-ports 8 ,
+.Xr robsd-regress 8
+.Sh AUTHORS
+.An Anton Lindqvist Aq Mt anton@basename.se

@@ -1,50 +1,34 @@
 if testcase "step exit zero"; then
-	cat <<-EOF >"$TMP1"
-	step="0" name="cvs" exit="0"
-	EOF
-
+	step_serialize -s 0 -n cvs -e 0 >"$TMP1"
 	assert_eq "1" "$(step_next "$TMP1")"
 fi
 
 if testcase "step exit non-zero"; then
-	cat <<-EOF >"$TMP1"
-	step="0" exit="1"
-	EOF
-
+	step_serialize -s 0 -n cvs -e 1 >"$TMP1"
 	assert_eq "0" "$(step_next "$TMP1")"
 fi
 
 if testcase "step aborted"; then
-	cat <<-EOF >"$TMP1"
-	step="0" exit="-1"
-	EOF
-
+	step_serialize -s 0 -n cvs -e -1 >"$TMP1"
 	assert_eq "0" "$(step_next "$TMP1")"
 fi
 
 if testcase "step skip"; then
-	cat <<-EOF >"$TMP1"
-	step="0" exit="1"
-	step="1" skip="1"
-	EOF
-
+	{
+		step_serialize -s 0 -n one -e 1
+		step_serialize -s 1 -n two -i 1
+	} >"$TMP1"
 	assert_eq "0" "$(step_next "$TMP1")"
 fi
 
 if testcase "step skip all"; then
-	cat <<-EOF >"$TMP1"
-	step="0" skip="1"
-	EOF
-
+	step_serialize -s 0 -i 1 >"$TMP1"
 	if step_next "$TMP1" 2>/dev/null; then
 		fail "want exit 1, got 0"
 	fi
 fi
 
 if testcase "step end"; then
-	cat <<-EOF >"$TMP1"
-	step="0" name="end" exit="0"
-	EOF
-
+	step_serialize -s 0 -n end -e 0 >"$TMP1"
 	assert_eq "0" "$(step_next "$TMP1")"
 fi

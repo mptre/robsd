@@ -27,9 +27,7 @@ setup() {
 
 	[ "$_patch" -eq 0 ] && return 0
 
-	cat <<-EOF >"${ROBSDDIR}/2020-09-02.1/steps"
-	step="1" name="patch" exit="0"
-	EOF
+	step_serialize -n patch >"${ROBSDDIR}/2020-09-02.1/steps"
 
 	diff_create >"${ROBSDDIR}/2020-09-02.1/src.diff.1"
 	cat <<-EOF >"${TSHDIR}/foo"
