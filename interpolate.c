@@ -105,7 +105,7 @@ interpolate(struct interpolate_context *ic, const char *str)
 {
 	for (;;) {
 		const char *p, *ve, *vs;
-		char *lookup, *rep;
+		char *lookup, *name, *rep;
 		size_t len;
 
 		p = strchr(str, '$');
@@ -131,7 +131,11 @@ interpolate(struct interpolate_context *ic, const char *str)
 			return 1;
 		}
 
-		lookup = ic->ic_arg->lookup(vs, len, ic->ic_arg->arg);
+		name = strndup(vs, len);
+		if (name == NULL)
+			err(1, NULL);
+		lookup = ic->ic_arg->lookup(name, ic->ic_arg->arg);
+		free(name);
 		if (lookup == NULL) {
 			log_warnx(ic->ic_path, ic->ic_lno,
 			    "invalid substitution, unknown variable '%.*s'",

@@ -384,14 +384,14 @@ config_interpolate(struct config *cf)
 }
 
 char *
-config_interpolate_lookup(const char *name, size_t namelen, void *arg)
+config_interpolate_lookup(const char *name, void *arg)
 {
 	const struct config *cf = (const struct config *)arg;
 	struct buffer *bf;
 	const struct variable *va;
 	char *str;
 
-	va = config_findn(cf, name, namelen);
+	va = config_find(cf, name);
 	if (va == NULL)
 		return NULL;
 
