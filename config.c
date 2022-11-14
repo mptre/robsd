@@ -56,7 +56,7 @@ struct parser_context {
 static void	parser_context_init(struct parser_context *);
 static void	parser_context_reset(struct parser_context *);
 
-static struct token	*lexer_read(struct lexer *, void *);
+static struct token	*config_lexer_read(struct lexer *, void *);
 static const char	*token_serialize(const struct token *);
 
 /*
@@ -321,7 +321,7 @@ config_parse(struct config *cf)
 	cf->cf_lx = lexer_alloc(&(struct lexer_arg){
 		.path = cf->cf_path,
 		.callbacks = {
-			.read		= lexer_read,
+			.read		= config_lexer_read,
 			.serialize	= token_serialize,
 			.arg		= &pc,
 		},
@@ -458,7 +458,7 @@ parser_context_reset(struct parser_context *pc)
 }
 
 static struct token *
-lexer_read(struct lexer *lx, void *arg)
+config_lexer_read(struct lexer *lx, void *arg)
 {
 	struct lexer_state s;
 	struct parser_context *pc = (struct parser_context *)arg;
