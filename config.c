@@ -49,6 +49,13 @@ enum token_type {
 	TOKEN_STRING,
 };
 
+struct parser_context {
+	struct buffer	*pc_bf;
+};
+
+static void	parser_context_init(struct parser_context *);
+static void	parser_context_reset(struct parser_context *);
+
 static struct token	*lexer_read(struct lexer *, void *);
 static const char	*token_serialize(const struct token *);
 
@@ -307,18 +314,27 @@ config_set_path(struct config *cf, const char *path)
 int
 config_parse(struct config *cf)
 {
+	struct parser_context pc;
+	int error;
+
+	parser_context_init(&pc);
 	cf->cf_lx = lexer_alloc(&(struct lexer_arg){
 		.path = cf->cf_path,
 		.callbacks = {
 			.read		= lexer_read,
 			.serialize	= token_serialize,
+			.arg		= &pc,
 		},
 	});
-	if (cf->cf_lx == NULL)
-		return 1;
-	if (config_exec(cf))
-		return 1;
-	return 0;
+	if (cf->cf_lx == NULL) {
+		error = 1;
+		goto out;
+	}
+	error = config_exec(cf);
+
+out:
+	parser_context_reset(&pc);
+	return error;
 }
 
 int
@@ -429,21 +445,25 @@ variable_get_value(const struct variable *va)
 	return &va->va_val;
 }
 
-static struct token *
-lexer_read(struct lexer *lx, void *UNUSED(arg))
+static void
+parser_context_init(struct parser_context *pc)
 {
-#define CONSUME(c) do {							\
-	if (buflen >= sizeof(buf)) {					\
-		lexer_warnx(lx, s.lno, "token too long");		\
-		return NULL;						\
-	}								\
-	buf[buflen++] = (c);						\
-} while (0)
+	pc->pc_bf = buffer_alloc(512);
+}
 
-	static char buf[512];
+static void
+parser_context_reset(struct parser_context *pc)
+{
+	buffer_free(pc->pc_bf);
+}
+
+static struct token *
+lexer_read(struct lexer *lx, void *arg)
+{
 	struct lexer_state s;
+	struct parser_context *pc = (struct parser_context *)arg;
+	struct buffer *bf = pc->pc_bf;
 	struct token *tk;
-	unsigned int buflen = 0;
 	char ch;
 
 again:
@@ -467,41 +487,47 @@ again:
 		goto again;
 	}
 
+	buffer_reset(bf);
+
 	if (islower((unsigned char)ch)) {
+		const char *buf;
+
 		while (islower((unsigned char)ch) ||
 		    isdigit((unsigned char)ch) || ch == '-') {
-			CONSUME(ch);
+			buffer_putc(bf, ch);
 			if (lexer_getc(lx, &ch))
 				return NULL;
 		}
 		lexer_ungetc(lx, ch);
+		buffer_putc(bf, '\0');
 
-		if (strncmp("env", buf, buflen) == 0)
+		buf = bf->bf_ptr;
+		if (strcmp("env", buf) == 0)
 			return lexer_emit(lx, &s, TOKEN_ENV);
-		if (strncmp("obj", buf, buflen) == 0)
+		if (strcmp("obj", buf) == 0)
 			return lexer_emit(lx, &s, TOKEN_OBJ);
-		if (strncmp("packages", buf, buflen) == 0)
+		if (strcmp("packages", buf) == 0)
 			return lexer_emit(lx, &s, TOKEN_PACKAGES);
-		if (strncmp("quiet", buf, buflen) == 0)
+		if (strcmp("quiet", buf) == 0)
 			return lexer_emit(lx, &s, TOKEN_QUIET);
-		if (strncmp("root", buf, buflen) == 0)
+		if (strcmp("root", buf) == 0)
 			return lexer_emit(lx, &s, TOKEN_ROOT);
-		if (strncmp("target", buf, buflen) == 0)
+		if (strcmp("target", buf) == 0)
 			return lexer_emit(lx, &s, TOKEN_TARGET);
 
-		if (strncmp("yes", buf, buflen) == 0) {
+		if (strcmp("yes", buf) == 0) {
 			tk = lexer_emit(lx, &s, TOKEN_BOOLEAN);
 			tk->tk_int = 1;
 			return tk;
 		}
-		if (strncmp("no", buf, buflen) == 0) {
+		if (strcmp("no", buf) == 0) {
 			tk = lexer_emit(lx, &s, TOKEN_BOOLEAN);
 			tk->tk_int = 0;
 			return tk;
 		}
 
 		tk = lexer_emit(lx, &s, TOKEN_KEYWORD);
-		tk->tk_str = strndup(buf, buflen);
+		tk->tk_str = strdup(buf);
 		if (tk->tk_str == NULL)
 			err(1, NULL);
 		return tk;
@@ -546,14 +572,14 @@ again:
 			}
 			if (ch == '"')
 				break;
-			CONSUME(ch);
+			buffer_putc(bf, ch);
 		}
-		if (buflen == 0)
+		if (bf->bf_len == 0)
 			lexer_warnx(lx, s.lno, "empty string");
-		CONSUME('\0');
+		buffer_putc(bf, '\0');
 
 		tk = lexer_emit(lx, &s, TOKEN_STRING);
-		tk->tk_str = strndup(buf, buflen);
+		tk->tk_str = strdup(bf->bf_ptr);
 		if (tk->tk_str == NULL)
 			err(1, NULL);
 		return tk;
