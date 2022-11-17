@@ -111,8 +111,10 @@ steps_read(struct step_context *sc, int argc, char **argv)
 		switch (ch) {
 		case 'l':
 			lno = strtonum(optarg, -INT_MAX, INT_MAX, &errstr);
-			if (errstr != NULL)
-				errx(1, "line %s %s", optarg, errstr);
+			if (errstr != NULL) {
+				warnx("line %s %s", optarg, errstr);
+				return 1;
+			}
 			gotlno = 1;
 			break;
 		case 'n':
@@ -126,8 +128,10 @@ steps_read(struct step_context *sc, int argc, char **argv)
 	argv += optind;
 	if (argc > 0)
 		usage();
-	if (name != NULL && gotlno)
-		errx(1, "-l and -n are mutually exclusive");
+	if (name != NULL && gotlno) {
+		warnx("-l and -n are mutually exclusive");
+		return 1;
+	}
 
 	nsteps = VECTOR_LENGTH(sc->sc_steps);
 	if (name != NULL) {
