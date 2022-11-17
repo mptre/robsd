@@ -235,6 +235,7 @@ DISTFILES+=	robsd-rescue.8
 DISTFILES+=	robsd-revert.sh
 DISTFILES+=	robsd-stat.8
 DISTFILES+=	robsd-stat.c
+DISTFILES+=	robsd-step.8
 DISTFILES+=	robsd-step.c
 DISTFILES+=	robsd-xbase.sh
 DISTFILES+=	robsd-xrelease.sh
