@@ -1,3 +1,23 @@
+# 15.0.0 - 2022-11-17
+
+## Changes
+
+- Remove ability to specify user per regression test.
+  (e7f9044)
+  (Anton Lindqvist)
+
+## News
+
+- Add robsd-step utility, used to manage the steps file.
+  (315f99a)
+  (Anton Lindqvist)
+
+## Bug fixes
+
+- Only remove empty directories in patch revert step.
+  (fb2f3e7)
+  (Anton Lindqvist)
+
 # 14.1.0 - 2022-11-10
 
 ## News
