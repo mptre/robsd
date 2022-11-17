@@ -12,25 +12,22 @@
   <suppress>
     <fileName>buffer.c</fileName>
     <id>unusedFunction</id>
-    <symbolName>buffer_indent</symbolName>
-  </suppress>
-
-  <!-- config.c -->
-  <suppress>
-    <fileName>config.c</fileName>
-    <id>uninitvar</id>
-    <symbolName>st->st_val</symbolName>
-  </suppress>
-
-  <!-- buffer.c -->
-  <suppress>
-    <fileName>buffer.c</fileName>
-    <id>unusedFunction</id>
     <symbolName>buffer_cmp</symbolName>
   </suppress>
   <suppress>
     <fileName>buffer.c</fileName>
     <id>unusedFunction</id>
+    <symbolName>buffer_indent</symbolName>
+  </suppress>
+  <suppress>
+    <fileName>buffer.c</fileName>
+    <id>unusedFunction</id>
     <symbolName>buffer_read</symbolName>
+  </suppress>
+
+  <!-- robsd-step.c -->
+  <suppress>
+    <fileName>robsd-step.c</fileName>
+    <id>uselessAssignmentPtrArg</id>
   </suppress>
 </suppressions>
