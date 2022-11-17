@@ -104,7 +104,8 @@ steps_read(struct step_context *sc, int argc, char **argv)
 	size_t nsteps;
 	int error = 0;
 	int gotlno = 0;
-	int ch, lno;
+	int lno = 0;
+	int ch;
 
 	while ((ch = getopt(argc, argv, "l:n:")) != -1) {
 		switch (ch) {
