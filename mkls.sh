@@ -6,7 +6,7 @@ CLANGTIDY \
 	!(config|compat-*).h !(compat-*).c \
 	-- \
 CPPCHECK \
-	!(compat-*).c \
+	!(compat-*|vector).c \
 	-- \
 SCRIPTS \
 	!(mkls).sh \

@@ -128,7 +128,6 @@ CPPCHECK+=	robsd-step.c
 CPPCHECK+=	step.c
 CPPCHECK+=	token.c
 CPPCHECK+=	util.c
-CPPCHECK+=	vector.c
 
 SCRIPTS+=	robsd-base.sh
 SCRIPTS+=	robsd-checkflist.sh
