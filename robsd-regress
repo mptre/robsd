@@ -53,7 +53,7 @@ if [ -z "$BUILDDIR" ]; then
 
 	BUILDDIR="${ROBSDDIR}/$(build_id "$ROBSDDIR")"
 else
-	_step="$(step_next "${BUILDDIR}/steps")"
+	_step="$(step_next "$(step_path "$BUILDDIR")")"
 fi
 build_init "$BUILDDIR"
 info "using directory ${BUILDDIR} at step ${_step}"

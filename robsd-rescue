@@ -38,7 +38,7 @@ else
 	info "using release directory ${BUILDDIR}"
 fi
 
-if step_eval -n patch "${BUILDDIR}/steps" 2>/dev/null; then
+if step_eval -n patch "$(step_path "$BUILDDIR")" 2>/dev/null; then
 	step_exec -X -f "${BUILDDIR}/tmp/fail" -l /dev/null -s revert || :
 else
 	info "step patch not found, cannot revert diff(s)"

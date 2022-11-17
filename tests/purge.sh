@@ -5,7 +5,7 @@ if testcase "basic"; then
 		for _f in 01-base.log 01-base.log.1 03-env.log comment rel/index.txt report stat.csv src.diff.1; do
 			(cd "$_d" && echo "$_f" >"$_f")
 		done
-		: >"${_d}/steps"
+		: >"$(step_path "$_d")"
 		mkdir "${_d}/tmp"
 		touch "${_d}/tmp/cvs.log"
 	done

@@ -23,11 +23,11 @@ setup() {
 
 	mkdir -p "${ROBSDDIR}/2020-09-01.1" "${ROBSDDIR}/2020-09-02.1"
 	mkdir "${ROBSDDIR}/2020-09-02.1/tmp"
-	: >"${ROBSDDIR}/2020-09-02.1/steps"
+	: >"$(step_path "${ROBSDDIR}/2020-09-02.1")"
 
 	[ "$_patch" -eq 0 ] && return 0
 
-	step_serialize -n patch >"${ROBSDDIR}/2020-09-02.1/steps"
+	step_serialize -n patch >"$(step_path "${ROBSDDIR}/2020-09-02.1")"
 
 	diff_create >"${ROBSDDIR}/2020-09-02.1/src.diff.1"
 	cat <<-EOF >"${TSHDIR}/foo"

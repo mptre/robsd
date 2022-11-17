@@ -62,7 +62,7 @@ if [ -z "$BUILDDIR" ]; then
 
 	BUILDDIR="${ROBSDDIR}/$(build_id "$ROBSDDIR")"
 else
-	_step="$(step_next "${BUILDDIR}/steps")"
+	_step="$(step_next "$(step_path "$BUILDDIR")")"
 fi
 build_init "$BUILDDIR"
 info "using directory ${BUILDDIR} at step ${_step}"
@@ -87,7 +87,8 @@ if [ "$_step" -eq 1 ]; then
 		info "skipping steps: ${SKIP}"
 		for _skip in $SKIP; do
 			_id="$(step_id "$_skip")"
-			step_end -S -n "$_skip" -s "$_id" "${BUILDDIR}/steps"
+			step_end -S -n "$_skip" -s "$_id" \
+				"$(step_path "$BUILDDIR")"
 		done
 	fi
 

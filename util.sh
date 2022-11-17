@@ -19,7 +19,7 @@ abs() {
 #
 # Get the release build start date.
 build_date() {
-	step_eval 1 "${BUILDDIR}/steps"
+	step_eval 1 "$(step_path "$BUILDDIR")"
 	step_value time
 }
 
@@ -40,13 +40,15 @@ build_id() {
 # Initialize the given build directory.
 build_init() {
 	local _builddir
+	local _steps
 
 	_builddir="$1"; : "${_builddir:?}"
+	_steps="$(step_path "$_builddir")"
 
 	[ -d "$_builddir" ] || mkdir "$_builddir"
 	[ -d "${_builddir}/tmp" ] || mkdir "${_builddir}/tmp"
 	[ -e "${_builddir}/robsd.log" ] || : >"${_builddir}/robsd.log"
-	[ -e "${_builddir}/steps" ] || : >"${_builddir}/steps"
+	[ -e "$_steps" ] || : >"$_steps"
 	return 0
 }
 
@@ -225,7 +227,7 @@ cvs_log() {
 
 	# Use the date from latest revision from the previous release.
 	for _prev in $(prev_release -r "$_robsddir" 0); do
-		_date="$(cvs_date -s "${_prev}/steps")" && break
+		_date="$(cvs_date -s "$(step_path "$_prev")")" && break
 	done
 	if [ -z "$_date" ]; then
 		echo "cvs_log: previous date not found" 1>&2
@@ -511,7 +513,7 @@ duration_prev() {
 
 	prev_release -r "$_robsddir" 0 |
 	while read -r _prev; do
-		step_eval -n "$_step" "${_prev}/steps" 2>/dev/null || continue
+		step_eval -n "$_step" "$(step_path "$_prev")" 2>/dev/null || continue
 		step_skip && continue
 
 		_exit="$(step_value exit 2>/dev/null || echo 1)"
@@ -861,7 +863,7 @@ report() {
 	: "${_builddir:?}"
 
 	_report="${_builddir}/report"
-	_steps="${_builddir}/steps"
+	_steps="$(step_path "$_builddir")"
 	_tmpdir="${_builddir}/tmp"
 	_tmp="${_tmpdir}/report"
 
@@ -1247,17 +1249,19 @@ robsd() {
 	local _name
 	local _s
 	local _step
+	local _steps
 	local _t0
 	local _t1
 
 	_step="$1"; : "${_step:?}"
+	_steps="$(step_path "$BUILDDIR")"
 
 	while :; do
 		_name="$(step_name "$_step")"
 		_s="$_step"
 		_step=$((_step + 1))
 
-		if step_eval -n "$_name" "${BUILDDIR}/steps" 2>/dev/null &&
+		if step_eval -n "$_name" "$_steps" 2>/dev/null &&
 		   step_skip; then
 			info "step ${_name} skipped"
 			continue
@@ -1267,21 +1271,21 @@ robsd() {
 		if [ "$_name" = "end" ]; then
 			# The duration of the end step is the accumulated
 			# duration.
-			step_end -d "$(duration_total -s "${BUILDDIR}/steps")" \
+			step_end -d "$(duration_total -s "$_steps")" \
 				-n "$_name" -l "/dev/null" -s "$_s" \
-				"${BUILDDIR}/steps"
+				"$_steps"
 			return 0
 		fi
 
 		_log="${BUILDDIR}/$(log_id -b "$BUILDDIR" -n "$_name" -s "$_s")"
 		_exit=0
 		_t0="$(date '+%s')"
-		step_begin -l "$_log" -n "$_name" -s "$_s" "${BUILDDIR}/steps"
+		step_begin -l "$_log" -n "$_name" -s "$_s" "$_steps"
 		step_exec -f "${BUILDDIR}/tmp/fail" -l "$_log" -s "$_name" ||
 			_exit="$?"
 		_t1="$(date '+%s')"
 		step_end -d "$((_t1 - _t0))" -e "$_exit" -l "$_log" \
-			-n "$_name" -s "$_s" "${BUILDDIR}/steps"
+			-n "$_name" -s "$_s" "$_steps"
 
 		case "$_MODE" in
 		robsd-regress)
@@ -1573,6 +1577,16 @@ step_name() {
 	fi
 }
 
+# step_path dir
+#
+# Get the path to the steps file.
+step_path() {
+	local _dir
+
+	_dir="$1"; : "${_dir:?}"
+	echo "${_dir}/steps"
+}
+
 # steps
 #
 # Get the names of all steps in execution order.
@@ -1687,6 +1701,7 @@ trap_exit() {
 	local _builddir=""
 	local _robsddir=""
 	local _statpid=""
+	local _steps
 
 	info "trap exit ${_err}"
 
@@ -1705,11 +1720,13 @@ trap_exit() {
 
 	[ -n "$_builddir" ] || return "$_err"
 
+	_steps="$(step_path "$_builddir")"
+
 	lock_release "$_robsddir" "$_builddir" || :
 
 	# Generate the report if a step failed or the end step is reached.
 	if [ "$_err" -ne 0 ] ||
-	   step_eval -n end "${_builddir}/steps" 2>/dev/null
+	   step_eval -n end "$_steps" 2>/dev/null
 	then
 		if report -r "$_robsddir" -b "$_builddir" &&
 		   [ "$DETACH" -ne 0 ]; then
@@ -1719,7 +1736,7 @@ trap_exit() {
 	fi
 
 	# Do not leave an empty build around.
-	[ -s "${_builddir}/steps" ] || rm -r "$_builddir"
+	[ -s "$_steps" ] || rm -r "$_builddir"
 
 	return "$_err"
 }

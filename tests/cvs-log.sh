@@ -50,9 +50,9 @@ if testcase "basic"; then
 	BUILDDIR="${ROBSDDIR}/2019-07-21"; export BUILDDIR
 	# shellcheck disable=SC2086
 	mkdir -p ${ROBSDDIR}/2019-07-{19,20,21}
-	step_serialize -n cvs -i 1 >"${ROBSDDIR}/2019-07-20/steps"
+	step_serialize -n cvs -i 1 >"$(step_path "${ROBSDDIR}/2019-07-20")"
 	step_serialize -n cvs -l "${ROBSDDIR}/2019-07-19/cvs.log" -t 1563616561 \
-		>"${ROBSDDIR}/2019-07-19/steps"
+		>"$(step_path "${ROBSDDIR}/2019-07-19")"
 	cat <<-EOF >"${ROBSDDIR}/2019-07-19/cvs.log"
 	Date: 2019/07/14 00:00:00
 	Date: 2019/07/13 23:59:59
@@ -114,7 +114,7 @@ if testcase "previous build no updates"; then
 	# shellcheck disable=SC2086
 	mkdir -p ${ROBSDDIR}/2019-07-{20,21}
 	step_serialize -n cvs -l "${ROBSDDIR}/2019-07-20/cvs.log" -t 1563616561 \
-		>"${ROBSDDIR}/2019-07-20/steps"
+		>"$(step_path "${ROBSDDIR}/2019-07-20")"
 	cat <<-EOF >"${ROBSDDIR}/2019-07-20/cvs.log"
 	missing date header
 	EOF

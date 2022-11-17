@@ -3,7 +3,7 @@
 . "${EXECDIR}/util-regress.sh"
 
 BUILDDIR="${ROBSDDIR}/2019-02-23"
-STEPS="${BUILDDIR}/steps"
+STEPS="$(step_path "$BUILDDIR")"
 REPORT="${BUILDDIR}/report"
 
 # genfile size path
@@ -18,11 +18,11 @@ genfile() {
 if testcase "basic"; then
 	# Create a previous release in order to report duration deltas.
 	build_init "${ROBSDDIR}/2019-02-21"
-	step_serialize -n cvs -d 30 >"${ROBSDDIR}/2019-02-21/steps"
+	step_serialize -n cvs -d 30 >"$(step_path "${ROBSDDIR}/2019-02-21")"
 
 	# Create a previous release in order to report size deltas.
 	build_init "${ROBSDDIR}/2019-02-22"
-	step_serialize -n cvs -i 1 >"${ROBSDDIR}/2019-02-22/steps"
+	step_serialize -n cvs -i 1 >"$(step_path "${ROBSDDIR}/2019-02-22")"
 	mkdir "${ROBSDDIR}/2019-02-22/rel"
 	genfile 1 "${ROBSDDIR}/2019-02-22/rel/bsd.rd"
 	genfile 1 "${ROBSDDIR}/2019-02-22/rel/base66.tgz"
@@ -40,7 +40,7 @@ if testcase "basic"; then
 		step_serialize -s 3 -n patch -d 0
 		step_serialize -s 4 -n kernel -i 1
 		step_serialize -s 5 -n end -d 3600
-	} >"${BUILDDIR}/steps"
+	} >"$(step_path "$BUILDDIR")"
 	mkdir "${BUILDDIR}/rel"
 	genfile 2 "${BUILDDIR}/rel/bsd.rd"
 	genfile 1 "${BUILDDIR}/rel/base66.tgz"
