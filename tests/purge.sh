@@ -27,7 +27,7 @@ if testcase "basic"; then
 		[ -e "$_p" ] && fail "expected ${_p} to be removed"
 	done
 
-	for _f in comment rel/index.txt report stat.csv src.diff.1 steps; do
+	for _f in comment rel/index.txt report stat.csv src.diff.1 step.csv; do
 		_p="${ROBSDDIR}/attic/2019/03/01/${_f}"
 		[ -e "$_p" ] || fail "expected ${_p} to be left"
 	done

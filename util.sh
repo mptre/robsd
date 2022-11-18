@@ -819,7 +819,7 @@ purge() {
 			-name 'index.txt' -o \
 			-name 'report' -o \
 			-name 'stat.csv' -o \
-			-name 'steps' \) -delete
+			-name 'step.csv' \) -delete
 
 		# Transform: YYYY-MM-DD.X -> YYYY/MM/DD.X
 		_dst="${_attic}/$(echo "${_d##*/}" | tr '-' '/')"
@@ -1586,7 +1586,7 @@ step_path() {
 	local _dir
 
 	_dir="$1"; : "${_dir:?}"
-	echo "${_dir}/steps"
+	echo "${_dir}/step.csv"
 }
 
 # steps
