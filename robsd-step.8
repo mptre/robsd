@@ -13,7 +13,7 @@
 .Nm robsd-step
 .Fl W
 .Fl f Ar path
-.Fl n Ar name
+.Fl i Ar id
 .Fl -
 .Ar key=val ...
 .Sh DESCRIPTION
@@ -36,13 +36,18 @@ to be substituted with the corresponding value.
 In write mode
 .Pq Fl W ,
 a step is written to the steps file.
-Any existing occurrence of the same step will be replaced.
+Any existing occurrence of the same step as given by
+.Ar id
+will be replaced.
 .Pp
 The options are as follows:
 .Bl -tag -width Ds
 .It Fl f Ar path
 Steps file located at
 .Ar path .
+.It Fl i Ar id
+In write mode, replace any existing step(s) with the same
+.Ar id .
 .It Fl l Ar line
 In read mode, select the step located at line number
 .Ar line

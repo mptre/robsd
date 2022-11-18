@@ -1,7 +1,7 @@
 struct buffer;
 
 struct step {
-	char		*st_step;
+	unsigned int	 st_id;
 	char		*st_name;
 	char		*st_exit;
 	char		*st_duration;
@@ -9,14 +9,13 @@ struct step {
 	char		*st_user;
 	char		*st_time;
 	char		*st_skip;
-
-	unsigned int	 st_id;
 };
 
 struct step	*steps_parse(const char *);
 void		 steps_free(struct step *);
-int		 steps_sort(struct step *);
+void		 steps_sort(struct step *);
 struct step	*steps_find_by_name(struct step *, const char *);
+struct step	*steps_find_by_id(struct step *, unsigned int);
 void		 steps_header(struct buffer *);
 
 char	*step_interpolate_lookup(const char *, void *);

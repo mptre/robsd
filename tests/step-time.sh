@@ -6,7 +6,7 @@ if testcase "step time"; then
 	_steps="$(step_path "$TSHDIR")"
 
 	cat <<-EOF >"${EXECDIR}/robsd-env.sh"
-	"$ROBSDSTEP" -W -f "$_steps" -n env -- time=1666666666
+	"$ROBSDSTEP" -W -f "$_steps" -i 1 -- time=1666666666
 	EOF
 
 	robsd_config - <<-EOF

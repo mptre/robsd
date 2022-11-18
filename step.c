@@ -97,11 +97,10 @@ steps_free(struct step *steps)
 		struct step *st;
 
 		st = VECTOR_POP(steps);
-		free(st->st_duration);
-		free(st->st_exit);
-		free(st->st_log);
 		free(st->st_name);
-		free(st->st_step);
+		free(st->st_exit);
+		free(st->st_duration);
+		free(st->st_log);
 		free(st->st_time);
 		free(st->st_user);
 		free(st->st_skip);
@@ -109,28 +108,13 @@ steps_free(struct step *steps)
 	VECTOR_FREE(steps);
 }
 
-int
+void
 steps_sort(struct step *steps)
 {
 	size_t nsteps = VECTOR_LENGTH(steps);
-	size_t i;
-
-	for (i = 0; i < nsteps; i++) {
-		struct step *st = &steps[i];
-		const char *errstr;
-		int id;
-
-		id = strtonum(st->st_step, 1, INT_MAX, &errstr);
-		if (id == 0) {
-			warnx("step %s %s", st->st_step, errstr);
-			return 1;
-		}
-		st->st_id = id;
-	}
 
 	if (nsteps > 0)
 		qsort(steps, nsteps, sizeof(*steps), step_cmp);
-	return 0;
 }
 
 struct step *
@@ -147,6 +131,20 @@ steps_find_by_name(struct step *steps, const char *name)
 	return NULL;
 }
 
+struct step *
+steps_find_by_id(struct step *steps, unsigned int id)
+{
+	size_t i;
+
+	for (i = 0; i < VECTOR_LENGTH(steps); i++) {
+		struct step *st = &steps[i];
+
+		if (st->st_id == id)
+			return st;
+	}
+	return NULL;
+}
+
 void
 steps_header(struct buffer *bf)
 {
@@ -156,18 +154,34 @@ steps_header(struct buffer *bf)
 char *
 step_interpolate_lookup(const char *name, void *arg)
 {
+	char buf[64];
+	ssize_t buflen = sizeof(buf);
 	struct step *st = (struct step *)arg;
-	char **val;
-	char *p;
+	const char *val;
+	char *str;
 
-	val = step_value(st, name);
-	if (val == NULL || *val == NULL)
-		return NULL;
+	if (strcmp(name, "step") == 0) {
+		int n;
 
-	p = strdup(*val);
-	if (p == NULL)
+		n = snprintf(buf, buflen, "%u", st->st_id);
+		if (n < 0 || n >= buflen) {
+			warnx("id buffer too small");
+			return NULL;
+		}
+		val = buf;
+	} else {
+		char **v;
+
+		v = step_value(st, name);
+		if (v == NULL || *v == NULL)
+			return NULL;
+		val = *v;
+	}
+
+	str = strdup(val);
+	if (str == NULL)
 		err(1, NULL);
-	return p;
+	return str;
 }
 
 int
@@ -187,25 +201,21 @@ step_serialize(const struct step *st, struct buffer *bf)
 int
 step_set_defaults(struct step *st)
 {
-	if (st->st_time == NULL) {
-		char buf[128];
-		struct timespec ts;
-		uint64_t seconds;
+	char buf[128];
+	struct timespec ts;
+	uint64_t seconds;
 
-		if (clock_gettime(CLOCK_REALTIME, &ts) == -1) {
-			warn("clock_gettime");
-			return 1;
-		}
-		seconds = ts.tv_sec + ts.tv_nsec / 1000000000;
-		(void)snprintf(buf, sizeof(buf), "%" PRIu64, seconds);
-		if (step_set_field(st, "time", buf))
-			return 1;
+	if (clock_gettime(CLOCK_REALTIME, &ts) == -1) {
+		warn("clock_gettime");
+		return 1;
 	}
+	seconds = ts.tv_sec + ts.tv_nsec / 1000000000;
+	(void)snprintf(buf, sizeof(buf), "%" PRIu64, seconds);
+	if (step_set_field(st, "time", buf))
+		return 1;
 
-	if (st->st_skip == NULL) {
-		if (step_set_field(st, "skip", "0"))
-			return 1;
-	}
+	if (step_set_field(st, "skip", "0"))
+		return 1;
 
 	return 0;
 }
@@ -214,6 +224,19 @@ int
 step_set_field(struct step *st, const char *key, const char *val)
 {
 	char **dst;
+
+	if (strcmp(key, "step") == 0) {
+		const char *errstr;
+		unsigned int id;
+
+		id = strtonum(val, 1, INT_MAX, &errstr);
+		if (id == 0) {
+			warnx("step %s %s", val, errstr);
+			return 1;
+		}
+		st->st_id = id;
+		return 0;
+	}
 
 	dst = step_value(st, key);
 	if (dst == NULL)
@@ -409,6 +432,10 @@ step_validate(const struct step *st, struct lexer *lx, int lno)
 {
 	int error = 0;
 
+	if (st->st_id == 0) {
+		lexer_warnx(lx, lno, "missing key 'step'");
+		error = 1;
+	}
 	if (st->st_duration == NULL) {
 		lexer_warnx(lx, lno, "missing key 'duration'");
 		error = 1;
@@ -423,10 +450,6 @@ step_validate(const struct step *st, struct lexer *lx, int lno)
 	}
 	if (st->st_name == NULL) {
 		lexer_warnx(lx, lno, "missing key 'name'");
-		error = 1;
-	}
-	if (st->st_step == NULL) {
-		lexer_warnx(lx, lno, "missing key 'step'");
 		error = 1;
 	}
 	if (st->st_time == NULL) {
@@ -453,8 +476,6 @@ step_value(struct step *st, const char *key)
 		return &st->st_log;
 	if (strcmp(key, "name") == 0)
 		return &st->st_name;
-	if (strcmp(key, "step") == 0)
-		return &st->st_step;
 	if (strcmp(key, "time") == 0)
 		return &st->st_time;
 	if (strcmp(key, "user") == 0)

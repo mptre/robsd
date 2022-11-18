@@ -156,7 +156,7 @@ if testcase "read: invalid column"; then
 fi
 
 if testcase "read: invalid missing key"; then
-	default_steps | sed -e 's/1,one,//' >"$TMP1"
+	default_steps | sed -e 's/one,0,//' >"$TMP1"
 	robsd_step -e - -- -R -f "$TMP1" -l 1 <<-EOF
 	robsd-step: ${TMP1}:2: missing key 'time'
 	EOF
@@ -170,7 +170,7 @@ fi
 
 if testcase "write: new step"; then
 	: >"$TMP1"
-	robsd_step -- -W -f "$TMP1" -n one -- step=1 exit=-1 duration=-1 \
+	robsd_step -- -W -f "$TMP1" -i 1 -- name=one exit=-1 duration=-1 \
 		log=/dev/null user=root time=1666666666
 	assert_file - "$TMP1" <<-EOF
 	$(step_header)
@@ -180,9 +180,9 @@ fi
 
 if testcase "write: replace step"; then
 	: >"$TMP1"
-	robsd_step -- -W -f "$TMP1" -n one -- step=1 exit=-1 duration=-1 \
+	robsd_step -- -W -f "$TMP1" -i 1 -- name=one exit=-1 duration=-1 \
 		log=/dev/null user=root time=1666666666
-	robsd_step -- -W -f "$TMP1" -n one -- exit=0
+	robsd_step -- -W -f "$TMP1" -i 1 -- exit=0
 	assert_file - "$TMP1" <<-EOF
 	$(step_header)
 	1,one,0,-1,/dev/null,root,1666666666,0
@@ -191,14 +191,27 @@ fi
 
 if testcase "write: order by id"; then
 	: >"$TMP1"
-	robsd_step -- -W -f "$TMP1" -n two -- step=2 exit=-1 duration=-1 \
+	robsd_step -- -W -f "$TMP1" -i 2 -- name=two exit=-1 duration=-1 \
 		log=/dev/null user=root time=1666666666
-	robsd_step -- -W -f "$TMP1" -n one -- step=1 exit=-1 duration=-1 \
+	robsd_step -- -W -f "$TMP1" -i 1 -- name=one exit=-1 duration=-1 \
 		log=/dev/null user=root time=1666666666
 	assert_file - "$TMP1" <<-EOF
 	$(step_header)
 	1,one,-1,-1,/dev/null,root,1666666666,0
 	2,two,-1,-1,/dev/null,root,1666666666,0
+	EOF
+fi
+
+if testcase "write: duplicate name"; then
+	: >"$TMP1"
+	robsd_step -- -W -f "$TMP1" -i 1 -- name=one exit=-1 duration=-1 \
+		log=/dev/null user=root time=1666666666
+	robsd_step -- -W -f "$TMP1" -i 2 -- name=one exit=-1 duration=-1 \
+		log=/dev/null user=root time=1666666666
+	assert_file - "$TMP1" <<-EOF
+	$(step_header)
+	1,one,-1,-1,/dev/null,root,1666666666,0
+	2,one,-1,-1,/dev/null,root,1666666666,0
 	EOF
 fi
 
@@ -212,14 +225,14 @@ fi
 
 if testcase "write: invalid key value"; then
 	: >"$TMP1"
-	robsd_step -e - -- -W -f "$TMP1" -n one -- key <<-EOF
+	robsd_step -e - -- -W -f "$TMP1" -i 1 -- key <<-EOF
 	robsd-step: missing field separator in 'key'
 	EOF
 fi
 
 if testcase "write: invalid missing fields"; then
 	: >"$TMP1"
-	robsd_step -e - -- -W -f "$TMP1" -n one -- step=1  <<-EOF
-	robsd-step: invalid substitution, unknown variable 'exit'
+	robsd_step -e - -- -W -f "$TMP1" -i 1 -- step=1  <<-EOF
+	robsd-step: invalid substitution, unknown variable 'name'
 	EOF
 fi

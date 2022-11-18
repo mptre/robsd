@@ -90,7 +90,7 @@ usage(void)
 {
 	fprintf(stderr,
 	    "usage: robsd-step -R -f path [-l line] [-n name]\n"
-	    "       robsd-step -W -f path -n name -- key=val ...\n");
+	    "       robsd-step -W -f path -i id -- key=val ...\n");
 	exit(1);
 }
 
@@ -168,19 +168,24 @@ steps_write(struct step_context *sc, int argc, char **argv)
 	FILE *fh = NULL;
 	struct buffer *bf = NULL;
 	struct step *st;
-	const char *name = NULL;
+	const char *errstr;
 	size_t i;
+	unsigned int id = 0;
 	int error = 0;
 	int doheader = 0;
 	int ch, n;
 
-	while ((ch = getopt(argc, argv, "Hn:")) != -1) {
+	while ((ch = getopt(argc, argv, "Hi:")) != -1) {
 		switch (ch) {
 		case 'H':
 			doheader = 1;
 			break;
-		case 'n':
-			name = optarg;
+		case 'i':
+			id = strtonum(optarg, -INT_MAX, INT_MAX, &errstr);
+			if (errstr != NULL) {
+				warnx("id %s %s", optarg, errstr);
+				return 1;
+			}
 			break;
 		default:
 			usage();
@@ -188,7 +193,7 @@ steps_write(struct step_context *sc, int argc, char **argv)
 	}
 	argc -= optind;
 	argv += optind;
-	if (!doheader && (argc == 0 || name == NULL))
+	if (!doheader && (argc == 0 || id == 0))
 		usage();
 
 	bf = buffer_alloc(4096);
@@ -199,21 +204,17 @@ steps_write(struct step_context *sc, int argc, char **argv)
 		goto out;
 	}
 
-	st = steps_find_by_name(sc->sc_steps, name);
+	st = steps_find_by_id(sc->sc_steps, id);
 	if (st == NULL) {
 		st = VECTOR_CALLOC(sc->sc_steps);
 		if (st == NULL)
 			err(1, NULL);
+		st->st_id = id;
 		if (step_set_defaults(st)) {
 			error = 1;
 			goto out;
 		}
 	}
-	if (step_set_field(st, "name", name)) {
-		error = 1;
-		goto out;
-	}
-
 	for (; argc > 0; argc--, argv++) {
 		if (step_set_keyval(st, *argv)) {
 			error = 1;
@@ -221,10 +222,7 @@ steps_write(struct step_context *sc, int argc, char **argv)
 		}
 	}
 
-	if (steps_sort(sc->sc_steps)) {
-		error = 1;
-		goto out;
-	}
+	steps_sort(sc->sc_steps);
 	steps_header(bf);
 	for (i = 0; i < VECTOR_LENGTH(sc->sc_steps); i++) {
 		if (step_serialize(&sc->sc_steps[i], bf)) {
