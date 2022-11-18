@@ -17,8 +17,6 @@
 #include <string.h>
 #include <unistd.h>
 
-#include "extern.h"
-
 void
 log_warnx(const char *path, int lno, const char *fmt, ...)
 {

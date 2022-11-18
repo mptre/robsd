@@ -10,7 +10,6 @@
 #include <unistd.h>
 
 #include "buffer.h"
-#include "extern.h"
 
 static __dead void	usage(void);
 
