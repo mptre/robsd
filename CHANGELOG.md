@@ -1,3 +1,23 @@
+# 16.0.0 - 2022-11-18
+
+## Changes
+
+- Replace home grown steps file format with CSV.
+  (493b055, ef5218c)
+  (Anton Lindqvist)
+
+## News
+
+- Run configured hook for all steps, including the env step.
+  (d68087c)
+  (Anton Lindqvist)
+
+## Bug fixes
+
+- Let step time field represent the start time.
+  (415f2a7)
+  (Anton Lindqvist)
+
 # 15.0.0 - 2022-11-17
 
 ## Changes
