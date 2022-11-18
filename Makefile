@@ -279,6 +279,7 @@ DISTFILES+=	tests/step-end.sh
 DISTFILES+=	tests/step-eval.sh
 DISTFILES+=	tests/step-id.sh
 DISTFILES+=	tests/step-next.sh
+DISTFILES+=	tests/step-time.sh
 DISTFILES+=	tests/step-value.sh
 DISTFILES+=	tests/t.sh
 DISTFILES+=	tests/util.sh

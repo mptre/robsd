@@ -1367,10 +1367,11 @@ step_begin() {
 	: "${_s:?}"
 	_file="$1"; : "${_file:?}"
 
-	step_end -d -1 -e -1 -l "$_log" -n "$_name" -s "$_s" "$_file"
+	step_end -d -1 -e -1 -l "$_log" -n "$_name" -s "$_s" -t "$(date +%s)" \
+		"$_file"
 }
 
-# step_end [-S] [-d duration] [-e exit] [-l step-log] -n step-name -s step-id file
+# step_end [-S] [-d duration] [-e exit] [-l step-log] [-t time] -n step-name -s step-id file
 #
 # Mark the given step as ended by writing an entry to the given file.
 step_end() {
@@ -1380,15 +1381,17 @@ step_end() {
 	local _name
 	local _s
 	local _skip=0
+	local _time=""
 	local _user
 
 	while [ $# -gt 0 ]; do
 		case "$1" in
+		-S)	_skip="1";;
 		-d)	shift; _d="$1";;
 		-e)	shift; _e="$1";;
 		-l)	shift; _log="$1";;
 		-n)	shift; _name="$1";;
-		-S)	_skip="1";;
+		-t)	shift; _time="$1";;
 		-s)	shift; _s="$1";;
 		*)	break;;
 		esac
@@ -1408,7 +1411,7 @@ step_end() {
 		"duration=${_d}" \
 		"log=${_log}" \
 		"user=${_user}" \
-		"time=$(date '+%s')" \
+		${_time:+time=${_time}} \
 		"skip=${_skip}"
 
 	# Only invoke the hook if the step has ended. A duration of -1 is a

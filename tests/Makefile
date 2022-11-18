@@ -33,6 +33,7 @@ TESTS+=	step-end.sh
 TESTS+=	step-eval.sh
 TESTS+=	step-id.sh
 TESTS+=	step-next.sh
+TESTS+=	step-time.sh
 TESTS+=	step-value.sh
 
 SHLINT+=	${TESTS}
