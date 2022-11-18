@@ -80,6 +80,7 @@ if testcase "basic"; then
 	robsd: using diff ${TSHDIR}/xenocara.diff rooted in ${TSHDIR}
 	robsd: skipping steps: reboot
 	robsd: step env
+	robsd-hook: exec "sh" "${_hook}" "env"
 	robsd: step cvs
 	robsd-hook: exec "sh" "${_hook}" "cvs"
 	robsd: step patch
@@ -88,6 +89,7 @@ if testcase "basic"; then
 	robsd-hook: exec "sh" "${_hook}" "kernel"
 	robsd: step reboot skipped
 	robsd: step env
+	robsd-hook: exec "sh" "${_hook}" "env"
 	robsd: step base
 	robsd-hook: exec "sh" "${_hook}" "base"
 	robsd: step release

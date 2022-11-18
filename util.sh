@@ -1413,8 +1413,7 @@ step_end() {
 
 	# Only invoke the hook if the step has ended. A duration of -1 is a
 	# sentinel indicating that the step has just begun.
-	if [ "$_d" -ne -1 ] &&
-	   [ "$_name" != "env" ]; then
+	if [ "$_d" -ne -1 ]; then
 		# Ignore non-zero exit.
 		"$ROBSDHOOK" -m "$_MODE" -V ${ROBSDCONF:+"-f${ROBSDCONF}"} \
 			-v "builddir=${BUILDDIR}" \
