@@ -1523,7 +1523,7 @@ step_failures() {
 
 	_file="$1"; : "${_file:?}"
 
-	grep -c 'exit="[^0]*"' "$_file" || :
+	tail -n +2 "$_file" | awk -F , '{s+= $3 == 0 ? 0 : 1} END {print s}'
 }
 
 # step_field step-name

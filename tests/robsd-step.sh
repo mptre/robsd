@@ -2,7 +2,7 @@ OUT="${TSHDIR}/out"
 
 default_steps() {
 	step_serialize -s 1 -n one
-	step_serialize -s 2 -n two
+	step_serialize -H -s 2 -n two
 }
 
 # robsd_step [-e] [-] -- [robsd-step-argument ...]
@@ -134,40 +134,31 @@ if testcase "read: invalid no index nor name"; then
 	fi
 fi
 
-if testcase "read: invalid unterminated step"; then
-	printf 'step="1"' >"$TMP1"
+if testcase "read: invalid unterminated header"; then
+	printf 'step' >"$TMP1"
 	robsd_step -e - -- -R -f "$TMP1" -l 1 <<-EOF
-	robsd-step: ${TMP1}:1: want KEY, got EOF
+	robsd-step: ${TMP1}:1: unterminated value
 	EOF
 fi
 
-if testcase "read: invalid key value separator"; then
-	printf 'step "1"' >"$TMP1"
+if testcase "read: invalid unterminated row"; then
+	{ default_steps; printf '1'; } >"$TMP1"
 	robsd_step -e - -- -R -f "$TMP1" -l 1 <<-EOF
-	robsd-step: ${TMP1}:1: want EQUAL, got STRING
+	robsd-step: ${TMP1}:4: unterminated value
 	EOF
 fi
 
-if testcase "read: invalid value"; then
-	printf 'step=1' >"$TMP1"
+if testcase "read: invalid column"; then
+	{ printf 'step\n'; step_serialize -H -s 1 -n one; } >"$TMP1"
 	robsd_step -e - -- -R -f "$TMP1" -l 1 <<-EOF
-	robsd-step: ${TMP1}:1: want STRING, got KEY
-	EOF
-fi
-
-if testcase "read: invalid key"; then
-	printf 'unknown="1"\n' >"$TMP1"
-	robsd_step -e - -- -R -f "$TMP1" -l 1 <<-EOF
-	robsd-step: ${TMP1}:1: unknown key 'unknown'
+	robsd-step: ${TMP1}:2: unknown column 1
 	EOF
 fi
 
 if testcase "read: invalid missing key"; then
-	cat <<-EOF >"$TMP1"
-	step="1" name="one" exit="0" duration="1" log="/dev/null" user="root"
-	EOF
+	default_steps | sed -e 's/1,one,//' >"$TMP1"
 	robsd_step -e - -- -R -f "$TMP1" -l 1 <<-EOF
-	robsd-step: ${TMP1}:1: missing key 'time'
+	robsd-step: ${TMP1}:2: missing key 'time'
 	EOF
 fi
 
@@ -179,28 +170,35 @@ fi
 
 if testcase "write: new step"; then
 	: >"$TMP1"
-	robsd_step -- -W -f "$TMP1" -n one -- step=1 exit=-1 duration=-1 log=/dev/null user=root time=1666666666
+	robsd_step -- -W -f "$TMP1" -n one -- step=1 exit=-1 duration=-1 \
+		log=/dev/null user=root time=1666666666
 	assert_file - "$TMP1" <<-EOF
-	step="1" name="one" exit="-1" duration="-1" log="/dev/null" user="root" time="1666666666" skip="0"
+	$(step_header)
+	1,one,-1,-1,/dev/null,root,1666666666,0
 	EOF
 fi
 
 if testcase "write: replace step"; then
 	: >"$TMP1"
-	robsd_step -- -W -f "$TMP1" -n one -- step=1 exit=-1 duration=-1 log=/dev/null user=root time=1666666666
+	robsd_step -- -W -f "$TMP1" -n one -- step=1 exit=-1 duration=-1 \
+		log=/dev/null user=root time=1666666666
 	robsd_step -- -W -f "$TMP1" -n one -- exit=0
 	assert_file - "$TMP1" <<-EOF
-	step="1" name="one" exit="0" duration="-1" log="/dev/null" user="root" time="1666666666" skip="0"
+	$(step_header)
+	1,one,0,-1,/dev/null,root,1666666666,0
 	EOF
 fi
 
 if testcase "write: order by id"; then
 	: >"$TMP1"
-	robsd_step -- -W -f "$TMP1" -n two -- step=2 exit=-1 duration=-1 log=/dev/null user=root time=1666666666
-	robsd_step -- -W -f "$TMP1" -n one -- step=1 exit=-1 duration=-1 log=/dev/null user=root time=1666666666
+	robsd_step -- -W -f "$TMP1" -n two -- step=2 exit=-1 duration=-1 \
+		log=/dev/null user=root time=1666666666
+	robsd_step -- -W -f "$TMP1" -n one -- step=1 exit=-1 duration=-1 \
+		log=/dev/null user=root time=1666666666
 	assert_file - "$TMP1" <<-EOF
-	step="1" name="one" exit="-1" duration="-1" log="/dev/null" user="root" time="1666666666" skip="0"
-	step="2" name="two" exit="-1" duration="-1" log="/dev/null" user="root" time="1666666666" skip="0"
+	$(step_header)
+	1,one,-1,-1,/dev/null,root,1666666666,0
+	2,two,-1,-1,/dev/null,root,1666666666,0
 	EOF
 fi
 

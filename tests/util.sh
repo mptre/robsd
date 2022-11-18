@@ -118,13 +118,21 @@ robsd_mock() {
 	echo "$_tmpdir" "$_bindir" "$ROBSDDIR"
 }
 
-# step_serialize [-d duration] [-e exit] [-i skip] [-l log] [-n name] [-s step]
+# step_header
+#
+# Get the step file CSV header.
+step_header() {
+	"$ROBSDSTEP" -W -f /dev/null -H
+}
+
+# step_serialize [-H] [-d duration] [-e exit] [-i skip] [-l log] [-n name] [-s step]
 #                [-t time] [-u user]
 #
 # Serialize the given step into a robsd-step complaint representation.
 step_serialize() {
 	local _duration="1"
 	local _exit="0"
+	local _header=1
 	local _log="/dev/null"
 	local _name="name"
 	local _skip="0"
@@ -134,6 +142,7 @@ step_serialize() {
 
 	while [ "$#" -gt 0 ]; do
 		case "$1" in
+		-H)	_header=0;;
 		-d)	shift; _duration="$1";;
 		-e)	shift; _exit="$1";;
 		-i)	shift; _skip="$1";;
@@ -147,7 +156,8 @@ step_serialize() {
 		shift
 	done
 
-	printf 'step="%s" name="%s" exit="%s" duration="%s" log="%s" user="%s" time="%s" skip="%s"\n' \
+	[ "$_header" -eq 0 ] || step_header
+	printf '%s,%s,%s,%s,%s,%s,%s,%s\n' \
 		"${_step}" "${_name}" "${_exit}" "${_duration}" "${_log}" \
 		"${_user}" "${_time}" "${_skip}"
 }

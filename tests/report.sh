@@ -36,10 +36,10 @@ if testcase "basic"; then
 	echo "cvs src commits" >"${BUILDDIR}/tmp/cvs-src-ci.log"
 	{
 		step_serialize -s 1 -n env -d 0
-		step_serialize -s 2 -n cvs -d 60 -l cvs.log
-		step_serialize -s 3 -n patch -d 0
-		step_serialize -s 4 -n kernel -i 1
-		step_serialize -s 5 -n end -d 3600
+		step_serialize -H -s 2 -n cvs -d 60 -l cvs.log
+		step_serialize -H -s 3 -n patch -d 0
+		step_serialize -H -s 4 -n kernel -i 1
+		step_serialize -H -s 5 -n end -d 3600
 	} >"$(step_path "$BUILDDIR")"
 	mkdir "${BUILDDIR}/rel"
 	genfile 2 "${BUILDDIR}/rel/bsd.rd"
@@ -79,8 +79,8 @@ if testcase "failure"; then
 	echo "cvs log" >"${BUILDDIR}/cvs.log"
 	{
 		step_serialize -s 1 -n cvs -d 11 -l "${BUILDDIR}/cvs.log"
-		step_serialize -s 2 -n env -d 10 -l "${BUILDDIR}/env.log" -e 1
-		step_serialize -s 3 -n patch -i 1
+		step_serialize -H -s 2 -n env -d 10 -l "${BUILDDIR}/env.log" -e 1
+		step_serialize -H -s 3 -n patch -i 1
 	} >"$STEPS"
 	cat <<-EOF >"$TMP1"
 	Subject: robsd: $(hostname -s): failed in env
@@ -176,11 +176,11 @@ if testcase "regress"; then
 	EOF
 	{
 		step_serialize -s 1 -n skipped -d 10 -l "${BUILDDIR}/skipped.log"
-		step_serialize -s 2 -n nein -e 1 -d 1 -l "${BUILDDIR}/nein.log"
-		step_serialize -s 3 -n error -e 1 -d 1 -l "${BUILDDIR}/error.log"
-		step_serialize -s 4 -n skipignore -d 1 -l "${BUILDDIR}/skipignore.log"
-		step_serialize -s 5 -n disabled -d 10 -l "${BUILDDIR}/disabled.log"
-		step_serialize -s 6 -n end -d 12
+		step_serialize -H -s 2 -n nein -e 1 -d 1 -l "${BUILDDIR}/nein.log"
+		step_serialize -H -s 3 -n error -e 1 -d 1 -l "${BUILDDIR}/error.log"
+		step_serialize -H -s 4 -n skipignore -d 1 -l "${BUILDDIR}/skipignore.log"
+		step_serialize -H -s 5 -n disabled -d 10 -l "${BUILDDIR}/disabled.log"
+		step_serialize -H -s 6 -n end -d 12
 	} >"$STEPS"
 
 	robsd_config -R - <<-EOF

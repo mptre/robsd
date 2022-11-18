@@ -17,6 +17,7 @@ struct step	*steps_parse(const char *);
 void		 steps_free(struct step *);
 int		 steps_sort(struct step *);
 struct step	*steps_find_by_name(struct step *, const char *);
+void		 steps_header(struct buffer *);
 
 char	*step_interpolate_lookup(const char *, void *);
 int	 step_serialize(const struct step *, struct buffer *);

@@ -2,7 +2,6 @@
 
 #include "config.h"
 
-#include <ctype.h>
 #include <err.h>
 #include <errno.h>
 #include <inttypes.h>
@@ -19,21 +18,22 @@
 #include "vector.h"
 
 enum token_type {
-	TOKEN_KEY,
-	TOKEN_EQUAL,
-	TOKEN_STRING,
+	TOKEN_COMMA,
+	TOKEN_VALUE,
 	TOKEN_NEWLINE,
 };
 
 struct parser_context {
 	struct buffer		*pc_bf;
+	VECTOR(const char *)	 pc_columns;
 	VECTOR(struct step)	 pc_steps;
 };
 
 static void	parser_context_init(struct parser_context *);
 static void	parser_context_reset(struct parser_context *);
 
-static int	steps_parse_line(struct parser_context *, struct lexer *);
+static int	steps_parse_header(struct parser_context *, struct lexer *);
+static int	steps_parse_row(struct parser_context *, struct lexer *);
 
 static struct token	*step_lexer_read(struct lexer *, void *);
 static const char	*token_serialize(const struct token *);
@@ -64,10 +64,15 @@ steps_parse(const char *path)
 		goto out;
 	}
 
+	if (steps_parse_header(&pc, lx)) {
+		error = 1;
+		goto out;
+	}
+
 	for (;;) {
 		if (lexer_peek(lx, LEXER_EOF))
 			break;
-		error = steps_parse_line(&pc, lx);
+		error = steps_parse_row(&pc, lx);
 		if (error)
 			break;
 	}
@@ -142,6 +147,12 @@ steps_find_by_name(struct step *steps, const char *name)
 	return NULL;
 }
 
+void
+steps_header(struct buffer *bf)
+{
+	buffer_printf(bf, "step,name,exit,duration,log,user,time,skip\n");
+}
+
 char *
 step_interpolate_lookup(const char *name, void *arg)
 {
@@ -163,14 +174,8 @@ int
 step_serialize(const struct step *st, struct buffer *bf)
 {
 	static const char fmt[] = ""
-	    "step=\"${step}\" "
-	    "name=\"${name}\" "
-	    "exit=\"${exit}\" "
-	    "duration=\"${duration}\" "
-	    "log=\"${log}\" "
-	    "user=\"${user}\" "
-	    "time=\"${time}\" "
-	    "skip=\"${skip}\"\n";
+	    "${step},${name},${exit},${duration},${log},${user},${time},"
+	    "${skip}\n";
 
 	return interpolate_buffer(fmt, bf,
 	    &(struct interpolate_arg){
@@ -250,6 +255,8 @@ static void
 parser_context_init(struct parser_context *pc)
 {
 	pc->pc_bf = buffer_alloc(512);
+	if (VECTOR_INIT(pc->pc_columns) == NULL)
+		err(1, NULL);
 	if (VECTOR_INIT(pc->pc_steps) == NULL)
 		err(1, NULL);
 }
@@ -258,52 +265,73 @@ static void
 parser_context_reset(struct parser_context *pc)
 {
 	buffer_free(pc->pc_bf);
+	VECTOR_FREE(pc->pc_columns);
 	steps_free(pc->pc_steps);
 }
 
 static int
-steps_parse_line(struct parser_context *pc, struct lexer *lx)
+steps_parse_header(struct parser_context *pc, struct lexer *lx)
+{
+	if (lexer_peek(lx, LEXER_EOF))
+		return 0;
+
+	for (;;) {
+		struct token *col, *discard;
+		const char **dst;
+
+		if (!lexer_expect(lx, TOKEN_VALUE, &col))
+			return 1;
+		dst = VECTOR_ALLOC(pc->pc_columns);
+		if (dst == NULL)
+			err(1, NULL);
+		*dst = col->tk_str;
+
+		if (lexer_if(lx, TOKEN_NEWLINE, &discard))
+			break;
+		if (!lexer_expect(lx, TOKEN_COMMA, &discard))
+			return 1;
+	}
+	return 0;
+}
+
+static int
+steps_parse_row(struct parser_context *pc, struct lexer *lx)
 {
 	struct step *st;
-	int error = 0;
+	size_t col = 0;
 	int lno = 0;
 
 	st = VECTOR_CALLOC(pc->pc_steps);
 	if (st == NULL)
 		err(1, NULL);
 
-	for (;;) {
-		struct token *discard, *key, *val;
+	for (;; col++) {
+		struct token *discard, *val;
+		const char *key;
 
-		if (!lexer_expect(lx, TOKEN_KEY, &key)) {
-			error = 1;
-			break;
-		}
-		if (!lexer_expect(lx, TOKEN_EQUAL, &discard)) {
-			error = 1;
-			break;
-		}
-		if (!lexer_expect(lx, TOKEN_STRING, &val)) {
-			error = 1;
-			break;
-		}
-
+		if (!lexer_expect(lx, TOKEN_VALUE, &val))
+			return 1;
 		if (lno == 0)
-			lno = key->tk_lno;
+			lno = val->tk_lno;
 
-		if (step_set_field(st, key->tk_str, val->tk_str)) {
-			lexer_warnx(lx, key->tk_lno, "unknown key '%s'",
-			    key->tk_str);
-			error = 1;
+		if (col >= VECTOR_LENGTH(pc->pc_columns)) {
+			lexer_warnx(lx, val->tk_lno, "unknown column %zu", col);
+			return 1;
+		}
+
+		key = pc->pc_columns[col];
+		if (step_set_field(st, key, val->tk_str)) {
+			lexer_warnx(lx, val->tk_lno, "unknown key '%s'", key);
+			return 1;
 		}
 
 		if (lexer_if(lx, TOKEN_NEWLINE, &discard))
 			break;
+		if (!lexer_expect(lx, TOKEN_COMMA, &discard))
+			return 1;
 	}
-	if (error == 0)
-		error = step_validate(st, lx, lno);
 
-	return error;
+	return step_validate(st, lx, lno);
 }
 
 static struct token *
@@ -315,56 +343,32 @@ step_lexer_read(struct lexer *lx, void *arg)
 	struct token *tk;
 	char ch;
 
-	do {
-		if (lexer_getc(lx, &ch))
-			return NULL;
-	} while (ch == ' ' || ch == '\t');
-
 	s = lexer_get_state(lx);
 
+	if (lexer_getc(lx, &ch))
+		return NULL;
 	if (ch == 0)
 		return lexer_emit(lx, &s, LEXER_EOF);
-
-	if (ch == '=')
-		return lexer_emit(lx, &s, TOKEN_EQUAL);
-
-	buffer_reset(bf);
-
-	if (ch == '"') {
-		for (;;) {
-			if (lexer_getc(lx, &ch))
-				return NULL;
-			if (ch == 0) {
-				lexer_warnx(lx, s.lno, "unterminated string");
-				return NULL;
-			}
-			if (ch == '"')
-				break;
-			buffer_putc(bf, ch);
-		}
-		if (bf->bf_len == 0)
-			lexer_warnx(lx, s.lno, "empty string");
-		buffer_putc(bf, '\0');
-
-		tk = lexer_emit(lx, &s, TOKEN_STRING);
-		tk->tk_str = strdup(bf->bf_ptr);
-		if (tk->tk_str == NULL)
-			err(1, NULL);
-		return tk;
-	}
-
+	if (ch == ',')
+		return lexer_emit(lx, &s, TOKEN_COMMA);
 	if (ch == '\n')
 		return lexer_emit(lx, &s, TOKEN_NEWLINE);
 
-	do {
+	buffer_reset(bf);
+	for (;;) {
 		buffer_putc(bf, ch);
 		if (lexer_getc(lx, &ch))
 			return NULL;
-	} while (islower((unsigned char)ch));
+		if (ch == 0) {
+			lexer_warnx(lx, s.lno, "unterminated value");
+			return NULL;
+		}
+		if (ch == ',' || ch == '\n')
+			break;
+	}
 	lexer_ungetc(lx, ch);
 	buffer_putc(bf, '\0');
-
-	tk = lexer_emit(lx, &s, TOKEN_KEY);
+	tk = lexer_emit(lx, &s, TOKEN_VALUE);
 	tk->tk_str = strdup(bf->bf_ptr);
 	if (tk->tk_str == NULL)
 		err(1, NULL);
@@ -377,12 +381,10 @@ token_serialize(const struct token *tk)
 	enum token_type type = tk->tk_type;
 
 	switch (type) {
-	case TOKEN_KEY:
-		return "KEY";
-	case TOKEN_EQUAL:
-		return "EQUAL";
-	case TOKEN_STRING:
-		return "STRING";
+	case TOKEN_COMMA:
+		return "COMMA";
+	case TOKEN_VALUE:
+		return "VALUE";
 	case TOKEN_NEWLINE:
 		return "NEWLINE";
 	}

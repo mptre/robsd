@@ -1,7 +1,7 @@
 # default_steps
 default_steps() {
 	step_serialize -s 1 -n one
-	step_serialize -s 2 -n two
+	step_serialize -H -s 2 -n two
 }
 
 if testcase "positive offset"; then

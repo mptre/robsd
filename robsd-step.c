@@ -171,10 +171,14 @@ steps_write(struct step_context *sc, int argc, char **argv)
 	const char *name = NULL;
 	size_t i;
 	int error = 0;
+	int doheader = 0;
 	int ch, n;
 
-	while ((ch = getopt(argc, argv, "n:")) != -1) {
+	while ((ch = getopt(argc, argv, "Hn:")) != -1) {
 		switch (ch) {
+		case 'H':
+			doheader = 1;
+			break;
 		case 'n':
 			name = optarg;
 			break;
@@ -184,8 +188,16 @@ steps_write(struct step_context *sc, int argc, char **argv)
 	}
 	argc -= optind;
 	argv += optind;
-	if (argc == 0 || name == NULL)
+	if (!doheader && (argc == 0 || name == NULL))
 		usage();
+
+	bf = buffer_alloc(4096);
+
+	if (doheader) {
+		steps_header(bf);
+		printf("%.*s", (int)bf->bf_len, bf->bf_ptr);
+		goto out;
+	}
 
 	st = steps_find_by_name(sc->sc_steps, name);
 	if (st == NULL) {
@@ -213,7 +225,7 @@ steps_write(struct step_context *sc, int argc, char **argv)
 		error = 1;
 		goto out;
 	}
-	bf = buffer_alloc(4096);
+	steps_header(bf);
 	for (i = 0; i < VECTOR_LENGTH(sc->sc_steps); i++) {
 		if (step_serialize(&sc->sc_steps[i], bf)) {
 			error = 1;

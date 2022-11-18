@@ -16,7 +16,7 @@ fi
 if testcase "step skip"; then
 	{
 		step_serialize -s 0 -n one -e 1
-		step_serialize -s 1 -n two -i 1
+		step_serialize -H -s 1 -n two -i 1
 	} >"$TMP1"
 	assert_eq "0" "$(step_next "$TMP1")"
 fi
