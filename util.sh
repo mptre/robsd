@@ -716,14 +716,7 @@ log_id() {
 	: "${_builddir:?}"
 	: "${_step:?}"
 
-	case "$_MODE" in
-	robsd-ports|robsd-regress)
-		_name="$(echo "$_name" | tr '/' '-')"
-		;;
-	*)
-		;;
-	esac
-
+	_name="$(echo "$_name" | tr '/' '-')"
 	_id="$(printf '%03d-%s.log' "$_step" "$_name")"
 	_dups="$(find "$_builddir" -name "${_id}*" | wc -l)"
 	if [ "$_dups" -gt 0 ]; then
