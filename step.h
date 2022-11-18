@@ -1,13 +1,13 @@
 struct buffer;
 
 struct step {
-	char		*st_duration;
-	char		*st_exit;
-	char		*st_log;
-	char		*st_name;
 	char		*st_step;
-	char		*st_time;
+	char		*st_name;
+	char		*st_exit;
+	char		*st_duration;
+	char		*st_log;
 	char		*st_user;
+	char		*st_time;
 	char		*st_skip;
 
 	unsigned int	 st_id;
