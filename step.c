@@ -86,7 +86,7 @@ static const struct field_definition fields[] = {
 	{ "log",	STRING,		4, OPTIONAL,	{ "",	NULL } },
 	{ "user",	STRING,		5, 0,		{ 0 } },
 	{ "time",	STRING,		6, OPTIONAL,	{ NULL,	unixtime } },
-	{ "skip",	INTEGER,	7, OPTIONAL,	{ "0",	NULL } },
+	{ "skip",	STRING,		7, OPTIONAL,	{ "0",	NULL } },
 };
 static const size_t nfields = sizeof(fields) / sizeof(fields[0]);
 
@@ -383,6 +383,7 @@ step_field_set(struct step_field *sf, enum step_field_type type,
 {
 	switch (type) {
 	case STRING:
+		free(sf->sf_str);
 		sf->sf_str = strdup(val);
 		if (sf->sf_str == NULL)
 			err(1, NULL);
