@@ -40,7 +40,7 @@ if testcase "read: positive index"; then
 	${step}, ${name}, ${exit}, ${duration}, ${log}, ${user}, ${time}
 	EOF
 	assert_file - "$OUT" <<-EOF
-	1, one, 0, 1, /dev/null, root, 1666666666
+	1, one, 0, 1, , root, 1666666666
 	EOF
 fi
 
@@ -215,6 +215,17 @@ if testcase "write: duplicate name"; then
 	EOF
 fi
 
+if testcase "write: optional fields"; then
+	: >"$TMP1"
+	robsd_step -- -W -f "$TMP1" -i 1 -- name=one exit=-1 duration=-1 \
+		user=root
+	if ! step_header | tr ',' '\n' | sed -e 's/\(.*\)/${\1}/' |
+	   robsd_step -R -f "$TMP1" -n one >/dev/null
+	then
+		fail "expected all fields to be interpolated"
+	fi
+fi
+
 if testcase "write: invalid name missing"; then
 	: >"$TMP1"
 	robsd_step -e -- -W -f "$TMP1" >"$OUT"
@@ -232,7 +243,7 @@ fi
 
 if testcase "write: invalid missing fields"; then
 	: >"$TMP1"
-	robsd_step -e - -- -W -f "$TMP1" -i 1 -- step=1  <<-EOF
+	robsd_step -e - -- -W -f "$TMP1" -i 1 -- name=one <<-EOF
 	robsd-step: invalid substitution, unknown variable 'name'
 	EOF
 fi

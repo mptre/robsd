@@ -156,21 +156,24 @@ cvs_field() {
 	echo "$_line"
 }
 
-# cvs_date -s steps
+# cvs_date -b build-dir -s steps
 #
-# Get the date of the CVS update invocation expressed as a Unix timestamp for
-# the given release.
+# Get the date of the CVS step expressed as a Unix timestamp for the given
+# invocation.
 cvs_date() {
+	local _builddir
 	local _log
 	local _steps
 
 	while [ $# -gt 0 ]; do
 		case "$1" in
+		-b)	shift; _builddir="$1";;
 		-s)	shift; _steps="$1";;
 		*)	break;;
 		esac
 		shift
 	done
+	: "${_builddir:?}"
 	: "${_steps:?}"
 
 	step_eval -n cvs "$_steps"
@@ -179,7 +182,7 @@ cvs_date() {
 	# Try to find the date of the last revision in the log, i.e. the first
 	# entry written by cvs_log(). If nothing was updated, use the step
 	# execution date of the cvs step as a fallback.
-	_log="$(step_value log 2>/dev/null)"
+	_log="${_builddir}/$(step_value log 2>/dev/null)"
 	_date="$(grep -m 1 '^Date:' "$_log" | sed -e 's/^[^:]*: *//')"
 	if [ -n "$_date" ]; then
 		date -j -f '%Y/%m/%d %H:%M:%S' '+%s' "$_date"
@@ -227,7 +230,7 @@ cvs_log() {
 
 	# Use the date from latest revision from the previous release.
 	for _prev in $(prev_release -r "$_robsddir" 0); do
-		_date="$(cvs_date -s "$(step_path "$_prev")")" && break
+		_date="$(cvs_date -b "$_prev" -s "$(step_path "$_prev")")" && break
 	done
 	if [ -z "$_date" ]; then
 		echo "cvs_log: previous date not found" 1>&2
@@ -935,7 +938,11 @@ report() {
 
 		_name="$(step_value name)"
 		_exit="$(step_value exit)"
-		_log="$(step_value log)"
+		if step_value log >/dev/null 2>&1; then
+			_log="${_builddir}/$(step_value log)"
+		else
+			_log="/dev/null"
+		fi
 
 		if [ "$_exit" -eq 0 ] &&
 		   report_skip -b "$_builddir" -n "$_name" -l "$_log" \
@@ -951,9 +958,9 @@ report() {
 		printf 'Exit: %d\n' "$_exit"
 		printf 'Duration: %s\n' \
 			"$(report_duration -d "$_name" -r "$_robsddir" "$_duration")"
-		printf 'Log: %s\n' "$(basename "$_log")"
+		printf 'Log: %s\n' "$(step_value log)"
 		# Honor step specific headers.
-		[ -e "$_log" ] && sed -n -e 's/^X-//p' "$_log"
+		sed -n -e 's/^X-//p' "$_log"
 
 		report_log -e "$_exit" -n "$_name" -l "$_log" \
 			-t "${_builddir}/tmp" >"${_builddir}/tmp/log"
@@ -1265,17 +1272,16 @@ robsd() {
 			# The duration of the end step is the accumulated
 			# duration.
 			step_end -d "$(duration_total -s "$_steps")" \
-				-n "$_name" -l "/dev/null" -s "$_s" \
-				"$_steps"
+				-n "$_name" -s "$_s" "$_steps"
 			return 0
 		fi
 
-		_log="${BUILDDIR}/$(log_id -b "$BUILDDIR" -n "$_name" -s "$_s")"
+		_log="$(log_id -b "$BUILDDIR" -n "$_name" -s "$_s")"
 		_exit=0
 		_t0="$(date '+%s')"
 		step_begin -l "$_log" -n "$_name" -s "$_s" "$_steps"
-		step_exec -f "${BUILDDIR}/tmp/fail" -l "$_log" -s "$_name" ||
-			_exit="$?"
+		step_exec -f "${BUILDDIR}/tmp/fail" -l "${BUILDDIR}/${_log}" \
+			-s "$_name" || _exit="$?"
 		_t1="$(date '+%s')"
 		step_end -d "$((_t1 - _t0))" -e "$_exit" -l "$_log" \
 			-n "$_name" -s "$_s" "$_steps"
@@ -1370,7 +1376,7 @@ step_begin() {
 step_end() {
 	local _d=-1
 	local _e=0
-	local _log="/dev/null"
+	local _log=""
 	local _name
 	local _s
 	local _skip=0
@@ -1401,6 +1407,7 @@ step_end() {
 		"name=${_name}" \
 		"exit=${_e}" \
 		"duration=${_d}" \
+		${_log:+log=${_log}} \
 		"log=${_log}" \
 		"user=${_user}" \
 		${_time:+time=${_time}} \
@@ -1444,9 +1451,9 @@ step_eval() {
 	{
 		printf 'set -A _STEP -- '
 		# shellcheck disable=SC2016
-		printf '${step} ${name} ${exit} ${duration} ${log} ${time} '
+		printf '"${step}" "${name}" "${exit}" "${duration}" "${log}" '
 		# shellcheck disable=SC2016
-		printf '${user} ${skip}\n'
+		printf '"${time}" "${user}" "${skip}"\n'
 	} | "$ROBSDSTEP" -R -f "$_file" "$_flag" "$_step" >"$_tmp" || _err="$?"
 	[ "$_err" -eq 0 ] && eval "$(<"$_tmp")"
 	rm "$_tmp"

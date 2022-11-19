@@ -209,7 +209,8 @@ steps_write(struct step_context *sc, int argc, char **argv)
 		st = VECTOR_CALLOC(sc->sc_steps);
 		if (st == NULL)
 			err(1, NULL);
-		if (step_init(st, id)) {
+		if (step_init(st) ||
+		    step_set_field_integer(st, "step", id)) {
 			error = 1;
 			goto out;
 		}

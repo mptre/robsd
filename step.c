@@ -60,26 +60,33 @@ static int	step_cmp(const void *, const void *);
 static int	step_set_field(struct step *, const char *, const char *);
 static int	step_validate(const struct step *, struct lexer *, int);
 
+static int	unixtime(char *, size_t);
+
 struct field_definition {
 	const char	*fd_name;
 	int		 fd_type;
 	unsigned int	 fd_index;
 	unsigned int	 fd_flags;
 #define OPTIONAL	0x00000001u
+
+	struct {
+		const char	*str;
+		int		 (*fun)(char *, size_t);
+	} fd_default;
 };
 
 static const struct field_definition	*field_definition_find_by_name(
     const char *);
 
 static const struct field_definition fields[] = {
-	{ "step",	INTEGER,	0, 0 },
-	{ "name",	STRING,		1, 0 },
-	{ "exit",	STRING,		2, 0 },
-	{ "duration",	STRING,		3, 0 },
-	{ "log",	STRING,		4, 0 },
-	{ "user",	STRING,		5, 0 },
-	{ "time",	STRING,		6, 0 },
-	{ "skip",	INTEGER,	7, OPTIONAL },
+	{ "step",	INTEGER,	0, 0,		{ 0 } },
+	{ "name",	STRING,		1, 0,		{ 0 } },
+	{ "exit",	STRING,		2, 0,		{ 0 } },
+	{ "duration",	STRING,		3, 0,		{ 0 } },
+	{ "log",	STRING,		4, OPTIONAL,	{ "",	NULL } },
+	{ "user",	STRING,		5, 0,		{ 0 } },
+	{ "time",	STRING,		6, OPTIONAL,	{ NULL,	unixtime } },
+	{ "skip",	INTEGER,	7, OPTIONAL,	{ "0",	NULL } },
 };
 static const size_t nfields = sizeof(fields) / sizeof(fields[0]);
 
@@ -214,33 +221,34 @@ steps_header(struct buffer *bf)
 }
 
 int
-step_init(struct step *st, int id)
+step_init(struct step *st)
 {
+	const struct field_definition *fd;
 	char buf[128];
-	struct timespec ts;
-	uint64_t seconds;
+	size_t i;
 
 	if (VECTOR_INIT(st->st_fields) == NULL)
 		err(1, NULL);
 	if (VECTOR_RESERVE(st->st_fields, nfields) == NULL)
 		err(1, NULL);
 
-	(void)snprintf(buf, sizeof(buf), "%d", id);
-	if (step_set_field(st, "step", buf))
-		return 1;
+	for (i = 0; i < nfields; i++) {
+		const char *def;
 
-	if (clock_gettime(CLOCK_REALTIME, &ts) == -1) {
-		warn("clock_gettime");
-		return 1;
+		fd = &fields[i];
+		if ((fd->fd_flags & OPTIONAL) == 0)
+			continue;
+
+		if (fd->fd_default.str != NULL) {
+			def = fd->fd_default.str;
+		} else {
+			if (fd->fd_default.fun(buf, sizeof(buf)))
+				return 1;
+			def = buf;
+		}
+		if (step_set_field(st, fd->fd_name, def))
+			return 1;
 	}
-	seconds = ts.tv_sec + ts.tv_nsec / 1000000000;
-	(void)snprintf(buf, sizeof(buf), "%" PRIu64, seconds);
-	if (step_set_field(st, "time", buf))
-		return 1;
-
-	if (step_set_field(st, "skip", "0"))
-		return 1;
-
 	return 0;
 }
 
@@ -270,7 +278,7 @@ step_interpolate_lookup(const char *name, void *arg)
 	case INTEGER: {
 		int n;
 
-		n = snprintf(buf, buflen, "%u", sf->sf_int);
+		n = snprintf(buf, buflen, "%d", sf->sf_int);
 		if (n < 0 || n >= buflen) {
 			warnx("id buffer too small");
 			return NULL;
@@ -433,10 +441,8 @@ steps_parse_row(struct parser_context *pc, struct lexer *lx)
 	st = VECTOR_CALLOC(pc->pc_steps);
 	if (st == NULL)
 		err(1, NULL);
-	if (VECTOR_INIT(st->st_fields) == NULL)
-		err(1, NULL);
-	if (VECTOR_RESERVE(st->st_fields, nfields) == NULL)
-		err(1, NULL);
+	if (step_init(st))
+		return 1;
 
 	for (;; col++) {
 		struct token *discard, *val;
@@ -546,15 +552,28 @@ step_cmp(const void *p1, const void *p2)
 	return 0;
 }
 
-int
-step_set_field(struct step *st, const char *key, const char *val)
+static int
+step_set_field(struct step *st, const char *name, const char *val)
 {
 	const struct field_definition *fd;
 
-	fd = field_definition_find_by_name(key);
+	fd = field_definition_find_by_name(name);
 	if (fd == NULL)
 		return 1;
 	return step_field_set(&st->st_fields[fd->fd_index], fd->fd_type, val);
+}
+
+int
+step_set_field_integer(struct step *st, const char *name, int val)
+{
+	const struct field_definition *fd;
+
+	fd = field_definition_find_by_name(name);
+	if (fd == NULL)
+		return 1;
+	st->st_fields[fd->fd_index].sf_type = INTEGER;
+	st->st_fields[fd->fd_index].sf_int = val;
+	return 0;
 }
 
 static int
@@ -576,6 +595,26 @@ step_validate(const struct step *st, struct lexer *lx, int lno)
 		}
 	}
 	return error;
+}
+
+int
+unixtime(char *buf, size_t buflen)
+{
+	struct timespec ts;
+	uint64_t seconds;
+	int n;
+
+	if (clock_gettime(CLOCK_REALTIME, &ts) == -1) {
+		warn("clock_gettime");
+		return 1;
+	}
+	seconds = ts.tv_sec + ts.tv_nsec / 1000000000;
+	n = snprintf(buf, buflen, "%" PRIu64, seconds);
+	if (n < 0 || (size_t)n >= buflen) {
+		warnx("%s: buffer too small", __func__);
+		return 1;
+	}
+	return 0;
 }
 
 static const struct field_definition *

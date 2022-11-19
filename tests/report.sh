@@ -34,11 +34,12 @@ if testcase "basic"; then
 	echo "comment goes here" >"${BUILDDIR}/comment"
 	echo "cvs src update" >"${BUILDDIR}/tmp/cvs-src-up.log"
 	echo "cvs src commits" >"${BUILDDIR}/tmp/cvs-src-ci.log"
+	: >"${BUILDDIR}/cvs.log"
 	{
-		step_serialize -s 1 -n env -d 0
+		step_serialize -s 1 -n env -d 0 -l env.log
 		step_serialize -H -s 2 -n cvs -d 60 -l cvs.log
-		step_serialize -H -s 3 -n patch -d 0
-		step_serialize -H -s 4 -n kernel -i 1
+		step_serialize -H -s 3 -n patch -d 0 -l patch.log
+		step_serialize -H -s 4 -n kernel -i 1 -l kernel.log
 		step_serialize -H -s 5 -n end -d 3600
 	} >"$(step_path "$BUILDDIR")"
 	mkdir "${BUILDDIR}/rel"
@@ -78,8 +79,8 @@ if testcase "failure"; then
 	echo "env log" >"${BUILDDIR}/env.log"
 	echo "cvs log" >"${BUILDDIR}/cvs.log"
 	{
-		step_serialize -s 1 -n cvs -d 11 -l "${BUILDDIR}/cvs.log"
-		step_serialize -H -s 2 -n env -d 10 -l "${BUILDDIR}/env.log" -e 1
+		step_serialize -s 1 -n cvs -d 11 -l cvs.log
+		step_serialize -H -s 2 -n env -d 10 -l env.log -e 1
 		step_serialize -H -s 3 -n patch -i 1
 	} >"$STEPS"
 	cat <<-EOF >"$TMP1"
@@ -111,7 +112,7 @@ fi
 if testcase "failure in skipped step"; then
 	build_init "$BUILDDIR"
 	echo "env log" >"${BUILDDIR}/env.log"
-	step_serialize -s 1 -n env -e 1 -d 1 -l "${BUILDDIR}/env.log" >"$STEPS"
+	step_serialize -s 1 -n env -e 1 -d 1 -l env.log >"$STEPS"
 	cat <<-EOF >"$TMP1"
 	Subject: robsd: $(hostname -s): failed in env
 
@@ -175,11 +176,11 @@ if testcase "regress"; then
 	DISABLED
 	EOF
 	{
-		step_serialize -s 1 -n skipped -d 10 -l "${BUILDDIR}/skipped.log"
-		step_serialize -H -s 2 -n nein -e 1 -d 1 -l "${BUILDDIR}/nein.log"
-		step_serialize -H -s 3 -n error -e 1 -d 1 -l "${BUILDDIR}/error.log"
-		step_serialize -H -s 4 -n skipignore -d 1 -l "${BUILDDIR}/skipignore.log"
-		step_serialize -H -s 5 -n disabled -d 10 -l "${BUILDDIR}/disabled.log"
+		step_serialize -s 1 -n skipped -d 10 -l skipped.log
+		step_serialize -H -s 2 -n nein -e 1 -d 1 -l nein.log
+		step_serialize -H -s 3 -n error -e 1 -d 1 -l error.log
+		step_serialize -H -s 4 -n skipignore -d 1 -l skipignore.log
+		step_serialize -H -s 5 -n disabled -d 10 -l disabled.log
 		step_serialize -H -s 6 -n end -d 12
 	} >"$STEPS"
 
@@ -241,6 +242,7 @@ fi
 
 if testcase "ports"; then
 	build_init "$BUILDDIR"
+	: >"${BUILDDIR}/dpb.log"
 	step_serialize -n dpb -d 20 -l dpb.log >"$STEPS"
 	robsd_config -P - <<-EOF
 	robsddir "$ROBSDDIR"
@@ -268,7 +270,8 @@ fi
 
 if testcase "ports failure"; then
 	build_init "$BUILDDIR"
-	step_serialize -n dpb -e 1 -d 20 >"$STEPS"
+	: >"${BUILDDIR}/dpb.log"
+	step_serialize -n dpb -e 1 -d 20 -l dpb.log >"$STEPS"
 	robsd_config -P - <<-EOF
 	robsddir "$ROBSDDIR"
 	ports { "keep/quiet" }
@@ -289,6 +292,6 @@ if testcase "ports failure"; then
 	> dpb:
 	Exit: 1
 	Duration: 00:00:20
-	Log: null
+	Log: dpb.log
 	EOF
 fi

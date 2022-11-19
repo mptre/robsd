@@ -133,7 +133,7 @@ step_serialize() {
 	local _duration="1"
 	local _exit="0"
 	local _header=1
-	local _log="/dev/null"
+	local _log=""
 	local _name="name"
 	local _skip="0"
 	local _step="1"
