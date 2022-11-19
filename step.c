@@ -229,8 +229,10 @@ step_init(struct step *st)
 
 	if (VECTOR_INIT(st->st_fields) == NULL)
 		err(1, NULL);
-	if (VECTOR_RESERVE(st->st_fields, nfields) == NULL)
-		err(1, NULL);
+	for (i = 0; i < nfields; i++) {
+		if (VECTOR_CALLOC(st->st_fields) == NULL)
+			err(1, NULL);
+	}
 
 	for (i = 0; i < nfields; i++) {
 		const char *def;

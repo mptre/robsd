@@ -244,6 +244,6 @@ fi
 if testcase "write: invalid missing fields"; then
 	: >"$TMP1"
 	robsd_step -e - -- -W -f "$TMP1" -i 1 -- name=one <<-EOF
-	robsd-step: invalid substitution, unknown variable 'name'
+	robsd-step: invalid substitution, unknown variable 'exit'
 	EOF
 fi
