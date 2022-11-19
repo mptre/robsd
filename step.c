@@ -38,9 +38,50 @@ static int	steps_parse_row(struct parser_context *, struct lexer *);
 static struct token	*step_lexer_read(struct lexer *, void *);
 static const char	*token_serialize(const struct token *);
 
-static int	  step_cmp(const void *, const void *);
-static int	  step_validate(const struct step *, struct lexer *, int);
-static char	**step_value(struct step *, const char *);
+enum step_field_type {
+	UNKNOWN,
+	STRING,
+	INTEGER,
+};
+
+struct step_field {
+	enum step_field_type	sf_type;
+	union {
+		char	*sf_str;
+		int	 sf_int;
+	};
+};
+
+static int	step_field_is_empty(const struct step_field *);
+static int	step_field_set(struct step_field *, enum step_field_type,
+    const char *);
+
+static int	step_cmp(const void *, const void *);
+static int	step_set_field(struct step *, const char *, const char *);
+static int	step_validate(const struct step *, struct lexer *, int);
+
+struct field_definition {
+	const char	*fd_name;
+	int		 fd_type;
+	unsigned int	 fd_index;
+	unsigned int	 fd_flags;
+#define OPTIONAL	0x00000001u
+};
+
+static const struct field_definition	*field_definition_find_by_name(
+    const char *);
+
+static const struct field_definition fields[] = {
+	{ "step",	INTEGER,	0, 0 },
+	{ "name",	STRING,		1, 0 },
+	{ "exit",	STRING,		2, 0 },
+	{ "duration",	STRING,		3, 0 },
+	{ "log",	STRING,		4, 0 },
+	{ "user",	STRING,		5, 0 },
+	{ "time",	STRING,		6, 0 },
+	{ "skip",	INTEGER,	7, OPTIONAL },
+};
+static const size_t nfields = sizeof(fields) / sizeof(fields[0]);
 
 struct step *
 steps_parse(const char *path)
@@ -95,15 +136,23 @@ steps_free(struct step *steps)
 
 	while (!VECTOR_EMPTY(steps)) {
 		struct step *st;
+		size_t i;
 
 		st = VECTOR_POP(steps);
-		free(st->st_name);
-		free(st->st_exit);
-		free(st->st_duration);
-		free(st->st_log);
-		free(st->st_time);
-		free(st->st_user);
-		free(st->st_skip);
+		for (i = 0; i < VECTOR_LENGTH(st->st_fields); i++) {
+			struct step_field *sf = &st->st_fields[i];
+
+			switch (sf->sf_type) {
+			case UNKNOWN:
+			case INTEGER:
+				break;
+
+			case STRING:
+				free(sf->sf_str);
+				break;
+			}
+		}
+		VECTOR_FREE(st->st_fields);
 	}
 	VECTOR_FREE(steps);
 }
@@ -120,26 +169,32 @@ steps_sort(struct step *steps)
 struct step *
 steps_find_by_name(struct step *steps, const char *name)
 {
+	const struct field_definition *fd;
 	size_t i;
 
+	fd = field_definition_find_by_name("name");
 	for (i = 0; i < VECTOR_LENGTH(steps); i++) {
 		struct step *st = &steps[i];
+		const struct step_field *sf = &st->st_fields[fd->fd_index];
 
-		if (strcmp(st->st_name, name) == 0)
+		if (!step_field_is_empty(sf) && strcmp(sf->sf_str, name) == 0)
 			return st;
 	}
 	return NULL;
 }
 
 struct step *
-steps_find_by_id(struct step *steps, unsigned int id)
+steps_find_by_id(struct step *steps, int id)
 {
+	const struct field_definition *fd;
 	size_t i;
 
+	fd = field_definition_find_by_name("step");
 	for (i = 0; i < VECTOR_LENGTH(steps); i++) {
 		struct step *st = &steps[i];
+		const struct step_field *sf = &st->st_fields[fd->fd_index];
 
-		if (st->st_id == id)
+		if (!step_field_is_empty(sf) && sf->sf_int == id)
 			return st;
 	}
 	return NULL;
@@ -148,62 +203,31 @@ steps_find_by_id(struct step *steps, unsigned int id)
 void
 steps_header(struct buffer *bf)
 {
-	buffer_printf(bf, "step,name,exit,duration,log,user,time,skip\n");
-}
+	size_t i;
 
-char *
-step_interpolate_lookup(const char *name, void *arg)
-{
-	char buf[64];
-	ssize_t buflen = sizeof(buf);
-	struct step *st = (struct step *)arg;
-	const char *val;
-	char *str;
-
-	if (strcmp(name, "step") == 0) {
-		int n;
-
-		n = snprintf(buf, buflen, "%u", st->st_id);
-		if (n < 0 || n >= buflen) {
-			warnx("id buffer too small");
-			return NULL;
-		}
-		val = buf;
-	} else {
-		char **v;
-
-		v = step_value(st, name);
-		if (v == NULL || *v == NULL)
-			return NULL;
-		val = *v;
+	for (i = 0; i < nfields; i++) {
+		if (i > 0)
+			buffer_putc(bf, ',');
+		buffer_printf(bf, "%s", fields[i].fd_name);
 	}
-
-	str = strdup(val);
-	if (str == NULL)
-		err(1, NULL);
-	return str;
+	buffer_putc(bf, '\n');
 }
 
 int
-step_serialize(const struct step *st, struct buffer *bf)
-{
-	static const char fmt[] = ""
-	    "${step},${name},${exit},${duration},${log},${user},${time},"
-	    "${skip}\n";
-
-	return interpolate_buffer(fmt, bf,
-	    &(struct interpolate_arg){
-		.lookup	= step_interpolate_lookup,
-		.arg	= (void *)st,
-	});
-}
-
-int
-step_set_defaults(struct step *st)
+step_init(struct step *st, int id)
 {
 	char buf[128];
 	struct timespec ts;
 	uint64_t seconds;
+
+	if (VECTOR_INIT(st->st_fields) == NULL)
+		err(1, NULL);
+	if (VECTOR_RESERVE(st->st_fields, nfields) == NULL)
+		err(1, NULL);
+
+	(void)snprintf(buf, sizeof(buf), "%d", id);
+	if (step_set_field(st, "step", buf))
+		return 1;
 
 	if (clock_gettime(CLOCK_REALTIME, &ts) == -1) {
 		warn("clock_gettime");
@@ -220,33 +244,71 @@ step_set_defaults(struct step *st)
 	return 0;
 }
 
-int
-step_set_field(struct step *st, const char *key, const char *val)
+char *
+step_interpolate_lookup(const char *name, void *arg)
 {
-	char **dst;
+	char buf[64];
+	ssize_t buflen = sizeof(buf);
+	const struct field_definition *fd;
+	const struct step *st = (struct step *)arg;
+	const struct step_field *sf;
+	const char *val;
+	char *str;
 
-	if (strcmp(key, "step") == 0) {
-		const char *errstr;
-		unsigned int id;
+	fd = field_definition_find_by_name(name);
+	if (fd == NULL)
+		return NULL;
+	sf = &st->st_fields[fd->fd_index];
+	switch (sf->sf_type) {
+	case UNKNOWN:
+		return NULL;
 
-		id = strtonum(val, 1, INT_MAX, &errstr);
-		if (id == 0) {
-			warnx("step %s %s", val, errstr);
-			return 1;
+	case STRING:
+		val = sf->sf_str;
+		break;
+
+	case INTEGER: {
+		int n;
+
+		n = snprintf(buf, buflen, "%u", sf->sf_int);
+		if (n < 0 || n >= buflen) {
+			warnx("id buffer too small");
+			return NULL;
 		}
-		st->st_id = id;
-		return 0;
+		val = buf;
+		break;
+	}
 	}
 
-	dst = step_value(st, key);
-	if (dst == NULL)
-		return 1;
-	if (*dst != NULL)
-		free(*dst);
-	*dst = strdup(val);
-	if (*dst == NULL)
+	str = strdup(val);
+	if (str == NULL)
 		err(1, NULL);
-	return 0;
+	return str;
+}
+
+int
+step_serialize(const struct step *st, struct buffer *bf)
+{
+	struct buffer *fmt;
+	size_t i;
+	int error;
+
+	fmt = buffer_alloc(1024);
+	for (i = 0; i < nfields; i++) {
+		if (i > 0)
+			buffer_putc(fmt, ',');
+		buffer_printf(fmt, "${%s}", fields[i].fd_name);
+	}
+	buffer_putc(fmt, '\n');
+	buffer_putc(fmt, '\0');
+
+	error = interpolate_buffer(fmt->bf_ptr, bf,
+	    &(struct interpolate_arg){
+		.lookup	= step_interpolate_lookup,
+		.arg	= (void *)st,
+	});
+	buffer_free(fmt);
+	return error;
 }
 
 int
@@ -293,6 +355,50 @@ parser_context_reset(struct parser_context *pc)
 }
 
 static int
+step_field_is_empty(const struct step_field *sf)
+{
+	switch (sf->sf_type) {
+	case STRING:
+	case INTEGER:
+		return 0;
+	case UNKNOWN:
+		break;
+	}
+	return 1;
+}
+
+static int
+step_field_set(struct step_field *sf, enum step_field_type type,
+    const char *val)
+{
+	switch (type) {
+	case STRING:
+		sf->sf_str = strdup(val);
+		if (sf->sf_str == NULL)
+			err(1, NULL);
+		break;
+
+	case INTEGER: {
+		const char *errstr;
+		unsigned int v;
+
+		v = strtonum(val, 0, INT_MAX, &errstr);
+		if (errstr != NULL) {
+			warnx("value %s %s", val, errstr);
+			return 1;
+		}
+		sf->sf_int = v;
+		break;
+	}
+
+	case UNKNOWN:
+		return 1;
+	}
+	sf->sf_type = type;
+	return 0;
+}
+
+static int
 steps_parse_header(struct parser_context *pc, struct lexer *lx)
 {
 	if (lexer_peek(lx, LEXER_EOF))
@@ -327,10 +433,17 @@ steps_parse_row(struct parser_context *pc, struct lexer *lx)
 	st = VECTOR_CALLOC(pc->pc_steps);
 	if (st == NULL)
 		err(1, NULL);
+	if (VECTOR_INIT(st->st_fields) == NULL)
+		err(1, NULL);
+	if (VECTOR_RESERVE(st->st_fields, nfields) == NULL)
+		err(1, NULL);
 
 	for (;; col++) {
 		struct token *discard, *val;
 		const char *key;
+
+		if (lexer_if(lx, TOKEN_COMMA, &discard))
+			continue;
 
 		if (!lexer_expect(lx, TOKEN_VALUE, &val))
 			return 1;
@@ -343,10 +456,12 @@ steps_parse_row(struct parser_context *pc, struct lexer *lx)
 		}
 
 		key = pc->pc_columns[col];
-		if (step_set_field(st, key, val->tk_str)) {
-			lexer_warnx(lx, val->tk_lno, "unknown key '%s'", key);
+		if (field_definition_find_by_name(key) == NULL) {
+			lexer_warnx(lx, val->tk_lno, "unknown field '%s'", key);
 			return 1;
 		}
+		if (step_set_field(st, key, val->tk_str))
+			return 1;
 
 		if (lexer_if(lx, TOKEN_NEWLINE, &discard))
 			break;
@@ -417,70 +532,60 @@ token_serialize(const struct token *tk)
 static int
 step_cmp(const void *p1, const void *p2)
 {
+	const struct field_definition *fd;
 	const struct step *s1 = p1;
 	const struct step *s2 = p2;
 
-	if (s1->st_id < s2->st_id)
+	fd = field_definition_find_by_name("step");
+	if (s1->st_fields[fd->fd_index].sf_int <
+	    s2->st_fields[fd->fd_index].sf_int)
 		return -1;
-	if (s1->st_id > s2->st_id)
+	if (s1->st_fields[fd->fd_index].sf_int >
+	    s2->st_fields[fd->fd_index].sf_int)
 		return 1;
 	return 0;
+}
+
+int
+step_set_field(struct step *st, const char *key, const char *val)
+{
+	const struct field_definition *fd;
+
+	fd = field_definition_find_by_name(key);
+	if (fd == NULL)
+		return 1;
+	return step_field_set(&st->st_fields[fd->fd_index], fd->fd_type, val);
 }
 
 static int
 step_validate(const struct step *st, struct lexer *lx, int lno)
 {
+	size_t i;
 	int error = 0;
 
-	if (st->st_id == 0) {
-		lexer_warnx(lx, lno, "missing key 'step'");
-		error = 1;
-	}
-	if (st->st_duration == NULL) {
-		lexer_warnx(lx, lno, "missing key 'duration'");
-		error = 1;
-	}
-	if (st->st_exit == NULL) {
-		lexer_warnx(lx, lno, "missing key 'exit'");
-		error = 1;
-	}
-	if (st->st_log == NULL) {
-		lexer_warnx(lx, lno, "missing key 'log'");
-		error = 1;
-	}
-	if (st->st_name == NULL) {
-		lexer_warnx(lx, lno, "missing key 'name'");
-		error = 1;
-	}
-	if (st->st_time == NULL) {
-		lexer_warnx(lx, lno, "missing key 'time'");
-		error = 1;
-	}
-	if (st->st_user == NULL) {
-		lexer_warnx(lx, lno, "missing key 'user'");
-		error = 1;
-	}
-	/* skip is optional */
+	for (i = 0; i < nfields; i++) {
+		const struct field_definition *fd = &fields[i];
 
+		if (fd->fd_flags & OPTIONAL)
+			continue;
+
+		if (step_field_is_empty(&st->st_fields[fd->fd_index])) {
+			lexer_warnx(lx, lno, "missing field '%s'",
+			    fd->fd_name);
+			error = 1;
+		}
+	}
 	return error;
 }
 
-static char **
-step_value(struct step *st, const char *key)
+static const struct field_definition *
+field_definition_find_by_name(const char *name)
 {
-	if (strcmp(key, "duration") == 0)
-		return &st->st_duration;
-	if (strcmp(key, "exit") == 0)
-		return &st->st_exit;
-	if (strcmp(key, "log") == 0)
-		return &st->st_log;
-	if (strcmp(key, "name") == 0)
-		return &st->st_name;
-	if (strcmp(key, "time") == 0)
-		return &st->st_time;
-	if (strcmp(key, "user") == 0)
-		return &st->st_user;
-	if (strcmp(key, "skip") == 0)
-		return &st->st_skip;
+	size_t i;
+
+	for (i = 0; i < nfields; i++) {
+		if (strcmp(fields[i].fd_name, name) == 0)
+			return &fields[i];
+	}
 	return NULL;
 }

@@ -155,10 +155,10 @@ if testcase "read: invalid column"; then
 	EOF
 fi
 
-if testcase "read: invalid missing key"; then
-	default_steps | sed -e 's/one,0,//' >"$TMP1"
+if testcase "read: invalid missing field"; then
+	default_steps | sed -e 's/one,/,/' >"$TMP1"
 	robsd_step -e - -- -R -f "$TMP1" -l 1 <<-EOF
-	robsd-step: ${TMP1}:2: missing key 'time'
+	robsd-step: ${TMP1}:2: missing field 'name'
 	EOF
 fi
 
@@ -223,7 +223,7 @@ if testcase "write: invalid name missing"; then
 	fi
 fi
 
-if testcase "write: invalid key value"; then
+if testcase "write: invalid field"; then
 	: >"$TMP1"
 	robsd_step -e - -- -W -f "$TMP1" -i 1 -- key <<-EOF
 	robsd-step: missing field separator in 'key'

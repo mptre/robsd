@@ -170,7 +170,7 @@ steps_write(struct step_context *sc, int argc, char **argv)
 	struct step *st;
 	const char *errstr;
 	size_t i;
-	unsigned int id = 0;
+	int id = 0;
 	int error = 0;
 	int doheader = 0;
 	int ch, n;
@@ -209,8 +209,7 @@ steps_write(struct step_context *sc, int argc, char **argv)
 		st = VECTOR_CALLOC(sc->sc_steps);
 		if (st == NULL)
 			err(1, NULL);
-		st->st_id = id;
-		if (step_set_defaults(st)) {
+		if (step_init(st, id)) {
 			error = 1;
 			goto out;
 		}
