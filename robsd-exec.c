@@ -122,9 +122,9 @@ waiteof(int fd, int timoms)
 				warn("read");
 				return 1;
 			}
-		}
-		if (n == 0)
+		} else if (n == 0) {
 			break;
+		}
 	}
 	return 0;
 }
