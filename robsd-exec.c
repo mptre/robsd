@@ -105,7 +105,7 @@ exitstatus(int status)
 static int
 waiteof(int fd, int timoms)
 {
-	int slpms = 100;
+	int slpms = 1;
 
 	for (;;) {
 		char buf[1];
