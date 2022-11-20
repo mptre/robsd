@@ -4,6 +4,7 @@ if testcase "basic"; then
 	robsd_config - <<-EOF
 	robsddir "${TSHDIR}"
 	EOF
+	: >"$TMP1"
 
 	step_end -t -d 2 -n cvs -s 2 "$TMP1"
 
@@ -19,6 +20,7 @@ if testcase "skip"; then
 	robsd_config - <<-EOF
 	robsddir "${TSHDIR}"
 	EOF
+	: >"$TMP1"
 
 	step_end -S -t -n cvs -s 2 "$TMP1"
 

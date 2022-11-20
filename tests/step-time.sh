@@ -12,7 +12,7 @@ if testcase "step time"; then
 	robsd_config - <<-EOF
 	robsddir "$TSHDIR"
 	EOF
-	if (setmode "robsd" && config_load </dev/null && robsd 1) >"$TMP1" 2>&1; then
+	if (setmode "robsd" && config_load </dev/null && build_init "$TSHDIR" && robsd 1) >"$TMP1" 2>&1; then
 		fail - "expected exit non-zero" <"$TMP1"
 	fi
 	assert_file - "$TMP1" <<-EOF

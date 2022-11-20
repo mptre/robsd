@@ -1401,7 +1401,6 @@ step_end() {
 
 	_user="$(logname)"
 
-	[ -e "$_file" ] || : >"$_file"
 	"$ROBSDSTEP" -W -f "$_file" -i "$_s" -- \
 		"name=${_name}" \
 		"exit=${_e}" \
