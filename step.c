@@ -218,7 +218,6 @@ steps_header(struct buffer *bf)
 int
 step_init(struct step *st)
 {
-	const struct field_definition *fd;
 	size_t i;
 
 	if (VECTOR_INIT(st->st_fields) == NULL)
@@ -229,7 +228,8 @@ step_init(struct step *st)
 	}
 
 	for (i = 0; i < nfields; i++) {
-		fd = &fields[i];
+		const struct field_definition *fd = &fields[i];
+
 		if ((fd->fd_flags & OPTIONAL) == 0)
 			continue;
 
