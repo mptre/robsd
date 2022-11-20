@@ -49,8 +49,7 @@ shift $((OPTIND - 1))
 trap 'trap_exit -r "$ROBSDDIR" -b "$BUILDDIR" -s "$_statpid"' EXIT
 
 if [ -z "$BUILDDIR" ]; then
-	check_perf || exit 1
-
+	check_perf
 	BUILDDIR="${ROBSDDIR}/$(build_id "$ROBSDDIR")"
 else
 	_step="$(step_next "$(step_path "$BUILDDIR")")"
@@ -58,7 +57,7 @@ fi
 build_init "$BUILDDIR"
 info "using directory ${BUILDDIR} at step ${_step}"
 
-lock_acquire "$ROBSDDIR" "$BUILDDIR" || exit 1
+lock_acquire "$ROBSDDIR" "$BUILDDIR"
 
 if [ "$_step" -eq 1 ]; then
 	if [ -n "$_comment" ]; then
