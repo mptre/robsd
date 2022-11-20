@@ -9,13 +9,18 @@
 #include <unistd.h>
 
 #include "extern.h"
+#include "vector.h"
 
 static __dead void	usage(void);
 
 int
 main(int argc, char *argv[])
 {
+	VECTOR(const char *) vars;
 	struct config *config = NULL;
+	const char *mode = NULL;
+	const char *path = NULL;
+	size_t i;
 	int dointerpolate = 0;
 	int error = 0;
 	int ch;
@@ -23,26 +28,19 @@ main(int argc, char *argv[])
 	if (pledge("stdio rpath inet getpw route", NULL) == -1)
 		err(1, "pledge");
 
+	if (VECTOR_INIT(vars) == NULL)
+		err(1, NULL);
+
 	while ((ch = getopt(argc, argv, "f:m:v:")) != -1) {
 		switch (ch) {
 		case 'f':
-			if (config == NULL)
-				usage();
-			config_set_path(config, optarg);
+			path = optarg;
 			break;
 		case 'm':
-			config = config_alloc(optarg);
-			if (config == NULL) {
-				error = 1;
-				goto out;
-			}
+			mode = optarg;
 			break;
 		case 'v':
-			if (config == NULL ||
-			    config_append_var(config, optarg)) {
-				error = 1;
-				goto out;
-			}
+			*VECTOR_ALLOC(vars) = optarg;
 			break;
 		default:
 			usage();
@@ -50,7 +48,7 @@ main(int argc, char *argv[])
 	}
 	argc -= optind;
 	argv += optind;
-	if (argc > 1 || config == NULL)
+	if (argc > 1 || mode == NULL)
 		usage();
 	if (argc == 1) {
 		if (strcmp(argv[0], "-") == 0)
@@ -59,6 +57,11 @@ main(int argc, char *argv[])
 			usage();
 	}
 
+	config = config_alloc(mode, path);
+	if (config == NULL) {
+		error = 1;
+		goto out;
+	}
 	if (config_parse(config)) {
 		error = 1;
 		goto out;
@@ -67,11 +70,19 @@ main(int argc, char *argv[])
 	if (pledge("stdio rpath inet route", NULL) == -1)
 		err(1, "pledge");
 
+	for (i = 0; i < VECTOR_LENGTH(vars); i++) {
+		if (config_append_var(config, vars[i])) {
+			error = 1;
+			goto out;
+		}
+	}
+
 	if (dointerpolate)
 		error = config_interpolate(config);
 
 out:
 	config_free(config);
+	VECTOR_FREE(vars);
 	return error;
 }
 

@@ -17,10 +17,13 @@ static __dead void	usage(void);
 int
 main(int argc, char *argv[])
 {
+	VECTOR(const char *) vars;
 	struct config *config = NULL;
 	const struct variable *va;
 	const union variable_value *val;
 	char **args = NULL;
+	const char *mode = NULL;
+	const char *path = NULL;
 	unsigned int i = 0;
 	unsigned int nargs;
 	int error = 0;
@@ -30,29 +33,22 @@ main(int argc, char *argv[])
 	if (pledge("stdio rpath exec getpw", NULL) == -1)
 		err(1, "pledge");
 
+	if (VECTOR_INIT(vars) == NULL)
+		err(1, NULL);
+
 	while ((ch = getopt(argc, argv, "Vf:m:v:")) != -1) {
 		switch (ch) {
 		case 'V':
 			verbose++;
 			break;
 		case 'f':
-			if (config == NULL)
-				usage();
-			config_set_path(config, optarg);
+			path = optarg;
 			break;
 		case 'm':
-			config = config_alloc(optarg);
-			if (config == NULL) {
-				error = 1;
-				goto out;
-			}
+			mode = optarg;
 			break;
 		case 'v':
-			if (config == NULL ||
-			    config_append_var(config, optarg)) {
-				error = 1;
-				goto out;
-			}
+			*VECTOR_ALLOC(vars) = optarg;
 			break;
 		default:
 			usage();
@@ -60,9 +56,14 @@ main(int argc, char *argv[])
 	}
 	argc -= optind;
 	argv += optind;
-	if (argc > 0 || config == NULL)
+	if (argc > 0 || mode == NULL)
 		usage();
 
+	config = config_alloc(mode, path);
+	if (config == NULL) {
+		error = 1;
+		goto out;
+	}
 	if (config_parse(config)) {
 		error = 1;
 		goto out;
@@ -70,6 +71,13 @@ main(int argc, char *argv[])
 
 	if (pledge("stdio exec", NULL) == -1)
 		err(1, "pledge");
+
+	for (i = 0; i < VECTOR_LENGTH(vars); i++) {
+		if (config_append_var(config, vars[i])) {
+			error = 1;
+			goto out;
+		}
+	}
 
 	va = config_find(config, "hook");
 	if (va == NULL)
@@ -114,6 +122,7 @@ main(int argc, char *argv[])
 out:
 	free(args);
 	config_free(config);
+	VECTOR_FREE(vars);
 	return error;
 }
 

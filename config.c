@@ -1,3 +1,5 @@
+#include "extern.h"
+
 #include "config.h"
 
 #include <sys/param.h>	/* MACHINE, MACHINE_ARCH */
@@ -19,7 +21,6 @@
 
 #include "buffer.h"
 #include "cdefs.h"
-#include "extern.h"
 #include "interpolate.h"
 #include "lexer.h"
 #include "token.h"
@@ -234,7 +235,7 @@ static const struct grammar robsd_regress[] = {
 };
 
 struct config *
-config_alloc(const char *mode)
+config_alloc(const char *mode, const char *path)
 {
 	struct config *cf;
 	int m;
@@ -247,6 +248,7 @@ config_alloc(const char *mode)
 	cf = calloc(1, sizeof(*cf));
 	if (cf == NULL)
 		err(1, NULL);
+	cf->cf_path = path;
 	cf->cf_mode = m;
 	TAILQ_INIT(&cf->cf_variables);
 	if (VECTOR_INIT(cf->cf_empty_list) == NULL)
@@ -254,19 +256,23 @@ config_alloc(const char *mode)
 
 	switch (cf->cf_mode) {
 	case CONFIG_ROBSD:
-		cf->cf_path = "/etc/robsd.conf";
+		if (cf->cf_path == NULL)
+			cf->cf_path = "/etc/robsd.conf";
 		cf->cf_grammar = robsd;
 		break;
 	case CONFIG_ROBSD_CROSS:
-		cf->cf_path = "/etc/robsd-cross.conf";
+		if (cf->cf_path == NULL)
+			cf->cf_path = "/etc/robsd-cross.conf";
 		cf->cf_grammar = robsd_cross;
 		break;
 	case CONFIG_ROBSD_PORTS:
-		cf->cf_path = "/etc/robsd-ports.conf";
+		if (cf->cf_path == NULL)
+			cf->cf_path = "/etc/robsd-ports.conf";
 		cf->cf_grammar = robsd_ports;
 		break;
 	case CONFIG_ROBSD_REGRESS:
-		cf->cf_path = "/etc/robsd-regress.conf";
+		if (cf->cf_path == NULL)
+			cf->cf_path = "/etc/robsd-regress.conf";
 		cf->cf_grammar = robsd_regress;
 		break;
 	}
@@ -303,12 +309,6 @@ config_free(struct config *cf)
 	lexer_free(cf->cf_lx);
 	VECTOR_FREE(cf->cf_empty_list);
 	free(cf);
-}
-
-void
-config_set_path(struct config *cf, const char *path)
-{
-	cf->cf_path = path;
 }
 
 int
