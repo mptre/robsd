@@ -86,7 +86,7 @@ if [ "$_step" -eq 1 ]; then
 		info "skipping steps: ${SKIP}"
 		for _skip in $SKIP; do
 			_id="$(step_id "$_skip")"
-			step_end -S -t "$(date +%s)" -n "$_skip" -s "$_id" \
+			step_end -S -t -n "$_skip" -s "$_id" \
 				"$(step_path "$BUILDDIR")"
 		done
 	fi

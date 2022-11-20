@@ -1271,8 +1271,8 @@ robsd() {
 		if [ "$_name" = "end" ]; then
 			# The duration of the end step is the accumulated
 			# duration.
-			step_end -d "$(duration_total -s "$_steps")" \
-				-t "$(date +%s)" -n "$_name" -s "$_s" "$_steps"
+			step_end -t -d "$(duration_total -s "$_steps")" \
+				-n "$_name" -s "$_s" "$_steps"
 			return 0
 		fi
 
@@ -1366,11 +1366,10 @@ step_begin() {
 	: "${_s:?}"
 	_file="$1"; : "${_file:?}"
 
-	step_end -d -1 -e -1 -l "$_log" -n "$_name" -s "$_s" -t "$(date +%s)" \
-		"$_file"
+	step_end -t -d -1 -e -1 -l "$_log" -n "$_name" -s "$_s" "$_file"
 }
 
-# step_end [-S] [-d duration] [-e exit] [-l step-log] [-t time] -n step-name -s step-id file
+# step_end [-S] [-t] [-d duration] [-e exit] [-l step-log] -n step-name -s step-id file
 #
 # Mark the given step as ended by writing an entry to the given file.
 step_end() {
@@ -1386,11 +1385,11 @@ step_end() {
 	while [ $# -gt 0 ]; do
 		case "$1" in
 		-S)	_skip="1";;
+		-t)	_time="$(date +%s)";;
 		-d)	shift; _d="$1";;
 		-e)	shift; _e="$1";;
 		-l)	shift; _log="$1";;
 		-n)	shift; _name="$1";;
-		-t)	shift; _time="$1";;
 		-s)	shift; _s="$1";;
 		*)	break;;
 		esac
