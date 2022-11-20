@@ -247,7 +247,7 @@ step_interpolate_lookup(const char *name, void *arg)
 	const struct field_definition *fd;
 	const struct step *st = (struct step *)arg;
 	const struct step_field *sf;
-	const char *val;
+	const char *val = NULL;
 	char *str;
 
 	fd = field_definition_find_by_name(name);
