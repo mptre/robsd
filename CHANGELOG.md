@@ -1,3 +1,19 @@
+# 17.0.0 - 2022-11-20
+
+## Changes
+
+- Turn log step field into a relative path.
+  (35aa142)
+  (Anton Lindqvist)
+
+## News
+
+## Bug fixes
+
+- Preserve steps with the same name but different id.
+  (a596d03)
+  (Anton Lindqvist)
+
 # 16.0.0 - 2022-11-18
 
 ## Changes
