@@ -218,7 +218,7 @@ fi
 if testcase "write: optional fields"; then
 	: >"$TMP1"
 	robsd_step -- -W -f "$TMP1" -i 1 -- name=one exit=-1 duration=-1 \
-		user=root
+		user=root time=1666666666
 	if ! step_header | tr ',' '\n' | sed -e 's/\(.*\)/${\1}/' |
 	   robsd_step -R -f "$TMP1" -n one >/dev/null
 	then

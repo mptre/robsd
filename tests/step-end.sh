@@ -5,7 +5,7 @@ if testcase "basic"; then
 	robsddir "${TSHDIR}"
 	EOF
 
-	step_end -d 2 -n cvs -s 2 "$TMP1"
+	step_end -d 2 -t 1666666666 -n cvs -s 2 "$TMP1"
 
 	step_eval -n cvs "$TMP1"
 	assert_eq "2" "$(step_value step)" "step"
@@ -20,7 +20,7 @@ if testcase "already present"; then
 	EOF
 	step_serialize -s 2 -n cvs >"$TMP1"
 
-	step_end -d 2 -n cvs -s 2 "$TMP1"
+	step_end -d 2 -t 1666666666 -n cvs -s 2 "$TMP1"
 
 	step_eval -n cvs "$TMP1"
 	assert_eq "2" "$(step_value duration)" "duration"

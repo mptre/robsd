@@ -1272,7 +1272,7 @@ robsd() {
 			# The duration of the end step is the accumulated
 			# duration.
 			step_end -d "$(duration_total -s "$_steps")" \
-				-n "$_name" -s "$_s" "$_steps"
+				-t "$(date +%s)" -n "$_name" -s "$_s" "$_steps"
 			return 0
 		fi
 
