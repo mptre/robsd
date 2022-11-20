@@ -152,6 +152,9 @@ static int			 config_append_defaults(struct config *);
 static struct variable		*config_append(struct config *,
     enum variable_type, const char *, const union variable_value *, int,
     unsigned int);
+static int			 config_append_string(struct config *,
+    const char *,
+    const char *);
 static const struct variable	*config_findn(const struct config *,
     const char *, size_t);
 static int			 config_present(const struct config *,
@@ -359,7 +362,7 @@ config_append_var(struct config *cf, const char *str)
 	return error;
 }
 
-int
+static int
 config_append_string(struct config *cf, const char *name, const char *str)
 {
 	union variable_value val;
