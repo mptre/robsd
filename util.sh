@@ -1251,7 +1251,7 @@ release_dir() {
 	echo "${_prefix}/${_suffix}"
 }
 
-# robsd step
+# robsd -b build-dir -s step-id
 #
 # Main loop shared between utilities.
 robsd() {
@@ -1264,8 +1264,18 @@ robsd() {
 	local _t0
 	local _t1
 
-	_step="$1"; : "${_step:?}"
-	_steps="$(step_path "$BUILDDIR")"
+	while [ $# -gt 0 ]; do
+		case "$1" in
+		-b)	shift; _builddir="$1";;
+		-s)	shift; _step="$1";;
+		*)	break;;
+		esac
+		shift
+	done
+	: "${_builddir:?}"
+	: "${_step:?}"
+
+	_steps="$(step_path "$_builddir")"
 
 	while :; do
 		_name="$(step_name "$_step")"
@@ -1287,11 +1297,11 @@ robsd() {
 			return 0
 		fi
 
-		_log="$(log_id -b "$BUILDDIR" -n "$_name" -s "$_s")"
+		_log="$(log_id -b "$_builddir" -n "$_name" -s "$_s")"
 		_exit=0
 		_t0="$(date '+%s')"
 		step_begin -l "$_log" -n "$_name" -s "$_s" "$_steps"
-		step_exec -f "${BUILDDIR}/tmp/fail" -l "${BUILDDIR}/${_log}" \
+		step_exec -f "${_builddir}/tmp/fail" -l "${_builddir}/${_log}" \
 			-s "$_name" || _exit="$?"
 		_t1="$(date '+%s')"
 		step_end -d "$((_t1 - _t0))" -e "$_exit" -l "$_log" \
@@ -1299,7 +1309,7 @@ robsd() {
 
 		case "$_MODE" in
 		robsd-regress)
-			regress_step_after -b "$BUILDDIR" -e "$_exit" \
+			regress_step_after -b "$_builddir" -e "$_exit" \
 				-n "$_name" || return 1
 			;;
 		*)
@@ -1314,7 +1324,7 @@ robsd() {
 		fi
 
 		# Does robsd-kill want us dead?
-		lock_alive "$ROBSDDIR" "$BUILDDIR" || return 1
+		lock_alive "$ROBSDDIR" "$_builddir" || return 1
 	done
 }
 

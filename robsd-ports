@@ -118,10 +118,10 @@ if [ "$DETACH" -eq 1 ]; then
 	trap '-' EXIT
 	{
 		trap 'trap_exit -r "$ROBSDDIR" -b "$BUILDDIR" -s "${_statpid}"' EXIT
-		robsd "$_step"
+		robsd -b "$BUILDDIR" -s "$_step"
 	} &
 	info "running in detach mode as pid ${!}"
 else
 	info "running as pid ${$}"
-	robsd "$_step"
+	robsd -b "$BUILDDIR" -s "$_step"
 fi
