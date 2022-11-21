@@ -47,7 +47,6 @@ su() {
 
 if testcase "basic"; then
 	mkdir "${TSHDIR}/.cvs"
-	BUILDDIR="${ROBSDDIR}/2019-07-21"; export BUILDDIR
 	# shellcheck disable=SC2086
 	mkdir -p ${ROBSDDIR}/2019-07-{19,20,21}
 	step_serialize -n cvs -i 1 >"$(step_path "${ROBSDDIR}/2019-07-20")"
@@ -94,14 +93,17 @@ if testcase "basic"; then
 
 	EOF
 
-	cvs_log -r "$ROBSDDIR" -t "${TSHDIR}/.cvs" \
-		-c "$TSHDIR" -h example.com:/cvs -u nobody <"$TMP1" >"${TSHDIR}/act"
+	cvs_log -b "${ROBSDDIR}/2019-07-21" -r "$ROBSDDIR" \
+		-t "${TSHDIR}/.cvs" -c "$TSHDIR" -h example.com:/cvs \
+		-u nobody <"$TMP1" >"${TSHDIR}/act"
 	assert_file "${TSHDIR}/exp" "${TSHDIR}/act"
 fi
 
 if testcase "previous build absent"; then
-	if ! cvs_log -r "$ROBSDDIR" -t "${TSHDIR}/.cvs" \
-	   -c "$TSHDIR" -h example.com:/cvs -u nobody >"$TMP1" 2>&1; then
+	if ! cvs_log -b "${ROBSDDIR}/2019-07-21" -r "$ROBSDDIR" \
+	   -t "${TSHDIR}/.cvs" -c "$TSHDIR" -h example.com:/cvs -u nobody \
+	   >"$TMP1" 2>&1
+	then
 		fail - "expected exit zero" <"$TMP1"
 	fi
 fi
@@ -110,7 +112,6 @@ fi
 # as the threshold.
 if testcase "previous build no updates"; then
 	mkdir "${TSHDIR}/.cvs"
-	BUILDDIR="${ROBSDDIR}/2019-07-21"; export BUILDDIR
 	# shellcheck disable=SC2086
 	mkdir -p ${ROBSDDIR}/2019-07-{20,21}
 	step_serialize -n cvs -l cvs.log -t 1563616561 \
@@ -125,8 +126,9 @@ if testcase "previous build no updates"; then
 	P sbin/dhclient/clparse.c
 	EOF
 
-	if ! cvs_log -r "$ROBSDDIR" -t "${TSHDIR}/.cvs" -u nobody -c /dev/null \
-	   <"$TMP1" >"${TSHDIR}/act"; then
+	if ! cvs_log -b "${ROBSDDIR}/2019-07-21" -r "$ROBSDDIR" \
+	   -t "${TSHDIR}/.cvs" -u nobody -c /dev/null <"$TMP1" >"${TSHDIR}/act"
+	then
 		fail - "expected exit zero" <"$TMP1"
 	fi
 	assert_file "/dev/null" "${TSHDIR}/act"

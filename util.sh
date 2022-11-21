@@ -202,12 +202,13 @@ cvs_date() {
 	fi
 }
 
-# cvs_log -r robsd-dir -t tmp-dir -c cvs-dir -h cvs-host -u cvs-user
+# cvs_log -b build-dir -r robsd-dir -t tmp-dir -c cvs-dir -h cvs-host -u cvs-user
 #
 # Generate a descending log of all commits since the last release build for the
 # given repository. Individual revisions are group by commit id and sorted by
 # date.
 cvs_log() {
+	local _builddir
 	local _date=""
 	local _id
 	local _indent="  "
@@ -221,6 +222,7 @@ cvs_log() {
 
 	while [ $# -gt 0 ]; do
 		case "$1" in
+		-b)	shift; _builddir="$1";;
 		-r)	shift; _robsddir="$1";;
 		-t)	shift; _tmp="${1}/cvs";;
 		-c)	shift; _repo="$1";;
@@ -230,6 +232,7 @@ cvs_log() {
 		esac
 		shift
 	done
+	: "${_builddir:?}"
 	: "${_robsddir:?}"
 	: "${_tmp:?}"
 	: "${_repo:?}"
@@ -240,7 +243,7 @@ cvs_log() {
 	mkdir -p "$_tmp"
 
 	# Use the date from latest revision from the previous release.
-	for _prev in $(prev_release -r "$_robsddir" 0); do
+	for _prev in $(prev_release -b "$_builddir" -r "$_robsddir" 0); do
 		_date="$(cvs_date -b "$_prev" -s "$(step_path "$_prev")")" && break
 	done
 	if [ -z "$_date" ]; then
@@ -504,11 +507,12 @@ diff_root() {
 	return 0
 }
 
-# duration_prev -r robsd-dir step-name
+# duration_prev -b build-dir -r robsd-dir step-name
 #
 # Get the duration for the given step from the previous successful invocation.
 # Exits non-zero if no previous invocation exists or the previous one failed.
 duration_prev() {
+	local _builddir
 	local _duration
 	local _exit
 	local _prev
@@ -517,15 +521,17 @@ duration_prev() {
 
 	while [ $# -gt 0 ]; do
 		case "$1" in
+		-b)	shift; _builddir="$1";;
 		-r)	shift; _robsddir="$1";;
 		*)	break;;
 		esac
 		shift
 	done
+	: "${_builddir:?}"
 	: "${_robsddir:?}"
 	_step="$1"; : "${_step:?}"
 
-	prev_release -r "$_robsddir" 0 |
+	prev_release -b "$_builddir" -r "$_robsddir" 0 |
 	while read -r _prev; do
 		step_eval -n "$_step" "$(step_path "$_prev")" 2>/dev/null || continue
 		step_skip && continue
@@ -755,22 +761,25 @@ path_strip() {
 
 }
 
-# prev_release -r robsd-dir [count]
+# prev_release -b build-dir -r robsd-dir [count]
 #
 # Get the previous count number of release directories. Where count defaults
 # to 1. If count is 0 means all previous release directories.
 prev_release() {
 	local _attic
+	local _builddir
 	local _count
 	local _robsddir
 
 	while [ $# -gt 0 ]; do
 		case "$1" in
+		-b)	shift; _builddir="$1";;
 		-r)	shift; _robsddir="$1";;
 		*)	break;;
 		esac
 		shift
 	done
+	: "${_builddir:?}"
 	: "${_robsddir:?}"
 	_count="${1:-1}"
 
@@ -779,7 +788,7 @@ prev_release() {
 
 	find "$_robsddir" -mindepth 1 -maxdepth 1 -type d |
 	sort -nr |
-	grep -v -e "$BUILDDIR" ${_attic:+-e ${_attic}} |
+	grep -v -e "$_builddir" ${_attic:+-e ${_attic}} |
 	{
 		if [ "$_count" -gt 0 ]; then
 			head "-${_count}"
@@ -839,7 +848,7 @@ purge() {
 	done
 }
 
-# report -r robsd-dir -b build-dir
+# report -b build-dir -r robsd-dir
 #
 # Create and save build report.
 report() {
@@ -860,8 +869,8 @@ report() {
 
 	while [ $# -gt 0 ]; do
 		case "$1" in
-		-r)	shift; _robsddir="$1";;
 		-b)	shift; _builddir="$1";;
+		-r)	shift; _robsddir="$1";;
 		*)	break;;
 		esac
 		shift
@@ -899,10 +908,10 @@ report() {
 
 	if step_eval -n end "$_steps" 2>/dev/null; then
 		_duration="$(step_value duration)"
-		_duration="$(report_duration -r "$_robsddir" -d end -t 60 "$_duration")"
+		_duration="$(report_duration -b "$_builddir" -r "$_robsddir" -d end -t 60 "$_duration")"
 	else
 		_duration="$(duration_total -s "$_steps")"
-		_duration="$(report_duration -r "$_robsddir" "$_duration")"
+		_duration="$(report_duration -b "$_builddir" -r "$_robsddir" "$_duration")"
 	fi
 
 	# Add subject header.
@@ -938,7 +947,8 @@ report() {
 			cat "${_builddir}/tags"
 		fi
 
-		report_sizes -r "$_robsddir" "$(release_dir "$_builddir")"
+		report_sizes -b "$_builddir" -r "$_robsddir" \
+			"$(release_dir "$_builddir")"
 	} >>"$_tmp"
 
 	_i=1
@@ -968,7 +978,7 @@ report() {
 		printf '> %s:\n' "$_name"
 		printf 'Exit: %d\n' "$_exit"
 		printf 'Duration: %s\n' \
-			"$(report_duration -d "$_name" -r "$_robsddir" "$_duration")"
+			"$(report_duration -b "$_builddir" -d "$_name" -r "$_robsddir" "$_duration")"
 		printf 'Log: %s\n' "$(step_value log)"
 		# Honor step specific headers.
 		sed -n -e 's/^X-//p' "$_log"
@@ -989,13 +999,14 @@ report() {
 	rm "$_tmp"
 }
 
-# report_duration [-d step] [-t threshold] -r robsd-dir duration
+# report_duration [-d step] [-t threshold] -b build-dir -r robsd-dir duration
 #
 # Format the given duration to a human readable representation.
 # If option `-d' is given, the duration delta for the given step relative
 # to the previous successful release is also formatted if the delta is greater
 # than the given threshold.
 report_duration() {
+	local _builddir
 	local _d
 	local _delta
 	local _prev
@@ -1006,6 +1017,7 @@ report_duration() {
 
 	while [ $# -gt 0 ]; do
 		case "$1" in
+		-b)	shift; _builddir="$1";;
 		-d)	shift; _step="$1";;
 		-t)	shift; _threshold="$1";;
 		-r)	shift; _robsddir="$1";;
@@ -1013,11 +1025,13 @@ report_duration() {
 		esac
 		shift
 	done
+	: "${_builddir:?}"
 	: "${_robsddir:?}"
 	_d="$1"; : "${_d:?}"
 
 	if [ -z "$_step" ] ||
-	   ! _prev="$(duration_prev -r "$_robsddir" "$_step")"; then
+	   ! _prev="$(duration_prev -b "$_builddir" -r "$_robsddir" "$_step")"
+	then
 		format_duration "$_d"
 		return 0
 	fi
@@ -1102,11 +1116,12 @@ report_log() {
 	esac
 }
 
-# report_size -r robsd-dir file
+# report_size -b build-dir -r robsd-dir file
 #
 # If the given file is significantly larger than the same file in the previous
 # release, a human readable representation of the size and delta is reported.
 report_size() {
+	local _builddir
 	local _delta
 	local _f
 	local _name
@@ -1119,11 +1134,13 @@ report_size() {
 
 	while [ $# -gt 0 ]; do
 		case "$1" in
+		-b)	shift; _builddir="$1";;
 		-r)	shift; _robsddir="$1";;
 		*)	break;;
 		esac
 		shift
 	done
+	: "${_builddir:?}"
 	: "${_robsddir:?}"
 	_f="$1"; : "${_f:?}"
 
@@ -1131,7 +1148,7 @@ report_size() {
 
 	[ -e "$_f" ] || return 0
 
-	_prev="$(prev_release -r "$_robsddir")"
+	_prev="$(prev_release -b "$_builddir" -r "$_robsddir")"
 	[ -z "$_prev" ] && return 0
 
 	_path="$(release_dir "$_prev")/${_name}"
@@ -1150,10 +1167,11 @@ report_size() {
 		"($(format_size -s "$_delta"))"
 }
 
-# report_sizes -r robsd-dir release-dir
+# report_sizes -b build-dir -r robsd-dir release-dir
 #
 # Report significant growth of any file present in the given release directory.
 report_sizes() {
+	local _builddir
 	local _dir
 	local _f
 	local _robsddir
@@ -1161,18 +1179,20 @@ report_sizes() {
 
 	while [ $# -gt 0 ]; do
 		case "$1" in
+		-b)	shift; _builddir="$1";;
 		-r)	shift; _robsddir="$1";;
 		*)	break;;
 		esac
 		shift
 	done
+	: "${_builddir:?}"
 	: "${_robsddir:?}"
 	_dir="$1"; : "${_dir:?}"
 
 	[ -d "$_dir" ] || return 0
 
 	find "$_dir" -type f | sort | while read -r _f; do
-		_siz="$(report_size -r "$_robsddir" "$_f")"
+		_siz="$(report_size -b "$_builddir" -r "$_robsddir" "$_f")"
 		[ -z "$_siz" ] && continue
 
 		echo "Size: ${_siz}"
