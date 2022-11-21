@@ -48,8 +48,10 @@ done
 # Compute missing checksums.
 mv SHA256 SHA256.orig
 {
-	grep -v -e BUILDINFO -e 'install.*' -e '*.diff.*' SHA256.orig
-	# shellcheck disable=SC2035
-	sha256 BUILDINFO install* *.diff.*
+	grep -v -e BUILDINFO -e 'install.*' -e '*.diff.*' SHA256.orig || :
+
+	find . -type f \( -name 'BUILDINFO' -o -name 'install*' -name '*.diff.*' \) |
+	sed -e 's,^\./,,' |
+	xargs -rt sha256
 } | sort >SHA256
 rm SHA256.orig
