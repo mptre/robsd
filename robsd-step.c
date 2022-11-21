@@ -34,7 +34,7 @@ main(int argc, char *argv[])
 	int error = 0;
 	int ch;
 
-	if (pledge("stdio rpath wpath cpath", NULL) == -1)
+	if (pledge("stdio rpath wpath cpath unveil", NULL) == -1)
 		err(1, "pledge");
 
 	memset(&sc, 0, sizeof(sc));
@@ -66,6 +66,23 @@ main(int argc, char *argv[])
 	if (mode == 0 || sc.sc_path == NULL)
 		usage();
 
+	switch (mode) {
+	case MODE_READ:
+		if (unveil("/dev/stdin", "r") == -1)
+			err(1, "unveil: /dev/stdin");
+		if (unveil(sc.sc_path, "r") == -1)
+			err(1, "unveil: %s", sc.sc_path);
+		if (pledge("stdio rpath", NULL) == -1)
+			err(1, "pledge");
+		break;
+	case MODE_WRITE:
+		if (unveil(sc.sc_path, "rwc") == -1)
+			err(1, "unveil: %s", sc.sc_path);
+		if (pledge("stdio rpath wpath cpath", NULL) == -1)
+			err(1, "pledge");
+		break;
+	}
+
 	sc.sc_steps = steps_parse(sc.sc_path);
 	if (sc.sc_steps == NULL) {
 		error = 1;
@@ -76,8 +93,6 @@ main(int argc, char *argv[])
 	optind = 0;
 	switch (mode) {
 	case MODE_READ:
-		if (pledge("stdio rpath", NULL) == -1)
-			err(1, "pledge");
 		error = steps_read(&sc, argc, argv);
 		break;
 	case MODE_WRITE:

@@ -56,6 +56,7 @@ PROG_robsd-step=	robsd-step
 SRCS_robsd-step+=	robsd-step.c
 SRCS_robsd-step+=	buffer.c
 SRCS_robsd-step+=	compat-strtonum.c
+SRCS_robsd-step+=	compat-unveil.c
 SRCS_robsd-step+=	interpolate.c
 SRCS_robsd-step+=	lexer.c
 SRCS_robsd-step+=	step.c
