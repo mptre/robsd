@@ -23,6 +23,7 @@ TESTS+=	report.sh
 TESTS+=	robsd-config.sh
 TESTS+=	robsd-cross.sh
 TESTS+=	robsd-crossenv.sh
+TESTS+=	robsd-hash.sh
 TESTS+=	robsd-hook.sh
 TESTS+=	robsd-ports.sh
 TESTS+=	robsd-regress.sh

@@ -269,6 +269,7 @@ DISTFILES+=	tests/report.sh
 DISTFILES+=	tests/robsd-config.sh
 DISTFILES+=	tests/robsd-cross.sh
 DISTFILES+=	tests/robsd-crossenv.sh
+DISTFILES+=	tests/robsd-hash.sh
 DISTFILES+=	tests/robsd-hook.sh
 DISTFILES+=	tests/robsd-ports.sh
 DISTFILES+=	tests/robsd-regress.sh
