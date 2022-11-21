@@ -29,7 +29,7 @@ done
 	date -u -r "$(build_date)" "+Build date: %s - %+"
 	# Include date of the last CVS revision.
 	for _dir in "$BUILDDIR" $(prev_release -r "$ROBSDDIR" 0); do
-		_date="$(cvs_date -s "$(step_path "$_dir")")" || continue
+		_date="$(cvs_date -b "$BUILDDIR" -s "$(step_path "$_dir")")" || continue
 		date -u -r "$_date" "+Build cvs date: %s - %+"
 		break
 	done
