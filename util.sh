@@ -202,7 +202,7 @@ cvs_date() {
 	fi
 }
 
-# cvs_log -r robsd-dir -t tmp-dir  -c cvs-dir -h cvs-host -u cvs-user
+# cvs_log -r robsd-dir -t tmp-dir -c cvs-dir -h cvs-host -u cvs-user
 #
 # Generate a descending log of all commits since the last release build for the
 # given repository. Individual revisions are group by commit id and sorted by
