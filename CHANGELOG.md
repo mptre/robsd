@@ -1,3 +1,11 @@
+# 17.0.1 - 2022-11-21
+
+## Changes
+
+- Unblock SIGQUIT in robsd-exec.
+  (81f6bf5)
+  (Anton Lindqvist)
+
 # 17.0.0 - 2022-11-20
 
 ## Changes
