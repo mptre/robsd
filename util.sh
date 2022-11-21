@@ -1406,7 +1406,6 @@ step_end() {
 		"exit=${_e}" \
 		"duration=${_d}" \
 		${_log:+log=${_log}} \
-		"log=${_log}" \
 		"user=${_user}" \
 		${_time:+time=${_time}} \
 		"skip=${_skip}"
