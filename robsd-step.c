@@ -34,6 +34,9 @@ main(int argc, char *argv[])
 	int error = 0;
 	int ch;
 
+	if (pledge("stdio rpath wpath cpath", NULL) == -1)
+		err(1, "pledge");
+
 	memset(&sc, 0, sizeof(sc));
 
 	opterr = 0;
@@ -73,6 +76,8 @@ main(int argc, char *argv[])
 	optind = 0;
 	switch (mode) {
 	case MODE_READ:
+		if (pledge("stdio rpath", NULL) == -1)
+			err(1, "pledge");
 		error = steps_read(&sc, argc, argv);
 		break;
 	case MODE_WRITE:
