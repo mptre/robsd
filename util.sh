@@ -182,8 +182,8 @@ cvs_date() {
 	# Try to find the date of the last revision in the log, i.e. the first
 	# entry written by cvs_log(). If nothing was updated, use the step
 	# execution date of the cvs step as a fallback.
-	_log="${_builddir}/$(step_value log 2>/dev/null)"
-	_date="$(grep -m 1 '^Date:' "$_log" | sed -e 's/^[^:]*: *//')"
+	_log="${_builddir}/$(step_value log 2>/dev/null || :)"
+	_date="$(grep -m 1 '^Date:' "$_log" | sed -e 's/^[^:]*: *//' || :)"
 	if [ -n "$_date" ]; then
 		date -j -f '%Y/%m/%d %H:%M:%S' '+%s' "$_date"
 	else
