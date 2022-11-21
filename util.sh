@@ -15,11 +15,22 @@ abs() {
 	fi
 }
 
-# build_date
+# build_date -b build-dir
 #
 # Get the release build start date.
 build_date() {
-	step_eval 1 "$(step_path "$BUILDDIR")"
+	local _builddir
+
+	while [ $# -gt 0 ]; do
+		case "$1" in
+		-b)	shift; _builddir="$1";;
+		*)	;;
+		esac
+		shift
+	done
+	: "${_builddir:?}"
+
+	step_eval 1 "$(step_path "$_builddir")"
 	step_value time
 }
 
