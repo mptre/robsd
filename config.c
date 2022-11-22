@@ -18,6 +18,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
 
 #include "buffer.h"
 #include "cdefs.h"
@@ -149,6 +150,7 @@ static int	config_parse_directory(struct config *, union variable_value *);
 static int	config_parse_nop(struct config *, union variable_value *);
 
 static int			 config_append_defaults(struct config *);
+static int			 config_append_build_dir(struct config *);
 static struct variable		*config_append(struct config *,
     enum variable_type, const char *, const union variable_value *, int,
     unsigned int);
@@ -1077,6 +1079,9 @@ config_append_defaults(struct config *cf)
 	config_append_string(cf, "arch", MACHINE_ARCH);
 	config_append_string(cf, "machine", MACHINE);
 
+	if (config_append_build_dir(cf))
+		return 1;
+
 	val.str = interpolate_str("${robsddir}/attic",
 	    &(struct interpolate_arg){
 		.lookup	= config_interpolate_lookup,
@@ -1094,6 +1099,52 @@ config_append_defaults(struct config *cf)
 	}
 
 	return 0;
+}
+
+static int
+config_append_build_dir(struct config *cf)
+{
+	struct buffer *bf = NULL;
+	char *nl, *path;
+	int error = 0;
+	int fd = -1;
+
+	path = interpolate_str("${robsddir}/.running",
+	    &(struct interpolate_arg){
+		.lookup	= config_interpolate_lookup,
+		.arg	= cf,
+	});
+	if (path == NULL)
+		return 1;
+
+	/*
+	 * The lock file is only expected to be present while robsd is running.
+	 * Therefore do not treat failures as fatal.
+	 */
+	fd = open(path, O_RDONLY | O_CLOEXEC);
+	if (fd == -1)
+		goto out;
+	bf = buffer_read_fd(fd);
+	if (bf == NULL) {
+		error = 1;
+		goto out;
+	}
+	buffer_putc(bf, '\0');
+	nl = strchr(bf->bf_ptr, '\n');
+	if (nl == NULL) {
+		warnx("%s: line not found", path);
+		error = 1;
+		goto out;
+	}
+	*nl = '\0';
+	config_append_string(cf, "builddir", bf->bf_ptr);
+
+out:
+	if (fd != -1)
+		close(fd);
+	buffer_free(bf);
+	free(path);
+	return error;
 }
 
 static struct variable *

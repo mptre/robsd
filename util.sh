@@ -1456,7 +1456,6 @@ step_end() {
 	if [ "$_d" -ne -1 ]; then
 		# Ignore non-zero exit.
 		"$ROBSDHOOK" -m "$_MODE" -V ${ROBSDCONF:+"-f${ROBSDCONF}"} \
-			-v "builddir=${BUILDDIR}" \
 			-v "exit=${_e}" \
 			-v "step=${_name}" \
 			|| :

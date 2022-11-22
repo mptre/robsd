@@ -38,7 +38,7 @@ robsd_config() {
 # default_config
 default_config() {
 	cat <<-EOF
-	robsddir "/tmp"
+	robsddir "${TSHDIR}"
 	destdir "/tmp"
 	execdir "/tmp"
 	bsd-objdir "/tmp"
@@ -239,7 +239,7 @@ if testcase "string interpolation"; then
 	} >"$CONFIG"
 	echo "\${kernel}" >"$STDIN"
 	robsd_config - <<-EOF
-	/tmp
+	${TSHDIR}
 	EOF
 fi
 
@@ -258,7 +258,7 @@ if testcase "list interpolation"; then
 	} >"$CONFIG"
 	echo "\${skip}" >"$STDIN"
 	robsd_config - <<-EOF
-	ROBSDDIR=/tmp
+	ROBSDDIR=${TSHDIR}
 	EOF
 fi
 
@@ -268,8 +268,8 @@ if testcase "hook"; then
 		echo "hook { \"echo\" \"\${robsddir}\" }"
 	} >"$CONFIG"
 	echo "\${hook}" >"$STDIN"
-	robsd_config - <<-'EOF'
-	echo /tmp
+	robsd_config - <<-EOF
+	echo ${TSHDIR}
 	EOF
 fi
 
@@ -289,20 +289,39 @@ if testcase "read only variables"; then
 	_arch="$(arch -s 2>/dev/null || arch)"
 	_machine="$(machine 2>/dev/null || arch)"
 
+	echo /builddir >"${TSHDIR}/.running"
 	default_config >"$CONFIG"
 	cat <<-'EOF' >"$STDIN"
 	${arch}
 	${machine}
 	${keep-dir}
+	${builddir}
 	EOF
 
 	robsd_config - <<-EOF
 	${_arch}
 	${_machine}
-	/tmp/attic
+	${TSHDIR}/attic
+	/builddir
 	EOF
 fi
 
+if testcase "builddir lock file missing"; then
+	: >"${TSHDIR}/.running"
+	default_config >"$CONFIG"
+	echo "\${builddir}" >"$STDIN"
+	robsd_config -e - <<-EOF
+	robsd-config: ${TSHDIR}/.running: line not found
+	EOF
+fi
+
+if testcase "builddir lock file empty"; then
+	default_config >"$CONFIG"
+	echo "\${builddir}" >"$STDIN"
+	robsd_config -e - <<-EOF
+	robsd-config: /dev/stdin:1: invalid substitution, unknown variable 'builddir'
+	EOF
+fi
 
 if testcase "invalid missing file"; then
 	robsd_config -e -- -f /nein >/dev/null

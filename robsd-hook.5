@@ -17,14 +17,13 @@ configuration variable and may contain one or many arguments passed to
 .Xr execvp 3 .
 For each argument, variables on the form
 .Dq \(Do Ns Brq Ar variable
-are expanded where
+are interpolated where
 .Ar variable
-can refer to a configuration variable or one of the following:
+can refer to a configuration variable, see
+.Xr robsd-config 8 .
+In addition, the following variables are also available:
 .Pp
-.Bl -tag -compact -width builddir
-.It Ic builddir
-invocation directory rooted in
-.Ic robsddir
+.Bl -tag -compact -width exit
 .It Ic exit
 exit code of the step
 .It Ic step
@@ -37,6 +36,7 @@ hook { "echo" "step ${step} done" }
 .Sh SEE ALSO
 .Xr robsd-ports.conf 5 ,
 .Xr robsd-regress.conf 5 ,
-.Xr robsd.conf 5
+.Xr robsd.conf 5 ,
+.Xr robsd-config 8
 .Sh AUTHORS
 .An Anton Lindqvist Aq Mt anton@basename.se
