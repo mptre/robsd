@@ -38,6 +38,8 @@ else
 	info "using release directory ${BUILDDIR}"
 fi
 
+lock_acquire "$ROBSDDIR" "$BUILDDIR"
+
 if step_eval -n patch "$(step_path "$BUILDDIR")" 2>/dev/null; then
 	step_exec -X -f "${BUILDDIR}/tmp/fail" -l /dev/null -s revert || :
 else

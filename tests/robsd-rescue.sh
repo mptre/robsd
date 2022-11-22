@@ -48,6 +48,7 @@ if testcase "basic"; then
 	assert_file - "$TMP1" <<-EOF
 	robsd-rescue: using release directory ${ROBSDDIR}/2020-09-02.1
 	robsd-rescue: reverting diff ${ROBSDDIR}/2020-09-02.1/src.diff.1
+	robsd-rescue: released lock
 	EOF
 fi
 
@@ -59,6 +60,7 @@ if testcase "patch already reverted"; then
 	assert_file - "$TMP1" <<-EOF
 	robsd-rescue: using release directory ${ROBSDDIR}/2020-09-02.1
 	robsd-rescue: diff already reverted ${ROBSDDIR}/2020-09-02.1/src.diff.1
+	robsd-rescue: released lock
 	EOF
 fi
 
@@ -70,18 +72,14 @@ if testcase "patch step absent"; then
 	assert_file - "$TMP1" <<-EOF
 	robsd-rescue: using release directory ${ROBSDDIR}/2020-09-02.1
 	robsd-rescue: step patch not found, cannot revert diff(s)
+	robsd-rescue: released lock
 	EOF
 fi
 
-if testcase "release lock"; then
+if testcase "lock already acquired"; then
 	setup -P
-	echo "${ROBSDDIR}/2020-09-02.1" >"${ROBSDDIR}/.running"
-	if ! PATH="${BINDIR}:${PATH}" sh "$ROBSDRESCUE" >"$TMP1" 2>&1; then
-		fail - "expected exit zero" <"$TMP1"
+	echo "${ROBSDDIR}/2020-09-01.1" >"${ROBSDDIR}/.running"
+	if PATH="${BINDIR}:${PATH}" sh "$ROBSDRESCUE" >"$TMP1" 2>&1; then
+		fail - "expected exit non-zero" <"$TMP1"
 	fi
-	assert_file - "$TMP1" <<-EOF
-	robsd-rescue: using release directory ${ROBSDDIR}/2020-09-02.1
-	robsd-rescue: step patch not found, cannot revert diff(s)
-	robsd-rescue: released lock
-	EOF
 fi
