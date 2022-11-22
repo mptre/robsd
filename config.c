@@ -336,6 +336,8 @@ config_parse(struct config *cf)
 		goto out;
 	}
 	error = config_exec(cf);
+	if (error == 0)
+		error = config_append_defaults(cf);
 
 out:
 	parser_context_reset(&pc);
@@ -389,9 +391,6 @@ int
 config_interpolate(struct config *cf)
 {
 	char *str;
-
-	if (config_append_defaults(cf))
-		return 1;
 
 	str = interpolate_file("/dev/stdin", &(struct interpolate_arg){
 		.lookup	= config_interpolate_lookup,

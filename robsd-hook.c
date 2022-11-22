@@ -29,7 +29,7 @@ main(int argc, char *argv[])
 	int verbose = 0;
 	int ch;
 
-	if (pledge("stdio rpath exec getpw", NULL) == -1)
+	if (pledge("stdio rpath inet exec getpw route", NULL) == -1)
 		err(1, "pledge");
 
 	if (VECTOR_INIT(vars) == NULL)
