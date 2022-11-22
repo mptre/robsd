@@ -1,3 +1,11 @@
+# 17.1.0 - 2022-11-22
+
+## News
+
+- Stop exporting BUILDDIR as an environment variable to individual step scripts.
+  (06cdb35, 01ac6d8, e8d910e, 87108fd)
+  (Anton Lindqvist)
+
 # 17.0.1 - 2022-11-21
 
 ## Changes
