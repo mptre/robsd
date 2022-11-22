@@ -34,6 +34,7 @@ main(int argc, char *argv[])
 	if (pledge("stdio proc exec", NULL) == -1)
 		err(1, "pledge");
 
+	/* NOLINTNEXTLINE(android-cloexec-pipe2) */
 	if (pipe2(pip, O_NONBLOCK) == -1)
 		err(1, "pipe2");
 

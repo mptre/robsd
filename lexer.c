@@ -29,7 +29,7 @@ lexer_alloc(const struct lexer_arg *arg)
 	struct lexer *lx;
 	int error = 0;
 
-	fh = fopen(arg->path, "r");
+	fh = fopen(arg->path, "re");
 	if (fh == NULL) {
 		warn("open: %s", arg->path);
 		return NULL;

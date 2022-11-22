@@ -110,7 +110,7 @@ parselog(const char *path, unsigned int flags)
 	int error = 0;
 	int nfound = 0;
 
-	fh = fopen(path, "r");
+	fh = fopen(path, "re");
 	if (fh == NULL) {
 		warn("open: %s", path);
 		return -1;

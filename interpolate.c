@@ -32,7 +32,7 @@ interpolate_file(const char *path, const struct interpolate_arg *arg)
 	size_t linesiz = 0;
 	int error = 0;
 
-	fh = fopen(path, "r");
+	fh = fopen(path, "re");
 	if (fh == NULL) {
 		warn("open: %s", path);
 		return NULL;

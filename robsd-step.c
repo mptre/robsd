@@ -251,7 +251,7 @@ steps_write(struct step_context *sc, int argc, char **argv)
 		}
 	}
 
-	fh = fopen(sc->sc_path, "w");
+	fh = fopen(sc->sc_path, "we");
 	if (fh == NULL) {
 		warn("fopen: %s", sc->sc_path);
 		error = 1;
