@@ -152,7 +152,7 @@ hook_to_argv(struct config *config, char ***out)
 
 	if (error) {
 		VECTOR_FREE(args);
-		return 1;
+		return -1;
 	}
 	*out = args;
 	return 1;

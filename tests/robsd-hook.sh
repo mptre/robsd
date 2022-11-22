@@ -110,3 +110,10 @@ if testcase "invalid variable missing separator"; then
 	robsd-hook: missing variable separator in 'extra'
 	EOF
 fi
+
+if testcase "invalid interpolation"; then
+	{ echo "hook { \"\${nein}\" }"; default_config; } >"$CONFIG"
+	robsd_hook -e - <<-EOF
+	robsd-hook: invalid substitution, unknown variable 'nein'
+	EOF
+fi
