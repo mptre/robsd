@@ -104,7 +104,7 @@ config_load() {
 	local _err=0
 	local _tmp
 
-	: "${BUILDDIR:=}"; export BUILDDIR
+	: "${BUILDDIR:=}"
 	: "${DETACH:=1}"
 	: "${EXECDIR:=/usr/local/libexec/robsd}"; export EXECDIR
 	PATH="${PATH}:/usr/X11R6/bin"; export PATH
