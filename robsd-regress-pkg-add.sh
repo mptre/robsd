@@ -1,4 +1,9 @@
 . "${EXECDIR}/util.sh"
+. "${EXECDIR}/util-regress.sh"
+
+config_load <<-'EOF'
+BUILDDIR="${builddir}"
+EOF
 
 _tmpdir="${BUILDDIR}/tmp"
 

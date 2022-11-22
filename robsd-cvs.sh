@@ -4,6 +4,7 @@
 
 config_load <<'EOF'
 ROBSDDIR="${robsddir}"
+BUILDDIR="${builddir}"
 CVSROOT="${cvs-root}"
 CVSUSER="${cvs-user}"
 EOF

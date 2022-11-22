@@ -1,6 +1,7 @@
 . "${EXECDIR}/util.sh"
 
 config_load <<'EOF'
+BUILDDIR="${builddir}"
 DESTDIR="${destdir}"
 XSRCDIR="${x11-srcdir}"
 EOF

@@ -1,6 +1,7 @@
 . "${EXECDIR}/util.sh"
 
 config_load <<'EOF'
+BUILDDIR="${builddir}"
 DISTRIBHOST="${distrib-host}"
 DISTRIBPATH="${distrib-path}"
 DISTRIBUSER="${distrib-user}"

@@ -4,6 +4,7 @@
 set -o pipefail
 
 config_load <<-'EOF'
+BUILDDIR="${builddir}"
 CHROOT="${chroot}"
 DISTRIBHOST="${distrib-host}"
 DISTRIBPATH="${distrib-path}"

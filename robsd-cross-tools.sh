@@ -1,5 +1,9 @@
 . "${EXECDIR}/util.sh"
 
+config_load <<'EOF'
+BUILDDIR="${builddir}"
+EOF
+
 _target="$(<"${BUILDDIR}/target")"
 config_load -v "target=${_target}" <<'EOF'
 CROSSDIR="${crossdir}"

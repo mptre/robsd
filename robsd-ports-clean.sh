@@ -2,6 +2,7 @@
 . "${EXECDIR}/util-ports.sh"
 
 config_load <<'EOF'
+BUILDDIR="${builddir}"
 CHROOT="${chroot}"
 PORTSDIR="${ports-dir}"
 EOF

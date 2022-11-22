@@ -2,6 +2,7 @@
 . "${EXECDIR}/util-regress.sh"
 
 config_load <<'EOF'
+BUILDDIR="${builddir}"
 SUDO="${sudo}"
 BSDSRCDIR="${bsd-srcdir}"
 REGRESSUSER="${regress-user}"

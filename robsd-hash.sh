@@ -2,6 +2,7 @@
 
 config_load <<'EOF'
 ROBSDDIR="${robsddir}"
+BUILDDIR="${builddir}"
 EOF
 
 _reldir="$(release_dir "$BUILDDIR")"

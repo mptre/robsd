@@ -3,6 +3,7 @@ if testcase "basic"; then
 	robsddir "${TSHDIR}"
 	EOF
 	_builddir="${TSHDIR}/2022-11-21"
+	echo "$_builddir" >"${TSHDIR}/.running"
 	mkdir "$_builddir"
 	mkdir "$(release_dir "$_builddir")" "$(release_dir -x "$TSHDIR")"
 	: >"$(release_dir "$_builddir")/SHA256"
