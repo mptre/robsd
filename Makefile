@@ -1,6 +1,6 @@
 include ${.CURDIR}/config.mk
 
-VERSION=	17.0.1
+VERSION=	17.1.0
 
 PROG_robsd-config=	robsd-config
 SRCS_robsd-config+=	robsd-config.c
