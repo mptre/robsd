@@ -172,6 +172,7 @@ regress_steps() {
 	umount
 	revert
 	pkg-del
+	dmesg
 	end
 	EOF
 }

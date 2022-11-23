@@ -57,6 +57,9 @@ Inverse of mount step.
 Inverse of patch step.
 .It pkg-del
 Inverse of pkg-add step.
+.It dmesg
+Take a copy of
+.Xr dmesg 8 .
 .It end
 Auxillary step used to generate
 .Pa report .
@@ -74,6 +77,9 @@ directory.
 .It Pa comment
 File used to annotate the invocation which is included in
 .Pa report .
+.It Pa dmesg
+Copy of
+.Xr dmesg 8 .
 .It Pa report
 A summary delivered as a mail to root while running in the background once
 .Nm

@@ -75,6 +75,9 @@ Distribute the release files to another host using
 .Xr scp 1 .
 This step is optional and requires presence of certain configuration, see
 .Xr robsd.conf 5 .
+.It dmesg
+Take a copy of
+.Xr dmesg 8 .
 .It end
 Auxillary step used to generate
 .Pa report .
@@ -93,6 +96,9 @@ directory.
 File used to annotate the invocation which is included in
 .Pa report .
 By default, it contains a list of all applied patches.
+.It Pa dmesg
+Copy of
+.Xr dmesg 8 .
 .It Pa rel
 Directory containing the release files.
 Referred to as RELEASEDIR in

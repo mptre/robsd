@@ -96,6 +96,7 @@ ports_steps() {
 	dpb
 	distrib
 	revert
+	dmesg
 	end
 	EOF
 }

@@ -2,7 +2,10 @@ if testcase "basic"; then
 	# shellcheck disable=SC2086
 	mkdir -p ${ROBSDDIR}/2019-03-0{1,2}/rel
 	for _d in "$ROBSDDIR"/*; do
-		for _f in 01-base.log 01-base.log.1 03-env.log comment rel/index.txt report stat.csv src.diff.1; do
+		for _f in \
+			01-base.log 01-base.log.1 03-env.log comment dmesg \
+			rel/index.txt report stat.csv src.diff.1
+		do
 			(cd "$_d" && echo "$_f" >"$_f")
 		done
 		: >"$(step_path "$_d")"
@@ -22,7 +25,7 @@ if testcase "basic"; then
 	[ -d "${ROBSDDIR}/attic/2019/03/01" ] ||
 		fail "expected 2019-03-01 to be moved"
 
-	for _f in 01-base.log 01-base.log.1 03-env.log tmp; do
+	for _f in 01-base.log 01-base.log.1 03-env.log dmesg tmp; do
 		_p="${ROBSDDIR}/attic/2019/03/01/${_f}"
 		[ -e "$_p" ] && fail "expected ${_p} to be removed"
 	done

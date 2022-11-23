@@ -40,7 +40,8 @@ if testcase "basic"; then
 		step_serialize -H -s 2 -n cvs -d 60 -l cvs.log
 		step_serialize -H -s 3 -n patch -d 0 -l patch.log
 		step_serialize -H -s 4 -n kernel -i 1 -l kernel.log
-		step_serialize -H -s 5 -n end -d 3600
+		step_serialize -H -s 5 -n dmesg -d 0 -l dmesg.log
+		step_serialize -H -s 6 -n end -d 3600
 	} >"$(step_path "$BUILDDIR")"
 	mkdir "${BUILDDIR}/rel"
 	genfile 2 "${BUILDDIR}/rel/bsd.rd"
@@ -175,13 +176,16 @@ if testcase "regress"; then
 	==== t0 ====
 	DISABLED
 	EOF
+
+	: > "${BUILDDIR}/dmesg.log"
 	{
 		step_serialize -s 1 -n skipped -d 10 -l skipped.log
 		step_serialize -H -s 2 -n nein -e 1 -d 1 -l nein.log
 		step_serialize -H -s 3 -n error -e 1 -d 1 -l error.log
 		step_serialize -H -s 4 -n skipignore -d 1 -l skipignore.log
 		step_serialize -H -s 5 -n disabled -d 10 -l disabled.log
-		step_serialize -H -s 6 -n end -d 12
+		step_serialize -H -s 6 -n dmesg -i 0 -l dmesg.log
+		step_serialize -H -s 7 -n end -d 12
 	} >"$STEPS"
 
 	robsd_config -R - <<-EOF
@@ -243,7 +247,11 @@ fi
 if testcase "ports"; then
 	build_init "$BUILDDIR"
 	: >"${BUILDDIR}/dpb.log"
-	step_serialize -n dpb -d 20 -l dpb.log >"$STEPS"
+	{
+		step_serialize -s 1 -n dpb -d 20 -l dpb.log
+		step_serialize -H -s 2 -n dmesg -d 0 -l dmesg.log
+		step_serialize -H -s 3 -n end -d 20
+	} >"$STEPS"
 	robsd_config -P - <<-EOF
 	robsddir "$ROBSDDIR"
 	ports { "keep/quiet" }

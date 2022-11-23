@@ -1235,7 +1235,7 @@ report_skip() {
 	: "${_name:?}"
 
 	case "$_name" in
-	env|end|reboot)
+	env|reboot|dmesg|end)
 		return 0
 		;;
 	checkflist)
@@ -1649,6 +1649,7 @@ steps() {
 		hash
 		revert
 		distrib
+		dmesg
 		end
 		EOF
 		;;

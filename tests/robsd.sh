@@ -2,9 +2,16 @@ robsd_mock >"$TMP1"; read -r WRKDIR BINDIR ROBSDDIR <"$TMP1"
 
 ROBSD="${EXECDIR}/robsd"
 
-# Create exec directory including all stages.
+# Create exec directory and stub some steps.
 mkdir -p "${WRKDIR}/exec"
-cp "${EXECDIR}/util.sh" "${WRKDIR}/exec"
+for _copy in \
+	robsd-dmesg.sh \
+	util.sh \
+	util-ports.sh \
+	util-regress.sh
+do
+	cp "${EXECDIR}/${_copy}" "${WRKDIR}/exec"
+done
 for _stage in \
 	env \
         cvs \
@@ -71,7 +78,10 @@ if testcase "basic"; then
 	echo daily | assert_file - "${_builddir}/tags"
 
 	# Remove unstable output.
-	sed -i -e '/running as pid/d' -e '/robsd-exec:/d' "$TMP1"
+	sed -i \
+		-e '/running as pid/d' \
+		-e '/^\+ /d' \
+		"$TMP1"
 	_user="$(logname)"
 	assert_file - "$TMP1" <<-EOF
 	robsd: using directory ${_builddir} at step 1
@@ -108,6 +118,8 @@ if testcase "basic"; then
 	robsd-hook: exec "sh" "${_hook}" "${_builddir}" "revert"
 	robsd: step distrib
 	robsd-hook: exec "sh" "${_hook}" "${_builddir}" "distrib"
+	robsd: step dmesg
+	robsd-hook: exec "sh" "${_hook}" "${_builddir}" "dmesg"
 	robsd: step end
 	robsd-hook: exec "sh" "${_hook}" "${_builddir}" "end"
 	stdout

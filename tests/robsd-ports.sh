@@ -9,7 +9,6 @@ chmod u+x "${BINDIR}/dpb"
 
 # robsd_ports [robsd-ports-argument ...]
 robsd_ports() (
-	setmode "robsd-ports"
 	PATH="${BINDIR}:${PATH}"
 	export PATH PORTS TSHDIR
 	sh "${EXECDIR}/robsd-ports" "$@"
@@ -54,6 +53,7 @@ if testcase "basic"; then
 	robsd-ports: step distrib
 	robsd-ports: step revert
 	robsd-ports: reverting diff ${_builddir}/ports.diff.1
+	robsd-ports: step dmesg
 	robsd-ports: step end
 	robsd-ports: trap exit 0
 	EOF

@@ -58,6 +58,9 @@ This step is optional and requires presence of certain configuration, see
 .Xr robsd-ports.conf 5 .
 .It revert
 Inverse of patch step.
+.It dmesg
+Take a copy of
+.Xr dmesg 8 .
 .It end
 Auxillary step used to generate
 .Pa report .
@@ -74,6 +77,9 @@ The directory contains the entries as follows.
 File used to annotate the invocation which is included in
 .Pa report .
 By default, it contains a list of all applied patches.
+.It Pa dmesg
+Copy of
+.Xr dmesg 8 .
 .It Pa report
 A summary delivered as a mail to root while running in the background once
 .Nm

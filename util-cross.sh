@@ -14,6 +14,7 @@ cross_steps() {
 	dirs
 	tools
 	distrib
+	dmesg
 	end
 	EOF
 }
