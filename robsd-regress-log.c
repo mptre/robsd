@@ -23,6 +23,7 @@ static int	iserror(const char *);
 static int	ismarker(const char *);
 static int	isskipped(const char *);
 static int	isfailed(const char *);
+static int	isxtrace(const char *);
 
 static void	reg_init(void);
 static void	reg_shutdown(void);
@@ -109,6 +110,7 @@ parselog(const char *path, unsigned int flags)
 	FILE *fh;
 	int error = 0;
 	int nfound = 0;
+	int xtrace = 1;
 
 	fh = fopen(path, "re");
 	if (fh == NULL) {
@@ -129,6 +131,9 @@ parselog(const char *path, unsigned int flags)
 			error = 1;
 			break;
 		}
+		if (xtrace && isxtrace(line))
+			continue;
+		xtrace = 0;
 
 		if (ismarker(line))
 			buffer_reset(bf);
@@ -191,6 +196,12 @@ static int
 isfailed(const char *str)
 {
 	return strstr(str, "FAILED") != NULL;
+}
+
+static int
+isxtrace(const char *str)
+{
+	return str[0] == '+';
 }
 
 static void

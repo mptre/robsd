@@ -83,6 +83,34 @@ if testcase "skipped no lines"; then
 	EOF
 fi
 
+if testcase "skipped early without marker"; then
+	robsd_config -R - <<-EOF
+	robsddir "${TSHDIR}"
+	regress "test"
+	EOF
+	cat <<-EOF >"$LOG"
+	+ trace1
+	package test is required for this regress
+	SKIPPED
+	+ trace2
+	package test is required for this regress
+	SKIPPED
+	+ trace3
+	EOF
+
+	(setmode "robsd-regress" &&
+	 regress_report_log -e 0 -n test -l "$LOG" -t "$TSHDIR" >"$TMP1")
+
+	assert_file - "$TMP1" <<-EOF
+	package test is required for this regress
+	SKIPPED
+
+	+ trace2
+	package test is required for this regress
+	SKIPPED
+	EOF
+fi
+
 if testcase "tail fallback"; then
 	robsd_config -R - <<-EOF
 	robsddir "${TSHDIR}"
