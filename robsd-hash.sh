@@ -5,6 +5,7 @@ ROBSDDIR="${robsddir}"
 BUILDDIR="${builddir}"
 EOF
 
+_tmpdir="${BUILDDIR}/tmp"
 _reldir="$(release_dir "$BUILDDIR")"
 _relxdir="$(release_dir -x "$BUILDDIR")"
 
@@ -47,12 +48,22 @@ done
 	fi
 } >BUILDINFO
 
+cvs_changelog -t "$_tmpdir" >CHANGELOG
+
 # Compute missing checksums.
 mv SHA256 SHA256.orig
 {
-	grep -v -e BUILDINFO -e 'install.*' -e '*.diff.*' SHA256.orig || :
+	grep -v \
+		-e BUILDINFO \
+		-e CHANGELOG \
+		-e 'install.*' \
+		-e '*.diff.*' \
+		SHA256.orig || :
 
-	find . -type f \( -name 'BUILDINFO' -o -name 'install*' -name '*.diff.*' \) |
+	find . -type f \( -name 'BUILDINFO' -o \
+			  -name 'CHANGELOG' -o \
+			  -name 'install*' -o \
+			  -name '*.diff.*' \) |
 	sed -e 's,^\./,,' |
 	xargs -rt sha256
 } | sort >SHA256

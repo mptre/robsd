@@ -151,6 +151,33 @@ config_value()
 	echo "echo \${${_var}}" | config_load
 }
 
+# cvs_changelog -t tmp-dir
+#
+# Get CVS changes.
+cvs_changelog() {
+	local _tmpdir
+
+	while [ $# -gt 0 ]; do
+		case "$1" in
+		-t)	shift; _tmpdir="$1";;
+		*)	break;;
+		esac
+		shift
+	done
+	: "${_tmpdir:?}"
+
+	cat <<-EOF | while read -r _f
+	${_tmpdir}/cvs-src-up.log
+	${_tmpdir}/cvs-src-ci.log
+	${_tmpdir}/cvs-xenocara-up.log
+	${_tmpdir}/cvs-xenocara-ci.log
+	EOF
+	do
+		[ -s "$_f" ] || continue
+		cat "$_f"; echo
+	done
+}
+
 # cvs_field field log-line
 #
 # Extract the given field from a cvs log line.
@@ -1096,16 +1123,7 @@ report_log() {
 		cat "$_log"
 		;;
 	cvs)
-		cat <<-EOF | while read -r _f
-		${_tmpdir}/cvs-src-up.log
-		${_tmpdir}/cvs-src-ci.log
-		${_tmpdir}/cvs-xenocara-up.log
-		${_tmpdir}/cvs-xenocara-ci.log
-		EOF
-		do
-			[ -s "$_f" ] || continue
-			cat "$_f"; echo
-		done
+		cvs_changelog -t "$_tmpdir"
 		;;
 	kernel)
 		tail -n 11 "$_log"
