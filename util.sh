@@ -270,7 +270,7 @@ cvs_log() {
 	mkdir -p "$_tmp"
 
 	# Use the date from latest revision from the previous release.
-	for _prev in $(prev_release -b "$_builddir" -r "$_robsddir" 0); do
+	for _prev in $(prev_release -r "$_robsddir" -b "$_builddir"); do
 		_date="$(cvs_date -b "$_prev" -s "$(step_path "$_prev")")" && break
 	done
 	if [ -z "$_date" ]; then
@@ -558,7 +558,7 @@ duration_prev() {
 	: "${_robsddir:?}"
 	_step="$1"; : "${_step:?}"
 
-	prev_release -b "$_builddir" -r "$_robsddir" 0 |
+	prev_release -r "$_robsddir" -b "$_builddir" |
 	while read -r _prev; do
 		step_eval -n "$_step" "$(step_path "$_prev")" 2>/dev/null || continue
 		step_skip && continue
@@ -788,14 +788,12 @@ path_strip() {
 
 }
 
-# prev_release -b build-dir -r robsd-dir [count]
+# prev_release -r robsd-dir -b build-dir
 #
-# Get the previous count number of release directories. Where count defaults
-# to 1. If count is 0 means all previous release directories.
+# Get all previous invocations.
 prev_release() {
 	local _attic
 	local _builddir
-	local _count
 	local _robsddir
 
 	while [ $# -gt 0 ]; do
@@ -808,21 +806,13 @@ prev_release() {
 	done
 	: "${_builddir:?}"
 	: "${_robsddir:?}"
-	_count="${1:-1}"
 
 	# Be silent during testing.
 	_attic="$(config_value keep-dir 2>/dev/null || :)"
 
 	find "$_robsddir" -mindepth 1 -maxdepth 1 -type d |
 	sort -nr |
-	grep -v -e "$_builddir" ${_attic:+-e ${_attic}} |
-	{
-		if [ "$_count" -gt 0 ]; then
-			head "-${_count}"
-		else
-			cat
-		fi
-	}
+	grep -v -e "$_builddir" ${_attic:+-e ${_attic}}
 }
 
 # purge dir count
@@ -1167,7 +1157,7 @@ report_size() {
 
 	[ -e "$_f" ] || return 0
 
-	_prev="$(prev_release -b "$_builddir" -r "$_robsddir")"
+	_prev="$(prev_release -r "$_robsddir" -b "$_builddir" | head -1)"
 	[ -z "$_prev" ] && return 0
 
 	_path="$(release_dir "$_prev")/${_name}"
