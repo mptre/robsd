@@ -340,11 +340,11 @@ all: ${PROG_robsd-regress-log} ${PROG_robsd-stat} ${PROG_robsd-step}
 ${PROG_robsd-config}: ${OBJS_robsd-config}
 	${CC} ${DEBUG} -o ${PROG_robsd-config} ${OBJS_robsd-config} ${LDFLAGS}
 
-${PROG_robsd-hook}: ${OBJS_robsd-hook}
-	${CC} ${DEBUG} -o ${PROG_robsd-hook} ${OBJS_robsd-hook} ${LDFLAGS}
-
 ${PROG_robsd-exec}: ${OBJS_robsd-exec}
 	${CC} ${DEBUG} -o ${PROG_robsd-exec} ${OBJS_robsd-exec} ${LDFLAGS}
+
+${PROG_robsd-hook}: ${OBJS_robsd-hook}
+	${CC} ${DEBUG} -o ${PROG_robsd-hook} ${OBJS_robsd-hook} ${LDFLAGS}
 
 ${PROG_robsd-regress-log}: ${OBJS_robsd-regress-log}
 	${CC} ${DEBUG} -o ${PROG_robsd-regress-log} ${OBJS_robsd-regress-log} ${LDFLAGS}
