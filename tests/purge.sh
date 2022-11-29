@@ -4,7 +4,7 @@ if testcase "basic"; then
 	for _d in "$ROBSDDIR"/*; do
 		for _f in \
 			01-base.log 01-base.log.1 03-env.log comment dmesg \
-			rel/index.txt report stat.csv src.diff.1
+			rel/index.txt report stat.csv src.diff.1 tags
 		do
 			(cd "$_d" && echo "$_f" >"$_f")
 		done
@@ -30,7 +30,7 @@ if testcase "basic"; then
 		[ -e "$_p" ] && fail "expected ${_p} to be removed"
 	done
 
-	for _f in comment rel/index.txt report stat.csv src.diff.1 step.csv; do
+	for _f in comment rel/index.txt report stat.csv src.diff.1 step.csv tags; do
 		_p="${ROBSDDIR}/attic/2019/03/01/${_f}"
 		[ -e "$_p" ] || fail "expected ${_p} to be left"
 	done

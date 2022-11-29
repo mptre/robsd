@@ -862,7 +862,8 @@ purge() {
 			-name 'index.txt' -o \
 			-name 'report' -o \
 			-name 'stat.csv' -o \
-			-name 'step.csv' \) -delete
+			-name 'step.csv' -o \
+			-name 'tags' \) -delete
 
 		# Transform: YYYY-MM-DD.X -> YYYY/MM/DD.X
 		_dst="${_attic}/$(echo "${_d##*/}" | tr '-' '/')"
