@@ -148,6 +148,13 @@ if testcase "read: invalid unterminated row"; then
 	EOF
 fi
 
+if testcase "read: invalid empty row"; then
+	{ default_steps; printf '\n'; } >"$TMP1"
+	robsd_step -e - -- -R -f "$TMP1" -l 1 <<-EOF
+	robsd-step: ${TMP1}:4: want VALUE, got NEWLINE
+	EOF
+fi
+
 if testcase "read: invalid column"; then
 	{ printf 'step\n'; step_serialize -H -s 1 -n one; } >"$TMP1"
 	robsd_step -e - -- -R -f "$TMP1" -l 1 <<-EOF

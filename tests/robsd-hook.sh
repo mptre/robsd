@@ -117,3 +117,8 @@ if testcase "invalid interpolation"; then
 	robsd-hook: invalid substitution, unknown variable 'nein'
 	EOF
 fi
+
+if testcase "invalid arguments"; then
+	default_config >"$CONFIG"
+	robsd_hook -e -- -nein >/dev/null
+fi

@@ -262,6 +262,18 @@ if testcase "list interpolation"; then
 	EOF
 fi
 
+if testcase "glob"; then
+	touch "${TSHDIR}/one.diff" "${TSHDIR}/two.diff"
+	{
+		default_config
+		echo "bsd-diff \"${TSHDIR}/*.diff\""
+	} >"$CONFIG"
+	echo "\${bsd-diff}" >"$STDIN"
+	robsd_config - <<-EOF
+	${TSHDIR}/one.diff ${TSHDIR}/two.diff
+	EOF
+fi
+
 if testcase "hook"; then
 	{
 		default_config
@@ -481,12 +493,21 @@ if testcase "invalid mode"; then
 fi
 
 if testcase "invalid not found"; then
-	if "$ROBSDCONFIG" -m robsd -f /var/empty/nein >"$TMP1" 2>&1; then
+	if ${EXEC:-} "$ROBSDCONFIG" -m robsd -f /var/empty/nein >"$TMP1" 2>&1; then
 		fail - "expected exit non-zero" <"$TMP1"
 	fi
 	assert_file - "$TMP1" <<-EOF
 	robsd-config: open: /var/empty/nein: No such file or directory
 	EOF
+fi
+
+if testcase "invalid arguments"; then
+	if ${EXEC:-} "$ROBSDCONFIG" -nein >"$TMP1" 2>&1; then
+		fail - "expected exit non-zero" <"$TMP1"
+	fi
+	if ! grep -q usage "$TMP1"; then
+		fail - "expected usage" <"$TMP1"
+	fi
 fi
 
 if testcase "invalid afl"; then
