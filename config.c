@@ -147,7 +147,6 @@ static int	config_parse_list(struct config *, union variable_value *);
 static int	config_parse_user(struct config *, union variable_value *);
 static int	config_parse_regress(struct config *, union variable_value *);
 static int	config_parse_directory(struct config *, union variable_value *);
-static int	config_parse_nop(struct config *, union variable_value *);
 
 static int			 config_append_defaults(struct config *);
 static int			 config_append_build_dir(struct config *);
@@ -235,7 +234,7 @@ static const struct grammar robsd_regress[] = {
 	{ "cvs-user",		STRING,		config_parse_user,	0,		NULL },
 	{ "regress",		LIST,		config_parse_regress,	REQ|REP,	NULL },
 	{ "regress-user",	STRING,		config_parse_user,	0,		"build" },
-	{ "regress-*-target",	STRING,		config_parse_nop,	PAT,		"regress" },
+	{ "regress-*-target",	STRING,		NULL,			PAT,		"regress" },
 	{ NULL,			0,		NULL,			0,		NULL },
 };
 
@@ -682,7 +681,8 @@ grammar_find(const struct grammar *grammar, const char *name)
 	int i;
 
 	for (i = 0; grammar[i].gr_kw != NULL; i++) {
-		if (strcmp(grammar[i].gr_kw, name) == 0)
+		if (strcmp(grammar[i].gr_kw, name) == 0 &&
+		    grammar[i].gr_fn != NULL)
 			return &grammar[i];
 	}
 	return NULL;
@@ -1059,12 +1059,6 @@ config_parse_directory(struct config *cf, union variable_value *val)
 	}
 	free(path);
 	return error;
-}
-
-static int
-config_parse_nop(struct config *UNUSED(cf), union variable_value *UNUSED(val))
-{
-	return 0;
 }
 
 /*
