@@ -16,6 +16,10 @@ genfile() {
 }
 
 if testcase "basic"; then
+	robsd_config - <<-EOF
+	robsddir "${TSHDIR}"
+	EOF
+
 	# Create a previous release in order to report duration deltas.
 	build_init "${ROBSDDIR}/2019-02-21"
 	step_serialize -n cvs -d 30 >"$(step_path "${ROBSDDIR}/2019-02-21")"
@@ -27,6 +31,7 @@ if testcase "basic"; then
 	genfile 1 "${ROBSDDIR}/2019-02-22/rel/bsd.rd"
 	genfile 1 "${ROBSDDIR}/2019-02-22/rel/base66.tgz"
 
+	echo "$BUILDDIR" >"${TSHDIR}/.running"
 	build_init "$BUILDDIR"
 	BSDDIFF=""; export BSDDIFF
 	XDIFF=""; export XDIFF
@@ -76,6 +81,11 @@ if testcase "basic"; then
 fi
 
 if testcase "failure"; then
+	robsd_config - <<-EOF
+	robsddir "${TSHDIR}"
+	EOF
+
+	echo "$BUILDDIR" >"${TSHDIR}/.running"
 	build_init "$BUILDDIR"
 	echo "env log" >"${BUILDDIR}/env.log"
 	echo "cvs log" >"${BUILDDIR}/cvs.log"
@@ -111,6 +121,11 @@ if testcase "failure"; then
 fi
 
 if testcase "failure in skipped step"; then
+	robsd_config - <<-EOF
+	robsddir "${TSHDIR}"
+	EOF
+
+	echo "$BUILDDIR" >"${TSHDIR}/.running"
 	build_init "$BUILDDIR"
 	echo "env log" >"${BUILDDIR}/env.log"
 	step_serialize -s 1 -n env -e 1 -d 1 -l env.log >"$STEPS"
@@ -136,12 +151,23 @@ if testcase "failure in skipped step"; then
 fi
 
 if testcase "missing step"; then
+	robsd_config - <<-EOF
+	robsddir "${TSHDIR}"
+	EOF
+
+	echo "$BUILDDIR" >"${TSHDIR}/.running"
+
 	if report -r "$ROBSDDIR" -b "$BUILDDIR"; then
 		fail "want exit 1, got 0"
 	fi
 fi
 
 if testcase "regress"; then
+	robsd_config - <<-EOF
+	robsddir "${TSHDIR}"
+	EOF
+
+	echo "$BUILDDIR" >"${TSHDIR}/.running"
 	build_init "$BUILDDIR"
 	cat <<-EOF >"${BUILDDIR}/skipped.log"
 	==== t0 ====
@@ -245,6 +271,11 @@ if testcase "regress"; then
 fi
 
 if testcase "ports"; then
+	robsd_config - <<-EOF
+	robsddir "${TSHDIR}"
+	EOF
+
+	echo "$BUILDDIR" >"${TSHDIR}/.running"
 	build_init "$BUILDDIR"
 	: >"${BUILDDIR}/dpb.log"
 	{
@@ -277,6 +308,11 @@ if testcase "ports"; then
 fi
 
 if testcase "ports failure"; then
+	robsd_config - <<-EOF
+	robsddir "${TSHDIR}"
+	EOF
+
+	echo "$BUILDDIR" >"${TSHDIR}/.running"
 	build_init "$BUILDDIR"
 	: >"${BUILDDIR}/dpb.log"
 	step_serialize -n dpb -e 1 -d 20 -l dpb.log >"$STEPS"

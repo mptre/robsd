@@ -47,12 +47,16 @@ su() {
 
 if testcase "basic"; then
 	mkdir "${TSHDIR}/.cvs"
+	robsd_config - <<-EOF
+	robsddir "${TSHDIR}"
+	EOF
+	echo "${TSHDIR}/2019-07-21" >"${TSHDIR}/.running"
 	# shellcheck disable=SC2086
-	mkdir -p ${ROBSDDIR}/2019-07-{19,20,21}
-	step_serialize -n cvs -i 1 >"$(step_path "${ROBSDDIR}/2019-07-20")"
+	mkdir -p ${TSHDIR}/2019-07-{19,20,21}
+	step_serialize -n cvs -i 1 >"$(step_path "${TSHDIR}/2019-07-20")"
 	step_serialize -n cvs -l cvs.log -t 1563616561 \
-		>"$(step_path "${ROBSDDIR}/2019-07-19")"
-	cat <<-EOF >"${ROBSDDIR}/2019-07-19/cvs.log"
+		>"$(step_path "${TSHDIR}/2019-07-19")"
+	cat <<-EOF >"${TSHDIR}/2019-07-19/cvs.log"
 	Date: 2019/07/14 00:00:00
 	Date: 2019/07/13 23:59:59
 	EOF
@@ -93,16 +97,14 @@ if testcase "basic"; then
 
 	EOF
 
-	cvs_log -b "${ROBSDDIR}/2019-07-21" -r "$ROBSDDIR" \
-		-t "${TSHDIR}/.cvs" -c "$TSHDIR" -h example.com:/cvs \
+	cvs_log -t "${TSHDIR}/.cvs" -c "$TSHDIR" -h example.com:/cvs \
 		-u nobody <"$TMP1" >"${TSHDIR}/act"
 	assert_file "${TSHDIR}/exp" "${TSHDIR}/act"
 fi
 
 if testcase "previous build absent"; then
-	if ! cvs_log -b "${ROBSDDIR}/2019-07-21" -r "$ROBSDDIR" \
-	   -t "${TSHDIR}/.cvs" -c "$TSHDIR" -h example.com:/cvs -u nobody \
-	   >"$TMP1" 2>&1
+	if ! cvs_log -t "${TSHDIR}/.cvs" -c "$TSHDIR" -h example.com:/cvs \
+	   -u nobody >"$TMP1" 2>&1
 	then
 		fail - "expected exit zero" <"$TMP1"
 	fi
@@ -112,11 +114,15 @@ fi
 # as the threshold.
 if testcase "previous build no updates"; then
 	mkdir "${TSHDIR}/.cvs"
+	robsd_config - <<-EOF
+	robsddir "${TSHDIR}"
+	EOF
+	echo "${TSHDIR}/2019-07-21" >"${TSHDIR}/.running"
 	# shellcheck disable=SC2086
-	mkdir -p ${ROBSDDIR}/2019-07-{20,21}
+	mkdir -p ${TSHDIR}/2019-07-{20,21}
 	step_serialize -n cvs -l cvs.log -t 1563616561 \
-		>"$(step_path "${ROBSDDIR}/2019-07-20")"
-	cat <<-EOF >"${ROBSDDIR}/2019-07-20/cvs.log"
+		>"$(step_path "${TSHDIR}/2019-07-20")"
+	cat <<-EOF >"${TSHDIR}/2019-07-20/cvs.log"
 	missing date header
 	EOF
 
@@ -126,8 +132,8 @@ if testcase "previous build no updates"; then
 	P sbin/dhclient/clparse.c
 	EOF
 
-	if ! cvs_log -b "${ROBSDDIR}/2019-07-21" -r "$ROBSDDIR" \
-	   -t "${TSHDIR}/.cvs" -u nobody -c /dev/null <"$TMP1" >"${TSHDIR}/act"
+	if ! cvs_log -t "${TSHDIR}/.cvs" -u nobody -c /dev/null \
+	   <"$TMP1" >"${TSHDIR}/act"
 	then
 		fail - "expected exit zero" <"$TMP1"
 	fi
