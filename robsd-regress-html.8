@@ -1,0 +1,35 @@
+.Dd $Mdocdate: Dec 6 2022$
+.Dt ROBSD-REGRESS-HTML 8
+.Os
+.Sh NAME
+.Nm robsd-regress-html
+.Nd robsd-regress html renderer
+.Sh SYNOPSIS
+.Nm robsd-regress-html
+.Fl o Ar output
+.Ar arch:path ...
+.Sh DESCRIPTION
+The
+.Nm
+utility summarises
+.Xr robsd-regress 8
+invocations into a html representation.
+.Pp
+The options are as follows:
+.Bl -tag -width Ds
+.It Fl o Ar output
+Directory where the rendered html files are placed.
+.It Ar arch:path
+.Xr robsd-regress 8
+directory for
+.Ar arch
+residing at
+.Ar path
+where invocations are read from.
+.El
+.Sh DIAGNOSTICS
+.Ex -std
+.Sh SEE ALSO
+.Xr robsd-regress 8
+.Sh AUTHORS
+.An Anton Lindqvist Aq Mt anton@basename.se

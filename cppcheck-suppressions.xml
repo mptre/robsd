@@ -1,13 +1,5 @@
 <?xml version="1.0"?>
 <suppressions>
-  <!-- nofile -->
-  <suppress>
-    <id>missingIncludeSystem</id>
-  </suppress>
-  <suppress>
-    <id>toomanyconfigs</id>
-  </suppress>
-
   <!-- buffer.c -->
   <suppress>
     <fileName>buffer.c</fileName>
@@ -19,10 +11,12 @@
     <id>unusedFunction</id>
     <symbolName>buffer_indent</symbolName>
   </suppress>
+
+  <!-- regress-html.c -->
   <suppress>
-    <fileName>buffer.c</fileName>
-    <id>unusedFunction</id>
-    <symbolName>buffer_read</symbolName>
+    <fileName>regress-html.c</fileName>
+    <id>uninitvar</id>
+    <symbolName>suite->runs</symbolName>
   </suppress>
 
   <!-- robsd-step.c -->

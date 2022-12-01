@@ -74,6 +74,7 @@ regress_log_parse(const char *path, struct buffer *out, unsigned int flags)
 		warn("open: %s", path);
 		return -1;
 	}
+	buffer_reset(out);
 
 	bf = buffer_alloc(1 << 20);
 

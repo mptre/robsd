@@ -38,6 +38,24 @@ SRCS_robsd-ls+=		${SRCS_config}
 OBJS_robsd-ls=		${SRCS_robsd-ls:.c=.o}
 DEPS_robsd-ls=		${SRCS_robsd-ls:.c=.d}
 
+PROG_robsd-regress-html=	robsd-regress-html
+SRCS_robsd-regress-html+=	robsd-regress-html.c
+SRCS_robsd-regress-html+=	buffer.c
+SRCS_robsd-regress-html+=	compat-pledge.c
+SRCS_robsd-regress-html+=	compat-strtonum.c
+SRCS_robsd-regress-html+=	html.c
+SRCS_robsd-regress-html+=	interpolate.c
+SRCS_robsd-regress-html+=	invocation.c
+SRCS_robsd-regress-html+=	lexer.c
+SRCS_robsd-regress-html+=	regress-html.c
+SRCS_robsd-regress-html+=	regress-log.c
+SRCS_robsd-regress-html+=	step.c
+SRCS_robsd-regress-html+=	token.c
+SRCS_robsd-regress-html+=	util.c
+SRCS_robsd-regress-html+=	vector.c
+OBJS_robsd-regress-html=	${SRCS_robsd-regress-html:.c=.o}
+DEPS_robsd-regress-html=	${SRCS_robsd-regress-html:.c=.d}
+
 PROG_robsd-regress-log=		robsd-regress-log
 SRCS_robsd-regress-log+=	robsd-regress-log.c
 SRCS_robsd-regress-log+=	buffer.c
@@ -75,18 +93,23 @@ KNFMT+=	compat-sys-sched.h
 KNFMT+=	compat-sys-sysctl.h
 KNFMT+=	config.c
 KNFMT+=	extern.h
+KNFMT+=	html.c
+KNFMT+=	html.h
 KNFMT+=	interpolate.c
 KNFMT+=	interpolate.h
 KNFMT+=	invocation.c
 KNFMT+=	invocation.h
 KNFMT+=	lexer.c
 KNFMT+=	lexer.h
+KNFMT+=	regress-html.c
+KNFMT+=	regress-html.h
 KNFMT+=	regress-log.c
 KNFMT+=	regress-log.h
 KNFMT+=	robsd-config.c
 KNFMT+=	robsd-exec.c
 KNFMT+=	robsd-hook.c
 KNFMT+=	robsd-ls.c
+KNFMT+=	robsd-regress-html.c
 KNFMT+=	robsd-regress-log.c
 KNFMT+=	robsd-stat.c
 KNFMT+=	robsd-step.c
@@ -104,18 +127,23 @@ CLANGTIDY+=	buffer.h
 CLANGTIDY+=	cdefs.h
 CLANGTIDY+=	config.c
 CLANGTIDY+=	extern.h
+CLANGTIDY+=	html.c
+CLANGTIDY+=	html.h
 CLANGTIDY+=	interpolate.c
 CLANGTIDY+=	interpolate.h
 CLANGTIDY+=	invocation.c
 CLANGTIDY+=	invocation.h
 CLANGTIDY+=	lexer.c
 CLANGTIDY+=	lexer.h
+CLANGTIDY+=	regress-html.c
+CLANGTIDY+=	regress-html.h
 CLANGTIDY+=	regress-log.c
 CLANGTIDY+=	regress-log.h
 CLANGTIDY+=	robsd-config.c
 CLANGTIDY+=	robsd-exec.c
 CLANGTIDY+=	robsd-hook.c
 CLANGTIDY+=	robsd-ls.c
+CLANGTIDY+=	robsd-regress-html.c
 CLANGTIDY+=	robsd-regress-log.c
 CLANGTIDY+=	robsd-stat.c
 CLANGTIDY+=	robsd-step.c
@@ -130,14 +158,17 @@ CLANGTIDY+=	vector.h
 
 CPPCHECK+=	buffer.c
 CPPCHECK+=	config.c
+CPPCHECK+=	html.c
 CPPCHECK+=	interpolate.c
 CPPCHECK+=	invocation.c
 CPPCHECK+=	lexer.c
+CPPCHECK+=	regress-html.c
 CPPCHECK+=	regress-log.c
 CPPCHECK+=	robsd-config.c
 CPPCHECK+=	robsd-exec.c
 CPPCHECK+=	robsd-hook.c
 CPPCHECK+=	robsd-ls.c
+CPPCHECK+=	robsd-regress-html.c
 CPPCHECK+=	robsd-regress-log.c
 CPPCHECK+=	robsd-stat.c
 CPPCHECK+=	robsd-step.c
@@ -197,12 +228,16 @@ DISTFILES+=	compat-warnc.c
 DISTFILES+=	config.c
 DISTFILES+=	configure
 DISTFILES+=	extern.h
+DISTFILES+=	html.c
+DISTFILES+=	html.h
 DISTFILES+=	interpolate.c
 DISTFILES+=	interpolate.h
 DISTFILES+=	invocation.c
 DISTFILES+=	invocation.h
 DISTFILES+=	lexer.c
 DISTFILES+=	lexer.h
+DISTFILES+=	regress-html.c
+DISTFILES+=	regress-html.h
 DISTFILES+=	regress-log.c
 DISTFILES+=	regress-log.h
 DISTFILES+=	robsd
@@ -244,6 +279,8 @@ DISTFILES+=	robsd-ports.conf.5
 DISTFILES+=	robsd-reboot.sh
 DISTFILES+=	robsd-regress
 DISTFILES+=	robsd-regress-exec.sh
+DISTFILES+=	robsd-regress-html.8
+DISTFILES+=	robsd-regress-html.c
 DISTFILES+=	robsd-regress-log.c
 DISTFILES+=	robsd-regress-mount.sh
 DISTFILES+=	robsd-regress-obj.sh
@@ -295,6 +332,7 @@ DISTFILES+=	tests/robsd-hash.sh
 DISTFILES+=	tests/robsd-hook.sh
 DISTFILES+=	tests/robsd-ls.sh
 DISTFILES+=	tests/robsd-ports.sh
+DISTFILES+=	tests/robsd-regress-html.sh
 DISTFILES+=	tests/robsd-regress.sh
 DISTFILES+=	tests/robsd-rescue.sh
 DISTFILES+=	tests/robsd-step.sh
@@ -309,6 +347,7 @@ DISTFILES+=	tests/t.sh
 DISTFILES+=	tests/util.sh
 DISTFILES+=	token.c
 DISTFILES+=	token.h
+DISTFILES+=	uthash.h
 DISTFILES+=	util-cross.sh
 DISTFILES+=	util-ports.sh
 DISTFILES+=	util-regress.sh
@@ -333,6 +372,7 @@ MANLINT+=	robsd-crossenv.8
 MANLINT+=	robsd-hook.5
 MANLINT+=	robsd-ports.8
 MANLINT+=	robsd-ports.conf.5
+MANLINT+=	robsd-regress-html.8
 MANLINT+=	robsd-regress.8
 MANLINT+=	robsd-regress.conf.5
 MANLINT+=	robsd-rescue.8
@@ -357,6 +397,7 @@ all: ${PROG_robsd-config}
 all: ${PROG_robsd-exec}
 all: ${PROG_robsd-hook}
 all: ${PROG_robsd-ls}
+all: ${PROG_robsd-regress-html}
 all: ${PROG_robsd-regress-log}
 all: ${PROG_robsd-stat}
 all: ${PROG_robsd-step}
@@ -373,6 +414,9 @@ ${PROG_robsd-hook}: ${OBJS_robsd-hook}
 ${PROG_robsd-ls}: ${OBJS_robsd-ls}
 	${CC} ${DEBUG} -o ${PROG_robsd-ls} ${OBJS_robsd-ls} ${LDFLAGS}
 
+${PROG_robsd-regress-html}: ${OBJS_robsd-regress-html}
+	${CC} ${DEBUG} -o ${PROG_robsd-regress-html} ${OBJS_robsd-regress-html} ${LDFLAGS}
+
 ${PROG_robsd-regress-log}: ${OBJS_robsd-regress-log}
 	${CC} ${DEBUG} -o ${PROG_robsd-regress-log} ${OBJS_robsd-regress-log} ${LDFLAGS}
 
@@ -388,6 +432,7 @@ clean:
 		${DEPS_robsd-exec} ${OBJS_robsd-exec} ${PROG_robsd-exec} \
 		${DEPS_robsd-hook} ${OBJS_robsd-hook} ${PROG_robsd-hook} \
 		${DEPS_robsd-ls} ${OBJS_robsd-ls} ${PROG_robsd-ls} \
+		${DEPS_robsd-regress-html} ${OBJS_robsd-regress-html} ${PROG_robsd-regress-html} \
 		${DEPS_robsd-regress-log} ${OBJS_robsd-regress-log} ${PROG_robsd-regress-log} \
 		${DEPS_robsd-stat} ${OBJS_robsd-stat} ${PROG_robsd-stat} \
 		${DEPS_robsd-step} ${OBJS_robsd-step} ${PROG_robsd-step}
@@ -462,6 +507,9 @@ install: all
 	ln -f ${DESTDIR}${BINDIR}/robsd-clean ${DESTDIR}${BINDIR}/robsd-regress-clean
 	ln -f ${DESTDIR}${BINDIR}/robsd-kill ${DESTDIR}${BINDIR}/robsd-regress-kill
 	ln -f ${DESTDIR}${LIBEXECDIR}/robsd/robsd-exec ${DESTDIR}${LIBEXECDIR}/robsd/robsd-regress-exec
+# robsd-regress-html
+	${INSTALL} -m 0555 ${PROG_robsd-regress-html} ${DESTDIR}${BINDIR}
+	${INSTALL_MAN} ${.CURDIR}/robsd-regress-html.8 ${DESTDIR}${MANDIR}/man8
 # robsd-regress-log
 	${INSTALL} -m 0555 ${PROG_robsd-regress-log} ${DESTDIR}${LIBEXECDIR}/robsd
 .PHONY: install
@@ -473,6 +521,7 @@ lint-clang-tidy:
 lint-cppcheck:
 	cd ${.CURDIR} && cppcheck --quiet --enable=all --error-exitcode=1 \
 		--max-configs=2 --suppress-xml=cppcheck-suppressions.xml \
+		-DNO_UTHASH \
 		${CPPCHECK}
 .PHONY: lint-cppcheck
 
@@ -483,6 +532,7 @@ test: all
 		"ROBSDEXEC=${.OBJDIR}/${PROG_robsd-exec}" \
 		"ROBSDHOOK=${.OBJDIR}/${PROG_robsd-hook}" \
 		"ROBSDLS=${.OBJDIR}/${PROG_robsd-ls}" \
+		"ROBSDREGRESSHTML=${.OBJDIR}/${PROG_robsd-regress-html}" \
 		"ROBSDREGRESSLOG=${.OBJDIR}/${PROG_robsd-regress-log}" \
 		"ROBSDSTAT=${.OBJDIR}/${PROG_robsd-stat}" \
 		"ROBSDSTEP=${.OBJDIR}/${PROG_robsd-step}" \
@@ -496,6 +546,7 @@ include ${INC}
 -include ${DEPS_robsd-exec}
 -include ${DEPS_robsd-hook}
 -include ${DEPS_robsd-ls}
+-include ${DEPS_robsd-regress-html}
 -include ${DEPS_robsd-regress-log}
 -include ${DEPS_robsd-stat}
 -include ${DEPS_robsd-step}
