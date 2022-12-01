@@ -30,7 +30,7 @@ struct invocation *
 invocation_alloc(const char *robsddir, const char *keepdir)
 {
 	DIR *dir = NULL;
-	struct invocation *iv;
+	struct invocation *iv = NULL;
 	int error = 0;
 
 	dir = opendir(robsddir);
