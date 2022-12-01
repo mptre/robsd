@@ -242,6 +242,7 @@ struct config *
 config_alloc(const char *mode, const char *path)
 {
 	struct config *cf;
+	const char *defaultpath = NULL;
 	int m;
 
 	if (config_mode(mode, &m)) {
@@ -260,26 +261,24 @@ config_alloc(const char *mode, const char *path)
 
 	switch (cf->cf_mode) {
 	case CONFIG_ROBSD:
-		if (cf->cf_path == NULL)
-			cf->cf_path = "/etc/robsd.conf";
+		defaultpath = "/etc/robsd.conf";
 		cf->cf_grammar = robsd;
 		break;
 	case CONFIG_ROBSD_CROSS:
-		if (cf->cf_path == NULL)
-			cf->cf_path = "/etc/robsd-cross.conf";
+		defaultpath = "/etc/robsd-cross.conf";
 		cf->cf_grammar = robsd_cross;
 		break;
 	case CONFIG_ROBSD_PORTS:
-		if (cf->cf_path == NULL)
-			cf->cf_path = "/etc/robsd-ports.conf";
+		defaultpath = "/etc/robsd-ports.conf";
 		cf->cf_grammar = robsd_ports;
 		break;
 	case CONFIG_ROBSD_REGRESS:
-		if (cf->cf_path == NULL)
-			cf->cf_path = "/etc/robsd-regress.conf";
+		defaultpath = "/etc/robsd-regress.conf";
 		cf->cf_grammar = robsd_regress;
 		break;
 	}
+	if (cf->cf_path == NULL)
+		cf->cf_path = defaultpath;
 
 	return cf;
 }
