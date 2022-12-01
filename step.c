@@ -304,6 +304,17 @@ step_serialize(const struct step *st, struct buffer *bf)
 	return error;
 }
 
+const union step_value *
+step_get_field(const struct step *st, const char *name)
+{
+	const struct field_definition *fd;
+
+	fd = field_definition_find_by_name(name);
+	if (fd == NULL)
+		return NULL;
+	return &st->st_fields[fd->fd_index].sf_val;
+}
+
 int
 step_set_keyval(struct step *st, const char *kv)
 {
