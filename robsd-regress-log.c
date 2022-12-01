@@ -155,7 +155,8 @@ parselog(const char *path, unsigned int flags)
 		}
 	}
 	if ((flags & FLAG_ERROR) && nfound == 0 && !error && errorlen > 0) {
-		printf("%.*s", (int)errorlen, bf->bf_ptr);
+		if (flags & FLAG_PRINT)
+			printf("%.*s", (int)errorlen, bf->bf_ptr);
 		nfound++;
 	}
 	free(line);
