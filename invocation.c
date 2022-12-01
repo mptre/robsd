@@ -10,7 +10,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "extern.h"
 #include "vector.h"
 
 struct directory {
@@ -28,31 +27,18 @@ static int	invocation_read(struct invocation *, DIR *);
 static int	directory_cmp(const void *, const void *);
 
 struct invocation *
-invocation_alloc(const struct config *cf)
+invocation_alloc(const char *robsddir, const char *keepdir)
 {
 	DIR *dir = NULL;
 	struct invocation *iv;
-	struct variable *va;
-	const char *keepdir = NULL;
-	const char *robsddir;
 	int error = 0;
 
-	va = config_find(cf, "robsddir");
-	if (va == NULL) {
-		error = 1;
-		goto out;
-	}
-	robsddir = variable_get_value(va)->str;
 	dir = opendir(robsddir);
 	if (dir == NULL) {
 		warn("opendir: %s", robsddir);
 		error = 1;
 		goto out;
 	}
-
-	va = config_find(cf, "keep-dir");
-	if (va != NULL)
-		keepdir = variable_get_value(va)->str;
 
 	iv = calloc(1, sizeof(*iv));
 	if (iv == NULL)
