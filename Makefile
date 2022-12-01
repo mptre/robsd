@@ -345,8 +345,13 @@ SHLINT+=	robsd-rescue
 
 SUBDIR+=	tests
 
-all: ${PROG_robsd-config} ${PROG_robsd-hook} ${PROG_robsd-ls} ${PROG_robsd-exec}
-all: ${PROG_robsd-regress-log} ${PROG_robsd-stat} ${PROG_robsd-step}
+all: ${PROG_robsd-config}
+all: ${PROG_robsd-exec}
+all: ${PROG_robsd-hook}
+all: ${PROG_robsd-ls}
+all: ${PROG_robsd-regress-log}
+all: ${PROG_robsd-stat}
+all: ${PROG_robsd-step}
 
 ${PROG_robsd-config}: ${OBJS_robsd-config}
 	${CC} ${DEBUG} -o ${PROG_robsd-config} ${OBJS_robsd-config} ${LDFLAGS}
