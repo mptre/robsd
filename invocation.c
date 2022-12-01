@@ -88,10 +88,10 @@ static int
 invocation_read(struct invocation *iv, DIR *dir)
 {
 	char path[PATH_MAX];
-	struct dirent *ent;
 
 	for (;;) {
 		struct directory *d;
+		struct dirent *ent;
 
 		errno = 0;
 		ent = readdir(dir);
