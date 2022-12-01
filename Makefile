@@ -2,18 +2,18 @@ include ${.CURDIR}/config.mk
 
 VERSION=	17.1.0
 
+SRCS_config+=		buffer.c
+SRCS_config+=		config.c
+SRCS_config+=		interpolate.c
+SRCS_config+=		lexer.c
+SRCS_config+=		token.c
+SRCS_config+=		vector.c
+SRCS_config+=		util.c
+
 PROG_robsd-config=	robsd-config
 SRCS_robsd-config+=	robsd-config.c
-SRCS_robsd-config+=	buffer.c
-SRCS_robsd-config+=	config.c
-SRCS_robsd-config+=	compat-errc.c
 SRCS_robsd-config+=	compat-pledge.c
-SRCS_robsd-config+=	compat-warnc.c
-SRCS_robsd-config+=	interpolate.c
-SRCS_robsd-config+=	lexer.c
-SRCS_robsd-config+=	token.c
-SRCS_robsd-config+=	util.c
-SRCS_robsd-config+=	vector.c
+SRCS_robsd-config+=	${SRCS_config}
 OBJS_robsd-config=	${SRCS_robsd-config:.c=.o}
 DEPS_robsd-config=	${SRCS_robsd-config:.c=.d}
 
@@ -25,30 +25,16 @@ DEPS_robsd-exec=	${SRCS_robsd-exec:.c=.d}
 
 PROG_robsd-hook=	robsd-hook
 SRCS_robsd-hook+=	robsd-hook.c
-SRCS_robsd-hook+=	buffer.c
-SRCS_robsd-hook+=	config.c
-SRCS_robsd-hook+=	compat-errc.c
 SRCS_robsd-hook+=	compat-pledge.c
-SRCS_robsd-hook+=	compat-warnc.c
-SRCS_robsd-hook+=	interpolate.c
-SRCS_robsd-hook+=	lexer.c
-SRCS_robsd-hook+=	token.c
-SRCS_robsd-hook+=	util.c
-SRCS_robsd-hook+=	vector.c
+SRCS_robsd-hook+=	${SRCS_config}
 OBJS_robsd-hook=	${SRCS_robsd-hook:.c=.o}
 DEPS_robsd-hook=	${SRCS_robsd-hook:.c=.d}
 
 PROG_robsd-ls=		robsd-ls
 SRCS_robsd-ls+=		robsd-ls.c
-SRCS_robsd-ls+=		buffer.c
 SRCS_robsd-ls+=		compat-pledge.c
-SRCS_robsd-ls+=		config.c
-SRCS_robsd-ls+=		interpolate.c
-SRCS_robsd-ls+=		lexer.c
-SRCS_robsd-ls+=		token.c
-SRCS_robsd-ls+=		util.c
-SRCS_robsd-ls+=		vector.c
 SRCS_robsd-ls+=		invocation.c
+SRCS_robsd-ls+=		${SRCS_config}
 OBJS_robsd-ls=		${SRCS_robsd-ls:.c=.o}
 DEPS_robsd-ls=		${SRCS_robsd-ls:.c=.d}
 
