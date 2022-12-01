@@ -16,9 +16,8 @@ static __dead void	usage(void);
 #define FLAG_FAILED	0x00000001u
 #define FLAG_SKIPPED	0x00000002u
 #define FLAG_ERROR	0x00000004u
-#define FLAG_PRINT	0x00000008u
 
-static int	parselog(const char *, unsigned int);
+static int	parselog(const char *, struct buffer *, unsigned int);
 static int	iserror(const char *);
 static int	ismarker(const char *);
 static int	isskipped(const char *);
@@ -33,7 +32,9 @@ static regex_t	reg_regress, reg_subdir;
 int
 main(int argc, char *argv[])
 {
-	unsigned int flags = FLAG_PRINT;
+	struct buffer *bf;
+	unsigned int flags = 0;
+	int doprint = 1;
 	int ch, n;
 
 	if (pledge("stdio rpath unveil", NULL) == -1)
@@ -51,7 +52,7 @@ main(int argc, char *argv[])
 			flags |= FLAG_SKIPPED;
 			break;
 		case 'n':
-			flags &= ~FLAG_PRINT;
+			doprint = 0;
 			break;
 		default:
 			usage();
@@ -59,8 +60,7 @@ main(int argc, char *argv[])
 	}
 	argc -= optind;
 	argv += optind;
-	if (argc != 1 ||
-	    (flags & (FLAG_FAILED | FLAG_SKIPPED | FLAG_ERROR)) == 0)
+	if (argc != 1 || flags == 0)
 		usage();
 
 	if (unveil(*argv, "r") == -1)
@@ -68,9 +68,13 @@ main(int argc, char *argv[])
 	if (pledge("stdio rpath", NULL) == -1)
 		err(1, "pledge");
 
+	bf = buffer_alloc(1 << 20);
 	reg_init();
-	n = parselog(*argv, flags);
+	n = parselog(*argv, bf, flags);
 	reg_shutdown();
+	if (n > 0 && doprint)
+		printf("%.*s", (int)bf->bf_len, bf->bf_ptr);
+	buffer_free(bf);
 	if (n == -1)
 		return 2;
 	if (n == 0)
@@ -92,7 +96,6 @@ usage(void)
  *     FLAG_FAILED     Extract failed test cases.
  *     FLAG_SKIPPED    Extract skipped test cases.
  *     FLAG_ERROR      If no test cases are found, extract make errors.
- *     FLAG_PRINT      Output extracted test cases.
  *
  * Returns one of the following:
  *
@@ -101,7 +104,7 @@ usage(void)
  *     <0    Fatal error occurred.
  */
 static int
-parselog(const char *path, unsigned int flags)
+parselog(const char *path, struct buffer *out, unsigned int flags)
 {
 	struct buffer *bf;
 	char *line = NULL;
@@ -144,19 +147,16 @@ parselog(const char *path, unsigned int flags)
 
 		if (((flags & FLAG_SKIPPED) && isskipped(line)) ||
 		    ((flags & FLAG_FAILED) && isfailed(line))) {
-			if (flags & FLAG_PRINT) {
-				if (nfound > 0)
-					printf("\n");
-				printf("%.*s", (int)bf->bf_len, bf->bf_ptr);
-			}
+			if (nfound > 0)
+				buffer_putc(out, '\n');
+			buffer_printf(out, "%.*s", (int)bf->bf_len, bf->bf_ptr);
 			buffer_reset(bf);
 			nfound++;
 			errorlen = 0;
 		}
 	}
 	if ((flags & FLAG_ERROR) && nfound == 0 && !error && errorlen > 0) {
-		if (flags & FLAG_PRINT)
-			printf("%.*s", (int)errorlen, bf->bf_ptr);
+		buffer_printf(out, "%.*s", (int)errorlen, bf->bf_ptr);
 		nfound++;
 	}
 	free(line);
