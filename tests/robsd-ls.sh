@@ -28,7 +28,7 @@ robsd_ls() {
 }
 
 if testcase "robsd"; then
-	mkdir "${TSHDIR}"/2022-11-{28,29}
+	mkdir "${TSHDIR}/2022-11-28" "${TSHDIR}/2022-11-29"
 	robsd_config - <<-EOF
 	robsddir "${TSHDIR}"
 	EOF
@@ -39,7 +39,7 @@ if testcase "robsd"; then
 fi
 
 if testcase "cross"; then
-	mkdir "${TSHDIR}"/2022-11-{28,29}
+	mkdir "${TSHDIR}/2022-11-28" "${TSHDIR}/2022-11-29"
 	robsd_config -C - <<-EOF
 	robsddir "${TSHDIR}"
 	EOF
@@ -50,7 +50,7 @@ if testcase "cross"; then
 fi
 
 if testcase "ports"; then
-	mkdir "${TSHDIR}"/2022-11-{28,29}
+	mkdir "${TSHDIR}/2022-11-28" "${TSHDIR}/2022-11-29"
 	robsd_config -P - <<-EOF
 	robsddir "${TSHDIR}"
 	ports {}
@@ -62,7 +62,7 @@ if testcase "ports"; then
 fi
 
 if testcase "regress"; then
-	mkdir "${TSHDIR}"/2022-11-{28,29}
+	mkdir "${TSHDIR}/2022-11-28" "${TSHDIR}/2022-11-29"
 	robsd_config -R - <<-EOF
 	robsddir "${TSHDIR}"
 	regress "test"
@@ -74,7 +74,7 @@ if testcase "regress"; then
 fi
 
 if testcase "keep dir"; then
-	mkdir "${TSHDIR}"/2022-11-{28,29} "${TSHDIR}/attic"
+	mkdir "${TSHDIR}/2022-11-28" "${TSHDIR}/2022-11-29"
 	robsd_config - <<-EOF
 	robsddir "${TSHDIR}"
 	EOF
@@ -85,7 +85,7 @@ if testcase "keep dir"; then
 fi
 
 if testcase "skip build dir"; then
-	mkdir "${TSHDIR}"/2022-11-{28,29}
+	mkdir "${TSHDIR}/2022-11-28" "${TSHDIR}/2022-11-29"
 	echo "${TSHDIR}/2022-11-29" >"${TSHDIR}/.running"
 	robsd_config - <<-EOF
 	robsddir "${TSHDIR}"
@@ -96,7 +96,7 @@ if testcase "skip build dir"; then
 fi
 
 if testcase "skip build dir not running"; then
-	mkdir "${TSHDIR}"/2022-11-{28,29}
+	mkdir "${TSHDIR}/2022-11-28" "${TSHDIR}/2022-11-29"
 	robsd_config - <<-EOF
 	robsddir "${TSHDIR}"
 	EOF

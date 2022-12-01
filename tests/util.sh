@@ -21,7 +21,7 @@ robsd_config() {
 		case "$_mode" in
 		robsd)
 			cat <<-EOF
-			destdir "/var/empty"
+			destdir "${TSHDIR}"
 			bsd-srcdir "${TSHDIR}"
 			cvs-root "example.com:/cvs"
 			cvs-user "nobody"
