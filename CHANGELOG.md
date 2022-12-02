@@ -1,3 +1,19 @@
+# 17.2.0 - 2022-12-02
+
+## News
+
+- Add dmesg step to all utilities.
+  (fc3ddc7)
+  (Anton Lindqvist)
+
+- Add CVS changelog to robsd releases.
+  (b1fe5ba)
+  (Anton Lindqvist)
+
+- Keep tags file in the attic.
+  (71b2cbd)
+  (Anton Lindqvist)
+
 # 17.1.0 - 2022-11-22
 
 ## News
