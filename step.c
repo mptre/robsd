@@ -44,10 +44,7 @@ enum step_field_type {
 
 struct step_field {
 	enum step_field_type	sf_type;
-	union {
-		char	*sf_str;
-		int	 sf_int;
-	};
+	union step_value	sf_val;
 };
 
 static int	step_field_is_empty(const struct step_field *);
@@ -150,7 +147,7 @@ steps_free(struct step *steps)
 				break;
 
 			case STRING:
-				free(sf->sf_str);
+				free(sf->sf_val.str);
 				break;
 			}
 		}
@@ -179,7 +176,8 @@ steps_find_by_name(struct step *steps, const char *name)
 		struct step *st = &steps[i];
 		const struct step_field *sf = &st->st_fields[fd->fd_index];
 
-		if (!step_field_is_empty(sf) && strcmp(sf->sf_str, name) == 0)
+		if (!step_field_is_empty(sf) &&
+		    strcmp(sf->sf_val.str, name) == 0)
 			return st;
 	}
 	return NULL;
@@ -196,7 +194,7 @@ steps_find_by_id(struct step *steps, int id)
 		struct step *st = &steps[i];
 		const struct step_field *sf = &st->st_fields[fd->fd_index];
 
-		if (!step_field_is_empty(sf) && sf->sf_int == id)
+		if (!step_field_is_empty(sf) && sf->sf_val.integer == id)
 			return st;
 	}
 	return NULL;
@@ -259,13 +257,13 @@ step_interpolate_lookup(const char *name, void *arg)
 		return NULL;
 
 	case STRING:
-		val = sf->sf_str;
+		val = sf->sf_val.str;
 		break;
 
 	case INTEGER: {
 		int n;
 
-		n = snprintf(buf, buflen, "%d", sf->sf_int);
+		n = snprintf(buf, buflen, "%lld", sf->sf_val.integer);
 		if (n < 0 || n >= buflen) {
 			warnx("id buffer too small");
 			return NULL;
@@ -368,22 +366,22 @@ step_field_set(struct step_field *sf, enum step_field_type type,
 {
 	switch (type) {
 	case STRING:
-		free(sf->sf_str);
-		sf->sf_str = strdup(val);
-		if (sf->sf_str == NULL)
+		free(sf->sf_val.str);
+		sf->sf_val.str = strdup(val);
+		if (sf->sf_val.str == NULL)
 			err(1, NULL);
 		break;
 
 	case INTEGER: {
 		const char *errstr;
-		unsigned int v;
+		int64_t v;
 
-		v = strtonum(val, 0, INT_MAX, &errstr);
+		v = strtonum(val, LLONG_MIN, LLONG_MAX, &errstr);
 		if (errstr != NULL) {
 			warnx("value %s %s", val, errstr);
 			return 1;
 		}
-		sf->sf_int = v;
+		sf->sf_val.integer = v;
 		break;
 	}
 
@@ -531,11 +529,11 @@ step_cmp(const void *p1, const void *p2)
 	const struct step *s2 = p2;
 
 	fd = field_definition_find_by_name("step");
-	if (s1->st_fields[fd->fd_index].sf_int <
-	    s2->st_fields[fd->fd_index].sf_int)
+	if (s1->st_fields[fd->fd_index].sf_val.integer <
+	    s2->st_fields[fd->fd_index].sf_val.integer)
 		return -1;
-	if (s1->st_fields[fd->fd_index].sf_int >
-	    s2->st_fields[fd->fd_index].sf_int)
+	if (s1->st_fields[fd->fd_index].sf_val.integer >
+	    s2->st_fields[fd->fd_index].sf_val.integer)
 		return 1;
 	return 0;
 }
@@ -560,7 +558,7 @@ step_set_field_integer(struct step *st, const char *name, int val)
 	if (fd == NULL)
 		return 1;
 	st->st_fields[fd->fd_index].sf_type = INTEGER;
-	st->st_fields[fd->fd_index].sf_int = val;
+	st->st_fields[fd->fd_index].sf_val.integer = val;
 	return 0;
 }
 

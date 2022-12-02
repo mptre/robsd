@@ -1,7 +1,14 @@
+#include <stdint.h>	/* int64_t */
+
 struct buffer;
 
 struct step {
 	struct step_field	*st_fields;
+};
+
+union step_value {
+	char	*str;
+	int64_t	 integer;
 };
 
 struct step	*steps_parse(const char *);
