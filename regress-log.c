@@ -109,7 +109,8 @@ regress_log_parse(const char *path, struct buffer *out, unsigned int flags)
 			errorlen = 0;
 		}
 	}
-	if ((flags & REGRESS_LOG_ERROR) && nfound == 0 && !error && errorlen > 0) {
+	if ((flags & REGRESS_LOG_ERROR) && nfound == 0 && !error &&
+	    errorlen > 0) {
 		buffer_printf(out, "%.*s", (int)errorlen, bf->bf_ptr);
 		nfound++;
 	}
