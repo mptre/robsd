@@ -73,12 +73,12 @@ static const struct field_definition	*field_definition_find_by_name(
 static const struct field_definition fields[] = {
 	{ "step",	INTEGER,	0, 0,		{ 0 } },
 	{ "name",	STRING,		1, 0,		{ 0 } },
-	{ "exit",	STRING,		2, 0,		{ 0 } },
-	{ "duration",	STRING,		3, 0,		{ 0 } },
+	{ "exit",	INTEGER,	2, 0,		{ 0 } },
+	{ "duration",	INTEGER,	3, 0,		{ 0 } },
 	{ "log",	STRING,		4, OPTIONAL,	{ "" } },
 	{ "user",	STRING,		5, 0,		{ 0 } },
-	{ "time",	STRING,		6, 0,		{ 0 } },
-	{ "skip",	STRING,		7, OPTIONAL,	{ "0" } },
+	{ "time",	INTEGER,	6, 0,		{ 0 } },
+	{ "skip",	INTEGER,	7, OPTIONAL,	{ "0" } },
 };
 static const size_t nfields = sizeof(fields) / sizeof(fields[0]);
 
