@@ -4,6 +4,7 @@
 
 #include <err.h>
 #include <errno.h>
+#include <inttypes.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -263,7 +264,7 @@ step_interpolate_lookup(const char *name, void *arg)
 	case INTEGER: {
 		int n;
 
-		n = snprintf(buf, buflen, "%lld", sf->sf_val.integer);
+		n = snprintf(buf, buflen, "%" PRId64, sf->sf_val.integer);
 		if (n < 0 || n >= buflen) {
 			warnx("id buffer too small");
 			return NULL;
