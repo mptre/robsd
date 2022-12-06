@@ -20,7 +20,7 @@ robsd_ls() {
 		fail - "expected exit ${_err0}, got ${_err1}" <"$_stdout"
 		return 0
 	fi
-	if [ -s "$_stdin" ]; then
+	if [ -e "$_stdin" ]; then
 		assert_file "$_stdin" "$_stdout"
 	else
 		cat "$_stdout"
