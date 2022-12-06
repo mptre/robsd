@@ -57,8 +57,11 @@ main(int argc, char *argv[])
 		error = 1;
 		goto out;
 	}
-	if (skip_builddir && (va = config_find(config, "builddir")) != NULL)
-		builddir = variable_get_value(va)->str;
+	if (skip_builddir) {
+		va = config_find(config, "builddir");
+		if (va != NULL)
+			builddir = variable_get_value(va)->str;
+	}
 
 	if (pledge("stdio rpath", NULL) == -1)
 		err(1, "pledge");
