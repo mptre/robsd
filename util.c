@@ -103,7 +103,7 @@ ifgrinet(const char *group)
 			continue;
 
 		sin = (struct sockaddr_in *)ifa->ifa_addr;
-		inet = emalloc(inetsiz);
+		inet = ecalloc(1, inetsiz);
 		if (inet_ntop(AF_INET, &sin->sin_addr, inet, inetsiz) == NULL) {
 			warn("inet_ntop");
 			goto out;
