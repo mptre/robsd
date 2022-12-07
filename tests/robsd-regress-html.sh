@@ -7,6 +7,7 @@ setup() {
 		echo "${TSHDIR}/arm64/2022-10-24" 1666573200 1
 	} | while read -r _dir _time _exit; do
 		mkdir -p "$_dir"
+		printf 'comment\n' >"${_dir}/comment"
 		printf 'dmesg\n' >"${_dir}/dmesg"
 
 		_marker="$(printf '===> subdir\n==== test ====')"
@@ -127,6 +128,10 @@ if testcase -t xmllint "basic"; then
 		"${TSHDIR}/html/arm64/2022-10-25" \
 		"${TSHDIR}/html/arm64/2022-10-24"
 	do
+		assert_file - "${_dir}/comment" <<-EOF
+		comment
+		EOF
+
 		assert_file - "${_dir}/dmesg" <<-EOF
 		dmesg
 		EOF
@@ -155,6 +160,14 @@ if testcase "dmesg missing"; then
 
 	robsd_regress_html - -- -o "${TSHDIR}/html" "amd64:${TSHDIR}/amd64" <<-EOF
 	robsd-regress-html: open: ${TSHDIR}/amd64/2022-10-25/dmesg: No such file or directory
+	EOF
+fi
+
+if testcase "comment missing"; then
+	rm "${TSHDIR}/amd64/2022-10-25/comment"
+
+	robsd_regress_html - -- -o "${TSHDIR}/html" "amd64:${TSHDIR}/amd64" <<-EOF
+	robsd-regress-html: open: ${TSHDIR}/amd64/2022-10-25/comment: No such file or directory
 	EOF
 fi
 

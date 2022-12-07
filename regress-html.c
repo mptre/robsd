@@ -39,6 +39,7 @@ struct regress_invocation {
 	char	*arch;
 	char	*date;
 	char	*dmesg;
+	char	*comment;
 	int64_t	 time;
 	int	 total;
 	int	 fail;
@@ -127,6 +128,7 @@ regress_html_free(struct regress_html *r)
 		free(ri->arch);
 		free(ri->date);
 		free(ri->dmesg);
+		free(ri->comment);
 	}
 	VECTOR_FREE(r->invocations);
 	HASH_ITER(hh, r->suites, suite, tmp) {
@@ -320,7 +322,7 @@ create_regress_invocation(struct regress_html *r, const char *arch,
     const char *date, int64_t time)
 {
 	struct regress_invocation *ri;
-	const char *dmesg;
+	const char *comment, *dmesg;
 
 	ri = VECTOR_CALLOC(r->invocations);
 	if (ri == NULL)
@@ -331,10 +333,17 @@ create_regress_invocation(struct regress_html *r, const char *arch,
 	ri->date = strdup(date);
 	if (ri->date == NULL)
 		err(1, NULL);
+
 	dmesg = joinpath(r->path, "%s/%s/dmesg", arch, date);
 	ri->dmesg = strdup(dmesg);
 	if (ri->dmesg == NULL)
 		err(1, NULL);
+
+	comment = joinpath(r->path, "%s/%s/comment", arch, date);
+	ri->comment = strdup(comment);
+	if (ri->comment == NULL)
+		err(1, NULL);
+
 	ri->time = time;
 	return ri;
 }
@@ -364,6 +373,17 @@ create_directories(struct regress_html *r, struct regress_invocation *ri,
 	bf = buffer_read(path);
 	if (bf != NULL) {
 		path = joinpath(r->path, "%s/%s", r->output, ri->dmesg);
+		if (write_log(path, bf)) {
+			error = 1;
+			goto out;
+		}
+	}
+	buffer_free(bf);
+
+	path = joinpath(r->path, "%s/comment", directory);
+	bf = buffer_read(path);
+	if (bf != NULL) {
+		path = joinpath(r->path, "%s/%s", r->output, ri->comment);
 		if (write_log(path, bf)) {
 			error = 1;
 			goto out;
