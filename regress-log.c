@@ -127,6 +127,63 @@ regress_log_parse(const char *path, struct buffer *out, unsigned int flags)
 	return nfound;
 }
 
+/*
+ * Remove shell trace(s) from the given file.
+ */
+int
+regress_log_trim(const char *path, struct buffer *out)
+{
+	struct buffer *bf;
+	char *line = NULL;
+	size_t linesiz = 0;
+	FILE *fh;
+	size_t xbeg = 1;
+	size_t xend = 0;
+	int error = 0;
+
+	fh = fopen(path, "re");
+	if (fh == NULL) {
+		warn("open: %s", path);
+		return -1;
+	}
+	buffer_reset(out);
+
+	bf = buffer_alloc(1 << 20);
+
+	for (;;) {
+		ssize_t n;
+
+		n = getline(&line, &linesiz, fh);
+		if (n == -1) {
+			if (feof(fh))
+				break;
+			warn("getline: %s", path);
+			error = 1;
+			goto out;
+		}
+		if (xbeg != 0 && isxtrace(line))
+			continue;
+		xbeg = 0;
+
+		if (isxtrace(line)) {
+			if (xend == 0)
+				xend = bf->bf_len;
+		} else {
+			xend = 0;
+		}
+
+		buffer_puts(bf, line, n);
+	}
+
+	buffer_printf(out, "%.*s", (int)(xend ? xend : bf->bf_len), bf->bf_ptr);
+
+out:
+	free(line);
+	buffer_free(bf);
+	fclose(fh);
+	return error ? 0 : 1;
+}
+
 static int
 iserror(const char *str)
 {

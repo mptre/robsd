@@ -9,3 +9,4 @@ void	regress_log_shutdown(void);
 #define REGRESS_LOG_ERROR		0x00000008u
 
 int	regress_log_parse(const char *, struct buffer *, unsigned int);
+int	regress_log_trim(const char *, struct buffer *);

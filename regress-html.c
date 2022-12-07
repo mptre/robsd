@@ -305,20 +305,12 @@ parse_invocation(struct regress_html *r, const char *arch,
 				error = 1;
 				goto out;
 			}
-		} else {
-			struct buffer *bf;
-
+		} else if (regress_log_trim(path, scratch)) {
 			run->status = PASS;
-
-			bf = buffer_read(path);
-			if (bf == NULL) {
+			if (create_log(r, run, scratch)) {
 				error = 1;
 				goto out;
 			}
-			error = create_log(r, run, bf);
-			buffer_free(bf);
-			if (error)
-				goto out;
 		}
 	}
 

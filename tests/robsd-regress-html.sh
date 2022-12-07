@@ -12,7 +12,8 @@ setup() {
 		printf 'tags\n' >"${_dir}/tags"
 
 		_marker="$(printf '===> subdir\n==== test ====')"
-		printf '%s\nPASSED\n' "$_marker" >"${_dir}/pass.log"
+		_xtrace="+ x"
+		printf '%s\n%s\nPASSED\n%s\n' "$_xtrace" "$_marker" "$_xtrace" >"${_dir}/pass.log"
 		printf '%s\nSKIPPED\n' "$_marker" >"${_dir}/skip.log"
 		printf '%s\nFAILED\n' "$_marker" >"${_dir}/fail-always.log"
 		printf '%s\nFAILED\n' "$_marker" >"${_dir}/fail-once.log"
