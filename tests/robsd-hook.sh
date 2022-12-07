@@ -97,6 +97,13 @@ if testcase "hook not defined"; then
 	robsd_hook - </dev/null
 fi
 
+if testcase "verbose"; then
+	{ echo "hook { \"true\" }"; default_config; } >"$CONFIG"
+	robsd_hook - -- -V <<-EOF
+	robsd-hook: exec "true"
+	EOF
+fi
+
 if testcase "invalid: variable reserved"; then
 	default_config >"$CONFIG"
 	robsd_hook -e - -- -v robsddir=/tmp <<-EOF
