@@ -11,6 +11,7 @@
 #include <string.h>
 #include <time.h>
 
+#include "alloc.h"
 #include "buffer.h"
 #include "html.h"
 #include "invocation.h"
@@ -101,9 +102,7 @@ regress_html_alloc(const char *directory)
 {
 	struct regress_html *r;
 
-	r = calloc(1, sizeof(*r));
-	if (r == NULL)
-		err(1, NULL);
+	r = ecalloc(1, sizeof(*r));
 	if (VECTOR_INIT(r->invocations) == NULL)
 		err(1, NULL);
 	r->output = directory;
@@ -271,9 +270,7 @@ parse_invocation(struct regress_html *r, const char *arch,
 			err(1, NULL);
 		buffer_reset(scratch);
 		buffer_printf(scratch, "%s/%s/%s", arch, date, log);
-		run->log = strdup(scratch->bf_ptr);
-		if (run->log == NULL)
-			err(1, NULL);
+		run->log = estrdup(scratch->bf_ptr);
 		run->time = time;
 
 		path = joinpath(r->path, "%s/%s", directory, log);
@@ -327,24 +324,17 @@ create_regress_invocation(struct regress_html *r, const char *arch,
 	ri = VECTOR_CALLOC(r->invocations);
 	if (ri == NULL)
 		err(1, NULL);
-	ri->arch = strdup(arch);
-	if (ri->arch == NULL)
-		err(1, NULL);
-	ri->date = strdup(date);
-	if (ri->date == NULL)
-		err(1, NULL);
+	ri->arch = estrdup(arch);
+	ri->date = estrdup(date);
 
 	dmesg = joinpath(r->path, "%s/%s/dmesg", arch, date);
-	ri->dmesg = strdup(dmesg);
-	if (ri->dmesg == NULL)
-		err(1, NULL);
+	ri->dmesg = estrdup(dmesg);
 
 	comment = joinpath(r->path, "%s/%s/comment", arch, date);
-	ri->comment = strdup(comment);
-	if (ri->comment == NULL)
-		err(1, NULL);
+	ri->comment = estrdup(comment);
 
 	ri->time = time;
+
 	return ri;
 }
 
@@ -402,12 +392,8 @@ find_suite(struct regress_html *r, const char *name)
 
 	HASH_FIND_STR(r->suites, name, suite);
 	if (suite == NULL) {
-		suite = calloc(1, sizeof(*suite));
-		if (suite == NULL)
-			err(1, NULL);
-		suite->name = strdup(name);
-		if (suite->name == NULL)
-			err(1, NULL);
+		suite = ecalloc(1, sizeof(*suite));
+		suite->name = estrdup(name);
 		if (VECTOR_INIT(suite->runs) == NULL)
 			err(1, NULL);
 		HASH_ADD_STR(r->suites, name, suite);

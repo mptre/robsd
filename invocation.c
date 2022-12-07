@@ -10,6 +10,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "alloc.h"
 #include "vector.h"
 
 struct directory {
@@ -40,9 +41,7 @@ invocation_alloc(const char *robsddir, const char *keepdir)
 		goto out;
 	}
 
-	s = calloc(1, sizeof(*s));
-	if (s == NULL)
-		err(1, NULL);
+	s = ecalloc(1, sizeof(*s));
 	s->robsdir = robsddir;
 	s->keepdir = keepdir;
 	if (VECTOR_INIT(s->directories) == NULL)

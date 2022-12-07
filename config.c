@@ -20,6 +20,7 @@
 #include <string.h>
 #include <unistd.h>
 
+#include "alloc.h"
 #include "buffer.h"
 #include "cdefs.h"
 #include "interpolate.h"
@@ -250,9 +251,7 @@ config_alloc(const char *mode, const char *path)
 		return NULL;
 	}
 
-	cf = calloc(1, sizeof(*cf));
-	if (cf == NULL)
-		err(1, NULL);
+	cf = ecalloc(1, sizeof(*cf));
 	cf->cf_path = path;
 	cf->cf_mode = m;
 	TAILQ_INIT(&cf->cf_variables);
@@ -353,9 +352,7 @@ config_append_var(struct config *cf, const char *str)
 		warnx("missing variable separator in '%s'", str);
 		return 1;
 	}
-	name = strndup(str, val - str);
-	if (name == NULL)
-		err(1, NULL);
+	name = estrndup(str, val - str);
 	val++;	/* consume '=' */
 	error = config_append_string(cf, name, val);
 	if (error)
@@ -372,9 +369,7 @@ config_append_string(struct config *cf, const char *name, const char *str)
 	if (grammar_find(cf->cf_grammar, name))
 		return 1;
 
-	val.str = strdup(str);
-	if (val.str == NULL)
-		err(1, NULL);
+	val.str = estrdup(str);
 	config_append(cf, STRING, name, &val, 0, VARIABLE_FLAG_DIRTY);
 	return 0;
 }
@@ -529,9 +524,7 @@ again:
 		}
 
 		tk = lexer_emit(lx, &s, TOKEN_KEYWORD);
-		tk->tk_str = strdup(buf);
-		if (tk->tk_str == NULL)
-			err(1, NULL);
+		tk->tk_str = estrdup(buf);
 		return tk;
 	}
 
@@ -581,9 +574,7 @@ again:
 		buffer_putc(bf, '\0');
 
 		tk = lexer_emit(lx, &s, TOKEN_STRING);
-		tk->tk_str = strdup(bf->bf_ptr);
-		if (tk->tk_str == NULL)
-			err(1, NULL);
+		tk->tk_str = estrdup(bf->bf_ptr);
 		return tk;
 	}
 
@@ -699,9 +690,7 @@ grammar_equals(const struct grammar *gr, const char *str, size_t len)
 		char *buf;
 		int match;
 
-		buf = strndup(str, len);
-		if (buf == NULL)
-			err(1, NULL);
+		buf = estrndup(str, len);
 		match = fnmatch(gr->gr_kw, buf, 0) == 0;
 		free(buf);
 		return match;
@@ -861,9 +850,7 @@ config_parse_glob(struct config *cf, union variable_value *val)
 	for (i = 0; i < g.gl_matchc; i++) {
 		char *str;
 
-		str = strdup(g.gl_pathv[i]);
-		if (str == 0)
-			err(1, NULL);
+		str = estrdup(g.gl_pathv[i]);
 		*VECTOR_ALLOC(val->list) = str;
 	}
 
@@ -887,9 +874,7 @@ config_parse_list(struct config *cf, union variable_value *val)
 			break;
 		if (!lexer_expect(cf->cf_lx, TOKEN_STRING, &tk))
 			goto err;
-		str = strdup(tk->tk_str);
-		if (str == NULL)
-			err(1, NULL);
+		str = estrdup(tk->tk_str);
 		*VECTOR_ALLOC(val->list) = str;
 	}
 	if (!lexer_expect(cf->cf_lx, TOKEN_RBRACE, &tk))
@@ -1016,9 +1001,7 @@ config_parse_regress(struct config *cf, union variable_value *val)
 		variable_value_init(&newval, LIST);
 		regress = config_append(cf, LIST, "regress", &newval, 0, 0);
 	}
-	str = strdup(path);
-	if (str == NULL)
-		err(1, NULL);
+	str = estrdup(path);
 	*VECTOR_ALLOC(regress->va_val.list) = str;
 
 	val->ptr = novalue;
@@ -1145,15 +1128,11 @@ config_append(struct config *cf, enum variable_type type, const char *name,
 {
 	struct variable *va;
 
-	va = calloc(1, sizeof(*va));
-	if (va == NULL)
-		err(1, NULL);
+	va = ecalloc(1, sizeof(*va));
 	va->va_type = type;
 	va->va_lno = lno;
 	va->va_flags = flags;
-	va->va_name = strdup(name);
-	if (va->va_name == NULL)
-		err(1, NULL);
+	va->va_name = estrdup(name);
 	va->va_namelen = strlen(name);
 	va->va_val = *val;
 	TAILQ_INSERT_TAIL(&cf->cf_variables, va, va_entry);

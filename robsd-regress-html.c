@@ -6,6 +6,7 @@
 #include <string.h>
 #include <unistd.h>
 
+#include "alloc.h"
 #include "regress-html.h"
 #include "regress-log.h"
 
@@ -49,9 +50,7 @@ main(int argc, char *argv[])
 			error = 1;
 			goto out;
 		}
-		arch = strndup(argv[0], colon - argv[0]);
-		if (arch == NULL)
-			err(1, NULL);
+		arch = estrndup(argv[0], colon - argv[0]);
 		path = &colon[1];
 		error = regress_html_parse(rh, arch, path);
 		free(arch);

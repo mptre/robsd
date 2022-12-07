@@ -1,16 +1,15 @@
 #include "token.h"
 
-#include <err.h>
 #include <stdlib.h>
+
+#include "alloc.h"
 
 struct token *
 token_alloc(int type)
 {
 	struct token *tk;
 
-	tk = calloc(1, sizeof(*tk));
-	if (tk == NULL)
-		err(1, NULL);
+	tk = ecalloc(1, sizeof(*tk));
 	tk->tk_type = type;
 	return tk;
 }

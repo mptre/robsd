@@ -17,6 +17,8 @@
 #include <string.h>
 #include <unistd.h>
 
+#include "alloc.h"
+
 void
 log_warnx(const char *path, int lno, const char *fmt, ...)
 {
@@ -54,9 +56,7 @@ ifgrinet(const char *group)
 #ifndef __OpenBSD__
 	char *inet;
 
-	inet = strdup(group);
-	if (inet == NULL)
-		err(1, NULL);
+	inet = estrdup(group);
 	return inet;
 #else
 	struct ifgroupreq ifgr;
@@ -83,9 +83,7 @@ ifgrinet(const char *group)
 		warnx("interface group '%s' is empty", group);
 		goto out;
 	}
-	ifgr.ifgr_groups = calloc(1, ifgr.ifgr_len);
-	if (ifgr.ifgr_groups == NULL)
-		err(1, NULL);
+	ifgr.ifgr_groups = ecalloc(1, ifgr.ifgr_len);
 	if (ioctl(sock, SIOCGIFGMEMB, &ifgr) == -1) {
 		warn("ioctl: SIOCGIFGMEMB");
 		goto out;
@@ -105,9 +103,7 @@ ifgrinet(const char *group)
 			continue;
 
 		sin = (struct sockaddr_in *)ifa->ifa_addr;
-		inet = malloc(inetsiz);
-		if (inet == NULL)
-			err(1, NULL);
+		inet = emalloc(inetsiz);
 		if (inet_ntop(AF_INET, &sin->sin_addr, inet, inetsiz) == NULL) {
 			warn("inet_ntop");
 			goto out;

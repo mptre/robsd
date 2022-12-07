@@ -25,6 +25,8 @@
 #include <time.h>
 #include <unistd.h>
 
+#include "alloc.h"
+
 struct robsd_stat {
 	char		rs_directory[PATH_MAX];
 	uint64_t	rs_time;
@@ -217,9 +219,7 @@ stat_directory1(struct robsd_stat *rs, const char *user)
 		return 0;
 	/* Cope with new processes, roughly 10% growth. */
 	nprocs += nprocs / 8;
-	kp = calloc(nprocs, sizeof(*kp));
-	if (kp == NULL)
-		err(1, NULL);
+	kp = ecalloc(nprocs, sizeof(*kp));
 	mib[5] = nprocs * kpsiz;
 	if (sysctl(mib, 6, kp, &siz, NULL, 0) == -1) {
 		warn("sysctl: kern.proc.uid");

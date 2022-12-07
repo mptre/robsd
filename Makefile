@@ -2,6 +2,7 @@ include ${.CURDIR}/config.mk
 
 VERSION=	17.2.0
 
+SRCS_config+=		alloc.c
 SRCS_config+=		buffer.c
 SRCS_config+=		config.c
 SRCS_config+=		interpolate.c
@@ -40,6 +41,7 @@ DEPS_robsd-ls=		${SRCS_robsd-ls:.c=.d}
 
 PROG_robsd-regress-html=	robsd-regress-html
 SRCS_robsd-regress-html+=	robsd-regress-html.c
+SRCS_robsd-regress-html+=	alloc.c
 SRCS_robsd-regress-html+=	buffer.c
 SRCS_robsd-regress-html+=	compat-pledge.c
 SRCS_robsd-regress-html+=	compat-strtonum.c
@@ -67,12 +69,14 @@ DEPS_robsd-regress-log=		${SRCS_robsd-regress-log:.c=.d}
 
 PROG_robsd-stat=	robsd-stat
 SRCS_robsd-stat+=	robsd-stat.c
+SRCS_robsd-stat+=	alloc.c
 SRCS_robsd-stat+=	compat-strlcpy.c
 OBJS_robsd-stat=	${SRCS_robsd-stat:.c=.o}
 DEPS_robsd-stat=	${SRCS_robsd-stat:.c=.d}
 
 PROG_robsd-step=	robsd-step
 SRCS_robsd-step+=	robsd-step.c
+SRCS_robsd-step+=	alloc.c
 SRCS_robsd-step+=	buffer.c
 SRCS_robsd-step+=	compat-pledge.c
 SRCS_robsd-step+=	compat-strtonum.c
@@ -86,6 +90,8 @@ SRCS_robsd-step+=	vector.c
 OBJS_robsd-step=	${SRCS_robsd-step:.c=.o}
 DEPS_robsd-step=	${SRCS_robsd-step:.c=.d}
 
+KNFMT+=	alloc.c
+KNFMT+=	alloc.h
 KNFMT+=	buffer.c
 KNFMT+=	buffer.h
 KNFMT+=	cdefs.h
@@ -122,6 +128,8 @@ KNFMT+=	util.h
 KNFMT+=	vector.c
 KNFMT+=	vector.h
 
+CLANGTIDY+=	alloc.c
+CLANGTIDY+=	alloc.h
 CLANGTIDY+=	buffer.c
 CLANGTIDY+=	buffer.h
 CLANGTIDY+=	cdefs.h
@@ -156,6 +164,7 @@ CLANGTIDY+=	util.h
 CLANGTIDY+=	vector.c
 CLANGTIDY+=	vector.h
 
+CPPCHECK+=	alloc.c
 CPPCHECK+=	buffer.c
 CPPCHECK+=	config.c
 CPPCHECK+=	html.c
@@ -214,6 +223,8 @@ DISTFILES+=	LICENSE
 DISTFILES+=	Makefile
 DISTFILES+=	Makefile.inc
 DISTFILES+=	README.md
+DISTFILES+=	alloc.c
+DISTFILES+=	alloc.h
 DISTFILES+=	buffer.c
 DISTFILES+=	buffer.h
 DISTFILES+=	cdefs.h

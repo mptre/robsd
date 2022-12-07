@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "alloc.h"
 #include "buffer.h"
 #include "util.h"
 
@@ -131,9 +132,7 @@ interpolate(const struct interpolate_context *ic, struct buffer *bf,
 			return 1;
 		}
 
-		name = strndup(vs, len);
-		if (name == NULL)
-			err(1, NULL);
+		name = estrndup(vs, len);
 		lookup = ic->ic_arg->lookup(name, ic->ic_arg->arg);
 		free(name);
 		if (lookup == NULL) {

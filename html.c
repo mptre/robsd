@@ -6,6 +6,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include "alloc.h"
 #include "buffer.h"
 
 struct html {
@@ -23,9 +24,7 @@ html_alloc(void)
 {
 	struct html *html;
 
-	html = calloc(1, sizeof(*html));
-	if (html == NULL)
-		err(1, NULL);
+	html = ecalloc(1, sizeof(*html));
 	html->bf = buffer_alloc(1 << 10);
 	html_head(html);
 	return html;

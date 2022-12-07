@@ -5,6 +5,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include "alloc.h"
 #include "cdefs.h"
 #include "token.h"
 #include "util.h"
@@ -34,9 +35,7 @@ lexer_alloc(const struct lexer_arg *arg)
 		warn("open: %s", arg->path);
 		return NULL;
 	}
-	lx = calloc(1, sizeof(*lx));
-	if (lx == NULL)
-		err(1, NULL);
+	lx = ecalloc(1, sizeof(*lx));
 	lx->lx_arg = *arg;
 	lx->lx_fh = fh;
 	lx->lx_lno = 1;

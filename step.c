@@ -9,6 +9,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "alloc.h"
 #include "buffer.h"
 #include "cdefs.h"
 #include "interpolate.h"
@@ -274,9 +275,7 @@ step_interpolate_lookup(const char *name, void *arg)
 	}
 	}
 
-	str = strdup(val);
-	if (str == NULL)
-		err(1, NULL);
+	str = estrdup(val);
 	return str;
 }
 
@@ -328,9 +327,7 @@ step_set_keyval(struct step *st, const char *kv)
 		warnx("missing field separator in '%s'", kv);
 		return 1;
 	}
-	key = strndup(kv, val - kv);
-	if (key == NULL)
-		err(1, NULL);
+	key = estrndup(kv, val - kv);
 	val++; /* consume '=' */
 
 	if (step_set_field(st, key, val)) {
@@ -379,9 +376,7 @@ step_field_set(struct step_field *sf, enum step_field_type type,
 	switch (type) {
 	case STRING:
 		free(sf->sf_val.str);
-		sf->sf_val.str = strdup(val);
-		if (sf->sf_val.str == NULL)
-			err(1, NULL);
+		sf->sf_val.str = estrdup(val);
 		break;
 
 	case INTEGER: {
@@ -511,9 +506,7 @@ step_lexer_read(struct lexer *lx, void *arg)
 	lexer_ungetc(lx, ch);
 	buffer_putc(bf, '\0');
 	tk = lexer_emit(lx, &s, TOKEN_VALUE);
-	tk->tk_str = strdup(bf->bf_ptr);
-	if (tk->tk_str == NULL)
-		err(1, NULL);
+	tk->tk_str = estrdup(bf->bf_ptr);
 	return tk;
 }
 
