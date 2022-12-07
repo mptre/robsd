@@ -155,17 +155,17 @@ regress_html_parse(struct regress_html *r, const char *arch,
 {
 	struct buffer *bf;
 	const char *keepdir, *path;
-	struct invocation *iv;
+	struct invocation_state *is;
 	int error = 0;
 
 	bf = buffer_alloc(PATH_MAX);
 	keepdir = joinpath(bf, "%s/attic", robsddir);
-	iv = invocation_alloc(robsddir, keepdir);
-	if (iv == NULL) {
+	is = invocation_alloc(robsddir, keepdir);
+	if (is == NULL) {
 		error = 1;
 		goto out;
 	}
-	while ((path = invocation_walk(iv)) != NULL) {
+	while ((path = invocation_walk(is)) != NULL) {
 		if (parse_invocation(r, arch, path)) {
 			error = 1;
 			goto out;
@@ -173,7 +173,7 @@ regress_html_parse(struct regress_html *r, const char *arch,
 	}
 
 out:
-	invocation_free(iv);
+	invocation_free(is);
 	buffer_free(bf);
 	return error;
 }

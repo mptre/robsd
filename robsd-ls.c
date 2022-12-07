@@ -15,7 +15,7 @@ int
 main(int argc, char *argv[])
 {
 	struct config *config = NULL;
-	struct invocation *iv = NULL;
+	struct invocation_state *is = NULL;
 	const struct variable *va;
 	const char *builddir = NULL;
 	const char *mode = NULL;
@@ -70,19 +70,19 @@ main(int argc, char *argv[])
 	robsddir = variable_get_value(va)->str;
 	va = config_find(config, "keep-dir");
 	keepdir = variable_get_value(va)->str;
-	iv = invocation_alloc(robsddir, keepdir);
-	if (iv == NULL) {
+	is = invocation_alloc(robsddir, keepdir);
+	if (is == NULL) {
 		error = 1;
 		goto out;
 	}
-	while ((p = invocation_walk(iv)) != NULL) {
+	while ((p = invocation_walk(is)) != NULL) {
 		if (builddir != NULL && strcmp(p, builddir) == 0)
 			continue;
 		printf("%s\n", p);
 	}
 
 out:
-	invocation_free(iv);
+	invocation_free(is);
 	config_free(config);
 	return error;
 }

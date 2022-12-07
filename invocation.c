@@ -16,21 +16,21 @@ struct directory {
 	char	path[PATH_MAX];
 };
 
-struct invocation {
-	const char		*iv_robsddir;
-	const char		*iv_keepdir;
-	VECTOR(struct directory) iv_directories;
+struct invocation_state {
+	const char		*robsdir;
+	const char		*keepdir;
+	VECTOR(struct directory) directories;
 };
 
-static int	invocation_read(struct invocation *, DIR *);
+static int	invocation_read(struct invocation_state *, DIR *);
 
 static int	directory_cmp(const void *, const void *);
 
-struct invocation *
+struct invocation_state *
 invocation_alloc(const char *robsddir, const char *keepdir)
 {
 	DIR *dir = NULL;
-	struct invocation *iv = NULL;
+	struct invocation_state *s = NULL;
 	int error = 0;
 
 	dir = opendir(robsddir);
@@ -40,52 +40,53 @@ invocation_alloc(const char *robsddir, const char *keepdir)
 		goto out;
 	}
 
-	iv = calloc(1, sizeof(*iv));
-	if (iv == NULL)
+	s = calloc(1, sizeof(*s));
+	if (s == NULL)
 		err(1, NULL);
-	iv->iv_robsddir = robsddir;
-	iv->iv_keepdir = keepdir;
-	if (VECTOR_INIT(iv->iv_directories) == NULL)
+	s->robsdir = robsddir;
+	s->keepdir = keepdir;
+	if (VECTOR_INIT(s->directories) == NULL)
 		err(1, NULL);
 
-	if (invocation_read(iv, dir)) {
+	if (invocation_read(s, dir)) {
 		error = 1;
 		goto out;
 	}
-	if (!VECTOR_EMPTY(iv->iv_directories)) {
-		qsort(iv->iv_directories, VECTOR_LENGTH(iv->iv_directories),
-		    sizeof(*iv->iv_directories), directory_cmp);
+	if (!VECTOR_EMPTY(s->directories)) {
+		qsort(s->directories, VECTOR_LENGTH(s->directories),
+		    sizeof(*s->directories), directory_cmp);
 	}
 
 out:
 	if (dir != NULL)
 		closedir(dir);
 	if (error) {
-		invocation_free(iv);
+		invocation_free(s);
 		return NULL;
 	}
-	return iv;
+	return s;
 }
 
 void
-invocation_free(struct invocation *iv)
+invocation_free(struct invocation_state *s)
 {
-	if (iv == NULL)
+	if (s == NULL)
 		return;
-	VECTOR_FREE(iv->iv_directories);
-	free(iv);
+
+	VECTOR_FREE(s->directories);
+	free(s);
 }
 
 const char *
-invocation_walk(struct invocation *iv)
+invocation_walk(struct invocation_state *s)
 {
-	if (VECTOR_EMPTY(iv->iv_directories))
+	if (VECTOR_EMPTY(s->directories))
 		return NULL;
-	return VECTOR_POP(iv->iv_directories)->path;
+	return VECTOR_POP(s->directories)->path;
 }
 
 static int
-invocation_read(struct invocation *iv, DIR *dir)
+invocation_read(struct invocation_state *s, DIR *dir)
 {
 	char path[PATH_MAX];
 
@@ -97,7 +98,7 @@ invocation_read(struct invocation *iv, DIR *dir)
 		ent = readdir(dir);
 		if (ent == NULL) {
 			if (errno != 0) {
-				warn("readdir: %s", iv->iv_robsddir);
+				warn("readdir: %s", s->robsdir);
 				return 1;
 			}
 			break;
@@ -106,11 +107,11 @@ invocation_read(struct invocation *iv, DIR *dir)
 			continue;
 
 		(void)snprintf(path, sizeof(path), "%s/%s",
-		    iv->iv_robsddir, ent->d_name);
-		if (strcmp(path, iv->iv_keepdir) == 0)
+		    s->robsdir, ent->d_name);
+		if (strcmp(path, s->keepdir) == 0)
 			continue;
 
-		d = VECTOR_ALLOC(iv->iv_directories);
+		d = VECTOR_ALLOC(s->directories);
 		if (d == NULL)
 			err(1, NULL);
 		memcpy(d->path, path, sizeof(path));
