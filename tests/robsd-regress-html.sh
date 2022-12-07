@@ -9,6 +9,7 @@ setup() {
 		mkdir -p "$_dir"
 		printf 'comment\n' >"${_dir}/comment"
 		printf 'dmesg\n' >"${_dir}/dmesg"
+		printf 'tags\n' >"${_dir}/tags"
 
 		_marker="$(printf '===> subdir\n==== test ====')"
 		printf '%s\nPASSED\n' "$_marker" >"${_dir}/pass.log"
@@ -65,9 +66,9 @@ xpath() {
 	_path="$2"; : "${_path:?}"
 
 	_xmllint="$(which xmllint 2>/dev/null || echo /usr/local/bin/xmllint)"
-	"$_xmllint" --html --xpath "$_xpath" "$_path" |
+	"$_xmllint" --html --xpath "$_xpath" "$_path" 2>/dev/null |
 	grep -v -e '^[[:space:]]*$' -e '<' |
-	xargs printf '%s\n'
+	xargs -r printf '%s\n'
 }
 
 if testcase -t xmllint "basic"; then
@@ -154,6 +155,20 @@ if testcase -t xmllint "basic"; then
 	done
 fi
 
+if testcase -t xmllint "changelog"; then
+	printf 'cvs\n' >"${TSHDIR}/amd64/2022-10-25/tags"
+
+	robsd_regress_html -- -o "${TSHDIR}/html" "amd64:${TSHDIR}/amd64"
+
+	xpath '//td[@class="cvs"]/a/text()' "$TSHDIR/html/index.html" >"$TMP1"
+	assert_file - "$TMP1" "dates" <<-EOF
+	cvs
+	EOF
+	xpath '//td[@class="cvs"]/text()' "$TSHDIR/html/index.html" >"$TMP1"
+	assert_file - "$TMP1" "dates" <<-EOF
+	n/a
+	EOF
+fi
 
 if testcase "dmesg missing"; then
 	rm "${TSHDIR}/amd64/2022-10-25/dmesg"

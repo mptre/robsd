@@ -1,5 +1,7 @@
 #include "invocation.h"
 
+#include "config.h"
+
 #include <sys/types.h>
 
 #include <dirent.h>
@@ -11,6 +13,7 @@
 #include <string.h>
 
 #include "alloc.h"
+#include "buffer.h"
 #include "vector.h"
 
 struct directory {
@@ -82,6 +85,40 @@ invocation_walk(struct invocation_state *s)
 	if (VECTOR_EMPTY(s->directories))
 		return NULL;
 	return VECTOR_POP(s->directories)->path;
+}
+
+int
+invocation_has_tag(const char *directory, const char *tag)
+{
+	char path[PATH_MAX];
+	struct buffer *bf;
+	const char *str;
+	ssize_t pathsiz = sizeof(path);
+	int found = 0;
+	int n;
+
+	n = snprintf(path, pathsiz, "%s/tags", directory);
+	if (n < 0 || n >= pathsiz) {
+		warnc(ENAMETOOLONG, "%s", __func__);
+		return 0;
+	}
+
+	bf = buffer_read(path);
+	if (bf == NULL)
+		return 0;
+	buffer_putc(bf, '\0');
+	str = strstr(bf->bf_ptr, tag);
+	if (str != NULL) {
+		size_t taglen;
+
+		taglen = strlen(tag);
+		if ((str == bf->bf_ptr || str[-1] == ' ') &&
+		    (str[taglen] == '\0' || str[taglen] == ' ' ||
+		     str[taglen] == '\n'))
+			found = 1;
+	}
+	buffer_free(bf);
+	return found;
 }
 
 static int

@@ -44,6 +44,7 @@ struct regress_invocation {
 	int64_t	 time;
 	int	 total;
 	int	 fail;
+	int	 has_cvs;
 };
 
 struct run {
@@ -85,6 +86,7 @@ static int	write_log(const char *, const struct buffer *);
 
 static void	render_pass_rates(struct regress_html *);
 static void	render_dates(struct regress_html *);
+static void	render_changelog(struct regress_html *);
 static void	render_arches(struct regress_html *);
 static void	render_suite(struct regress_html *,
     struct suite *);
@@ -199,6 +201,7 @@ regress_html_render(struct regress_html *r)
 		HTML_NODE(html, "thead") {
 			render_pass_rates(r);
 			render_dates(r);
+			render_changelog(r);
 			render_arches(r);
 		}
 
@@ -248,6 +251,7 @@ parse_invocation(struct regress_html *r, const char *arch,
 		error = 1;
 		goto out;
 	}
+	ri->has_cvs = invocation_has_tag(directory, "cvs");
 
 	for (i = 0; i < VECTOR_LENGTH(steps); i++) {
 		struct suite *suite;
@@ -552,6 +556,34 @@ render_dates(struct regress_html *r)
 
 			HTML_NODE_ATTR(html, "td", HTML_ATTR("class", "date"))
 				HTML_TEXT(html, ri->date);
+		}
+	}
+}
+
+static void
+render_changelog(struct regress_html *r)
+{
+	struct html *html = r->html;
+
+	HTML_NODE(html, "tr") {
+		size_t i;
+
+		HTML_NODE(html, "td")
+			HTML_TEXT(html, "changelog");
+		for (i = 0; i < VECTOR_LENGTH(r->invocations); i++) {
+			const struct regress_invocation *ri = &r->invocations[i];
+
+			HTML_NODE_ATTR(html, "td", HTML_ATTR("class", "cvs")) {
+				if (ri->has_cvs) {
+					HTML_NODE_ATTR(html, "a",
+					    HTML_ATTR("href", ri->comment)) {
+						HTML_TEXT(html,
+						    "cvs");
+					}
+				} else {
+					HTML_TEXT(html, "n/a");
+				}
+			}
 		}
 	}
 }
