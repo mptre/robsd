@@ -64,8 +64,9 @@ struct suite {
 static int				  parse_invocation(struct regress_html *,
     const char *, const char *);
 static struct regress_invocation	 *create_regress_invocation(
-    struct regress_html *,
-    const char *, const char *, int64_t);
+    struct regress_html *, const char *, const char *, int64_t);
+static int				  create_directories(
+    struct regress_html *, struct regress_invocation *, const char *);
 static struct suite			 *find_suite(struct regress_html *,
     const char *);
 static struct suite			**sort_suites(struct suite *);
@@ -242,28 +243,9 @@ parse_invocation(struct regress_html *r, const char *arch,
 	}
 
 	ri = create_regress_invocation(r, arch, date, time);
-
-	path = joinpath(r->path, "%s/%s", r->output, arch);
-	if (mkdir(path, 0755) == -1 && errno != EEXIST) {
-		warn("mkdir: %s", path);
+	if (create_directories(r, ri, directory)) {
 		error = 1;
 		goto out;
-	}
-	path = joinpath(r->path, "%s/%s/%s", r->output, arch, date);
-	if (mkdir(path, 0755) == -1 && errno != EEXIST) {
-		warn("mkdir: %s", path);
-		error = 1;
-		goto out;
-	}
-
-	path = joinpath(r->path, "%s/dmesg", directory);
-	dmesg = buffer_read(path);
-	if (dmesg != NULL) {
-		path = joinpath(r->path, "%s/%s", r->output, ri->dmesg);
-		if (write_log(path, dmesg)) {
-			error = 1;
-			goto out;
-		}
 	}
 
 	for (i = 0; i < VECTOR_LENGTH(steps); i++) {
@@ -355,6 +337,42 @@ create_regress_invocation(struct regress_html *r, const char *arch,
 		err(1, NULL);
 	ri->time = time;
 	return ri;
+}
+
+static int
+create_directories(struct regress_html *r, struct regress_invocation *ri,
+    const char *directory)
+{
+	struct buffer *bf = NULL;
+	const char *path;
+	int error = 0;
+
+	path = joinpath(r->path, "%s/%s", r->output, ri->arch);
+	if (mkdir(path, 0755) == -1 && errno != EEXIST) {
+		warn("mkdir: %s", path);
+		error = 1;
+		goto out;
+	}
+	path = joinpath(r->path, "%s/%s/%s", r->output, ri->arch, ri->date);
+	if (mkdir(path, 0755) == -1 && errno != EEXIST) {
+		warn("mkdir: %s", path);
+		error = 1;
+		goto out;
+	}
+
+	path = joinpath(r->path, "%s/dmesg", directory);
+	bf = buffer_read(path);
+	if (bf != NULL) {
+		path = joinpath(r->path, "%s/%s", r->output, ri->dmesg);
+		if (write_log(path, bf)) {
+			error = 1;
+			goto out;
+		}
+	}
+
+out:
+	buffer_free(bf);
+	return error;
 }
 
 static struct suite *
