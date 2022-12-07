@@ -79,7 +79,7 @@ if testcase -t xmllint "basic"; then
 	robsd_regress_html -- -o "${TSHDIR}/html" \
 		"amd64:${TSHDIR}/amd64" "arm64:${TSHDIR}/arm64"
 
-	xpath '//td[@class="rate"]/text()' "$TSHDIR/html/index.html" >"$TMP1"
+	xpath '//th[@class="rate"]/text()' "$TSHDIR/html/index.html" >"$TMP1"
 	assert_file - "$TMP1" "dates" <<-EOF
 	80%
 	80%
@@ -87,7 +87,7 @@ if testcase -t xmllint "basic"; then
 	60%
 	EOF
 
-	xpath '//td[@class="date"]/text()' "$TSHDIR/html/index.html" >"$TMP1"
+	xpath '//th[@class="date"]/text()' "$TSHDIR/html/index.html" >"$TMP1"
 	assert_file - "$TMP1" "dates" <<-EOF
 	2022-10-25
 	2022-10-25
@@ -95,7 +95,7 @@ if testcase -t xmllint "basic"; then
 	2022-10-24
 	EOF
 
-	xpath '//td[@class="arch"]/a/text()' "$TSHDIR/html/index.html" >"$TMP1"
+	xpath '//th[@class="arch"]/a/text()' "$TSHDIR/html/index.html" >"$TMP1"
 	assert_file - "$TMP1" "arches" <<-EOF
 	amd64
 	arm64
@@ -177,11 +177,11 @@ if testcase -t xmllint "changelog"; then
 
 	robsd_regress_html -- -o "${TSHDIR}/html" "amd64:${TSHDIR}/amd64"
 
-	xpath '//td[@class="cvs"]/a/text()' "$TSHDIR/html/index.html" >"$TMP1"
+	xpath '//th[@class="cvs"]/a/text()' "$TSHDIR/html/index.html" >"$TMP1"
 	assert_file - "$TMP1" "dates" <<-EOF
 	cvs
 	EOF
-	xpath '//td[@class="cvs"]/text()' "$TSHDIR/html/index.html" >"$TMP1"
+	xpath '//th[@class="cvs"]/text()' "$TSHDIR/html/index.html" >"$TMP1"
 	assert_file - "$TMP1" "dates" <<-EOF
 	n/a
 	EOF

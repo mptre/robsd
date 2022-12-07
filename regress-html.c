@@ -532,12 +532,12 @@ render_pass_rates(struct regress_html *r)
 	HTML_NODE(html, "tr") {
 		size_t i;
 
-		HTML_NODE(html, "td")
+		HTML_NODE(html, "th")
 			HTML_TEXT(html, "pass rate");
 		for (i = 0; i < VECTOR_LENGTH(r->invocations); i++) {
 			const struct regress_invocation *ri = &r->invocations[i];
 
-			HTML_NODE_ATTR(html, "td", HTML_ATTR("class", "rate"))
+			HTML_NODE_ATTR(html, "th", HTML_ATTR("class", "rate"))
 				HTML_TEXT(html, pass_rate(r, ri));
 		}
 	}
@@ -551,12 +551,12 @@ render_dates(struct regress_html *r)
 	HTML_NODE(html, "tr") {
 		size_t i;
 
-		HTML_NODE(html, "td")
+		HTML_NODE(html, "th")
 			HTML_TEXT(html, "date");
 		for (i = 0; i < VECTOR_LENGTH(r->invocations); i++) {
 			const struct regress_invocation *ri = &r->invocations[i];
 
-			HTML_NODE_ATTR(html, "td", HTML_ATTR("class", "date"))
+			HTML_NODE_ATTR(html, "th", HTML_ATTR("class", "date"))
 				HTML_TEXT(html, ri->date);
 		}
 	}
@@ -570,12 +570,12 @@ render_changelog(struct regress_html *r)
 	HTML_NODE(html, "tr") {
 		size_t i;
 
-		HTML_NODE(html, "td")
+		HTML_NODE(html, "th")
 			HTML_TEXT(html, "changelog");
 		for (i = 0; i < VECTOR_LENGTH(r->invocations); i++) {
 			const struct regress_invocation *ri = &r->invocations[i];
 
-			HTML_NODE_ATTR(html, "td", HTML_ATTR("class", "cvs")) {
+			HTML_NODE_ATTR(html, "th", HTML_ATTR("class", "cvs")) {
 				if (ri->has_cvs) {
 					HTML_NODE_ATTR(html, "a",
 					    HTML_ATTR("href", ri->comment)) {
@@ -598,12 +598,12 @@ render_arches(struct regress_html *r)
 	HTML_NODE(html, "tr") {
 		size_t i;
 
-		HTML_NODE(html, "td")
+		HTML_NODE(html, "th")
 			HTML_TEXT(html, "architecture");
 		for (i = 0; i < VECTOR_LENGTH(r->invocations); i++) {
 			const struct regress_invocation *ri = &r->invocations[i];
 
-			HTML_NODE_ATTR(html, "td", HTML_ATTR("class", "arch")) {
+			HTML_NODE_ATTR(html, "th", HTML_ATTR("class", "arch")) {
 				HTML_NODE_ATTR(html, "a",
 				    HTML_ATTR("href", ri->dmesg)) {
 					HTML_TEXT(html,

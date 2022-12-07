@@ -115,6 +115,8 @@ html_head(struct html *html)
 	    "<html>\n"
 	    "<head>\n"
 	    "  <style>\n"
+	    "    thead { background: #fff; position: sticky; top: 0; }\n"
+	    "    th { font-weight: normal; text-align: left; }\n"
 	    "    td.PASS { background: #80ff80; }\n"
 	    "    td.FAIL { background: #ff8080; }\n"
 	    "    td.XFAIL { background: #80ffc0; }\n"
