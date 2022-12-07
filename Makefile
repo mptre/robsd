@@ -34,6 +34,7 @@ DEPS_robsd-hook=	${SRCS_robsd-hook:.c=.d}
 PROG_robsd-ls=		robsd-ls
 SRCS_robsd-ls+=		robsd-ls.c
 SRCS_robsd-ls+=		compat-pledge.c
+SRCS_robsd-ls+=		compat-warnc.c
 SRCS_robsd-ls+=		invocation.c
 SRCS_robsd-ls+=		${SRCS_config}
 OBJS_robsd-ls=		${SRCS_robsd-ls:.c=.o}
@@ -45,6 +46,7 @@ SRCS_robsd-regress-html+=	alloc.c
 SRCS_robsd-regress-html+=	buffer.c
 SRCS_robsd-regress-html+=	compat-pledge.c
 SRCS_robsd-regress-html+=	compat-strtonum.c
+SRCS_robsd-regress-html+=	compat-warnc.c
 SRCS_robsd-regress-html+=	html.c
 SRCS_robsd-regress-html+=	interpolate.c
 SRCS_robsd-regress-html+=	invocation.c
