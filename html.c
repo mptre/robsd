@@ -117,6 +117,7 @@ html_head(struct html *html)
 	    "  <style>\n"
 	    "    td.PASS { background: #80ff80; }\n"
 	    "    td.FAIL { background: #ff8080; }\n"
+	    "    td.XFAIL { background: #80ffc0; }\n"
 	    "    td.SKIP { background: #8080ff; }\n"
 	    "    a.status { color: #000; }\n"
 	    "  </style>\n"

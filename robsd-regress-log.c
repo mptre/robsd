@@ -21,7 +21,7 @@ main(int argc, char *argv[])
 	if (pledge("stdio rpath unveil", NULL) == -1)
 		err(1, "pledge");
 
-	while ((ch = getopt(argc, argv, "EFSn")) != -1) {
+	while ((ch = getopt(argc, argv, "EFSXn")) != -1) {
 		switch (ch) {
 		case 'E':
 			flags |= REGRESS_LOG_ERROR;
@@ -31,6 +31,9 @@ main(int argc, char *argv[])
 			break;
 		case 'S':
 			flags |= REGRESS_LOG_SKIPPED;
+			break;
+		case 'X':
+			flags |= REGRESS_LOG_XFAILED;
 			break;
 		case 'n':
 			doprint = 0;
@@ -66,6 +69,6 @@ main(int argc, char *argv[])
 static __dead void
 usage(void)
 {
-	fprintf(stderr, "usage: robsd-regress-log [-EFSn] path\n");
+	fprintf(stderr, "usage: robsd-regress-log [-EFSXn] path\n");
 	exit(1);
 }

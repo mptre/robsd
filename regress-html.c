@@ -53,6 +53,7 @@ struct run {
 	enum {
 		PASS,
 		FAIL,
+		XFAIL,
 		SKIP,
 	} status;
 };
@@ -284,6 +285,15 @@ parse_invocation(struct regress_html *r, const char *arch,
 			ri->fail++;
 			suite->fail++;
 			run->status = FAIL;
+			if (create_log(r, run, scratch)) {
+				error = 1;
+				goto out;
+			}
+		} else if (regress_log_parse(path, scratch,
+		    REGRESS_LOG_XFAILED) > 0) {
+			regress_log_parse(path, scratch,
+			    REGRESS_LOG_XFAILED | REGRESS_LOG_SKIPPED);
+			run->status = XFAIL;
 			if (create_log(r, run, scratch)) {
 				error = 1;
 				goto out;
@@ -702,6 +712,8 @@ strstatus(int status)
 		return "PASS";
 	case FAIL:
 		return "FAIL";
+	case XFAIL:
+		return "XFAIL";
 	case SKIP:
 		return "SKIP";
 	}

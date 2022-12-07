@@ -248,6 +248,32 @@ if testcase "error"; then
 	EOF
 fi
 
+if testcase "expected fail"; then
+	robsd_config -R - <<-EOF
+	robsddir "${TSHDIR}"
+	regress "test"
+	EOF
+
+	cat <<-EOF >"$LOG"
+	===> subdir
+	==== one ====
+	./one
+
+	==== two ====
+	./two
+	EXPECTED_FAIL
+	EOF
+
+	(setmode "robsd-regress" &&
+	 regress_report_log -e 0 -n test -l "$LOG" -t "$TSHDIR" >"$TMP1")
+
+	assert_file - "$TMP1" <<-EOF
+	==== two ====
+	./two
+	EXPECTED_FAIL
+	EOF
+fi
+
 if testcase "missing arguments"; then
 	if ${EXEC:-} "$ROBSDREGRESSLOG" >"$TMP1" 2>&1; then
 		fail - "expected exit non-zero" <"$TMP1"

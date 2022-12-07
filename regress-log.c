@@ -12,6 +12,7 @@ static int	iserror(const char *);
 static int	ismarker(const char *);
 static int	isskipped(const char *);
 static int	isfailed(const char *);
+static int	isxfailed(const char *);
 static int	isxtrace(const char *);
 
 static regex_t	reg_regress, reg_subdir;
@@ -49,6 +50,7 @@ regress_log_shutdown(void)
  *
  *     REGRESS_LOG_FAILED     Extract failed test cases.
  *     REGRESS_LOG_SKIPPED    Extract skipped test cases.
+ *     REGRESS_LOG_XFAILED    Extract expected failed test cases.
  *     REGRESS_LOG_ERROR      If no test cases are found, extract make errors.
  *
  * Returns one of the following:
@@ -101,7 +103,8 @@ regress_log_parse(const char *path, struct buffer *out, unsigned int flags)
 			errorlen = bf->bf_len;
 
 		if (((flags & REGRESS_LOG_SKIPPED) && isskipped(line)) ||
-		    ((flags & REGRESS_LOG_FAILED) && isfailed(line))) {
+		    ((flags & REGRESS_LOG_FAILED) && isfailed(line)) ||
+		    ((flags & REGRESS_LOG_XFAILED) && isxfailed(line))) {
 			if (nfound > 0)
 				buffer_putc(out, '\n');
 			buffer_printf(out, "%.*s", (int)bf->bf_len, bf->bf_ptr);
@@ -153,6 +156,12 @@ static int
 isfailed(const char *str)
 {
 	return strstr(str, "FAILED") != NULL;
+}
+
+static int
+isxfailed(const char *str)
+{
+	return strstr(str, "EXPECTED_FAIL") != NULL;
 }
 
 static int

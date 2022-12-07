@@ -16,12 +16,15 @@ setup() {
 		printf '%s\nSKIPPED\n' "$_marker" >"${_dir}/skip.log"
 		printf '%s\nFAILED\n' "$_marker" >"${_dir}/fail-always.log"
 		printf '%s\nFAILED\n' "$_marker" >"${_dir}/fail-once.log"
+		printf '%s\nSKIPPED\n%s\nEXPECTED_FAIL\n' \
+			"$_marker" "$_marker" >"${_dir}/xfail.log"
 
 		{
 			step_serialize -s 1 -n test/pass -l pass.log -t "$_time"
 			step_serialize -H -s 2 -n test/skip -l skip.log -t "$_time"
 			step_serialize -H -s 3 -n test/fail/once -e "$_exit" -l fail-once.log -t "$_time"
 			step_serialize -H -s 4 -n test/fail/always -e 1 -l fail-always.log -t "$_time"
+			step_serialize -H -s 4 -n test/xfail -l xfail.log -t "$_time"
 		} >"$(step_path "$_dir")"
 	done
 
@@ -77,10 +80,10 @@ if testcase -t xmllint "basic"; then
 
 	xpath '//td[@class="rate"]/text()' "$TSHDIR/html/index.html" >"$TMP1"
 	assert_file - "$TMP1" "dates" <<-EOF
-	75%
-	75%
-	50%
-	50%
+	80%
+	80%
+	60%
+	60%
 	EOF
 
 	xpath '//td[@class="date"]/text()' "$TSHDIR/html/index.html" >"$TMP1"
@@ -121,6 +124,11 @@ if testcase -t xmllint "basic"; then
 	SKIP
 	SKIP
 	SKIP
+	test/xfail
+	XFAIL
+	XFAIL
+	XFAIL
+	XFAIL
 	EOF
 
 	for _dir in \
@@ -151,6 +159,14 @@ if testcase -t xmllint "basic"; then
 		assert_file - "${_dir}/fail-always.log" <<-EOF
 		==== test ====
 		FAILED
+		EOF
+
+		assert_file - "${_dir}/xfail.log" <<-EOF
+		==== test ====
+		SKIPPED
+
+		==== test ====
+		EXPECTED_FAIL
 		EOF
 	done
 fi
