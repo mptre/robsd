@@ -97,28 +97,28 @@ if testcase "hook not defined"; then
 	robsd_hook - </dev/null
 fi
 
-if testcase "invalid variable reserved"; then
+if testcase "invalid: variable reserved"; then
 	default_config >"$CONFIG"
 	robsd_hook -e - -- -v robsddir=/tmp <<-EOF
 	robsd-hook: variable 'robsddir' cannot be defined
 	EOF
 fi
 
-if testcase "invalid variable missing separator"; then
+if testcase "invalid: variable missing separator"; then
 	default_config >"$CONFIG"
 	robsd_hook -e - -- -v extra <<-EOF
 	robsd-hook: missing variable separator in 'extra'
 	EOF
 fi
 
-if testcase "invalid interpolation"; then
+if testcase "invalid: interpolation"; then
 	{ echo "hook { \"\${nein}\" }"; default_config; } >"$CONFIG"
 	robsd_hook -e - <<-EOF
 	robsd-hook: invalid substitution, unknown variable 'nein'
 	EOF
 fi
 
-if testcase "invalid arguments"; then
+if testcase "invalid: arguments"; then
 	default_config >"$CONFIG"
 	robsd_hook -e -- -nein >/dev/null
 fi
