@@ -38,10 +38,6 @@ if testcase "skipped many lines"; then
 	EOF
 
 	cat <<-EOF >"$LOG"
-	==== test
-	SKIPPED
-	EOF
-	cat <<-EOF >"$LOG"
 	==== t-permit-1 ====
 	t-permit-1
 
