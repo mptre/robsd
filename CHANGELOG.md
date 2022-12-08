@@ -1,3 +1,18 @@
+# 17.3.0 - 2022-12-08
+
+## News
+
+- Add robsd-regress-html used to render html reports.
+  (7bc8770)
+  (Anton Lindqvist)
+
+## Bug fixes
+
+- Keep the invocation lock while generating the report.
+  Caused duration deltas to no be include in the report.
+  (c5b3610)
+  (Anton Lindqvist)
+
 # 17.2.0 - 2022-12-02
 
 ## News
