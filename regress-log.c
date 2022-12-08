@@ -8,6 +8,17 @@
 
 #include "buffer.h"
 
+struct reader {
+	const char	*path;
+	FILE		*fh;
+	char		*line;
+	size_t		 linesiz;
+};
+
+static int	reader_open(struct reader *, const char *);
+static ssize_t	reader_getline(struct reader *, const char **);
+static void	reader_close(struct reader *);
+
 static int	iserror(const char *);
 static int	ismarker(const char *);
 static int	isskipped(const char *);
@@ -62,35 +73,29 @@ regress_log_shutdown(void)
 int
 regress_log_parse(const char *path, struct buffer *out, unsigned int flags)
 {
+	struct reader rd;
 	struct buffer *bf;
-	char *line = NULL;
 	size_t errorlen = 0;
-	size_t linesiz = 0;
-	FILE *fh;
 	int error = 0;
 	int nfound = 0;
 	int xtrace = 1;
 
-	fh = fopen(path, "re");
-	if (fh == NULL) {
-		warn("open: %s", path);
-		return -1;
-	}
+	if (reader_open(&rd, path))
+		return 1;
+
 	buffer_reset(out);
-
 	bf = buffer_alloc(1 << 20);
-
 	for (;;) {
+		const char *line;
 		ssize_t n;
 
-		n = getline(&line, &linesiz, fh);
+		n = reader_getline(&rd, &line);
 		if (n == -1) {
-			if (feof(fh))
-				break;
-			warn("getline: %s", path);
 			error = 1;
 			break;
 		}
+		if (n == 0)
+			break;
 		if (xtrace && isxtrace(line))
 			continue;
 		xtrace = 0;
@@ -118,9 +123,8 @@ regress_log_parse(const char *path, struct buffer *out, unsigned int flags)
 		buffer_printf(out, "%.*s", (int)errorlen, bf->bf_ptr);
 		nfound++;
 	}
-	free(line);
 	buffer_free(bf);
-	fclose(fh);
+	reader_close(&rd);
 
 	if (error)
 		return -1;
@@ -133,34 +137,28 @@ regress_log_parse(const char *path, struct buffer *out, unsigned int flags)
 int
 regress_log_trim(const char *path, struct buffer *out)
 {
+	struct reader rd;
 	struct buffer *bf;
-	char *line = NULL;
-	size_t linesiz = 0;
-	FILE *fh;
 	size_t xbeg = 1;
 	size_t xend = 0;
 	int error = 0;
 
-	fh = fopen(path, "re");
-	if (fh == NULL) {
-		warn("open: %s", path);
-		return -1;
-	}
+	if (reader_open(&rd, path))
+		return 1;
+
 	buffer_reset(out);
-
 	bf = buffer_alloc(1 << 20);
-
 	for (;;) {
+		const char *line;
 		ssize_t n;
 
-		n = getline(&line, &linesiz, fh);
+		n = reader_getline(&rd, &line);
 		if (n == -1) {
-			if (feof(fh))
-				break;
-			warn("getline: %s", path);
 			error = 1;
 			goto out;
 		}
+		if (n == 0)
+			break;
 		if (xbeg != 0 && isxtrace(line))
 			continue;
 		xbeg = 0;
@@ -178,10 +176,44 @@ regress_log_trim(const char *path, struct buffer *out)
 	buffer_printf(out, "%.*s", (int)(xend ? xend : bf->bf_len), bf->bf_ptr);
 
 out:
-	free(line);
 	buffer_free(bf);
-	fclose(fh);
+	reader_close(&rd);
 	return error ? 0 : 1;
+}
+
+static int
+reader_open(struct reader *rd, const char *path)
+{
+	memset(rd, 0, sizeof(*rd));
+	rd->fh = fopen(path, "re");
+	if (rd->fh == NULL) {
+		warn("open: %s", path);
+		return 1;
+	}
+	return 0;
+}
+
+static ssize_t
+reader_getline(struct reader *rd, const char **out)
+{
+	ssize_t n;
+
+	n = getline(&rd->line, &rd->linesiz, rd->fh);
+	if (n == -1) {
+		if (feof(rd->fh))
+			return 0;
+		warn("getline: %s", rd->path);
+		return -1;
+	}
+	*out = rd->line;
+	return n;
+}
+
+static void
+reader_close(struct reader *rd)
+{
+	free(rd->line);
+	fclose(rd->fh);
 }
 
 static int
