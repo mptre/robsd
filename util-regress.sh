@@ -8,7 +8,7 @@ regress_config_load() {
 
 # regress_failed step-log
 #
-# Exits zero if the given regress step log indicate failure.
+# Exits zero if the given regress step log indicates failure.
 regress_failed() {
 	local _log
 
