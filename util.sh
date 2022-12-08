@@ -1700,8 +1700,6 @@ trap_exit() {
 
 	_steps="$(step_path "$_builddir")"
 
-	lock_release "$_robsddir" "$_builddir" || :
-
 	# Generate the report if a step failed or the end step is reached.
 	if [ "$_err" -ne 0 ] ||
 	   step_eval -n end "$_steps" 2>/dev/null
@@ -1712,6 +1710,8 @@ trap_exit() {
 			sendmail root <"${_builddir}/report"
 		fi
 	fi
+
+	lock_release "$_robsddir" "$_builddir" || :
 
 	# Do not leave an empty build around.
 	[ -s "$_steps" ] || rm -r "$_builddir"
