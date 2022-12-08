@@ -70,7 +70,7 @@ regress_report_skip() {
 	: "${_name:?}"
 
 	# Do not skip if one or many tests where skipped.
-	if ! regress_quiet "$_name" && regress_log -Sn "$_log"; then
+	if ! regress_quiet "$_name" && regress_log -SXn "$_log"; then
 		return 1
 	fi
 	return 0

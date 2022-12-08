@@ -202,6 +202,10 @@ if testcase "regress"; then
 	==== t0 ====
 	DISABLED
 	EOF
+	cat <<-EOF >"${BUILDDIR}/xfail.log"
+	==== t0 ====
+	EXPECTED_FAIL
+	EOF
 
 	: > "${BUILDDIR}/dmesg.log"
 	{
@@ -210,8 +214,9 @@ if testcase "regress"; then
 		step_serialize -H -s 3 -n error -e 1 -d 1 -l error.log
 		step_serialize -H -s 4 -n skipignore -d 1 -l skipignore.log
 		step_serialize -H -s 5 -n disabled -d 10 -l disabled.log
-		step_serialize -H -s 6 -n dmesg -i 0 -l dmesg.log
-		step_serialize -H -s 7 -n end -d 12
+		step_serialize -H -s 6 -n xfail -d 1 -l xfail.log
+		step_serialize -H -s 7 -n dmesg -i 0 -l dmesg.log
+		step_serialize -H -s 8 -n end -d 12
 	} >"$STEPS"
 
 	robsd_config -R - <<-EOF
@@ -267,6 +272,14 @@ if testcase "regress"; then
 	error: unable to open output file 'log.o': 'Read-only file system'
 	X-Fail: error
 	X-Skip: skip
+
+	> xfail:
+	Exit: 0
+	Duration: 00:00:01
+	Log: xfail.log
+
+	==== t0 ====
+	EXPECTED_FAIL
 	EOF
 fi
 
