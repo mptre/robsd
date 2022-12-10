@@ -14,7 +14,6 @@ struct html {
 	unsigned int	 depth;
 };
 
-static void	html_head(struct html *);
 static void	html_indent(struct html *);
 
 struct html_attribute	html_attr_last;
@@ -26,7 +25,6 @@ html_alloc(void)
 
 	html = ecalloc(1, sizeof(*html));
 	html->bf = buffer_alloc(1 << 10);
-	html_head(html);
 	return html;
 }
 
@@ -62,6 +60,43 @@ html_write(const struct html *html, const char *path)
 	}
 	fclose(fh);
 	return error;
+}
+
+int
+html_head_enter(struct html *html)
+{
+	const char head[] = ""
+	    "<!doctype html>\n"
+	    "<html lang=\"en\">\n"
+	    "<head>\n"
+	    "  <meta charset=\"utf-8\">\n"
+	    "  <style>\n"
+	    "    thead { background: #fff; position: sticky; top: 0; }\n"
+	    "    th { font-weight: normal; text-align: left; }\n"
+	    "    td.PASS { background: #80ff80; }\n"
+	    "    td.FAIL { background: #ff8080; }\n"
+	    "    td.XFAIL { background: #80ffc0; }\n"
+	    "    td.SKIP { background: #8080ff; }\n"
+	    "    a.status { color: #000; }\n"
+	    "  </style>\n";
+
+	html_indent(html);
+	html->depth++;
+	buffer_printf(html->bf, head);
+	return 1;
+}
+
+int
+html_head_leave(struct html *html)
+{
+	const char head[] = ""
+	    "</head>\n"
+	    "<body>\n";
+
+	html->depth--;
+	html_indent(html);
+	buffer_printf(html->bf, head);
+	return 0;
 }
 
 int
@@ -105,28 +140,6 @@ html_text(struct html *html, const char *str)
 {
 	html_indent(html);
 	buffer_printf(html->bf, "%s\n", str);
-}
-
-static void
-html_head(struct html *html)
-{
-	const char head[] = ""
-	    "<!doctype html>\n"
-	    "<html>\n"
-	    "<head>\n"
-	    "  <style>\n"
-	    "    thead { background: #fff; position: sticky; top: 0; }\n"
-	    "    th { font-weight: normal; text-align: left; }\n"
-	    "    td.PASS { background: #80ff80; }\n"
-	    "    td.FAIL { background: #ff8080; }\n"
-	    "    td.XFAIL { background: #80ffc0; }\n"
-	    "    td.SKIP { background: #8080ff; }\n"
-	    "    a.status { color: #000; }\n"
-	    "  </style>\n"
-	    "</head>\n"
-	    "<body>\n";
-
-	buffer_printf(html->bf, head);
 }
 
 static void

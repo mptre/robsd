@@ -192,6 +192,11 @@ regress_html_render(struct regress_html *r)
 		    sizeof(*r->invocations), regress_invocation_cmp);
 	}
 
+	HTML_HEAD(html) {
+		HTML_NODE(html, "title")
+			HTML_TEXT(html, "OpenBSD regress");
+	}
+
 	HTML_NODE(html, "h1")
 		HTML_TEXT(html, "OpenBSD regress latest test results");
 

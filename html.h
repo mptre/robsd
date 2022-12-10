@@ -4,6 +4,11 @@
 #define CONCAT(a, b) CONCAT_INNER(a, b)
 #define NODE() CONCAT(node, __LINE__)
 
+#define HTML_HEAD(html)							\
+	for (int NODE() = html_head_enter((html));			\
+	    NODE();							\
+	    NODE() = html_head_leave((html)))
+
 #define HTML_NODE(html, type)						\
 	for (int NODE() = html_node_enter((html), (type), &html_attr_last);\
 	    NODE();							\
@@ -28,6 +33,9 @@ struct html	*html_alloc(void);
 void		 html_free(struct html *);
 
 int	html_write(const struct html *, const char *);
+
+int	html_head_enter(struct html *);
+int	html_head_leave(struct html *);
 
 int	html_node_enter(struct html *, const char *, ...);
 int	html_node_leave(struct html *, const char *);
