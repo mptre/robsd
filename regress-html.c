@@ -37,14 +37,15 @@ struct regress_html {
 };
 
 struct regress_invocation {
-	char	*arch;
-	char	*date;
-	char	*dmesg;
-	char	*comment;
-	int64_t	 time;
-	int	 total;
-	int	 fail;
-	int	 has_cvs;
+	char		*arch;
+	char		*date;
+	char		*dmesg;
+	char		*comment;
+	int64_t		 time;
+	int		 total;
+	int		 fail;
+	unsigned int	 flags;
+#define REGRESS_INVOCATION_CVS		0x00000001u
 };
 
 struct run {
@@ -257,7 +258,8 @@ parse_invocation(struct regress_html *r, const char *arch,
 		error = 1;
 		goto out;
 	}
-	ri->has_cvs = invocation_has_tag(directory, "cvs");
+	if (invocation_has_tag(directory, "cvs"))
+		ri->flags |= REGRESS_INVOCATION_CVS;
 
 	for (i = 0; i < VECTOR_LENGTH(steps); i++) {
 		struct suite *suite;
@@ -581,7 +583,7 @@ render_changelog(struct regress_html *r)
 			const struct regress_invocation *ri = &r->invocations[i];
 
 			HTML_NODE_ATTR(html, "th", HTML_ATTR("class", "cvs")) {
-				if (ri->has_cvs) {
+				if (ri->flags & REGRESS_INVOCATION_CVS) {
 					HTML_NODE_ATTR(html, "a",
 					    HTML_ATTR("href", ri->comment)) {
 						HTML_TEXT(html,
