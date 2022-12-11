@@ -41,11 +41,13 @@ struct regress_invocation {
 	char		*date;
 	char		*dmesg;
 	char		*comment;
+	char		*patches;
 	int64_t		 time;
 	int		 total;
 	int		 fail;
 	unsigned int	 flags;
 #define REGRESS_INVOCATION_CVS		0x00000001u
+#define REGRESS_INVOCATION_PATCH	0x00000002u
 };
 
 struct run {
@@ -72,6 +74,8 @@ static struct regress_invocation	 *create_regress_invocation(
     struct regress_html *, const char *, const char *, int64_t);
 static int				  create_directories(
     struct regress_html *, struct regress_invocation *, const char *);
+static int				  create_patches(struct regress_html *,
+    struct regress_invocation *, const char *);
 static struct suite			 *find_suite(struct regress_html *,
     const char *);
 static struct suite			**sort_suites(struct suite *);
@@ -89,6 +93,7 @@ static int	write_log(const char *, const struct buffer *);
 static void	render_pass_rates(struct regress_html *);
 static void	render_dates(struct regress_html *);
 static void	render_changelog(struct regress_html *);
+static void	render_patches(struct regress_html *);
 static void	render_arches(struct regress_html *);
 static void	render_suite(struct regress_html *,
     struct suite *);
@@ -132,6 +137,7 @@ regress_html_free(struct regress_html *r)
 		free(ri->date);
 		free(ri->dmesg);
 		free(ri->comment);
+		free(ri->patches);
 	}
 	VECTOR_FREE(r->invocations);
 	HASH_ITER(hh, r->suites, suite, tmp) {
@@ -209,6 +215,7 @@ regress_html_render(struct regress_html *r)
 			render_pass_rates(r);
 			render_dates(r);
 			render_changelog(r);
+			render_patches(r);
 			render_arches(r);
 		}
 
@@ -258,8 +265,11 @@ parse_invocation(struct regress_html *r, const char *arch,
 		error = 1;
 		goto out;
 	}
-	if (invocation_has_tag(directory, "cvs"))
+	if (invocation_has_tag(directory, "cvs")) {
 		ri->flags |= REGRESS_INVOCATION_CVS;
+		if (create_patches(r, ri, directory))
+			ri->flags |= REGRESS_INVOCATION_PATCH;
+	}
 
 	for (i = 0; i < VECTOR_LENGTH(steps); i++) {
 		struct suite *suite;
@@ -332,7 +342,7 @@ create_regress_invocation(struct regress_html *r, const char *arch,
     const char *date, int64_t time)
 {
 	struct regress_invocation *ri;
-	const char *comment, *dmesg;
+	const char *comment, *dmesg, *patches;
 
 	ri = VECTOR_CALLOC(r->invocations);
 	if (ri == NULL)
@@ -345,6 +355,9 @@ create_regress_invocation(struct regress_html *r, const char *arch,
 
 	comment = joinpath(r->path, "%s/%s/comment", arch, date);
 	ri->comment = estrdup(comment);
+
+	patches = joinpath(r->path, "%s/%s/diff", arch, date);
+	ri->patches = estrdup(patches);
 
 	ri->time = time;
 
@@ -396,6 +409,47 @@ create_directories(struct regress_html *r, struct regress_invocation *ri,
 out:
 	buffer_free(bf);
 	return error;
+}
+
+static int
+create_patches(struct regress_html *r, struct regress_invocation *ri,
+    const char *directory)
+{
+	struct invocation_entry *patches;
+	const char *path;
+	size_t i;
+	int error = 0;
+
+	patches = invocation_find(directory, "src.diff.*");
+	if (patches == NULL)
+		return 0;
+
+	path = joinpath(r->path, "%s/%s", r->output, ri->patches);
+	if (mkdir(path, 0755) == -1) {
+		warn("mkdir: %s", path);
+		error = 1;
+		goto out;
+	}
+	for (i = 0; i < VECTOR_LENGTH(patches); i++) {
+		struct buffer *bf;
+
+		bf = buffer_read(patches[i].path);
+		if (bf == NULL) {
+			error = 1;
+			goto out;
+		}
+		path = joinpath(r->path, "%s/%s/%s",
+		    r->output, ri->patches, patches[i].basename);
+		if (write_log(path, bf)) {
+			error = 1;
+			goto out;
+		}
+		buffer_free(bf);
+	}
+
+out:
+	invocation_find_free(patches);
+	return error ? 0 : 1;
 }
 
 static struct suite *
@@ -591,6 +645,34 @@ render_changelog(struct regress_html *r)
 					}
 				} else {
 					HTML_TEXT(html, "n/a");
+				}
+			}
+		}
+	}
+}
+
+static void
+render_patches(struct regress_html *r)
+{
+	struct html *h = r->html;
+
+	HTML_NODE(h, "tr") {
+		size_t i;
+
+		HTML_NODE(h, "th")
+			HTML_TEXT(h, "patches");
+		for (i = 0; i < VECTOR_LENGTH(r->invocations); i++) {
+			const struct regress_invocation *ri = &r->invocations[i];
+
+			HTML_NODE_ATTR(h, "th", HTML_ATTR("class", "patch")) {
+				if (ri->flags & REGRESS_INVOCATION_PATCH) {
+					HTML_NODE_ATTR(h, "a",
+					    HTML_ATTR("href", ri->patches)) {
+						HTML_TEXT(h,
+						    "patches");
+					}
+				} else {
+					HTML_TEXT(h, "n/a");
 				}
 			}
 		}

@@ -177,13 +177,36 @@ if testcase -t xmllint "changelog"; then
 
 	robsd_regress_html -- -o "${TSHDIR}/html" "amd64:${TSHDIR}/amd64"
 
-	xpath '//th[@class="cvs"]/a/text()' "$TSHDIR/html/index.html" >"$TMP1"
-	assert_file - "$TMP1" "dates" <<-EOF
+	xpath '//th[@class="cvs"]/a/text()' "${TSHDIR}/html/index.html" >"$TMP1"
+	assert_file - "$TMP1" <<-EOF
 	cvs
 	EOF
-	xpath '//th[@class="cvs"]/text()' "$TSHDIR/html/index.html" >"$TMP1"
-	assert_file - "$TMP1" "dates" <<-EOF
+	xpath '//th[@class="cvs"]/text()' "${TSHDIR}/html/index.html" >"$TMP1"
+	assert_file - "$TMP1" <<-EOF
 	n/a
+	EOF
+fi
+
+if testcase -t xmllint "patches"; then
+	printf 'cvs\n' >"${TSHDIR}/amd64/2022-10-25/tags"
+	printf 'src.diff.1\n' >"${TSHDIR}/amd64/2022-10-25/src.diff.1"
+	printf 'src.diff.2\n' >"${TSHDIR}/amd64/2022-10-25/src.diff.2"
+
+	robsd_regress_html -- -o "${TSHDIR}/html" "amd64:${TSHDIR}/amd64"
+
+	xpath '//th[@class="patch"]/a/text()' "${TSHDIR}/html/index.html" >"$TMP1"
+	assert_file - "$TMP1" <<-EOF
+	patches
+	EOF
+	xpath '//th[@class="patch"]/text()' "${TSHDIR}/html/index.html" >"$TMP1"
+	assert_file - "$TMP1" <<-EOF
+	n/a
+	EOF
+	assert_file - "${TSHDIR}/html/amd64/2022-10-25/diff/src.diff.1" <<-EOF
+	src.diff.1
+	EOF
+	assert_file - "${TSHDIR}/html/amd64/2022-10-25/diff/src.diff.2" <<-EOF
+	src.diff.2
 	EOF
 fi
 

@@ -7,6 +7,7 @@
 #include <dirent.h>
 #include <err.h>
 #include <errno.h>
+#include <fnmatch.h>
 #include <limits.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -16,14 +17,10 @@
 #include "buffer.h"
 #include "vector.h"
 
-struct directory {
-	char	path[PATH_MAX];
-};
-
 struct invocation_state {
-	const char		*robsdir;
-	const char		*keepdir;
-	VECTOR(struct directory) directories;
+	const char			*robsdir;
+	const char			*keepdir;
+	VECTOR(struct invocation_entry)	 directories;
 };
 
 static int	invocation_read(struct invocation_state *, DIR *);
@@ -87,6 +84,62 @@ invocation_walk(struct invocation_state *s)
 	return VECTOR_POP(s->directories)->path;
 }
 
+struct invocation_entry *
+invocation_find(const char *directory, const char *pattern)
+{
+	VECTOR(struct invocation_entry) entries;
+	DIR *dir;
+	int error = 0;
+
+	dir = opendir(directory);
+	if (dir == NULL)
+		return NULL;
+	if (VECTOR_INIT(entries) == NULL)
+		err(1, NULL);
+
+	for (;;) {
+		struct dirent *de;
+		struct invocation_entry *entry;
+
+		errno = 0;
+		de = readdir(dir);
+		if (de == NULL) {
+			if (errno != 0) {
+				warn("readdir: %s", directory);
+				error = 1;
+				goto out;
+			}
+			break;
+		}
+		if (fnmatch(pattern, de->d_name, 0) == FNM_NOMATCH)
+			continue;
+
+		entry = VECTOR_ALLOC(entries);
+		if (entry == NULL)
+			err(1, NULL);
+		(void)snprintf(entry->path, sizeof(entry->path), "%s/%s",
+		    directory, de->d_name);
+		(void)snprintf(entry->basename, sizeof(entry->basename), "%s",
+		    de->d_name);
+	}
+
+out:
+	if (error) {
+		VECTOR_FREE(entries);
+		entries = NULL;
+	}
+	closedir(dir);
+	return entries;
+}
+
+void
+invocation_find_free(struct invocation_entry *entries)
+{
+	if (entries == NULL)
+		return;
+	VECTOR_FREE(entries);
+}
+
 int
 invocation_has_tag(const char *directory, const char *tag)
 {
@@ -127,30 +180,30 @@ invocation_read(struct invocation_state *s, DIR *dir)
 	char path[PATH_MAX];
 
 	for (;;) {
-		struct directory *d;
-		struct dirent *ent;
+		struct dirent *de;
+		struct invocation_entry *entry;
 
 		errno = 0;
-		ent = readdir(dir);
-		if (ent == NULL) {
+		de = readdir(dir);
+		if (de == NULL) {
 			if (errno != 0) {
 				warn("readdir: %s", s->robsdir);
 				return 1;
 			}
 			break;
 		}
-		if (ent->d_type != DT_DIR || ent->d_name[0] == '.')
+		if (de->d_type != DT_DIR || de->d_name[0] == '.')
 			continue;
 
 		(void)snprintf(path, sizeof(path), "%s/%s",
-		    s->robsdir, ent->d_name);
+		    s->robsdir, de->d_name);
 		if (strcmp(path, s->keepdir) == 0)
 			continue;
 
-		d = VECTOR_ALLOC(s->directories);
-		if (d == NULL)
+		entry = VECTOR_ALLOC(s->directories);
+		if (entry == NULL)
 			err(1, NULL);
-		memcpy(d->path, path, sizeof(path));
+		memcpy(entry->path, path, sizeof(path));
 	}
 	return 0;
 }
@@ -158,8 +211,8 @@ invocation_read(struct invocation_state *s, DIR *dir)
 static int
 directory_cmp(const void *p1, const void *p2)
 {
-	const struct directory *d1 = p1;
-	const struct directory *d2 = p2;
+	const struct invocation_entry *e1 = p1;
+	const struct invocation_entry *e2 = p2;
 
-	return strcmp(d1->path, d2->path);
+	return strcmp(e1->path, e2->path);
 }
