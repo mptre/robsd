@@ -45,6 +45,10 @@ behind the scenes.
 
 [robsd-regress(8)](https://www.basename.se/robsd/robsd-regress.8.html)
 runs regression tests.
+A HTML summary can be rendered using
+[robsd-regress-html(8)](https://www.basename.se/robsd/robsd-regress-html.8.html),
+which also powers
+[regress.basename.se](https://regress.basename.se/).
 
 ## Installation
 
