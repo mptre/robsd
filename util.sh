@@ -1253,6 +1253,7 @@ robsd() {
 			# duration.
 			step_end -t -d "$(duration_total -s "$_steps")" \
 				-n "$_name" -s "$_s" "$_steps"
+			robsd_hook -v "exit=0" -v "step=end"
 			return 0
 		fi
 
@@ -1265,6 +1266,7 @@ robsd() {
 		_t1="$(date '+%s')"
 		step_end -d "$((_t1 - _t0))" -e "$_exit" -l "$_log" \
 			-n "$_name" -s "$_s" "$_steps"
+		robsd_hook -v "exit=${_exit}" -v "step=${_name}"
 
 		case "$_MODE" in
 		robsd-regress)
@@ -1285,6 +1287,14 @@ robsd() {
 		# Does robsd-kill want us dead?
 		lock_alive "$ROBSDDIR" "$_builddir" || return 1
 	done
+}
+
+# robsd_hook [robsd-hook-argument ...]
+#
+# Invoke robsd hook.
+robsd_hook() {
+	# Ignore non-zero exit.
+	"$ROBSDHOOK" -m "$_MODE" -V ${ROBSDCONF:+"-f${ROBSDCONF}"} "$@" || :
 }
 
 # setmode mode
@@ -1389,16 +1399,6 @@ step_end() {
 		"user=${_user}" \
 		${_time:+time=${_time}} \
 		"skip=${_skip}"
-
-	# Only invoke the hook if the step has ended. A duration of -1 is a
-	# sentinel indicating that the step has just begun.
-	if [ "$_d" -ne -1 ]; then
-		# Ignore non-zero exit.
-		"$ROBSDHOOK" -m "$_MODE" -V ${ROBSDCONF:+"-f${ROBSDCONF}"} \
-			-v "exit=${_e}" \
-			-v "step=${_name}" \
-			|| :
-	fi
 }
 
 # step_eval offset file
