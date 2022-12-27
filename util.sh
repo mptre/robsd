@@ -1251,8 +1251,8 @@ robsd() {
 		if [ "$_name" = "end" ]; then
 			# The duration of the end step is the accumulated
 			# duration.
-			step_end -t -d "$(duration_total -s "$_steps")" \
-				-n "$_name" -s "$_s" "$_steps"
+			step_write -t -s "$_s" -n "$_name" -e 0 \
+				-d "$(duration_total -s "$_steps")" "$_steps"
 			robsd_hook -v "exit=0" -v "step=end"
 			return 0
 		fi
@@ -1260,12 +1260,12 @@ robsd() {
 		_log="$(log_id -b "$_builddir" -n "$_name" -s "$_s")"
 		_exit=0
 		_t0="$(date '+%s')"
-		step_begin -l "$_log" -n "$_name" -s "$_s" "$_steps"
+		step_write -t -l "$_log" -s "$_s" -n "$_name" -e -1 -d -1 "$_steps"
 		step_exec -f "${_builddir}/tmp/fail" -l "${_builddir}/${_log}" \
 			-s "$_name" || _exit="$?"
 		_t1="$(date '+%s')"
-		step_end -d "$((_t1 - _t0))" -e "$_exit" -l "$_log" \
-			-n "$_name" -s "$_s" "$_steps"
+		step_write -l "$_log" -s "$_s" -n "$_name" -e "$_exit" \
+			-d "$((_t1 - _t0))" "$_steps"
 		robsd_hook -v "exit=${_exit}" -v "step=${_name}"
 
 		case "$_MODE" in
@@ -1332,39 +1332,12 @@ setprogname() {
 	_PROG="$1"; export _PROG
 }
 
-# step_begin -l step-log -n step-name -s step-id file
+# step_write [-S] [-t] [-l step-log] -s step-id -n step-name -e exit -d duration file
 #
-# Mark the given step as about to execute by writing an entry to the given
-# file. The same entry will be overwritten once the step has ended.
-step_begin() {
-	local _file
-	local _log
-	local _name
-	local _s
-
-	while [ $# -gt 0 ]; do
-		case "$1" in
-		-l)	shift; _log="$1";;
-		-n)	shift; _name="$1";;
-		-s)	shift; _s="$1";;
-		*)	break;;
-		esac
-		shift
-	done
-	: "${_log:?}"
-	: "${_name:?}"
-	: "${_s:?}"
-	_file="$1"; : "${_file:?}"
-
-	step_end -t -d -1 -e -1 -l "$_log" -n "$_name" -s "$_s" "$_file"
-}
-
-# step_end [-S] [-t] [-d duration] [-e exit] [-l step-log] -n step-name -s step-id file
-#
-# Mark the given step as ended by writing an entry to the given file.
-step_end() {
-	local _d=-1
-	local _e=0
+# Write the given step.
+step_write() {
+	local _duration
+	local _exit
 	local _log=""
 	local _name
 	local _s
@@ -1376,8 +1349,8 @@ step_end() {
 		case "$1" in
 		-S)	_skip="1";;
 		-t)	_time="$(date +%s)";;
-		-d)	shift; _d="$1";;
-		-e)	shift; _e="$1";;
+		-d)	shift; _duration="$1";;
+		-e)	shift; _exit="$1";;
 		-l)	shift; _log="$1";;
 		-n)	shift; _name="$1";;
 		-s)	shift; _s="$1";;
@@ -1385,16 +1358,18 @@ step_end() {
 		esac
 		shift
 	done
-	: "${_name:?}"
 	: "${_s:?}"
+	: "${_name:?}"
+	: "${_exit:?}"
+	: "${_duration:?}"
 	_file="$1"; : "${_file:?}"
 
 	_user="$(logname)"
 
 	"$ROBSDSTEP" -W -f "$_file" -i "$_s" -- \
 		"name=${_name}" \
-		"exit=${_e}" \
-		"duration=${_d}" \
+		"exit=${_exit}" \
+		"duration=${_duration}" \
 		${_log:+log=${_log}} \
 		"user=${_user}" \
 		${_time:+time=${_time}} \

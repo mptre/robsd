@@ -31,12 +31,12 @@ TESTS+=	robsd-regress.sh
 TESTS+=	robsd-rescue.sh
 TESTS+=	robsd-step.sh
 TESTS+=	robsd.sh
-TESTS+=	step-end.sh
 TESTS+=	step-eval.sh
 TESTS+=	step-id.sh
 TESTS+=	step-next.sh
 TESTS+=	step-time.sh
 TESTS+=	step-value.sh
+TESTS+=	step-write.sh
 
 SHLINT+=	${TESTS}
 SHLINT+=	util.sh

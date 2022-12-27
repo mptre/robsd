@@ -6,7 +6,7 @@ if testcase "basic"; then
 	EOF
 	: >"$TMP1"
 
-	step_end -t -d 2 -n cvs -s 2 "$TMP1"
+	step_write -t -s 2 -n cvs -e 0 -d 2 "$TMP1"
 
 	step_eval -n cvs "$TMP1"
 	assert_eq "2" "$(step_value duration)" "duration"
@@ -22,7 +22,7 @@ if testcase "skip"; then
 	EOF
 	: >"$TMP1"
 
-	step_end -S -t -n cvs -s 2 "$TMP1"
+	step_write -S -t -s 2 -n cvs -e 0 -d 0 "$TMP1"
 
 	step_eval -n cvs "$TMP1"
 	assert_eq "1" "$(step_value skip)" "skip"
