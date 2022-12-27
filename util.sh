@@ -1253,7 +1253,8 @@ robsd() {
 			# duration.
 			step_write -t -s "$_s" -n "$_name" -e 0 \
 				-d "$(duration_total -s "$_steps")" "$_steps"
-			robsd_hook -v "exit=0" -v "step=end"
+			# The hook is invoked as late as possible in the exit
+			# trap handler.
 			return 0
 		fi
 
@@ -1685,6 +1686,8 @@ trap_exit() {
 			sendmail root <"${_builddir}/report"
 		fi
 	fi
+
+	robsd_hook -v "exit=0" -v "step=end"
 
 	lock_release "$_robsddir" "$_builddir" || :
 

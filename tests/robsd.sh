@@ -124,11 +124,10 @@ if testcase "basic"; then
 	robsd: step dmesg
 	robsd-hook: exec "sh" "${_hook}" "${_builddir}" "dmesg" "0"
 	robsd: step end
+	robsd: trap exit 0
 	robsd-hook: exec "sh" "${_hook}" "${_builddir}" "end" "0"
-	no report
 	stdout
 	stderr
-	robsd: trap exit 0
 	EOF
 fi
 
