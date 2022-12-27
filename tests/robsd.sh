@@ -36,6 +36,9 @@ if testcase "basic"; then
 	_hook="${TSHDIR}/hook.sh"
 	cat <<-'EOF' >"$_hook"
 	if [ "$2" = "end" ]; then
+		if ! [ -e "${1}/report" ]; then
+			echo no report
+		fi
 		echo stdout
 		echo stderr 1>&2
 		exit 1
@@ -122,6 +125,7 @@ if testcase "basic"; then
 	robsd-hook: exec "sh" "${_hook}" "${_builddir}" "dmesg"
 	robsd: step end
 	robsd-hook: exec "sh" "${_hook}" "${_builddir}" "end"
+	no report
 	stdout
 	stderr
 	robsd: trap exit 0
