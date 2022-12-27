@@ -48,7 +48,7 @@ if testcase "basic"; then
 	robsd_config - <<-EOF
 	robsddir "${ROBSDDIR}"
 	execdir "${WRKDIR}/exec"
-	hook { "sh" "${_hook}" "\${builddir}" "\${step}" }
+	hook { "sh" "${_hook}" "\${builddir}" "\${step}" "\${exit}" }
 	EOF
 	mkdir -p "$ROBSDDIR"
 	echo "Index: dir/file.c" >"${TSHDIR}/src-one.diff"
@@ -93,38 +93,38 @@ if testcase "basic"; then
 	robsd: using diff ${TSHDIR}/xenocara.diff rooted in ${TSHDIR}
 	robsd: skipping steps: reboot
 	robsd: step env
-	robsd-hook: exec "sh" "${_hook}" "${_builddir}" "env"
+	robsd-hook: exec "sh" "${_hook}" "${_builddir}" "env" "0"
 	robsd: step cvs
-	robsd-hook: exec "sh" "${_hook}" "${_builddir}" "cvs"
+	robsd-hook: exec "sh" "${_hook}" "${_builddir}" "cvs" "0"
 	robsd: step patch
-	robsd-hook: exec "sh" "${_hook}" "${_builddir}" "patch"
+	robsd-hook: exec "sh" "${_hook}" "${_builddir}" "patch" "0"
 	robsd: step kernel
-	robsd-hook: exec "sh" "${_hook}" "${_builddir}" "kernel"
+	robsd-hook: exec "sh" "${_hook}" "${_builddir}" "kernel" "0"
 	robsd: step reboot skipped
 	robsd: step env
-	robsd-hook: exec "sh" "${_hook}" "${_builddir}" "env"
+	robsd-hook: exec "sh" "${_hook}" "${_builddir}" "env" "0"
 	robsd: step base
-	robsd-hook: exec "sh" "${_hook}" "${_builddir}" "base"
+	robsd-hook: exec "sh" "${_hook}" "${_builddir}" "base" "0"
 	robsd: step release
-	robsd-hook: exec "sh" "${_hook}" "${_builddir}" "release"
+	robsd-hook: exec "sh" "${_hook}" "${_builddir}" "release" "0"
 	robsd: step checkflist
-	robsd-hook: exec "sh" "${_hook}" "${_builddir}" "checkflist"
+	robsd-hook: exec "sh" "${_hook}" "${_builddir}" "checkflist" "0"
 	robsd: step xbase
-	robsd-hook: exec "sh" "${_hook}" "${_builddir}" "xbase"
+	robsd-hook: exec "sh" "${_hook}" "${_builddir}" "xbase" "0"
 	robsd: step xrelease
-	robsd-hook: exec "sh" "${_hook}" "${_builddir}" "xrelease"
+	robsd-hook: exec "sh" "${_hook}" "${_builddir}" "xrelease" "0"
 	robsd: step image
-	robsd-hook: exec "sh" "${_hook}" "${_builddir}" "image"
+	robsd-hook: exec "sh" "${_hook}" "${_builddir}" "image" "0"
 	robsd: step hash
-	robsd-hook: exec "sh" "${_hook}" "${_builddir}" "hash"
+	robsd-hook: exec "sh" "${_hook}" "${_builddir}" "hash" "0"
 	robsd: step revert
-	robsd-hook: exec "sh" "${_hook}" "${_builddir}" "revert"
+	robsd-hook: exec "sh" "${_hook}" "${_builddir}" "revert" "0"
 	robsd: step distrib
-	robsd-hook: exec "sh" "${_hook}" "${_builddir}" "distrib"
+	robsd-hook: exec "sh" "${_hook}" "${_builddir}" "distrib" "0"
 	robsd: step dmesg
-	robsd-hook: exec "sh" "${_hook}" "${_builddir}" "dmesg"
+	robsd-hook: exec "sh" "${_hook}" "${_builddir}" "dmesg" "0"
 	robsd: step end
-	robsd-hook: exec "sh" "${_hook}" "${_builddir}" "end"
+	robsd-hook: exec "sh" "${_hook}" "${_builddir}" "end" "0"
 	no report
 	stdout
 	stderr
