@@ -1,3 +1,25 @@
+# 17.4.0 - 2022-12-27
+
+## News
+
+- Make robsd-regress-html copy diffs.
+  (f6c12e6)
+  (Anton Lindqvist)
+
+- Invoke the hook for the end step after report creation.
+  (d06d2e7)
+  (Anton Lindqvist)
+
+## Bug fixes
+
+- Include XFAIL in robsd-regress reports.
+  (32358a4)
+  (Anton Lindqvist)
+
+- Fix annoying gaps in sticky robsd-regress-html table header.
+  (07de7a7)
+  (Anthony J. Bentley)
+
 # 17.3.0 - 2022-12-08
 
 ## News
