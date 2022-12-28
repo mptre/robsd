@@ -1,3 +1,5 @@
+# shellcheck disable=SC2317
+
 set -u
 
 # robsd_config [-CPR] [-]
