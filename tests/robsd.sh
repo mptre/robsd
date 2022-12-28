@@ -85,7 +85,6 @@ if testcase "basic"; then
 		-e '/running as pid/d' \
 		-e '/^\+ /d' \
 		"$TMP1"
-	_user="$(logname)"
 	assert_file - "$TMP1" <<-EOF
 	robsd: using directory ${_builddir} at step 1
 	robsd: using diff ${TSHDIR}/src-one.diff rooted in ${TSHDIR}
@@ -135,6 +134,7 @@ if testcase "reboot"; then
 	robsd_config - <<-EOF
 	robsddir "${ROBSDDIR}"
 	execdir "${WRKDIR}/exec"
+	hook { "true" }
 	reboot yes
 	EOF
 	mkdir -p "$ROBSDDIR"
@@ -144,8 +144,27 @@ if testcase "reboot"; then
 	if [ -e "$_fail" ]; then
 		fail - "expected exit zero" <"$TMP1"
 	fi
-
 	_builddir="$(find "${ROBSDDIR}" -type d -mindepth 1 -maxdepth 1)"
+
+	sed -i \
+		-e '/running as pid/d' \
+		-e '/^\+ /d' \
+		"$TMP1"
+	assert_file - "$TMP1" <<-EOF
+	robsd: using directory ${_builddir} at step 1
+	robsd: step env
+	robsd-hook: exec "true"
+	robsd: step cvs
+	robsd-hook: exec "true"
+	robsd: step patch
+	robsd-hook: exec "true"
+	robsd: step kernel
+	robsd-hook: exec "true"
+	robsd: step reboot
+	robsd-hook: exec "true"
+	robsd: trap exit 0
+	EOF
+
 	if [ -e "${_builddir}/report" ]; then
 		fail - "expected no report" <"$TMP1"
 	fi

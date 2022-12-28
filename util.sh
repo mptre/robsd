@@ -1687,7 +1687,9 @@ trap_exit() {
 		fi
 	fi
 
-	robsd_hook -v "exit=0" -v "step=end"
+	if step_eval -n end "$_steps" 2>/dev/null; then
+		robsd_hook -v "exit=0" -v "step=end"
+	fi
 
 	lock_release "$_robsddir" "$_builddir" || :
 
