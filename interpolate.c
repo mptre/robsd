@@ -157,7 +157,6 @@ interpolate(struct interpolate_context *ic, struct buffer *bf,
 			log_warnx(ic->ic_path, ic->ic_lno,
 			    "invalid substitution, unknown variable '%.*s'",
 			    (int)len, vs);
-			free(lookup);
 			error = 1;
 			break;
 		}
