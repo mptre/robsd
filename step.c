@@ -242,41 +242,32 @@ step_init(struct step *st)
 char *
 step_interpolate_lookup(const char *name, void *arg)
 {
-	char buf[64];
-	ssize_t buflen = sizeof(buf);
+	struct buffer *bf;
 	const struct field_definition *fd;
 	const struct step *st = (struct step *)arg;
 	const struct step_field *sf;
-	const char *val = NULL;
-	char *str;
+	char *val = NULL;
 
 	fd = field_definition_find_by_name(name);
 	if (fd == NULL)
 		return NULL;
 	sf = &st->st_fields[fd->fd_index];
+
+	bf = buffer_alloc(128);
 	switch (sf->sf_type) {
 	case UNKNOWN:
-		return NULL;
-
+		goto out;
 	case STRING:
-		val = sf->sf_val.str;
+		buffer_printf(bf, "%s", sf->sf_val.str);
 		break;
-
-	case INTEGER: {
-		int n;
-
-		n = snprintf(buf, buflen, "%" PRId64, sf->sf_val.integer);
-		if (n < 0 || n >= buflen) {
-			warnx("id buffer too small");
-			return NULL;
-		}
-		val = buf;
+	case INTEGER:
+		buffer_printf(bf, "%" PRId64, sf->sf_val.integer);
 		break;
 	}
-	}
-
-	str = estrdup(val);
-	return str;
+	val = buffer_release(bf);
+out:
+	buffer_free(bf);
+	return val;
 }
 
 int
