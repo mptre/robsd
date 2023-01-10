@@ -157,10 +157,12 @@ interpolate(struct interpolate_context *ic, struct buffer *bf,
 			log_warnx(ic->ic_path, ic->ic_lno,
 			    "invalid substitution, unknown variable '%.*s'",
 			    (int)len, vs);
+			free(lookup);
 			error = 1;
 			break;
 		}
 		rep = interpolate_str1(lookup, ic);
+		free(lookup);
 		if (rep == NULL) {
 			error = 1;
 			break;
@@ -168,7 +170,6 @@ interpolate(struct interpolate_context *ic, struct buffer *bf,
 		buffer_puts(bf, str, p - str);
 		buffer_puts(bf, rep, strlen(rep));
 		free(rep);
-		free(lookup);
 		str = &ve[1];
 	}
 	ic->ic_depth--;
