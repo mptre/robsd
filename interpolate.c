@@ -13,10 +13,12 @@ struct interpolate_context {
 	const struct interpolate_arg	*ic_arg;
 	const char			*ic_path;
 	int				 ic_lno;
+	int				 ic_depth;
 };
 
-static int	interpolate(const struct interpolate_context *,
-    struct buffer *, const char *);
+static char	*interpolate_str1(const char *, struct interpolate_context *);
+static int	 interpolate(struct interpolate_context *, struct buffer *,
+    const char *);
 
 char *
 interpolate_file(const char *path, const struct interpolate_arg *arg)
@@ -70,20 +72,10 @@ interpolate_file(const char *path, const struct interpolate_arg *arg)
 char *
 interpolate_str(const char *str, const struct interpolate_arg *arg)
 {
-	struct interpolate_context ic = {
+	return interpolate_str1(str, &(struct interpolate_context){
 		.ic_arg	= arg,
 		.ic_lno	= arg->lno,
-	};
-	struct buffer *bf;
-	char *buf = NULL;
-
-	bf = buffer_alloc(1024);
-	if (interpolate(&ic, bf, str) == 0) {
-		buffer_putc(bf, '\0');
-		buf = buffer_release(bf);
-	}
-	buffer_free(bf);
-	return buf;
+	});
 }
 
 int
@@ -100,10 +92,33 @@ interpolate_buffer(const char *str, struct buffer *bf,
 	return error;
 }
 
+static char *
+interpolate_str1(const char *str, struct interpolate_context *ic)
+{
+	struct buffer *bf;
+	char *buf = NULL;
+
+	bf = buffer_alloc(1024);
+	if (interpolate(ic, bf, str) == 0) {
+		buffer_putc(bf, '\0');
+		buf = buffer_release(bf);
+	}
+	buffer_free(bf);
+	return buf;
+}
+
 static int
-interpolate(const struct interpolate_context *ic, struct buffer *bf,
+interpolate(struct interpolate_context *ic, struct buffer *bf,
     const char *str)
 {
+	int error = 0;
+
+	if (++ic->ic_depth == 4) {
+		log_warnx(ic->ic_path, ic->ic_lno,
+		    "invalid substitution, recursion too deep");
+		return 1;
+	}
+
 	for (;;) {
 		const char *p, *ve, *vs;
 		char *lookup, *name, *rep;
@@ -116,20 +131,23 @@ interpolate(const struct interpolate_context *ic, struct buffer *bf,
 		if (*vs != '{') {
 			log_warnx(ic->ic_path, ic->ic_lno,
 			    "invalid substitution, expected '{'");
-			return 1;
+			error = 1;
+			break;
 		}
 		vs += 1;
 		ve = strchr(vs, '}');
 		if (ve == NULL) {
 			log_warnx(ic->ic_path, ic->ic_lno,
 			    "invalid substitution, expected '}'");
-			return 1;
+			error = 1;
+			break;
 		}
 		len = ve - vs;
 		if (len == 0) {
 			log_warnx(ic->ic_path, ic->ic_lno,
 			    "invalid substitution, empty variable name");
-			return 1;
+			error = 1;
+			break;
 		}
 
 		name = estrndup(vs, len);
@@ -139,17 +157,22 @@ interpolate(const struct interpolate_context *ic, struct buffer *bf,
 			log_warnx(ic->ic_path, ic->ic_lno,
 			    "invalid substitution, unknown variable '%.*s'",
 			    (int)len, vs);
-			return 1;
+			error = 1;
+			break;
 		}
-		rep = interpolate_str(lookup, ic->ic_arg);
+		rep = interpolate_str1(lookup, ic);
+		if (rep == NULL) {
+			error = 1;
+			break;
+		}
 		buffer_puts(bf, str, p - str);
 		buffer_puts(bf, rep, strlen(rep));
 		free(rep);
 		free(lookup);
 		str = &ve[1];
 	}
+	ic->ic_depth--;
 	/* Output any remaining tail. */
 	buffer_puts(bf, str, strlen(str));
-
-	return 0;
+	return error;
 }

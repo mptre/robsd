@@ -510,6 +510,17 @@ if testcase "invalid arguments"; then
 	fi
 fi
 
+if testcase "invalid recursive interpolation"; then
+	# shellcheck disable=SC2016
+	{ default_config; echo 'distrib-host "${distrib-host}"'; } >"$CONFIG"
+	cat <<-'EOF' >"$STDIN"
+	${distrib-host}
+	EOF
+	robsd_config -e - <<-EOF
+	robsd-config: /dev/stdin:1: invalid substitution, recursion too deep
+	EOF
+fi
+
 if testcase "invalid afl"; then
 	printf 'robsddir \00"/tmp"\n' >"$CONFIG"
 	robsd_config -e - <<-EOF
