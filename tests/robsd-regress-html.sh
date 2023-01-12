@@ -210,6 +210,27 @@ if testcase -t xmllint "patches"; then
 	EOF
 fi
 
+if testcase "missing runs"; then
+	{
+		echo "${TSHDIR}/macppc/2022-10-25" 1666659600 0
+		echo "${TSHDIR}/macppc/2022-10-24" 1666573200 1
+		echo "${TSHDIR}/macppc/2022-10-23" 1666486800 0
+	} | while read -r _dir _time _maybe; do
+		mkdir -p "$_dir"
+		for _f in comment dmesg empty.log tags; do
+			: >"${_dir}/${_f}"
+		done
+		{
+			step_serialize -s 1 -n test/always -l empty.log -t "$_time"
+			if [ "$_maybe" -eq 1 ]; then
+				step_serialize -H -s 2 -n test/maybe -l empty.log -t "$_time"
+			fi
+		} >"$(step_path "$_dir")"
+	done
+
+	robsd_regress_html -- -o "${TSHDIR}/html" "macppc:${TSHDIR}/macppc"
+fi
+
 if testcase "dmesg missing"; then
 	rm "${TSHDIR}/amd64/2022-10-25/dmesg"
 

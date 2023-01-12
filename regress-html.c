@@ -710,6 +710,7 @@ render_suite(struct regress_html *r, struct suite *suite)
 
 	HTML_NODE(html, "tr") {
 		struct run *runs = suite->runs;
+		const struct regress_invocation *ri = r->invocations;
 		size_t i;
 
 		HTML_NODE(html, "td") {
@@ -727,8 +728,17 @@ render_suite(struct regress_html *r, struct suite *suite)
 			qsort(runs, VECTOR_LENGTH(runs), sizeof(*runs),
 			    run_cmp);
 		}
-		for (i = 0; i < VECTOR_LENGTH(suite->runs); i++)
-			render_run(r, &suite->runs[i]);
+
+		for (i = 0; i < VECTOR_LENGTH(runs); i++) {
+			const struct run *run = &runs[i];
+
+			/* Compensate for missing run(s). */
+			for (; ri->time > run->time; ri++)
+				HTML_NODE(r->html, "td");
+			ri++;
+
+			render_run(r, run);
+		}
 	}
 }
 
