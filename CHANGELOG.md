@@ -1,3 +1,16 @@
+# 17.4.1 - 2023-01-15
+
+## Bug fixes
+
+- Only invoke the hook for the end step if it's present.
+  Otherwise, robsd will end up running the hook for the end step upon reboot.
+  (e2764e8)
+  (Anton Lindqvist)
+
+- Cope with missing runs in robsd-regress-html.
+  (5d29316)
+  (Anton Lindqvist)
+
 # 17.4.0 - 2022-12-27
 
 ## News
