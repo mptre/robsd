@@ -451,6 +451,10 @@ clean:
 		${DEPS_robsd-step} ${OBJS_robsd-step} ${PROG_robsd-step}
 .PHONY: clean
 
+cleandir: clean
+	cd ${.CURDIR} && rm -f config.h config.log config.mk
+.PHONY: cleandir
+
 dist:
 	set -e; \
 	d=robsd-${VERSION}; \
