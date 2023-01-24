@@ -124,7 +124,7 @@ struct config {
 	struct variable_list	 cf_variables;
 	const struct grammar	*cf_grammar;
 	const char		*cf_path;
-	enum {
+	enum robsd_mode {
 		CONFIG_ROBSD,
 		CONFIG_ROBSD_CROSS,
 		CONFIG_ROBSD_PORTS,
@@ -135,7 +135,7 @@ struct config {
 	VECTOR(char *)		 cf_empty_list;
 };
 
-static int	config_mode(const char *, int *);
+static int	config_mode(const char *, enum robsd_mode *);
 
 static int	config_exec(struct config *);
 static int	config_exec1(struct config *, struct token *);
@@ -244,7 +244,7 @@ config_alloc(const char *mode, const char *path)
 {
 	struct config *cf;
 	const char *defaultpath = NULL;
-	int m;
+	enum robsd_mode m;
 
 	if (config_mode(mode, &m)) {
 		warnx("unknown mode '%s'", mode);
@@ -345,6 +345,7 @@ int
 config_append_var(struct config *cf, const char *str)
 {
 	char *name, *val;
+	size_t namelen;
 	int error;
 
 	val = strchr(str, '=');
@@ -352,7 +353,8 @@ config_append_var(struct config *cf, const char *str)
 		warnx("missing variable separator in '%s'", str);
 		return 1;
 	}
-	name = estrndup(str, val - str);
+	namelen = (size_t)(val - str);
+	name = estrndup(str, namelen);
 	val++;	/* consume '=' */
 	error = config_append_string(cf, name, val);
 	if (error)
@@ -589,7 +591,7 @@ again:
 static const char *
 token_serialize(const struct token *tk)
 {
-	enum token_type type = tk->tk_type;
+	enum token_type type = (enum token_type)tk->tk_type;
 
 	switch (type) {
 	case TOKEN_UNKNOWN:
@@ -699,7 +701,7 @@ grammar_equals(const struct grammar *gr, const char *str, size_t len)
 }
 
 static int
-config_mode(const char *mode, int *res)
+config_mode(const char *mode, enum robsd_mode *res)
 {
 	if (strcmp(mode, "robsd") == 0)
 		*res = CONFIG_ROBSD;
