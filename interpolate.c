@@ -142,7 +142,7 @@ interpolate(struct interpolate_context *ic, struct buffer *bf,
 			error = 1;
 			break;
 		}
-		len = ve - vs;
+		len = (size_t)(ve - vs);
 		if (len == 0) {
 			log_warnx(ic->ic_path, ic->ic_lno,
 			    "invalid substitution, empty variable name");
@@ -166,7 +166,8 @@ interpolate(struct interpolate_context *ic, struct buffer *bf,
 			error = 1;
 			break;
 		}
-		buffer_puts(bf, str, p - str);
+		len = (size_t)(p - str);
+		buffer_puts(bf, str, len);
 		buffer_puts(bf, rep, strlen(rep));
 		free(rep);
 		str = &ve[1];
