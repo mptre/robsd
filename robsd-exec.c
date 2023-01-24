@@ -115,7 +115,7 @@ waiteof(int fd, int timoms)
 		if (n == -1) {
 			if (errno == EAGAIN) {
 				usleep(slpms * 1000);
-				timoms -= slpms;
+				timoms -= (int)slpms;
 				if (timoms <= 0)
 					return 1;
 			} else {
@@ -161,7 +161,7 @@ killwaitpg1(int pgid, int signo, int timoms, int *status)
 		}
 		if (w == 0) {
 			usleep(slpms * 1000);
-			timoms -= slpms;
+			timoms -= (int)slpms;
 			if (timoms <= 0)
 				return 1;
 			continue;
