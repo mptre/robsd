@@ -56,9 +56,9 @@ main(int argc, char *argv[])
 	struct robsd_stat rs;
 	char **users;
 	FILE *fh = stdout;
+	unsigned int nusers = 0;
+	unsigned int tick_s = 10;
 	int doheader = 0;
-	int nusers = 0;
-	int tick_s = 10;
 	int error = 0;
 	int ch;
 
@@ -188,12 +188,12 @@ static int
 stat_directory1(struct robsd_stat *rs, const char *user)
 {
 	int mib[6];
-	int i, nprocs;
 	struct kinfo_proc *kp;
+	struct passwd *pw;
 	size_t kpsiz = sizeof(struct kinfo_proc);
 	size_t maxlen = 0;
 	size_t siz = 0;
-	struct passwd *pw;
+	unsigned int i, nprocs;
 
 	rs->rs_directory[0] = '\0';
 
@@ -206,7 +206,7 @@ stat_directory1(struct robsd_stat *rs, const char *user)
 	mib[0] = CTL_KERN;
 	mib[1] = KERN_PROC;
 	mib[2] = KERN_PROC_UID;
-	mib[3] = pw->pw_uid;
+	mib[3] = (int)pw->pw_uid;
 	mib[4] = kpsiz;
 	mib[5] = 0;
 
@@ -292,7 +292,7 @@ stat_time(struct robsd_stat *rs)
 		return 1;
 	}
 
-	rs->rs_time = ts.tv_sec + ts.tv_nsec / 1000000000;
+	rs->rs_time = (uint64_t)(ts.tv_sec + ts.tv_nsec / 1000000000);
 	return 0;
 }
 
