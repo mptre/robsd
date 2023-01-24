@@ -237,6 +237,7 @@ HAVE_GNU_SOURCE=0
 HAVE_MACHINE=0
 HAVE_MACHINE_ARCH=0
 HAVE_PLEDGE=0
+HAVE_PRAGMA_DIAGNOSTIC=1
 HAVE_QUEUE=0
 HAVE_REALLOCARRAY=0
 HAVE_STRLCPY=0
@@ -295,6 +296,7 @@ exec 1>config.h
 [ $HAVE_MACHINE -eq 1 ] || printf '#define MACHINE\t"%s"\n' "$(arch)"
 [ $HAVE_MACHINE_ARCH -eq 1 ] || printf '#define MACHINE_ARCH\t"%s"\n' "$(arch)"
 [ $HAVE_PLEDGE -eq 1 ] && printf '#define HAVE_PLEDGE\t1\n'
+[ $HAVE_PRAGMA_DIAGNOSTIC -eq 1 ] && printf '#define HAVE_PRAGMA_DIAGNOSTIC\t1\n'
 [ $HAVE_QUEUE -eq 1 ] && printf '#define HAVE_QUEUE\t1\n'
 [ $HAVE_REALLOCARRAY -eq 1 ] && printf '#define HAVE_REALLOCARRAY\t1\n'
 [ $HAVE_STRLCPY -eq 1 ] && printf '#define HAVE_STRLCPY\t1\n'
