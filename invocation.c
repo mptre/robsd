@@ -146,12 +146,12 @@ invocation_has_tag(const char *directory, const char *tag)
 	char path[PATH_MAX];
 	struct buffer *bf;
 	const char *str;
-	ssize_t pathsiz = sizeof(path);
+	size_t pathsiz = sizeof(path);
 	int found = 0;
 	int n;
 
 	n = snprintf(path, pathsiz, "%s/tags", directory);
-	if (n < 0 || n >= pathsiz) {
+	if (n < 0 || (size_t)n >= pathsiz) {
 		warnc(ENAMETOOLONG, "%s", __func__);
 		return 0;
 	}
