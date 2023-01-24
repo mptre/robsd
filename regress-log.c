@@ -102,7 +102,7 @@ regress_log_parse(const char *path, struct buffer *out, unsigned int flags)
 
 		if (ismarker(line))
 			buffer_reset(bf);
-		buffer_puts(bf, line, n);
+		buffer_puts(bf, line, (size_t)n);
 
 		if ((flags & REGRESS_LOG_ERROR) && iserror(line))
 			errorlen = bf->bf_len;
@@ -170,7 +170,7 @@ regress_log_trim(const char *path, struct buffer *out)
 			xend = 0;
 		}
 
-		buffer_puts(bf, line, n);
+		buffer_puts(bf, line, (size_t)n);
 	}
 
 	buffer_printf(out, "%.*s", (int)(xend ? xend : bf->bf_len), bf->bf_ptr);
