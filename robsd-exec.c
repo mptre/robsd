@@ -105,7 +105,7 @@ exitstatus(int status)
 static int
 waiteof(int fd, int timoms)
 {
-	int slpms = 1;
+	unsigned int slpms = 1;
 
 	for (;;) {
 		char buf[1];
@@ -146,7 +146,7 @@ killwaitpg(int pgid, int timoms, int *status)
 static int
 killwaitpg1(int pgid, int signo, int timoms, int *status)
 {
-	int slpms = 100;
+	unsigned int slpms = 100;
 
 	if (kill(-pgid, signo) == -1)
 		err(1, "kill");
