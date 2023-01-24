@@ -53,7 +53,7 @@ struct regress_invocation {
 struct run {
 	char	*log;
 	int64_t	 time;
-	enum {
+	enum run_status {
 		PASS,
 		FAIL,
 		XFAIL,
@@ -104,7 +104,7 @@ static const char	*cvsweb_url(struct buffer *, const char *);
 static int		 dateformat(int64_t, char *, size_t);
 static const char	*joinpath(struct buffer *, const char *, ...)
 	__attribute__((__format__(printf, 2, 3)));
-static const char	*strstatus(int);
+static const char	*strstatus(enum run_status);
 
 struct regress_html *
 regress_html_alloc(const char *directory)
@@ -798,7 +798,7 @@ joinpath(struct buffer *bf, const char *fmt, ...)
 }
 
 static const char *
-strstatus(int status)
+strstatus(enum run_status status)
 {
 	switch (status) {
 	case PASS:
