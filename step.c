@@ -58,10 +58,10 @@ static int	step_set_field(struct step *, const char *, const char *);
 static int	step_validate(const struct step *, struct lexer *, int);
 
 struct field_definition {
-	const char	*fd_name;
-	int		 fd_type;
-	unsigned int	 fd_index;
-	unsigned int	 fd_flags;
+	const char		*fd_name;
+	enum step_field_type	 fd_type;
+	unsigned int		 fd_index;
+	unsigned int		 fd_flags;
 #define OPTIONAL	0x00000001u
 
 	struct {
@@ -311,6 +311,7 @@ step_set_keyval(struct step *st, const char *kv)
 {
 	const char *val;
 	char *key;
+	size_t keylen;
 	int error = 0;
 
 	val = strchr(kv, '=');
@@ -318,7 +319,8 @@ step_set_keyval(struct step *st, const char *kv)
 		warnx("missing field separator in '%s'", kv);
 		return 1;
 	}
-	key = estrndup(kv, val - kv);
+	keylen = (size_t)(val - kv);
+	key = estrndup(kv, keylen);
 	val++; /* consume '=' */
 
 	if (step_set_field(st, key, val)) {
@@ -504,7 +506,7 @@ step_lexer_read(struct lexer *lx, void *arg)
 static const char *
 token_serialize(const struct token *tk)
 {
-	enum token_type type = tk->tk_type;
+	enum token_type type = (enum token_type)tk->tk_type;
 
 	switch (type) {
 	case TOKEN_COMMA:
