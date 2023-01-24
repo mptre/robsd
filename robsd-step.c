@@ -163,7 +163,7 @@ steps_read(struct step_context *sc, int argc, char **argv)
 	} else if (lno > 0 && (size_t)lno - 1 < nsteps) {
 		st = &sc->sc_steps[lno - 1];
 	} else if (lno < 0 && (size_t)-lno <= nsteps) {
-		st = &sc->sc_steps[nsteps + lno];
+		st = &sc->sc_steps[(int)nsteps + lno];
 	} else {
 		warnx("step at line %d not found", lno);
 		return 1;
