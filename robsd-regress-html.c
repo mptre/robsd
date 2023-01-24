@@ -43,6 +43,7 @@ main(int argc, char *argv[])
 	for (; argc > 0; argc--, argv++) {
 		const char *colon, *path;
 		char *arch;
+		size_t archlen;
 
 		colon = strchr(argv[0], ':');
 		if (colon == NULL) {
@@ -50,7 +51,8 @@ main(int argc, char *argv[])
 			error = 1;
 			goto out;
 		}
-		arch = estrndup(argv[0], colon - argv[0]);
+		archlen = (size_t)(colon - argv[0]);
+		arch = estrndup(argv[0], archlen);
 		path = &colon[1];
 		error = regress_html_parse(rh, arch, path);
 		free(arch);
