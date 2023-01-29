@@ -217,10 +217,13 @@ steps_write(struct step_context *sc, int argc, char **argv)
 		usage();
 
 	bf = buffer_alloc(4096);
+	if (bf == NULL)
+		err(1, NULL);
 
 	if (doheader) {
 		steps_header(bf);
-		printf("%.*s", (int)bf->bf_len, bf->bf_ptr);
+		buffer_putc(bf, '\0');
+		printf("%s", buffer_get_ptr(bf));
 		goto out;
 	}
 
@@ -257,7 +260,7 @@ steps_write(struct step_context *sc, int argc, char **argv)
 		error = 1;
 		goto out;
 	}
-	n = fwrite(bf->bf_ptr, bf->bf_len, 1, fh);
+	n = fwrite(buffer_get_ptr(bf), buffer_get_len(bf), 1, fh);
 	if (n < 1) {
 		warn("fwrite: %s", sc->sc_path);
 		error = 1;

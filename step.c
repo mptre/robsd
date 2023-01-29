@@ -254,6 +254,8 @@ step_interpolate_lookup(const char *name, void *arg)
 	sf = &st->st_fields[fd->fd_index];
 
 	bf = buffer_alloc(128);
+	if (bf == NULL)
+		err(1, NULL);
 	switch (sf->sf_type) {
 	case UNKNOWN:
 		goto out;
@@ -278,6 +280,8 @@ step_serialize(const struct step *st, struct buffer *bf)
 	int error;
 
 	fmt = buffer_alloc(1024);
+	if (fmt == NULL)
+		err(1, NULL);
 	for (i = 0; i < nfields; i++) {
 		if (i > 0)
 			buffer_putc(fmt, ',');
@@ -286,7 +290,7 @@ step_serialize(const struct step *st, struct buffer *bf)
 	buffer_putc(fmt, '\n');
 	buffer_putc(fmt, '\0');
 
-	error = interpolate_buffer(fmt->bf_ptr, bf,
+	error = interpolate_buffer(buffer_get_ptr(fmt), bf,
 	    &(struct interpolate_arg){
 		.lookup	= step_interpolate_lookup,
 		.arg	= (void *)st,
@@ -335,6 +339,8 @@ static void
 parser_context_init(struct parser_context *pc)
 {
 	pc->pc_bf = buffer_alloc(512);
+	if (pc->pc_bf == NULL)
+		err(1, NULL);
 	if (VECTOR_INIT(pc->pc_columns) == NULL)
 		err(1, NULL);
 	if (VECTOR_INIT(pc->pc_steps) == NULL)
@@ -499,7 +505,7 @@ step_lexer_read(struct lexer *lx, void *arg)
 	lexer_ungetc(lx, ch);
 	buffer_putc(bf, '\0');
 	tk = lexer_emit(lx, &s, TOKEN_VALUE);
-	tk->tk_str = estrdup(bf->bf_ptr);
+	tk->tk_str = estrdup(buffer_get_ptr(bf));
 	return tk;
 }
 

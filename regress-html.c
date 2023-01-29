@@ -117,7 +117,11 @@ regress_html_alloc(const char *directory)
 	r->output = directory;
 	r->html = html_alloc();
 	r->scratch = buffer_alloc(1 << 10);
+	if (r->scratch == NULL)
+		err(1, NULL);
 	r->path = buffer_alloc(PATH_MAX);
+	if (r->path == NULL)
+		err(1, NULL);
 	return r;
 }
 
@@ -168,6 +172,8 @@ regress_html_parse(struct regress_html *r, const char *arch,
 	int error = 0;
 
 	bf = buffer_alloc(PATH_MAX);
+	if (bf == NULL)
+		err(1, NULL);
 	keepdir = joinpath(bf, "%s/attic", robsddir);
 	is = invocation_alloc(robsddir, keepdir);
 	if (is == NULL) {
@@ -292,7 +298,7 @@ parse_invocation(struct regress_html *r, const char *arch,
 			err(1, NULL);
 		buffer_reset(scratch);
 		buffer_printf(scratch, "%s/%s/%s", arch, date, log);
-		run->log = estrdup(scratch->bf_ptr);
+		run->log = estrdup(buffer_get_ptr(scratch));
 		run->time = time;
 
 		path = joinpath(r->path, "%s/%s", directory, log);
@@ -387,7 +393,9 @@ create_directories(struct regress_html *r, struct regress_invocation *ri,
 
 	path = joinpath(r->path, "%s/dmesg", directory);
 	bf = buffer_read(path);
-	if (bf != NULL) {
+	if (bf == NULL) {
+		warn("%s", path);
+	} else {
 		path = joinpath(r->path, "%s/%s", r->output, ri->dmesg);
 		if (write_log(path, bf)) {
 			error = 1;
@@ -398,7 +406,9 @@ create_directories(struct regress_html *r, struct regress_invocation *ri,
 
 	path = joinpath(r->path, "%s/comment", directory);
 	bf = buffer_read(path);
-	if (bf != NULL) {
+	if (bf == NULL) {
+		warn("%s", path);
+	} else {
 		path = joinpath(r->path, "%s/%s", r->output, ri->comment);
 		if (write_log(path, bf)) {
 			error = 1;
@@ -435,6 +445,7 @@ create_patches(struct regress_html *r, struct regress_invocation *ri,
 
 		bf = buffer_read(patches[i].path);
 		if (bf == NULL) {
+			warn("%s", patches[i].path);
 			error = 1;
 			goto out;
 		}
@@ -505,7 +516,7 @@ pass_rate(struct regress_html *r, const struct regress_invocation *ri)
 		rate = 1 - (ri->fail / (float)ri->total);
 	buffer_reset(bf);
 	buffer_printf(bf, "%d%%", (int)(rate * 100));
-	return bf->bf_ptr;
+	return buffer_get_ptr(bf);
 }
 
 static int
@@ -565,7 +576,8 @@ write_log(const char *path, const struct buffer *bf)
 {
 	struct stat sb;
 	FILE *fh;
-	size_t n, nmemb;
+	const char *buf;
+	size_t buflen, n, nmemb;
 	int error = 0;
 
 	if (stat(path, &sb) == 0)
@@ -575,8 +587,10 @@ write_log(const char *path, const struct buffer *bf)
 		warn("fopen: %s", path);
 		return 1;
 	}
-	nmemb = bf->bf_len > 0 ? 1 : 0;
-	n = fwrite(bf->bf_ptr, bf->bf_len, nmemb, fh);
+	buf = buffer_get_ptr(bf);
+	buflen = buffer_get_len(bf);
+	nmemb = buflen > 0 ? 1 : 0;
+	n = fwrite(buf, buflen, nmemb, fh);
 	if (n < nmemb) {
 		warn("fwrite: %s", path);
 		error = 1;
@@ -765,7 +779,7 @@ cvsweb_url(struct buffer *bf, const char *path)
 	buffer_reset(bf);
 	buffer_printf(bf,
 	    "https://cvsweb.openbsd.org/cgi-bin/cvsweb/src/regress/%s", path);
-	return bf->bf_ptr;
+	return buffer_get_ptr(bf);
 }
 
 static int
@@ -794,7 +808,7 @@ joinpath(struct buffer *bf, const char *fmt, ...)
 	va_start(ap, fmt);
 	buffer_vprintf(bf, fmt, ap);
 	va_end(ap);
-	return bf->bf_ptr;
+	return buffer_get_ptr(bf);
 }
 
 static const char *

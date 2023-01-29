@@ -25,6 +25,8 @@ html_alloc(void)
 
 	html = ecalloc(1, sizeof(*html));
 	html->bf = buffer_alloc(1 << 10);
+	if (html->bf == NULL)
+		err(1, NULL);
 	return html;
 }
 
@@ -53,7 +55,7 @@ html_write(const struct html *html, const char *path)
 		warn("fopen: %s", path);
 		return 1;
 	}
-	n = fwrite(bf->bf_ptr, bf->bf_len, 1, fh);
+	n = fwrite(buffer_get_ptr(bf), buffer_get_len(bf), 1, fh);
 	if (n < 1) {
 		warn("fwrite: %s", path);
 		error = 1;

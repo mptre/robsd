@@ -145,7 +145,7 @@ invocation_has_tag(const char *directory, const char *tag)
 {
 	char path[PATH_MAX];
 	struct buffer *bf;
-	const char *str;
+	const char *buf, *str;
 	size_t pathsiz = sizeof(path);
 	int found = 0;
 	int n;
@@ -160,12 +160,13 @@ invocation_has_tag(const char *directory, const char *tag)
 	if (bf == NULL)
 		return 0;
 	buffer_putc(bf, '\0');
-	str = strstr(bf->bf_ptr, tag);
+	buf = buffer_get_ptr(bf);
+	str = strstr(buf, tag);
 	if (str != NULL) {
 		size_t taglen;
 
 		taglen = strlen(tag);
-		if ((str == bf->bf_ptr || str[-1] == ' ') &&
+		if ((str == buf || str[-1] == ' ') &&
 		    (str[taglen] == '\0' || str[taglen] == ' ' ||
 		     str[taglen] == '\n'))
 			found = 1;

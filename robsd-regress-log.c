@@ -53,11 +53,15 @@ main(int argc, char *argv[])
 		err(1, "pledge");
 
 	bf = buffer_alloc(1 << 20);
+	if (bf == NULL)
+		err(1, NULL);
 	regress_log_init();
 	n = regress_log_parse(*argv, bf, flags);
 	regress_log_shutdown();
-	if (n > 0 && doprint)
-		printf("%.*s", (int)bf->bf_len, bf->bf_ptr);
+	if (n > 0 && doprint) {
+		buffer_putc(bf, '\0');
+		printf("%s", buffer_get_ptr(bf));
+	}
 	buffer_free(bf);
 	if (n == -1)
 		return 2;

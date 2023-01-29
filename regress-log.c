@@ -85,6 +85,8 @@ regress_log_parse(const char *path, struct buffer *out, unsigned int flags)
 
 	buffer_reset(out);
 	bf = buffer_alloc(1 << 20);
+	if (bf == NULL)
+		err(1, NULL);
 	for (;;) {
 		const char *line;
 		ssize_t n;
@@ -105,14 +107,15 @@ regress_log_parse(const char *path, struct buffer *out, unsigned int flags)
 		buffer_puts(bf, line, (size_t)n);
 
 		if ((flags & REGRESS_LOG_ERROR) && iserror(line))
-			errorlen = bf->bf_len;
+			errorlen = buffer_get_len(bf);
 
 		if (((flags & REGRESS_LOG_SKIPPED) && isskipped(line)) ||
 		    ((flags & REGRESS_LOG_FAILED) && isfailed(line)) ||
 		    ((flags & REGRESS_LOG_XFAILED) && isxfailed(line))) {
 			if (nfound > 0)
 				buffer_putc(out, '\n');
-			buffer_printf(out, "%.*s", (int)bf->bf_len, bf->bf_ptr);
+			buffer_putc(bf, '\0');
+			buffer_printf(out, "%s", buffer_get_ptr(bf));
 			buffer_reset(bf);
 			nfound++;
 			errorlen = 0;
@@ -120,7 +123,7 @@ regress_log_parse(const char *path, struct buffer *out, unsigned int flags)
 	}
 	if ((flags & REGRESS_LOG_ERROR) && nfound == 0 && !error &&
 	    errorlen > 0) {
-		buffer_printf(out, "%.*s", (int)errorlen, bf->bf_ptr);
+		buffer_printf(out, "%.*s", (int)errorlen, buffer_get_ptr(bf));
 		nfound++;
 	}
 	buffer_free(bf);
@@ -148,6 +151,8 @@ regress_log_trim(const char *path, struct buffer *out)
 
 	buffer_reset(out);
 	bf = buffer_alloc(1 << 20);
+	if (bf == NULL)
+		err(1, NULL);
 	for (;;) {
 		const char *line;
 		ssize_t n;
@@ -165,7 +170,7 @@ regress_log_trim(const char *path, struct buffer *out)
 
 		if (isxtrace(line)) {
 			if (xend == 0)
-				xend = bf->bf_len;
+				xend = buffer_get_len(bf);
 		} else {
 			xend = 0;
 		}
@@ -173,7 +178,8 @@ regress_log_trim(const char *path, struct buffer *out)
 		buffer_puts(bf, line, (size_t)n);
 	}
 
-	buffer_printf(out, "%.*s", (int)(xend ? xend : bf->bf_len), bf->bf_ptr);
+	buffer_printf(out, "%.*s", (int)(xend ? xend : buffer_get_len(bf)),
+	    buffer_get_ptr(bf));
 
 out:
 	buffer_free(bf);

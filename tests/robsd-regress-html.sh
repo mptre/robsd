@@ -235,7 +235,7 @@ if testcase "dmesg missing"; then
 	rm "${TSHDIR}/amd64/2022-10-25/dmesg"
 
 	robsd_regress_html - -- -o "${TSHDIR}/html" "amd64:${TSHDIR}/amd64" <<-EOF
-	robsd-regress-html: open: ${TSHDIR}/amd64/2022-10-25/dmesg: No such file or directory
+	robsd-regress-html: ${TSHDIR}/amd64/2022-10-25/dmesg: No such file or directory
 	EOF
 fi
 
@@ -243,7 +243,7 @@ if testcase "comment missing"; then
 	rm "${TSHDIR}/amd64/2022-10-25/comment"
 
 	robsd_regress_html - -- -o "${TSHDIR}/html" "amd64:${TSHDIR}/amd64" <<-EOF
-	robsd-regress-html: open: ${TSHDIR}/amd64/2022-10-25/comment: No such file or directory
+	robsd-regress-html: ${TSHDIR}/amd64/2022-10-25/comment: No such file or directory
 	EOF
 fi
 

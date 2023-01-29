@@ -411,6 +411,8 @@ config_interpolate_lookup(const char *name, void *arg)
 		return NULL;
 
 	bf = buffer_alloc(128);
+	if (bf == NULL)
+		err(1, NULL);
 	switch (va->va_type) {
 	case INTEGER:
 		buffer_printf(bf, "%d", va->va_val.integer);
@@ -448,6 +450,8 @@ static void
 parser_context_init(struct parser_context *pc)
 {
 	pc->pc_bf = buffer_alloc(512);
+	if (pc->pc_bf == NULL)
+		err(1, NULL);
 }
 
 static void
@@ -500,7 +504,7 @@ again:
 		lexer_ungetc(lx, ch);
 		buffer_putc(bf, '\0');
 
-		buf = bf->bf_ptr;
+		buf = buffer_get_ptr(bf);
 		if (strcmp("env", buf) == 0)
 			return lexer_emit(lx, &s, TOKEN_ENV);
 		if (strcmp("obj", buf) == 0)
@@ -571,12 +575,12 @@ again:
 				break;
 			buffer_putc(bf, ch);
 		}
-		if (bf->bf_len == 0)
+		if (buffer_get_len(bf) == 0)
 			lexer_warnx(lx, s.lno, "empty string");
 		buffer_putc(bf, '\0');
 
 		tk = lexer_emit(lx, &s, TOKEN_STRING);
-		tk->tk_str = estrdup(bf->bf_ptr);
+		tk->tk_str = estrdup(buffer_get_ptr(bf));
 		return tk;
 	}
 
@@ -1103,18 +1107,19 @@ config_append_build_dir(struct config *cf)
 		goto out;
 	bf = buffer_read_fd(fd);
 	if (bf == NULL) {
+		warn("%s", path);
 		error = 1;
 		goto out;
 	}
 	buffer_putc(bf, '\0');
-	nl = strchr(bf->bf_ptr, '\n');
+	nl = strchr(buffer_get_ptr(bf), '\n');
 	if (nl == NULL) {
 		warnx("%s: line not found", path);
 		error = 1;
 		goto out;
 	}
 	*nl = '\0';
-	config_append_string(cf, "builddir", bf->bf_ptr);
+	config_append_string(cf, "builddir", buffer_get_ptr(bf));
 
 out:
 	if (fd != -1)

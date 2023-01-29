@@ -42,6 +42,8 @@ interpolate_file(const char *path, const struct interpolate_arg *arg)
 	}
 
 	bf = buffer_alloc(1024);
+	if (bf == NULL)
+		err(1, NULL);
 	for (;;) {
 		ssize_t n;
 
@@ -99,6 +101,8 @@ interpolate_str1(const char *str, struct interpolate_context *ic)
 	char *buf = NULL;
 
 	bf = buffer_alloc(1024);
+	if (bf == NULL)
+		err(1, NULL);
 	if (interpolate(ic, bf, str) == 0) {
 		buffer_putc(bf, '\0');
 		buf = buffer_release(bf);
