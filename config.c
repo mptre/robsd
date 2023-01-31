@@ -4,7 +4,6 @@
 
 #include <sys/param.h>	/* MACHINE, MACHINE_ARCH */
 #include <sys/stat.h>
-#include <sys/queue.h>
 
 #include <assert.h>
 #include <ctype.h>
@@ -81,11 +80,7 @@ struct variable {
 		DIRECTORY,
 		LIST,
 	} va_type;
-
-	TAILQ_ENTRY(variable)	 va_entry;
 };
-
-TAILQ_HEAD(variable_list, variable);
 
 static void	variable_value_init(union variable_value *, enum variable_type);
 static void	variable_value_clear(union variable_value *,
@@ -121,7 +116,6 @@ static int			 grammar_equals(const struct grammar *,
 
 struct config {
 	struct lexer		*cf_lx;
-	struct variable_list	 cf_variables;
 	const struct grammar	*cf_grammar;
 	const char		*cf_path;
 	enum robsd_mode {
@@ -130,6 +124,8 @@ struct config {
 		CONFIG_ROBSD_PORTS,
 		CONFIG_ROBSD_REGRESS,
 	} cf_mode;
+
+	VECTOR(struct variable)	 cf_variables;
 
 	/* Sentinel used for absent list variables during interpolation. */
 	VECTOR(char *)		 cf_empty_list;
@@ -254,7 +250,8 @@ config_alloc(const char *mode, const char *path)
 	cf = ecalloc(1, sizeof(*cf));
 	cf->cf_path = path;
 	cf->cf_mode = m;
-	TAILQ_INIT(&cf->cf_variables);
+	if (VECTOR_INIT(cf->cf_variables) == NULL)
+		err(1, NULL);
 	if (VECTOR_INIT(cf->cf_empty_list) == NULL)
 		err(1, NULL);
 
@@ -285,13 +282,13 @@ config_alloc(const char *mode, const char *path)
 void
 config_free(struct config *cf)
 {
-	struct variable *va;
-
 	if (cf == NULL)
 		return;
 
-	while ((va = TAILQ_FIRST(&cf->cf_variables)) != NULL) {
-		TAILQ_REMOVE(&cf->cf_variables, va, va_entry);
+	while (!VECTOR_EMPTY(cf->cf_variables)) {
+		struct variable *va;
+
+		va = VECTOR_POP(cf->cf_variables);
 		switch (va->va_type) {
 		case INTEGER:
 			break;
@@ -305,8 +302,8 @@ config_free(struct config *cf)
 			break;
 		}
 		free(va->va_name);
-		free(va);
 	}
+	VECTOR_FREE(cf->cf_variables);
 
 	lexer_free(cf->cf_lx);
 	VECTOR_FREE(cf->cf_empty_list);
@@ -1135,14 +1132,15 @@ config_append(struct config *cf, enum variable_type type, const char *name,
 {
 	struct variable *va;
 
-	va = ecalloc(1, sizeof(*va));
+	va = VECTOR_CALLOC(cf->cf_variables);
+	if (va == NULL)
+		err(1, NULL);
 	va->va_type = type;
 	va->va_lno = lno;
 	va->va_flags = flags;
 	va->va_name = estrdup(name);
 	va->va_namelen = strlen(name);
 	va->va_val = *val;
-	TAILQ_INSERT_TAIL(&cf->cf_variables, va, va_entry);
 	return va;
 }
 
@@ -1150,10 +1148,11 @@ static const struct variable *
 config_findn(const struct config *cf, const char *name, size_t namelen)
 {
 	static struct variable vadef;
-	const struct variable *va;
-	int i;
+	size_t i;
 
-	TAILQ_FOREACH(va, &cf->cf_variables, va_entry) {
+	for (i = 0; i < VECTOR_LENGTH(cf->cf_variables); i++) {
+		const struct variable *va = &cf->cf_variables[i];
+
 		if (va->va_namelen == namelen &&
 		    strncmp(va->va_name, name, namelen) == 0)
 			return va;
@@ -1197,9 +1196,11 @@ config_findn(const struct config *cf, const char *name, size_t namelen)
 static int
 config_present(const struct config *cf, const char *name)
 {
-	const struct variable *va;
+	size_t i;
 
-	TAILQ_FOREACH(va, &cf->cf_variables, va_entry) {
+	for (i = 0; i < VECTOR_LENGTH(cf->cf_variables); i++) {
+		const struct variable *va = &cf->cf_variables[i];
+
 		if (strcmp(va->va_name, name) == 0)
 			return 1;
 	}
