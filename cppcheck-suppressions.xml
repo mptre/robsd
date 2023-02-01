@@ -1,17 +1,5 @@
 <?xml version="1.0"?>
 <suppressions>
-  <!-- buffer.c -->
-  <suppress>
-    <fileName>buffer.c</fileName>
-    <id>unusedFunction</id>
-    <symbolName>buffer_cmp</symbolName>
-  </suppress>
-  <suppress>
-    <fileName>buffer.c</fileName>
-    <id>unusedFunction</id>
-    <symbolName>buffer_indent</symbolName>
-  </suppress>
-
   <!-- regress-html.c -->
   <suppress>
     <fileName>regress-html.c</fileName>
