@@ -3,10 +3,10 @@ KNFMT \
 	!(compat-*).c !(config|uthash).h \
 	-- \
 CLANGTIDY \
-	!(config|compat-*|uthash).h !(compat-*).c \
+	!(buffer|config|compat-*|uthash).h !(compat-*).c \
 	-- \
 CPPCHECK \
-	!(compat-*|vector).c \
+	!(buffer|compat-*|vector).c \
 	-- \
 SCRIPTS \
 	!(mkls).sh \

@@ -133,7 +133,6 @@ KNFMT+=	vector.h
 CLANGTIDY+=	alloc.c
 CLANGTIDY+=	alloc.h
 CLANGTIDY+=	buffer.c
-CLANGTIDY+=	buffer.h
 CLANGTIDY+=	cdefs.h
 CLANGTIDY+=	config.c
 CLANGTIDY+=	extern.h
@@ -167,7 +166,6 @@ CLANGTIDY+=	vector.c
 CLANGTIDY+=	vector.h
 
 CPPCHECK+=	alloc.c
-CPPCHECK+=	buffer.c
 CPPCHECK+=	config.c
 CPPCHECK+=	html.c
 CPPCHECK+=	interpolate.c
