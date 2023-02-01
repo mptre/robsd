@@ -1130,7 +1130,10 @@ report_sizes() {
 	_dir="$1"; : "${_dir:?}"
 	[ -d "$_dir" ] || return 0
 
-	find "$_dir" -type f | sort | while read -r _f; do
+	find "$_dir" -type f |
+	grep -Ev '\.diff\.[0-9]+$' |
+	sort |
+	while read -r _f; do
 		_siz="$(report_size "$_f")"
 		[ -z "$_siz" ] && continue
 

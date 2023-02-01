@@ -30,6 +30,7 @@ if testcase "basic"; then
 	mkdir "${ROBSDDIR}/2019-02-22/rel"
 	genfile 1 "${ROBSDDIR}/2019-02-22/rel/bsd.rd"
 	genfile 1 "${ROBSDDIR}/2019-02-22/rel/base66.tgz"
+	genfile 1 "${ROBSDDIR}/2019-02-22/rel/src.diff.1"
 
 	echo "$BUILDDIR" >"${TSHDIR}/.running"
 	build_init "$BUILDDIR"
@@ -51,6 +52,7 @@ if testcase "basic"; then
 	mkdir "${BUILDDIR}/rel"
 	genfile 2 "${BUILDDIR}/rel/bsd.rd"
 	genfile 1 "${BUILDDIR}/rel/base66.tgz"
+	genfile 2 "${BUILDDIR}/rel/src.diff.1"
 
 	cat <<-EOF >"$TMP1"
 	Subject: robsd: $(hostname -s): ok
