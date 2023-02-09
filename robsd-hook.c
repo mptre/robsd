@@ -8,7 +8,7 @@
 #include <string.h>
 #include <unistd.h>
 
-#include "extern.h"
+#include "conf.h"
 #include "interpolate.h"
 #include "vector.h"
 

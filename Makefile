@@ -2,43 +2,49 @@ include ${.CURDIR}/config.mk
 
 VERSION=	17.4.1
 
-SRCS_config+=		alloc.c
-SRCS_config+=		buffer.c
-SRCS_config+=		config.c
-SRCS_config+=		interpolate.c
-SRCS_config+=		lexer.c
-SRCS_config+=		token.c
-SRCS_config+=		vector.c
-SRCS_config+=		util.c
+SRCS+=	alloc.c
+SRCS+=	buffer.c
+SRCS+=	compat-errc.c
+SRCS+=	compat-pledge.c
+SRCS+=	compat-strlcpy.c
+SRCS+=	compat-strtonum.c
+SRCS+=	compat-unveil.c
+SRCS+=	compat-warnc.c
+SRCS+=	conf.c
+SRCS+=	html.c
+SRCS+=	interpolate.c
+SRCS+=	invocation.c
+SRCS+=	lexer.c
+SRCS+=	regress-html.c
+SRCS+=	regress-log.c
+SRCS+=	step.c
+SRCS+=	token.c
+SRCS+=	util.c
+SRCS+=	vector.c
 
-PROG_robsd-config=	robsd-config
+SRCS_robsd-config+=	${SRCS}
 SRCS_robsd-config+=	robsd-config.c
-SRCS_robsd-config+=	compat-pledge.c
-SRCS_robsd-config+=	${SRCS_config}
 OBJS_robsd-config=	${SRCS_robsd-config:.c=.o}
 DEPS_robsd-config=	${SRCS_robsd-config:.c=.d}
+PROG_robsd-config=	robsd-config
 
-PROG_robsd-exec=	robsd-exec
+SRCS_robsd-exec+=	${SRCS}
 SRCS_robsd-exec+=	robsd-exec.c
-SRCS_robsd-exec+=	compat-pledge.c
 OBJS_robsd-exec=	${SRCS_robsd-exec:.c=.o}
 DEPS_robsd-exec=	${SRCS_robsd-exec:.c=.d}
+PROG_robsd-exec=	robsd-exec
 
-PROG_robsd-hook=	robsd-hook
+SRCS_robsd-hook+=	${SRCS}
 SRCS_robsd-hook+=	robsd-hook.c
-SRCS_robsd-hook+=	compat-pledge.c
-SRCS_robsd-hook+=	${SRCS_config}
 OBJS_robsd-hook=	${SRCS_robsd-hook:.c=.o}
 DEPS_robsd-hook=	${SRCS_robsd-hook:.c=.d}
+PROG_robsd-hook=	robsd-hook
 
-PROG_robsd-ls=		robsd-ls
+SRCS_robsd-ls+=		${SRCS}
 SRCS_robsd-ls+=		robsd-ls.c
-SRCS_robsd-ls+=		compat-pledge.c
-SRCS_robsd-ls+=		compat-warnc.c
-SRCS_robsd-ls+=		invocation.c
-SRCS_robsd-ls+=		${SRCS_config}
 OBJS_robsd-ls=		${SRCS_robsd-ls:.c=.o}
 DEPS_robsd-ls=		${SRCS_robsd-ls:.c=.d}
+PROG_robsd-ls=		robsd-ls
 
 PROG_robsd-regress-html=	robsd-regress-html
 SRCS_robsd-regress-html+=	robsd-regress-html.c
@@ -99,8 +105,8 @@ KNFMT+=	buffer.h
 KNFMT+=	cdefs.h
 KNFMT+=	compat-sys-sched.h
 KNFMT+=	compat-sys-sysctl.h
-KNFMT+=	config.c
-KNFMT+=	extern.h
+KNFMT+=	conf.c
+KNFMT+=	conf.h
 KNFMT+=	html.c
 KNFMT+=	html.h
 KNFMT+=	interpolate.c
@@ -133,8 +139,8 @@ KNFMT+=	vector.h
 CLANGTIDY+=	alloc.c
 CLANGTIDY+=	alloc.h
 CLANGTIDY+=	cdefs.h
-CLANGTIDY+=	config.c
-CLANGTIDY+=	extern.h
+CLANGTIDY+=	conf.c
+CLANGTIDY+=	conf.h
 CLANGTIDY+=	html.c
 CLANGTIDY+=	html.h
 CLANGTIDY+=	interpolate.c
@@ -165,7 +171,7 @@ CLANGTIDY+=	vector.c
 CLANGTIDY+=	vector.h
 
 CPPCHECK+=	alloc.c
-CPPCHECK+=	config.c
+CPPCHECK+=	conf.c
 CPPCHECK+=	html.c
 CPPCHECK+=	interpolate.c
 CPPCHECK+=	invocation.c
@@ -235,9 +241,9 @@ DISTFILES+=	compat-sys-sched.h
 DISTFILES+=	compat-sys-sysctl.h
 DISTFILES+=	compat-unveil.c
 DISTFILES+=	compat-warnc.c
-DISTFILES+=	config.c
+DISTFILES+=	conf.c
+DISTFILES+=	conf.h
 DISTFILES+=	configure
-DISTFILES+=	extern.h
 DISTFILES+=	html.c
 DISTFILES+=	html.h
 DISTFILES+=	interpolate.c

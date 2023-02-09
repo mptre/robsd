@@ -8,7 +8,7 @@
 #include <string.h>
 #include <unistd.h>
 
-#include "extern.h"
+#include "conf.h"
 #include "vector.h"
 
 static __dead void	usage(void);

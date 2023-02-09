@@ -1,4 +1,4 @@
-#include "extern.h"
+#include "conf.h"
 
 #include "config.h"
 

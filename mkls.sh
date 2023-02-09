@@ -1,4 +1,7 @@
 mkls "$@" \
+SRCS \
+	!(robsd-*).c \
+	-- \
 KNFMT \
 	!(compat-*).c !(config|uthash).h \
 	-- \
