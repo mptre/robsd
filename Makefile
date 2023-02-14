@@ -100,8 +100,6 @@ DEPS_robsd-step=	${SRCS_robsd-step:.c=.d}
 
 KNFMT+=	alloc.c
 KNFMT+=	alloc.h
-KNFMT+=	buffer.c
-KNFMT+=	buffer.h
 KNFMT+=	cdefs.h
 KNFMT+=	compat-sys-sched.h
 KNFMT+=	compat-sys-sysctl.h
@@ -133,8 +131,6 @@ KNFMT+=	token.c
 KNFMT+=	token.h
 KNFMT+=	util.c
 KNFMT+=	util.h
-KNFMT+=	vector.c
-KNFMT+=	vector.h
 
 CLANGTIDY+=	alloc.c
 CLANGTIDY+=	alloc.h
@@ -167,8 +163,6 @@ CLANGTIDY+=	token.c
 CLANGTIDY+=	token.h
 CLANGTIDY+=	util.c
 CLANGTIDY+=	util.h
-CLANGTIDY+=	vector.c
-CLANGTIDY+=	vector.h
 
 CPPCHECK+=	alloc.c
 CPPCHECK+=	conf.c
@@ -230,8 +224,6 @@ DISTFILES+=	Makefile.inc
 DISTFILES+=	README.md
 DISTFILES+=	alloc.c
 DISTFILES+=	alloc.h
-DISTFILES+=	buffer.c
-DISTFILES+=	buffer.h
 DISTFILES+=	cdefs.h
 DISTFILES+=	compat-errc.c
 DISTFILES+=	compat-pledge.c
@@ -252,6 +244,10 @@ DISTFILES+=	invocation.c
 DISTFILES+=	invocation.h
 DISTFILES+=	lexer.c
 DISTFILES+=	lexer.h
+DISTFILES+=	libks/buffer.c
+DISTFILES+=	libks/buffer.h
+DISTFILES+=	libks/vector.c
+DISTFILES+=	libks/vector.h
 DISTFILES+=	regress-html.c
 DISTFILES+=	regress-html.h
 DISTFILES+=	regress-log.c
@@ -370,8 +366,6 @@ DISTFILES+=	util-regress.sh
 DISTFILES+=	util.c
 DISTFILES+=	util.h
 DISTFILES+=	util.sh
-DISTFILES+=	vector.c
-DISTFILES+=	vector.h
 
 PREFIX=		/usr/local
 BINDIR=		${PREFIX}/sbin
@@ -535,7 +529,7 @@ install: all
 .PHONY: install
 
 lint-clang-tidy:
-	cd ${.CURDIR} && clang-tidy --quiet ${CLANGTIDY}
+	cd ${.CURDIR} && clang-tidy --quiet ${CLANGTIDY} -- ${CPPFLAGS}
 .PHONY: lint-clang-tidy
 
 lint-cppcheck:

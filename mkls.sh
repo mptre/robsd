@@ -1,21 +1,24 @@
+export LC_ALL=C
+
 mkls "$@" \
 SRCS \
 	!(robsd-*).c \
+	$(find libks -type f -name '*.c' -exec basename {} \;) \
 	-- \
 KNFMT \
 	!(compat-*).c !(config|uthash).h \
 	-- \
 CLANGTIDY \
-	!(buffer|config|compat-*|uthash).h !(buffer|compat-*).c \
+	!(config|compat-*|uthash).h !(compat-*).c \
 	-- \
 CPPCHECK \
-	!(buffer|compat-*|vector).c \
+	!(compat-*).c \
 	-- \
 SCRIPTS \
 	!(mkls).sh \
 	-- \
 DISTFILES \
-	*.c !(config).h *.md !(mkls).sh \
+	*.c !(config).h libks/*.[ch] *.md !(mkls).sh \
 	configure \
 	robsd?(-clean|-cross|-crossenv|-kill|-ports|-regress|-rescue) \
 	*.5 robsd?(-clean|-config|-cross|-crossenv|-kill|-ports|-regress|-regress-html|-rescue|-stat|-step).[0-9] \
