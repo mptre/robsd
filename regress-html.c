@@ -82,9 +82,10 @@ static struct suite			**sort_suites(struct suite *);
 static const char			 *pass_rate(struct regress_html *,
     const struct regress_invocation *);
 
-static int	regress_invocation_cmp(const void *, const void *);
-static int	run_cmp(const void *, const void *);
-static int	suite_cmp(const void *, const void *);
+static int	regress_invocation_cmp(const struct regress_invocation *,
+    const struct regress_invocation *);
+static int	run_cmp(const struct run *, const struct run *);
+static int	suite_cmp(struct suite *const *, struct suite *const *);
 
 static int	create_log(struct regress_html *,
     const struct run *, const struct buffer *);
@@ -200,10 +201,7 @@ regress_html_render(struct regress_html *r)
 	struct html *html = r->html;
 	const char *path;
 
-	if (VECTOR_LENGTH(r->invocations)) {
-		qsort(r->invocations, VECTOR_LENGTH(r->invocations),
-		    sizeof(*r->invocations), regress_invocation_cmp);
-	}
+	VECTOR_SORT(r->invocations, regress_invocation_cmp);
 
 	HTML_HEAD(html) {
 		HTML_NODE(html, "title")
@@ -498,8 +496,7 @@ sort_suites(struct suite *suites)
 		else
 			*VECTOR_ALLOC(pass) = suite;
 	}
-	if (!VECTOR_EMPTY(all))
-		qsort(all, VECTOR_LENGTH(all), sizeof(*all), suite_cmp);
+	VECTOR_SORT(all, suite_cmp);
 	for (i = 0; i < VECTOR_LENGTH(pass); i++)
 		*VECTOR_ALLOC(all) = pass[i];
 	VECTOR_FREE(pass);
@@ -520,43 +517,35 @@ pass_rate(struct regress_html *r, const struct regress_invocation *ri)
 }
 
 static int
-regress_invocation_cmp(const void *p1, const void *p2)
+regress_invocation_cmp(const struct regress_invocation *a,
+    const struct regress_invocation *b)
 {
-	const struct regress_invocation *i1 = p1;
-	const struct regress_invocation *i2 = p2;
-
 	/* Descending order. */
-	if (i1->time < i2->time)
+	if (a->time < b->time)
 		return 1;
-	if (i1->time > i2->time)
+	if (a->time > b->time)
 		return -1;
 	return 0;
 }
 
 static int
-run_cmp(const void *p1, const void *p2)
+run_cmp(const struct run *a, const struct run *b)
 {
-	const struct run *r1 = p1;
-	const struct run *r2 = p2;
-
 	/* Descending order. */
-	if (r1->time < r2->time)
+	if (a->time < b->time)
 		return 1;
-	if (r1->time > r2->time)
+	if (a->time > b->time)
 		return -1;
 	return 0;
 }
 
 static int
-suite_cmp(const void *p1, const void *p2)
+suite_cmp(struct suite *const *a, struct suite *const *b)
 {
-	const struct suite *s1 = *(const struct suite **)p1;
-	const struct suite *s2 = *(const struct suite **)p2;
-
 	/* Descending order. */
-	if (s1->fail < s2->fail)
+	if ((*a)->fail < (*b)->fail)
 		return 1;
-	if (s1->fail > s2->fail)
+	if ((*a)->fail > (*b)->fail)
 		return -1;
 	return 0;
 }
@@ -723,7 +712,7 @@ render_suite(struct regress_html *r, struct suite *suite)
 	struct html *html = r->html;
 
 	HTML_NODE(html, "tr") {
-		struct run *runs = suite->runs;
+		VECTOR(struct run) runs = suite->runs;
 		const struct regress_invocation *ri = r->invocations;
 		size_t i;
 
@@ -738,10 +727,7 @@ render_suite(struct regress_html *r, struct suite *suite)
 			}
 		}
 
-		if (!VECTOR_EMPTY(runs)) {
-			qsort(runs, VECTOR_LENGTH(runs), sizeof(*runs),
-			    run_cmp);
-		}
+		VECTOR_SORT(runs, run_cmp);
 
 		for (i = 0; i < VECTOR_LENGTH(runs); i++) {
 			const struct run *run = &runs[i];

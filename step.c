@@ -53,7 +53,7 @@ static int	step_field_is_empty(const struct step_field *);
 static int	step_field_set(struct step_field *, enum step_field_type,
     const char *);
 
-static int	step_cmp(const void *, const void *);
+static int	step_cmp(const struct step *, const struct step *);
 static int	step_set_field(struct step *, const char *, const char *);
 static int	step_validate(const struct step *, struct lexer *, int);
 
@@ -161,10 +161,7 @@ steps_free(struct step *steps)
 void
 steps_sort(struct step *steps)
 {
-	size_t nsteps = VECTOR_LENGTH(steps);
-
-	if (nsteps > 0)
-		qsort(steps, nsteps, sizeof(*steps), step_cmp);
+	VECTOR_SORT(steps, step_cmp);
 }
 
 struct step *
@@ -526,18 +523,16 @@ token_serialize(const struct token *tk)
 }
 
 static int
-step_cmp(const void *p1, const void *p2)
+step_cmp(const struct step *a, const struct step *b)
 {
 	const struct field_definition *fd;
-	const struct step *s1 = p1;
-	const struct step *s2 = p2;
 
 	fd = field_definition_find_by_name("step");
-	if (s1->st_fields[fd->fd_index].sf_val.integer <
-	    s2->st_fields[fd->fd_index].sf_val.integer)
+	if (a->st_fields[fd->fd_index].sf_val.integer <
+	    b->st_fields[fd->fd_index].sf_val.integer)
 		return -1;
-	if (s1->st_fields[fd->fd_index].sf_val.integer >
-	    s2->st_fields[fd->fd_index].sf_val.integer)
+	if (a->st_fields[fd->fd_index].sf_val.integer >
+	    b->st_fields[fd->fd_index].sf_val.integer)
 		return 1;
 	return 0;
 }

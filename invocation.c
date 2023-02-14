@@ -25,7 +25,8 @@ struct invocation_state {
 
 static int	invocation_read(struct invocation_state *, DIR *);
 
-static int	directory_cmp(const void *, const void *);
+static int	directory_cmp(const struct invocation_entry *,
+    const struct invocation_entry *);
 
 struct invocation_state *
 invocation_alloc(const char *robsddir, const char *keepdir)
@@ -51,10 +52,7 @@ invocation_alloc(const char *robsddir, const char *keepdir)
 		error = 1;
 		goto out;
 	}
-	if (!VECTOR_EMPTY(s->directories)) {
-		qsort(s->directories, VECTOR_LENGTH(s->directories),
-		    sizeof(*s->directories), directory_cmp);
-	}
+	VECTOR_SORT(s->directories, directory_cmp);
 
 out:
 	if (dir != NULL)
@@ -210,10 +208,8 @@ invocation_read(struct invocation_state *s, DIR *dir)
 }
 
 static int
-directory_cmp(const void *p1, const void *p2)
+directory_cmp(const struct invocation_entry *a,
+    const struct invocation_entry *b)
 {
-	const struct invocation_entry *e1 = p1;
-	const struct invocation_entry *e2 = p2;
-
-	return strcmp(e1->path, e2->path);
+	return strcmp(a->path, b->path);
 }
