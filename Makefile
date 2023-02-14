@@ -46,57 +46,29 @@ OBJS_robsd-ls=		${SRCS_robsd-ls:.c=.o}
 DEPS_robsd-ls=		${SRCS_robsd-ls:.c=.d}
 PROG_robsd-ls=		robsd-ls
 
-PROG_robsd-regress-html=	robsd-regress-html
+SRCS_robsd-regress-html+=	${SRCS}
 SRCS_robsd-regress-html+=	robsd-regress-html.c
-SRCS_robsd-regress-html+=	alloc.c
-SRCS_robsd-regress-html+=	buffer.c
-SRCS_robsd-regress-html+=	compat-pledge.c
-SRCS_robsd-regress-html+=	compat-strtonum.c
-SRCS_robsd-regress-html+=	compat-warnc.c
-SRCS_robsd-regress-html+=	html.c
-SRCS_robsd-regress-html+=	interpolate.c
-SRCS_robsd-regress-html+=	invocation.c
-SRCS_robsd-regress-html+=	lexer.c
-SRCS_robsd-regress-html+=	regress-html.c
-SRCS_robsd-regress-html+=	regress-log.c
-SRCS_robsd-regress-html+=	step.c
-SRCS_robsd-regress-html+=	token.c
-SRCS_robsd-regress-html+=	util.c
-SRCS_robsd-regress-html+=	vector.c
 OBJS_robsd-regress-html=	${SRCS_robsd-regress-html:.c=.o}
 DEPS_robsd-regress-html=	${SRCS_robsd-regress-html:.c=.d}
+PROG_robsd-regress-html=	robsd-regress-html
 
-PROG_robsd-regress-log=		robsd-regress-log
+SRCS_robsd-regress-log+=	${SRCS}
 SRCS_robsd-regress-log+=	robsd-regress-log.c
-SRCS_robsd-regress-log+=	buffer.c
-SRCS_robsd-regress-log+=	compat-pledge.c
-SRCS_robsd-regress-log+=	compat-unveil.c
-SRCS_robsd-regress-log+=	regress-log.c
 OBJS_robsd-regress-log=		${SRCS_robsd-regress-log:.c=.o}
 DEPS_robsd-regress-log=		${SRCS_robsd-regress-log:.c=.d}
+PROG_robsd-regress-log=		robsd-regress-log
 
-PROG_robsd-stat=	robsd-stat
+SRCS_robsd-stat+=	${SRCS}
 SRCS_robsd-stat+=	robsd-stat.c
-SRCS_robsd-stat+=	alloc.c
-SRCS_robsd-stat+=	compat-strlcpy.c
 OBJS_robsd-stat=	${SRCS_robsd-stat:.c=.o}
 DEPS_robsd-stat=	${SRCS_robsd-stat:.c=.d}
+PROG_robsd-stat=	robsd-stat
 
-PROG_robsd-step=	robsd-step
+SRCS_robsd-step+=	${SRCS}
 SRCS_robsd-step+=	robsd-step.c
-SRCS_robsd-step+=	alloc.c
-SRCS_robsd-step+=	buffer.c
-SRCS_robsd-step+=	compat-pledge.c
-SRCS_robsd-step+=	compat-strtonum.c
-SRCS_robsd-step+=	compat-unveil.c
-SRCS_robsd-step+=	interpolate.c
-SRCS_robsd-step+=	lexer.c
-SRCS_robsd-step+=	step.c
-SRCS_robsd-step+=	token.c
-SRCS_robsd-step+=	util.c
-SRCS_robsd-step+=	vector.c
 OBJS_robsd-step=	${SRCS_robsd-step:.c=.o}
 DEPS_robsd-step=	${SRCS_robsd-step:.c=.d}
+PROG_robsd-step=	robsd-step
 
 KNFMT+=	alloc.c
 KNFMT+=	alloc.h
