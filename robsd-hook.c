@@ -140,8 +140,8 @@ hook_to_argv(struct config *config, char ***out)
 		char *arg;
 
 		arg = interpolate_str(str, &(struct interpolate_arg){
-			.lookup	= config_interpolate_lookup,
-			.arg	= config,
+		    .lookup	= config_interpolate_lookup,
+		    .arg	= config,
 		});
 		if (arg == NULL) {
 			error = 1;

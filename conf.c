@@ -318,12 +318,12 @@ config_parse(struct config *cf)
 
 	parser_context_init(&pc);
 	cf->cf_lx = lexer_alloc(&(struct lexer_arg){
-		.path = cf->cf_path,
-		.callbacks = {
-			.read		= config_lexer_read,
-			.serialize	= token_serialize,
-			.arg		= &pc,
-		},
+	    .path = cf->cf_path,
+	    .callbacks = {
+		.read		= config_lexer_read,
+		.serialize	= token_serialize,
+		.arg		= &pc,
+	    },
 	});
 	if (cf->cf_lx == NULL) {
 		error = 1;
@@ -385,8 +385,8 @@ config_interpolate(struct config *cf)
 	char *str;
 
 	str = interpolate_file("/dev/stdin", &(struct interpolate_arg){
-		.lookup	= config_interpolate_lookup,
-		.arg	= cf,
+	    .lookup	= config_interpolate_lookup,
+	    .arg	= cf,
 	});
 	if (str == NULL)
 		return 1;
@@ -540,9 +540,10 @@ again:
 
 			x = ch - '0';
 			if (val > INT_MAX / 10 || val * 10 > INT_MAX - x) {
-				if (!error)
+				if (!error) {
 					lexer_warnx(lx, s.lno,
 					    "integer too big");
+				}
 				error = 1;
 			} else {
 				val *= 10;
@@ -769,9 +770,10 @@ config_exec1(struct config *cf, struct token *tk)
 		error = 1;
 	}
 	if (gr->gr_fn(cf, &val) == 0) {
-		if (val.ptr != novalue)
+		if (val.ptr != novalue) {
 			config_append(cf, gr->gr_type, tk->tk_str, &val,
 			    tk->tk_lno, 0);
+		}
 	} else {
 		error = 1;
 	}
@@ -1028,9 +1030,9 @@ config_parse_directory(struct config *cf, union variable_value *val)
 		return 1;
 
 	path = interpolate_str(dir, &(struct interpolate_arg){
-		.lookup	= config_interpolate_lookup,
-		.arg	= cf,
-		.lno	= tk->tk_lno,
+	    .lookup	= config_interpolate_lookup,
+	    .arg	= cf,
+	    .lno	= tk->tk_lno,
 	});
 	if (path == NULL) {
 		error = 1;

@@ -77,8 +77,8 @@ char *
 interpolate_str(const char *str, const struct interpolate_arg *arg)
 {
 	return interpolate_str1(str, &(struct interpolate_context){
-		.ic_arg	= arg,
-		.ic_lno	= arg->lno,
+	    .ic_arg	= arg,
+	    .ic_lno	= arg->lno,
 	});
 }
 

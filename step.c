@@ -94,12 +94,12 @@ steps_parse(const char *path)
 
 	parser_context_init(&pc);
 	lx = lexer_alloc(&(struct lexer_arg){
-		.path		= path,
-		.callbacks	= {
-			.read		= step_lexer_read,
-			.serialize	= token_serialize,
-			.arg		= &pc,
-		},
+	    .path	= path,
+	    .callbacks	= {
+		.read		= step_lexer_read,
+		.serialize	= token_serialize,
+		.arg		= &pc,
+	    },
 	});
 	if (lx == NULL) {
 		error = 1;
