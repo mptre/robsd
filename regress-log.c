@@ -1,5 +1,7 @@
 #include "regress-log.h"
 
+#include "config.h"
+
 #include <err.h>
 #include <regex.h>
 #include <stdio.h>

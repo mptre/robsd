@@ -1,5 +1,7 @@
 #include "interpolate.h"
 
+#include "config.h"
+
 #include <err.h>
 #include <stdio.h>
 #include <stdlib.h>
