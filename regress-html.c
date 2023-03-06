@@ -17,6 +17,7 @@
 
 #include "alloc.h"
 #include "buffer.h"
+#include "cdefs.h"
 #include "html.h"
 #include "invocation.h"
 #include "regress-log.h"
