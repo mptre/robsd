@@ -223,7 +223,7 @@ stat_directory1(struct robsd_stat *rs, const char *user)
 	mib[5] = nprocs * kpsiz;
 	if (sysctl(mib, 6, kp, &siz, NULL, 0) == -1) {
 		warn("sysctl: kern.proc.uid");
-		return -1;
+		goto err;
 	}
 	nprocs = siz / kpsiz;
 	if (nprocs == 0)
@@ -252,6 +252,10 @@ stat_directory1(struct robsd_stat *rs, const char *user)
 out:
 	free(kp);
 	return maxlen > 0;
+
+err:
+	free(kp);
+	return -1;
 }
 
 static int

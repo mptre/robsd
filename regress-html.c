@@ -451,11 +451,12 @@ create_patches(struct regress_html *r, struct regress_invocation *ri,
 		}
 		path = joinpath(r->path, "%s/%s/%s",
 		    r->output, ri->patches, patches[i].basename);
-		if (write_log(path, bf)) {
+		error = write_log(path, bf);
+		buffer_free(bf);
+		if (error) {
 			error = 1;
 			goto out;
 		}
-		buffer_free(bf);
 	}
 
 out:
