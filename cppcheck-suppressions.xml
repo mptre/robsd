@@ -1,12 +1,5 @@
 <?xml version="1.0"?>
 <suppressions>
-  <!-- regress-html.c -->
-  <suppress>
-    <fileName>regress-html.c</fileName>
-    <id>uninitvar</id>
-    <symbolName>suite->runs</symbolName>
-  </suppress>
-
   <!-- robsd-step.c -->
   <suppress>
     <fileName>robsd-step.c</fileName>
