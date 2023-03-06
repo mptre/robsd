@@ -7,11 +7,13 @@
 
 #include <err.h>
 #include <errno.h>
+#include <fcntl.h>
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
+#include <unistd.h>
 
 #include "alloc.h"
 #include "buffer.h"
@@ -568,17 +570,23 @@ create_log(struct regress_html *r, const struct run *run,
 static int
 write_log(const char *path, const struct buffer *bf)
 {
-	struct stat sb;
 	FILE *fh;
 	const char *buf;
 	size_t buflen, n, nmemb;
 	int error = 0;
+	int fd;
 
-	if (stat(path, &sb) == 0)
-		return 0;
-	fh = fopen(path, "we");
+	fd = open(path, O_WRONLY | O_CREAT | O_EXCL | O_CLOEXEC, 0644);
+	if (fd == -1) {
+		if (errno == EEXIST)
+			return 0;
+		warn("open: %s", path);
+		return 1;
+	}
+	fh = fdopen(fd, "we");
 	if (fh == NULL) {
-		warn("fopen: %s", path);
+		warn("fdopen: %s", path);
+		close(fd);
 		return 1;
 	}
 	buf = buffer_get_ptr(bf);
