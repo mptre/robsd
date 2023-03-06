@@ -233,6 +233,7 @@ regress_html_render(struct regress_html *r)
 	VECTOR_FREE(suites);
 
 	path = joinpath(r->path, "%s/index.html", r->output);
+	/* coverity[leaked_storage: FALSE] */
 	return html_write(r->html, path);
 }
 
@@ -461,6 +462,7 @@ create_patches(struct regress_html *r, struct regress_invocation *ri,
 
 out:
 	invocation_find_free(patches);
+	/* coverity[leaked_storage: FALSE] */
 	return error ? 0 : 1;
 }
 
