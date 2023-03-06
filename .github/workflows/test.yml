@@ -5,83 +5,91 @@ on:
   - pull_request
 
 jobs:
-  test:
-    runs-on: ${{matrix.os}}
-    strategy:
-      matrix:
-        os: [ubuntu-latest]
-        compiler: [gcc, clang]
-        mode: [asan, ubsan, valgrind]
-        exclude:
-          - mode: valgrind
-            os: ubuntu-latest
-            compiler: clang
-
-        include:
-          - os: ubuntu-latest
-            nproc: nproc
-            deps_os: libxml2-utils
-
-          - compiler: gcc
-            cflags: -Wformat-signedness
-
-          - mode: asan
-            debug: -fsanitize=address
-
-          - mode: ubsan
-            debug: -fsanitize=undefined -fno-sanitize-recover=all
-
-          - mode: valgrind
-            deps_mode: valgrind
-            exec: valgrind
-            testflags: -Tmemleak
-            valgrind: --quiet --error-exitcode=1 --leak-check=full --errors-for-leak-kinds=all --show-leak-kinds=all
-
+  linux-gcc-sanitize:
+    runs-on: ubuntu-22.04
     steps:
-      - uses: actions/checkout@v2
-
+      - name: checkout
+        uses: actions/checkout@v2
       - name: dependenices
-        if: ${{matrix.deps_os || matrix.deps_mode}}
-        run: sudo apt-get update && sudo apt-get install ${{matrix.deps_os}} ${{matrix.deps_mode}}
-
+        run: sudo apt-get update && sudo apt-get install libxml2-utils
       - name: test
         env:
-          CC: ${{matrix.cc || matrix.compiler}}
-          CFLAGS: -Werror -Wmissing-prototypes -Wpedantic -Wshadow -Wsign-conversion -Wwrite-strings ${{matrix.cflags}}
-          CPPFLAGS: ${{matrix.cppflags}}
-          DEBUG: -g -O2 ${{matrix.debug}}
-          EXEC: ${{matrix.exec}}
+          CC: gcc
+          DEBUG: -fsanitize=address,undefined -fno-sanitize-recover=all
           TESTS: regress-failed.sh regress-report-log.sh robsd-config.sh robsd-hook.sh robsd-ls.sh robsd-regress-html.sh robsd-step.sh
-          TESTFLAGS: ${{matrix.testflags}}
-          VALGRIND_OPTS: ${{matrix.valgrind}}
         run: |
-          set -ex
-          ${CC} -v
-          MAKE="make -j `${{matrix.nproc}}`"
-          ./configure || :
-          cat config.log
-          ${MAKE} test "TESTFLAGS=${TESTFLAGS}" ${TESTS:+"TESTS=${TESTS}"}
-          # Ensure assertions are free from side effects.
-          env CPPFLAGS="${CPPFLAGS} -DNDEBUG" ./configure || :
-          cat config.log
-          ${MAKE} test "TESTFLAGS=${TESTFLAGS}" ${TESTS:+"TESTS=${TESTS}"}
+          ./configure --pedantic
+          make -j`nproc` test "TESTS=${TESTS}"
+
+  linux-clang-sanitize:
+    runs-on: ubuntu-22.04
+    steps:
+      - name: checkout
+        uses: actions/checkout@v2
+      - name: dependenices
+        run: sudo apt-get update && sudo apt-get install libxml2-utils
+      - name: test
+        env:
+          CC: clang
+          # unsigned-integer-overflow disabled due to problem with uthash.
+          DEBUG: -fsanitize=address,undefined -fno-sanitize-recover=all
+          TESTS: regress-failed.sh regress-report-log.sh robsd-config.sh robsd-hook.sh robsd-ls.sh robsd-regress-html.sh robsd-step.sh
+        run: |
+          ./configure --pedantic
+          make -j`nproc` test "TESTS=${TESTS}"
+
+  valgrind:
+    runs-on: ubuntu-22.04
+    steps:
+      - name: checkout
+        uses: actions/checkout@v2
+      - name: dependenices
+        run: sudo apt-get update && sudo apt-get install libxml2-utils valgrind
+      - name: test
+        env:
+          CC: gcc
+          EXEC: valgrind
+          TESTFLAGS: -Tmemleak
+          TESTS: regress-failed.sh regress-report-log.sh robsd-config.sh robsd-hook.sh robsd-ls.sh robsd-regress-html.sh robsd-step.sh
+          VALGRIND_OPTS: --quiet --error-exitcode=1 --leak-check=full --errors-for-leak-kinds=all --show-leak-kinds=all
+        run: |
+          ./configure --pedantic
+          make -j`nproc` test "TESTS=${TESTS}"
+
+  ndebug:
+    runs-on: ubuntu-22.04
+    steps:
+      - name: checkout
+        uses: actions/checkout@v2
+      - name: dependenices
+        run: sudo apt-get update && sudo apt-get install libxml2-utils
+      - name: test
+        env:
+          CC: gcc
+          CPPFLAGS: -DNDEBUG
+          TESTS: regress-failed.sh regress-report-log.sh robsd-config.sh robsd-hook.sh robsd-ls.sh robsd-regress-html.sh robsd-step.sh
+        run: |
+          ./configure --pedantic
+          make -j`nproc` test "TESTS=${TESTS}"
 
   clang-tidy:
     runs-on: ubuntu-22.04
     steps:
-      - uses: actions/checkout@v2
+      - name: checkout
+        uses: actions/checkout@v2
       - name: clang-tidy
         run: |
-          ./configure
+          ./configure --pedantic
           make lint-clang-tidy
 
   cppcheck:
     runs-on: ubuntu-22.04
     steps:
-      - uses: actions/checkout@v2
+      - name: checkout
+        uses: actions/checkout@v2
       - name: dependenices
         run: sudo apt-get update && sudo apt-get install cppcheck
       - name: cppcheck
         run: |
-          ./configure
+          ./configure --pedantic
           make lint-cppcheck
