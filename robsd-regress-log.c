@@ -8,7 +8,8 @@
 #include "buffer.h"
 #include "regress-log.h"
 
-static __dead void	usage(void);
+static void	usage(void)
+	__attribute__((__noreturn__));
 
 int
 main(int argc, char *argv[])
@@ -70,7 +71,7 @@ main(int argc, char *argv[])
 	return 0;
 }
 
-static __dead void
+static void
 usage(void)
 {
 	fprintf(stderr, "usage: robsd-regress-log [-EFSXn] path\n");

@@ -11,7 +11,8 @@
 #include "conf.h"
 #include "vector.h"
 
-static __dead void	usage(void);
+static void	usage(void)
+	__attribute__((__noreturn__));
 
 int
 main(int argc, char *argv[])
@@ -86,7 +87,7 @@ out:
 	return error;
 }
 
-static __dead void
+static void
 usage(void)
 {
 	fprintf(stderr, "usage: robsd-config -m mode [-f file] [-v var=val] "

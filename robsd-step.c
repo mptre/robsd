@@ -21,7 +21,8 @@ struct step_context {
 	VECTOR(struct step)	 sc_steps;
 };
 
-static __dead void	usage(void);
+static void	usage(void)
+	__attribute__((__noreturn__));
 
 static int	steps_read(struct step_context *, int, char **);
 static int	steps_write(struct step_context *, int, char **);
@@ -105,7 +106,7 @@ out:
 	return error;
 }
 
-static __dead void
+static void
 usage(void)
 {
 	fprintf(stderr,

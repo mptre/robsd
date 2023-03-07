@@ -9,7 +9,8 @@
 #include "conf.h"
 #include "invocation.h"
 
-static __dead void	usage(void);
+static void	usage(void)
+	__attribute__((__noreturn__));
 
 int
 main(int argc, char *argv[])
@@ -87,7 +88,7 @@ out:
 	return error;
 }
 
-static __dead void
+static void
 usage(void)
 {
 	fprintf(stderr, "usage: robsd-ls -m mode [-B] [-f path]\n");

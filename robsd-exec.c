@@ -10,7 +10,8 @@
 #include <stdlib.h>
 #include <unistd.h>
 
-static __dead void	usage(void);
+static void	usage(void)
+	__attribute__((__noreturn__));
 
 static int	exitstatus(int);
 static int	waiteof(int, int);
@@ -85,7 +86,7 @@ main(int argc, char *argv[])
 	return error;
 }
 
-static __dead void
+static void
 usage(void)
 {
 	fprintf(stderr, "usage: robsd-exec utility [argument ...]\n");

@@ -37,7 +37,8 @@ struct robsd_stat {
 	} rs_cpu;
 };
 
-static __dead void	usage(void);
+static void	usage(void)
+	__attribute__((__noreturn__));
 
 /* stat collect routines */
 static int	stat_cpu(struct robsd_stat *);
@@ -120,7 +121,7 @@ main(int argc, char *argv[])
 	return error;
 }
 
-static __dead void
+static void
 usage(void)
 {
 	fprintf(stderr, "usage: robsd-stat [-H] [-u user]\n");

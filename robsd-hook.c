@@ -12,7 +12,8 @@
 #include "interpolate.h"
 #include "vector.h"
 
-static __dead void	usage(void);
+static void	usage(void)
+	__attribute__((__noreturn__));
 
 static int	hook_to_argv(struct config *, char ***);
 
@@ -106,7 +107,7 @@ out:
 	return error;
 }
 
-static __dead void
+static void
 usage(void)
 {
 	fprintf(stderr, "usage: robsd-hook -m mode [-f file] [-v var=val]\n");
