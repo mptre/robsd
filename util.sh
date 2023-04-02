@@ -900,7 +900,7 @@ report() {
 	{
 		printf 'Subject: %s: %s: ' "$_MODE" "$(hostname -s)"
 		case "$_MODE" in
-		robsd-cross)	cross_report_subject;;
+		robsd-cross)	cross_report_subject -b "$_builddir";;
 		*)		;;
 		esac
 		printf '%s\n\n' "$_status"

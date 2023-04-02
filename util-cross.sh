@@ -1,8 +1,19 @@
-# cross_report_subject
+# cross_report_subject -b build-dir
 #
 # Get report subject prefix, including the target.
 cross_report_subject() {
-	printf '%s.%s: ' "$(machine)" "$(config_value target)"
+	local _builddir
+
+	while [ $# -gt 0 ]; do
+		case "$1" in
+		-b)	shift; _builddir="$1";;
+		*)	break;;
+		esac
+		shift
+	done
+	: "${_builddir:?}"
+
+	printf '%s.%s: ' "$(machine)" "$(<"${_builddir}/target")"
 }
 
 # cross_steps

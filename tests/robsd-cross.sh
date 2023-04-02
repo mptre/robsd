@@ -38,6 +38,11 @@ EOF
 	assert_file - "${_builddir}/target" <<-EOF
 	amd64
 	EOF
+
+	grep Subject "${_builddir}/report" >"$TMP1"
+	assert_file - "$TMP1" <<-EOF
+	Subject: robsd-cross: $(hostname -s): $(machine).amd64: ok
+	EOF
 fi
 
 if testcase "missing arguments"; then
