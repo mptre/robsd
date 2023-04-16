@@ -1179,17 +1179,7 @@ config_default_inet(struct config *cf)
 static struct variable *
 config_default_keep_dir(struct config *cf)
 {
-	union variable_value val;
-
-	val.str = interpolate_str("${robsddir}/attic",
-	    &(struct interpolate_arg){
-		.lookup	= config_interpolate_lookup,
-		.arg	= cf,
-	});
-	if (val.str == NULL)
-		return NULL;
-	return config_append(cf, STRING, "keep-dir", &val, 0,
-	    VARIABLE_FLAG_DIRTY);
+	return config_append_string(cf, "keep-dir", "${robsddir}/attic");
 }
 
 static struct variable *
