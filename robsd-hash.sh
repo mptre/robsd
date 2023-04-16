@@ -3,23 +3,23 @@
 config_load <<'EOF'
 ROBSDDIR="${robsddir}"
 BUILDDIR="${builddir}"
+RELDIR="${bsd-reldir}"
+RELXDIR="${x11-reldir}"
 EOF
 
 _tmpdir="${BUILDDIR}/tmp"
-_reldir="$(release_dir "$BUILDDIR")"
-_relxdir="$(release_dir -x "$BUILDDIR")"
 
-if [ -e "${_relxdir}/SHA256" ]; then
-	cat "${_relxdir}/SHA256" >>"${_reldir}/SHA256"
-	rm "${_relxdir}/SHA256"
+if [ -e "${RELXDIR}/SHA256" ]; then
+	cat "${RELXDIR}/SHA256" >>"${RELDIR}/SHA256"
+	rm "${RELXDIR}/SHA256"
 fi
 
-if [ -d "$_relxdir" ]; then
-	find "$_relxdir" -type f -exec mv {} "$_reldir" \;
-	rm -r "$_relxdir"
+if [ -d "$RELXDIR" ]; then
+	find "$RELXDIR" -type f -exec mv {} "$RELDIR" \;
+	rm -r "$RELXDIR"
 fi
 
-cd "$_reldir"
+cd "$RELDIR"
 
 diff_list "$BUILDDIR" "*.diff" |
 while read -r _f; do

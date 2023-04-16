@@ -4,9 +4,9 @@ if testcase "basic"; then
 	EOF
 	_builddir="${TSHDIR}/2022-11-21"
 	echo "$_builddir" >"${TSHDIR}/.running"
-	mkdir "$_builddir" "${_builddir}/tmp"
-	mkdir "$(release_dir "$_builddir")" "$(release_dir -x "$TSHDIR")"
-	: >"$(release_dir "$_builddir")/SHA256"
+	mkdir "$_builddir" "${_builddir}/tmp" "${_builddir}/rel" \
+		"${_builddir}/relx"
+	: >"${_builddir}/rel/SHA256"
 	{
 		step_serialize -s 1 -n env -t 1666666666
 		step_serialize -H -s 2 -n cvs -t 1666666666
@@ -37,9 +37,9 @@ if testcase "previous cvs date"; then
 	EOF
 	_builddir="${TSHDIR}/2022-11-21"
 	echo "$_builddir" >"${TSHDIR}/.running"
-	mkdir "$_builddir" "${_builddir}/tmp"
-	mkdir "$(release_dir "$_builddir")" "$(release_dir -x "$TSHDIR")"
-	: >"$(release_dir "$_builddir")/SHA256"
+	mkdir "$_builddir" "${_builddir}/tmp" "${_builddir}/rel" \
+		"${_builddir}/relx"
+	: >"${_builddir}/rel/SHA256"
 	step_serialize -s 1 -n env -t 1666666666 \
 		>"$(step_path "$_builddir")"
 

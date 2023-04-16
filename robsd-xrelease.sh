@@ -3,6 +3,7 @@
 config_load <<'EOF'
 BUILDDIR="${builddir}"
 DESTDIR="${destdir}"
+RELEASEDIR="${x11-reldir}"; export RELEASEDIR
 XSRCDIR="${x11-srcdir}"
 EOF
 
@@ -10,7 +11,6 @@ DESTDIR="${DESTDIR}/xenocara"; export DESTDIR
 mkdir -p "$DESTDIR"
 cleandir "$DESTDIR"
 
-RELEASEDIR="$(release_dir -x "$BUILDDIR")"; export RELEASEDIR
 mkdir -p "$RELEASEDIR"
 cleandir "$RELEASEDIR"
 chown build "$RELEASEDIR"

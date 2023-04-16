@@ -1,9 +1,9 @@
 . "${EXECDIR}/util.sh"
 
 config_load <<'EOF'
-BUILDDIR="${builddir}"
 DESTDIR="${destdir}"
 BSDSRCDIR="${bsd-srcdir}"
+RELEASEDIR="${bsd-reldir}"; export RELEASEDIR
 EOF
 
 chown build "$DESTDIR"
@@ -13,7 +13,6 @@ DESTDIR="${DESTDIR}/src"; export DESTDIR
 mkdir -p "$DESTDIR"
 cleandir "$DESTDIR"
 
-RELEASEDIR="$(release_dir "$BUILDDIR")"; export RELEASEDIR
 mkdir -p "$RELEASEDIR"
 cleandir "$RELEASEDIR"
 chown build "$RELEASEDIR"

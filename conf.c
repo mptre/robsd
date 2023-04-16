@@ -150,10 +150,12 @@ static int	config_parse_regress(struct config *, union variable_value *);
 static int	config_parse_directory(struct config *, union variable_value *);
 
 static struct variable	*config_default_arch(struct config *);
+static struct variable	*config_default_bsd_reldir(struct config *);
 static struct variable	*config_default_build_dir(struct config *);
 static struct variable	*config_default_inet(struct config *);
 static struct variable	*config_default_keep_dir(struct config *);
 static struct variable	*config_default_machine(struct config *);
+static struct variable	*config_default_x11_reldir(struct config *);
 
 static struct variable	*config_append(struct config *,
     enum variable_type, const char *, const union variable_value *, int,
@@ -169,9 +171,12 @@ static const void *novalue;
 
 #define COMMON_DEFAULTS							\
 	{ "arch",	STRING,	NULL,	DEF,	{ .fun = config_default_arch } },\
+	{ "bsd-reldir",	STRING,	NULL,	DEF,	{ .fun = config_default_bsd_reldir } },\
 	{ "builddir",	STRING,	NULL,	DEF,	{ .fun = config_default_build_dir } },\
+	{ "inet",	STRING,	NULL,	DEF,	{ .fun = config_default_inet } },\
 	{ "keep-dir",	STRING,	NULL,	DEF,	{ .fun = config_default_keep_dir } },\
-	{ "machine",	STRING,	NULL,	DEF,	{ .fun = config_default_machine } }
+	{ "machine",	STRING,	NULL,	DEF,	{ .fun = config_default_machine } },\
+	{ "x11-reldir",	STRING,	NULL,	DEF,	{ .fun = config_default_x11_reldir } }
 
 static const struct grammar robsd[] = {
 	{ "robsddir",		DIRECTORY,	config_parse_directory,	REQ,	{ NULL } },
@@ -197,7 +202,7 @@ static const struct grammar robsd[] = {
 	{ "x11-srcdir",		DIRECTORY,	config_parse_directory,	0,	{ "/usr/xenocara" } },
 
 	COMMON_DEFAULTS,
-	{ NULL,			0,		NULL,			0,	{ NULL } },
+	{ NULL, 0, NULL, 0, { NULL } },
 };
 
 static const struct grammar robsd_cross[] = {
@@ -210,7 +215,7 @@ static const struct grammar robsd_cross[] = {
 	{ "bsd-srcdir",	DIRECTORY,	config_parse_directory,	0,	{ "/usr/src" } },
 
 	COMMON_DEFAULTS,
-	{ NULL,		0,		NULL,			0,	{ NULL } },
+	{ NULL, 0, NULL, 0, { NULL } },
 };
 
 static const struct grammar robsd_ports[] = {
@@ -232,7 +237,7 @@ static const struct grammar robsd_ports[] = {
 	{ "ports-user",		STRING,		config_parse_user,	REQ,	{ NULL } },
 
 	COMMON_DEFAULTS,
-	{ NULL,			0,		NULL,			0,	{ NULL } },
+	{ NULL, 0, NULL, 0, { NULL } },
 };
 
 static const struct grammar robsd_regress[] = {
@@ -251,8 +256,7 @@ static const struct grammar robsd_regress[] = {
 	{ "regress-*-target",	STRING,		NULL,			PAT,		{ "regress" } },
 
 	COMMON_DEFAULTS,
-	{ "inet",		STRING,		NULL,	DEF,		{ .fun = config_default_inet } },
-	{ NULL,			0,		NULL,			0,		{ NULL } },
+	{ NULL, 0, NULL, 0, { NULL } },
 };
 
 struct config *
@@ -1121,6 +1125,12 @@ config_default_arch(struct config *cf)
 }
 
 static struct variable *
+config_default_bsd_reldir(struct config *cf)
+{
+	return config_append_string(cf, "bsd-reldir", "${builddir}/rel");
+}
+
+static struct variable *
 config_default_build_dir(struct config *cf)
 {
 	struct buffer *bf = NULL;
@@ -1186,6 +1196,12 @@ static struct variable *
 config_default_machine(struct config *cf)
 {
 	return config_append_string(cf, "machine", MACHINE);
+}
+
+static struct variable *
+config_default_x11_reldir(struct config *cf)
+{
+	return config_append_string(cf, "x11-reldir", "${builddir}/relx");
 }
 
 static struct variable *

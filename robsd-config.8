@@ -28,12 +28,26 @@ CPU architecture.
 .It Ic builddir
 The current invocation directory rooted in
 .Ic robsddir .
+.It Ic inet
+.Xr inet 4
+address associated with the egress interface.
 .It Ic machine
 Kernel architecture.
 .It Ic keep-dir
 Directory used by
 .Xr robsd-clean 8
 while cleaning out old invocations.
+.El
+.Pp
+Additional variables in robsd mode:
+.Pp
+.Bl -tag -compact -width bsd-reldir
+.It Ic bsd-reldir
+Release directory for the src tree rooted in
+.Ic builddir .
+.It Ic x11-reldir
+Release directory for the xenocara tree rooted in
+.Ic builddir .
 .El
 .Pp
 Additional variables in robsd-cross mode:
@@ -47,9 +61,6 @@ The target argument passed to
 Additional variables in robsd-regress mode:
 .Pp
 .Bl -tag -compact -width regress-*-quiet
-.It Ic inet
-.Xr inet 4
-address associated with the egress interface.
 .It Ic regress
 All configured regression tests.
 .It Ic regress-obj

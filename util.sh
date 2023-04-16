@@ -929,7 +929,7 @@ report() {
 			cat "${_builddir}/tags"
 		fi
 
-		report_sizes "$(release_dir "$_builddir")"
+		report_sizes "$(config_value bsd-reldir)"
 	} >>"$_tmp"
 
 	_i=1
@@ -1103,7 +1103,7 @@ report_size() {
 	_prev="$(prev_release -B | head -1)"
 	[ -z "$_prev" ] && return 0
 
-	_path="$(release_dir "$_prev")/${_name}"
+	_path="${_prev}/rel/${_name}"
 	[ -e "$_path" ] || return 0
 
 	_s1="$(ls -l "$_f" | awk '{print $5}')"
@@ -1192,25 +1192,6 @@ report_skip() {
 	esac
 
 	return 1
-}
-
-# release_dir [-x] prefix
-#
-# Get the release directory with the given prefix applied.
-release_dir() {
-	local _prefix
-	local _suffix="rel"
-
-	while [ $# -gt 0 ]; do
-		case "$1" in
-		-x)	_suffix="relx";;
-		*)	break;;
-		esac
-		shift
-	done
-	_prefix="$1"; : "${_prefix:?}"
-
-	echo "${_prefix}/${_suffix}"
 }
 
 # robsd -b build-dir -s step-id
