@@ -150,9 +150,8 @@ static int			 config_append_build_dir(struct config *);
 static struct variable		*config_append(struct config *,
     enum variable_type, const char *, const union variable_value *, int,
     unsigned int);
-static int			 config_append_string(struct config *,
-    const char *,
-    const char *);
+static struct variable		*config_append_string(struct config *,
+    const char *, const char *);
 static const struct variable	*config_findn(const struct config *,
     const char *, size_t);
 static int			 config_present(const struct config *,
@@ -343,7 +342,7 @@ config_append_var(struct config *cf, const char *str)
 {
 	char *name, *val;
 	size_t namelen;
-	int error;
+	int error = 0;
 
 	val = strchr(str, '=');
 	if (val == NULL) {
@@ -353,24 +352,24 @@ config_append_var(struct config *cf, const char *str)
 	namelen = (size_t)(val - str);
 	name = estrndup(str, namelen);
 	val++;	/* consume '=' */
-	error = config_append_string(cf, name, val);
-	if (error)
+	if (config_append_string(cf, name, val) == NULL) {
 		warnx("variable '%s' cannot be defined", name);
+		error = 1;
+	}
 	free(name);
 	return error;
 }
 
-static int
+static struct variable *
 config_append_string(struct config *cf, const char *name, const char *str)
 {
 	union variable_value val;
 
 	if (grammar_find(cf->cf_grammar, name))
-		return 1;
+		return NULL;
 
 	val.str = estrdup(str);
-	config_append(cf, STRING, name, &val, 0, VARIABLE_FLAG_DIRTY);
-	return 0;
+	return config_append(cf, STRING, name, &val, 0, VARIABLE_FLAG_DIRTY);
 }
 
 struct variable *
