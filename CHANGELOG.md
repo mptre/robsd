@@ -1,3 +1,19 @@
+# 17.4.2 - 2023-04-16
+
+## Bug fixes
+
+- Exclude patches from significant file growth section in report.
+  (1fe6f44)
+  (Anton Lindqvist)
+
+- Fix absent target architecture in robsd-cross report subject.
+  (2801d53)
+  (Anton Lindqvist)
+
+- Ignore make unconfig errors in robsd release step.
+  (1bbf949)
+  (Anton Lindqvist, Moritz Buhl)
+
 # 17.4.1 - 2023-01-15
 
 ## Bug fixes
