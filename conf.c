@@ -496,8 +496,7 @@ config_interpolate_lookup(const char *name, void *arg)
 		break;
 	}
 	}
-	buffer_putc(bf, '\0');
-	str = buffer_release(bf);
+	str = buffer_str(bf);
 	buffer_free(bf);
 	return str;
 }
