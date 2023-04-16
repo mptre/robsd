@@ -19,8 +19,9 @@ cleandir "$RELEASEDIR"
 chown build "$RELEASEDIR"
 chmod 755 "$RELEASEDIR"
 
-# Remove vnd devices in case of resuming.
-make -C "${BSDSRCDIR}/distrib/$(machine)" unconfig
+# Remove vnd devices in case of resuming. As some architectures does not support
+# this make target, ignore errors.
+make -C "${BSDSRCDIR}/distrib/$(machine)" unconfig || :
 
 cd "${BSDSRCDIR}/etc"
 make release
