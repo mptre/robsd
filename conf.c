@@ -1168,12 +1168,12 @@ out:
 static struct variable *
 config_default_inet(struct config *cf)
 {
-	union variable_value val;
+	char *inet;
 
-	val.str = ifgrinet("egress");
-	if (val.str == NULL)
+	inet = ifgrinet("egress");
+	if (inet == NULL)
 		return NULL;
-	return config_append(cf, STRING, "inet", &val, 0, VARIABLE_FLAG_DIRTY);
+	return config_append_string(cf, "inet", inet);
 }
 
 static struct variable *
