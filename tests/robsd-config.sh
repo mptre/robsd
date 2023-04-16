@@ -324,6 +324,7 @@ if testcase "builddir lock file missing"; then
 	echo "\${builddir}" >"$STDIN"
 	robsd_config -e - <<-EOF
 	robsd-config: ${TSHDIR}/.running: line not found
+	robsd-config: /dev/stdin:1: invalid substitution, unknown variable 'builddir'
 	EOF
 fi
 
@@ -518,6 +519,13 @@ if testcase "invalid recursive interpolation"; then
 	EOF
 	robsd_config -e - <<-EOF
 	robsd-config: /dev/stdin:1: invalid substitution, recursion too deep
+	EOF
+fi
+
+if testcase "invalid read only assign"; then
+	{ default_config; echo 'arch "exotic"'; } >"$CONFIG"
+	robsd_config -e - <<-EOF
+	robsd-config: ${TSHDIR}/robsd.conf:8: unknown keyword 'arch'
 	EOF
 fi
 

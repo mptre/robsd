@@ -101,8 +101,12 @@ struct grammar {
 #define REQ	0x00000001u	/* required */
 #define REP	0x00000002u	/* may be repeated */
 #define PAT	0x00000004u	/* fnmatch(3) keyword fallback */
+#define DEF	0x00000008u	/* default, read-only */
 
-	const void		*gr_default;
+	union {
+		const void	*ptr;
+		struct variable	*(*fun)(struct config *);
+	} gr_default;
 };
 
 static const struct grammar	*grammar_find(const struct grammar *,
@@ -145,93 +149,110 @@ static int	config_parse_user(struct config *, union variable_value *);
 static int	config_parse_regress(struct config *, union variable_value *);
 static int	config_parse_directory(struct config *, union variable_value *);
 
-static int			 config_append_defaults(struct config *);
-static int			 config_append_build_dir(struct config *);
-static struct variable		*config_append(struct config *,
+static struct variable	*config_default_arch(struct config *);
+static struct variable	*config_default_build_dir(struct config *);
+static struct variable	*config_default_inet(struct config *);
+static struct variable	*config_default_keep_dir(struct config *);
+static struct variable	*config_default_machine(struct config *);
+
+static struct variable	*config_append(struct config *,
     enum variable_type, const char *, const union variable_value *, int,
     unsigned int);
-static struct variable		*config_append_string(struct config *,
+static struct variable	*config_append_string(struct config *,
     const char *, const char *);
-static const struct variable	*config_findn(const struct config *,
-    const char *, size_t);
-static int			 config_present(const struct config *,
+static int		 config_present(const struct config *,
     const char *);
 
 static int	regressname(char *, size_t, const char *, const char *);
 
 static const void *novalue;
 
+#define COMMON_DEFAULTS							\
+	{ "arch",	STRING,	NULL,	DEF,	{ .fun = config_default_arch } },\
+	{ "builddir",	STRING,	NULL,	DEF,	{ .fun = config_default_build_dir } },\
+	{ "keep-dir",	STRING,	NULL,	DEF,	{ .fun = config_default_keep_dir } },\
+	{ "machine",	STRING,	NULL,	DEF,	{ .fun = config_default_machine } }
+
 static const struct grammar robsd[] = {
-	{ "robsddir",		DIRECTORY,	config_parse_directory,	REQ,	NULL },
-	{ "builduser",		STRING,		config_parse_user,	0,	"build" },
-	{ "destdir",		DIRECTORY,	config_parse_directory,	REQ,	NULL },
-	{ "execdir",		DIRECTORY,	config_parse_directory,	0,	"/usr/local/libexec/robsd" },
-	{ "hook",		LIST,		config_parse_list,	0,	NULL },
-	{ "keep",		INTEGER,	config_parse_integer,	0,	NULL },
-	{ "kernel",		STRING,		config_parse_string,	0,	"GENERIC.MP" },
-	{ "reboot",		INTEGER,	config_parse_boolean,	0,	NULL },
-	{ "skip",		LIST,		config_parse_list,	0,	NULL },
-	{ "bsd-diff",		LIST,		config_parse_glob,	0,	NULL },
-	{ "bsd-objdir",		DIRECTORY,	config_parse_directory,	0,	"/usr/obj" },
-	{ "bsd-srcdir",		DIRECTORY,	config_parse_directory,	0,	"/usr/src" },
-	{ "cvs-root",		STRING,		config_parse_string,	0,	NULL },
-	{ "cvs-user",		STRING,		config_parse_user,	0,	NULL },
-	{ "distrib-host",	STRING,		config_parse_string,	0,	NULL },
-	{ "distrib-path",	STRING,		config_parse_string,	0,	NULL },
-	{ "distrib-signify",	STRING,		config_parse_string,	0,	NULL },
-	{ "distrib-user",	STRING,		config_parse_user,	0,	NULL },
-	{ "x11-diff",		LIST,		config_parse_glob,	0,	NULL },
-	{ "x11-objdir",		DIRECTORY,	config_parse_directory,	0,	"/usr/xobj" },
-	{ "x11-srcdir",		DIRECTORY,	config_parse_directory,	0,	"/usr/xenocara" },
-	{ NULL,			0,		NULL,			0,	NULL },
+	{ "robsddir",		DIRECTORY,	config_parse_directory,	REQ,	{ NULL } },
+	{ "builduser",		STRING,		config_parse_user,	0,	{ "build" } },
+	{ "destdir",		DIRECTORY,	config_parse_directory,	REQ,	{ NULL } },
+	{ "execdir",		DIRECTORY,	config_parse_directory,	0,	{ "/usr/local/libexec/robsd" } },
+	{ "hook",		LIST,		config_parse_list,	0,	{ NULL } },
+	{ "keep",		INTEGER,	config_parse_integer,	0,	{ NULL } },
+	{ "kernel",		STRING,		config_parse_string,	0,	{ "GENERIC.MP" } },
+	{ "reboot",		INTEGER,	config_parse_boolean,	0,	{ NULL } },
+	{ "skip",		LIST,		config_parse_list,	0,	{ NULL } },
+	{ "bsd-diff",		LIST,		config_parse_glob,	0,	{ NULL } },
+	{ "bsd-objdir",		DIRECTORY,	config_parse_directory,	0,	{ "/usr/obj" } },
+	{ "bsd-srcdir",		DIRECTORY,	config_parse_directory,	0,	{ "/usr/src" } },
+	{ "cvs-root",		STRING,		config_parse_string,	0,	{ NULL } },
+	{ "cvs-user",		STRING,		config_parse_user,	0,	{ NULL } },
+	{ "distrib-host",	STRING,		config_parse_string,	0,	{ NULL } },
+	{ "distrib-path",	STRING,		config_parse_string,	0,	{ NULL } },
+	{ "distrib-signify",	STRING,		config_parse_string,	0,	{ NULL } },
+	{ "distrib-user",	STRING,		config_parse_user,	0,	{ NULL } },
+	{ "x11-diff",		LIST,		config_parse_glob,	0,	{ NULL } },
+	{ "x11-objdir",		DIRECTORY,	config_parse_directory,	0,	{ "/usr/xobj" } },
+	{ "x11-srcdir",		DIRECTORY,	config_parse_directory,	0,	{ "/usr/xenocara" } },
+
+	COMMON_DEFAULTS,
+	{ NULL,			0,		NULL,			0,	{ NULL } },
 };
 
 static const struct grammar robsd_cross[] = {
-	{ "robsddir",	DIRECTORY,	config_parse_directory,	REQ,	NULL },
-	{ "builduser",	STRING,		config_parse_user,	0,	"build" },
-	{ "crossdir",	STRING,		config_parse_string,	REQ,	NULL },
-	{ "execdir",	DIRECTORY,	config_parse_directory,	0,	"/usr/local/libexec/robsd" },
-	{ "keep",	INTEGER,	config_parse_integer,	0,	NULL },
-	{ "skip",	LIST,		config_parse_list,	0,	NULL },
-	{ "bsd-srcdir",	DIRECTORY,	config_parse_directory,	0,	"/usr/src" },
-	{ NULL,		0,		NULL,			0,	NULL },
+	{ "robsddir",	DIRECTORY,	config_parse_directory,	REQ,	{ NULL } },
+	{ "builduser",	STRING,		config_parse_user,	0,	{ "build" } },
+	{ "crossdir",	STRING,		config_parse_string,	REQ,	{ NULL } },
+	{ "execdir",	DIRECTORY,	config_parse_directory,	0,	{ "/usr/local/libexec/robsd" } },
+	{ "keep",	INTEGER,	config_parse_integer,	0,	{ NULL } },
+	{ "skip",	LIST,		config_parse_list,	0,	{ NULL } },
+	{ "bsd-srcdir",	DIRECTORY,	config_parse_directory,	0,	{ "/usr/src" } },
+
+	COMMON_DEFAULTS,
+	{ NULL,		0,		NULL,			0,	{ NULL } },
 };
 
 static const struct grammar robsd_ports[] = {
-	{ "robsddir",		DIRECTORY,	config_parse_directory,	REQ,	NULL },
-	{ "chroot",		STRING,		config_parse_string,	REQ,	NULL },
-	{ "execdir",		DIRECTORY,	config_parse_directory,	0,	"/usr/local/libexec/robsd" },
-	{ "hook",		LIST,		config_parse_list,	0,	NULL },
-	{ "keep",		INTEGER,	config_parse_integer,	0,	NULL },
-	{ "skip",		LIST,		config_parse_list,	0,	NULL },
-	{ "cvs-root",		STRING,		config_parse_string,	0,	NULL },
-	{ "cvs-user",		STRING,		config_parse_user,	0,	NULL },
-	{ "distrib-host",	STRING,		config_parse_string,	0,	NULL },
-	{ "distrib-path",	STRING,		config_parse_string,	0,	NULL },
-	{ "distrib-signify",	STRING,		config_parse_string,	0,	NULL },
-	{ "distrib-user",	STRING,		config_parse_user,	0,	NULL },
-	{ "ports",		LIST,		config_parse_list,	REQ,	NULL },
-	{ "ports-diff",		LIST,		config_parse_glob,	0,	NULL },
-	{ "ports-dir",		STRING,		config_parse_string,	0,	"/usr/ports" },
-	{ "ports-user",		STRING,		config_parse_user,	REQ,	NULL },
-	{ NULL,			0,		NULL,			0,	NULL },
+	{ "robsddir",		DIRECTORY,	config_parse_directory,	REQ,	{ NULL } },
+	{ "chroot",		STRING,		config_parse_string,	REQ,	{ NULL } },
+	{ "execdir",		DIRECTORY,	config_parse_directory,	0,	{ "/usr/local/libexec/robsd" } },
+	{ "hook",		LIST,		config_parse_list,	0,	{ NULL } },
+	{ "keep",		INTEGER,	config_parse_integer,	0,	{ NULL } },
+	{ "skip",		LIST,		config_parse_list,	0,	{ NULL } },
+	{ "cvs-root",		STRING,		config_parse_string,	0,	{ NULL } },
+	{ "cvs-user",		STRING,		config_parse_user,	0,	{ NULL } },
+	{ "distrib-host",	STRING,		config_parse_string,	0,	{ NULL } },
+	{ "distrib-path",	STRING,		config_parse_string,	0,	{ NULL } },
+	{ "distrib-signify",	STRING,		config_parse_string,	0,	{ NULL } },
+	{ "distrib-user",	STRING,		config_parse_user,	0,	{ NULL } },
+	{ "ports",		LIST,		config_parse_list,	REQ,	{ NULL } },
+	{ "ports-diff",		LIST,		config_parse_glob,	0,	{ NULL } },
+	{ "ports-dir",		STRING,		config_parse_string,	0,	{ "/usr/ports" } },
+	{ "ports-user",		STRING,		config_parse_user,	REQ,	{ NULL } },
+
+	COMMON_DEFAULTS,
+	{ NULL,			0,		NULL,			0,	{ NULL } },
 };
 
 static const struct grammar robsd_regress[] = {
-	{ "robsddir",		DIRECTORY,	config_parse_directory,	REQ,		NULL },
-	{ "execdir",		DIRECTORY,	config_parse_directory,	0,		"/usr/local/libexec/robsd" },
-	{ "hook",		LIST,		config_parse_list,	0,		NULL },
-	{ "keep",		INTEGER,	config_parse_integer,	0,		NULL },
-	{ "rdonly",		INTEGER,	config_parse_boolean,	0,		NULL },
-	{ "sudo",		STRING,		config_parse_string,	0,		"doas -n" },
-	{ "bsd-diff",		LIST,		config_parse_glob,	0,		NULL },
-	{ "bsd-srcdir",		DIRECTORY,	config_parse_directory,	0,		"/usr/src" },
-	{ "cvs-root",		STRING,		config_parse_string,	0,		NULL },
-	{ "cvs-user",		STRING,		config_parse_user,	0,		NULL },
-	{ "regress",		LIST,		config_parse_regress,	REQ|REP,	NULL },
-	{ "regress-user",	STRING,		config_parse_user,	0,		"build" },
-	{ "regress-*-target",	STRING,		NULL,			PAT,		"regress" },
-	{ NULL,			0,		NULL,			0,		NULL },
+	{ "robsddir",		DIRECTORY,	config_parse_directory,	REQ,		{ NULL } },
+	{ "execdir",		DIRECTORY,	config_parse_directory,	0,		{ "/usr/local/libexec/robsd" } },
+	{ "hook",		LIST,		config_parse_list,	0,		{ NULL } },
+	{ "keep",		INTEGER,	config_parse_integer,	0,		{ NULL } },
+	{ "rdonly",		INTEGER,	config_parse_boolean,	0,		{ NULL } },
+	{ "sudo",		STRING,		config_parse_string,	0,		{ "doas -n" } },
+	{ "bsd-diff",		LIST,		config_parse_glob,	0,		{ NULL } },
+	{ "bsd-srcdir",		DIRECTORY,	config_parse_directory,	0,		{ "/usr/src" } },
+	{ "cvs-root",		STRING,		config_parse_string,	0,		{ NULL } },
+	{ "cvs-user",		STRING,		config_parse_user,	0,		{ NULL } },
+	{ "regress",		LIST,		config_parse_regress,	REQ|REP,	{ NULL } },
+	{ "regress-user",	STRING,		config_parse_user,	0,		{ "build" } },
+	{ "regress-*-target",	STRING,		NULL,			PAT,		{ "regress" } },
+
+	COMMON_DEFAULTS,
+	{ "inet",		STRING,		NULL,	DEF,		{ .fun = config_default_inet } },
+	{ NULL,			0,		NULL,			0,		{ NULL } },
 };
 
 struct config *
@@ -329,8 +350,6 @@ config_parse(struct config *cf)
 		goto out;
 	}
 	error = config_exec(cf);
-	if (error == 0)
-		error = config_append_defaults(cf);
 
 out:
 	parser_context_reset(&pc);
@@ -373,9 +392,56 @@ config_append_string(struct config *cf, const char *name, const char *str)
 }
 
 struct variable *
-config_find(const struct config *cf, const char *name)
+config_find(struct config *cf, const char *name)
 {
-	return (struct variable *)config_findn(cf, name, strlen(name));
+	static struct variable vadef;
+	size_t i, namelen;
+
+	namelen = strlen(name);
+	for (i = 0; i < VECTOR_LENGTH(cf->cf_variables); i++) {
+		struct variable *va = &cf->cf_variables[i];
+
+		if (va->va_namelen == namelen &&
+		    strncmp(va->va_name, name, namelen) == 0)
+			return va;
+	}
+
+	/* Look for default value. */
+	for (i = 0; cf->cf_grammar[i].gr_kw != NULL; i++) {
+		const struct grammar *gr = &cf->cf_grammar[i];
+		const void *val;
+
+		if (gr->gr_flags & REQ)
+			continue;
+
+		if (!grammar_equals(gr, name, namelen))
+			continue;
+
+		if (gr->gr_flags & DEF)
+			return gr->gr_default.fun(cf);
+
+		memset(&vadef, 0, sizeof(vadef));
+		vadef.va_type = gr->gr_type;
+		val = gr->gr_default.ptr;
+		switch (vadef.va_type) {
+		case INTEGER:
+			vadef.va_val.integer = 0;
+			break;
+
+		case STRING:
+		case DIRECTORY: {
+			vadef.va_val.str = (char *)(val == NULL ? "" : val);
+			break;
+		}
+
+		case LIST:
+			vadef.va_val.list = cf->cf_empty_list;
+			break;
+		}
+		return &vadef;
+	}
+
+	return NULL;
 }
 
 int
@@ -397,7 +463,7 @@ config_interpolate(struct config *cf)
 char *
 config_interpolate_lookup(const char *name, void *arg)
 {
-	const struct config *cf = (const struct config *)arg;
+	struct config *cf = (struct config *)arg;
 	struct buffer *bf;
 	const struct variable *va;
 	char *str;
@@ -674,9 +740,10 @@ grammar_find(const struct grammar *grammar, const char *name)
 	int i;
 
 	for (i = 0; grammar[i].gr_kw != NULL; i++) {
-		if (strcmp(grammar[i].gr_kw, name) == 0 &&
-		    grammar[i].gr_fn != NULL)
-			return &grammar[i];
+		const struct grammar *gr = &grammar[i];
+
+		if (strcmp(gr->gr_kw, name) == 0 && (gr->gr_flags & DEF) == 0)
+			return gr;
 	}
 	return NULL;
 }
@@ -768,6 +835,7 @@ config_exec1(struct config *cf, struct token *tk)
 		    "variable '%s' already defined", tk->tk_str);
 		error = 1;
 	}
+	assert(gr->gr_fn != NULL);
 	if (gr->gr_fn(cf, &val) == 0) {
 		if (val.ptr != novalue) {
 			config_append(cf, gr->gr_type, tk->tk_str, &val,
@@ -1047,45 +1115,18 @@ config_parse_directory(struct config *cf, union variable_value *val)
 	return error;
 }
 
-/*
- * Append read-only variables accessible during interpolation.
- */
-static int
-config_append_defaults(struct config *cf)
+static struct variable *
+config_default_arch(struct config *cf)
 {
-	union variable_value val;
-
-	config_append_string(cf, "arch", MACHINE_ARCH);
-	config_append_string(cf, "machine", MACHINE);
-
-	if (config_append_build_dir(cf))
-		return 1;
-
-	val.str = interpolate_str("${robsddir}/attic",
-	    &(struct interpolate_arg){
-		.lookup	= config_interpolate_lookup,
-		.arg	= cf,
-	});
-	if (val.str == NULL)
-		return 1;
-	config_append(cf, STRING, "keep-dir", &val, 0, VARIABLE_FLAG_DIRTY);
-
-	if (cf->cf_mode == CONFIG_ROBSD_REGRESS) {
-		val.str = ifgrinet("egress");
-		if (val.str == NULL)
-			return 1;
-		config_append(cf, STRING, "inet", &val, 0, VARIABLE_FLAG_DIRTY);
-	}
-
-	return 0;
+	return config_append_string(cf, "arch", MACHINE_ARCH);
 }
 
-static int
-config_append_build_dir(struct config *cf)
+static struct variable *
+config_default_build_dir(struct config *cf)
 {
 	struct buffer *bf = NULL;
+	struct variable *va = NULL;
 	char *nl, *path;
-	int error = 0;
 	int fd = -1;
 
 	path = interpolate_str("${robsddir}/.running",
@@ -1094,7 +1135,7 @@ config_append_build_dir(struct config *cf)
 		.arg	= cf,
 	});
 	if (path == NULL)
-		return 1;
+		return NULL;
 
 	/*
 	 * The lock file is only expected to be present while robsd is running.
@@ -1106,25 +1147,56 @@ config_append_build_dir(struct config *cf)
 	bf = buffer_read_fd(fd);
 	if (bf == NULL) {
 		warn("%s", path);
-		error = 1;
 		goto out;
 	}
 	buffer_putc(bf, '\0');
 	nl = strchr(buffer_get_ptr(bf), '\n');
 	if (nl == NULL) {
 		warnx("%s: line not found", path);
-		error = 1;
 		goto out;
 	}
 	*nl = '\0';
-	config_append_string(cf, "builddir", buffer_get_ptr(bf));
+	va = config_append_string(cf, "builddir", buffer_get_ptr(bf));
 
 out:
 	if (fd != -1)
 		close(fd);
 	buffer_free(bf);
 	free(path);
-	return error;
+	return va;
+}
+
+static struct variable *
+config_default_inet(struct config *cf)
+{
+	union variable_value val;
+
+	val.str = ifgrinet("egress");
+	if (val.str == NULL)
+		return NULL;
+	return config_append(cf, STRING, "inet", &val, 0, VARIABLE_FLAG_DIRTY);
+}
+
+static struct variable *
+config_default_keep_dir(struct config *cf)
+{
+	union variable_value val;
+
+	val.str = interpolate_str("${robsddir}/attic",
+	    &(struct interpolate_arg){
+		.lookup	= config_interpolate_lookup,
+		.arg	= cf,
+	});
+	if (val.str == NULL)
+		return NULL;
+	return config_append(cf, STRING, "keep-dir", &val, 0,
+	    VARIABLE_FLAG_DIRTY);
+}
+
+static struct variable *
+config_default_machine(struct config *cf)
+{
+	return config_append_string(cf, "machine", MACHINE);
 }
 
 static struct variable *
@@ -1143,55 +1215,6 @@ config_append(struct config *cf, enum variable_type type, const char *name,
 	va->va_namelen = strlen(name);
 	va->va_val = *val;
 	return va;
-}
-
-static const struct variable *
-config_findn(const struct config *cf, const char *name, size_t namelen)
-{
-	static struct variable vadef;
-	size_t i;
-
-	for (i = 0; i < VECTOR_LENGTH(cf->cf_variables); i++) {
-		const struct variable *va = &cf->cf_variables[i];
-
-		if (va->va_namelen == namelen &&
-		    strncmp(va->va_name, name, namelen) == 0)
-			return va;
-	}
-
-	/* Look for default value. */
-	for (i = 0; cf->cf_grammar[i].gr_kw != NULL; i++) {
-		const struct grammar *gr = &cf->cf_grammar[i];
-		const void *val;
-
-		if (gr->gr_flags & REQ)
-			continue;
-
-		if (!grammar_equals(gr, name, namelen))
-			continue;
-
-		memset(&vadef, 0, sizeof(vadef));
-		vadef.va_type = gr->gr_type;
-		val = gr->gr_default;
-		switch (vadef.va_type) {
-		case INTEGER:
-			vadef.va_val.integer = 0;
-			break;
-
-		case STRING:
-		case DIRECTORY: {
-			vadef.va_val.str = (char *)(val == NULL ? "" : val);
-			break;
-		}
-
-		case LIST:
-			vadef.va_val.list = cf->cf_empty_list;
-			break;
-		}
-		return &vadef;
-	}
-
-	return NULL;
 }
 
 static int

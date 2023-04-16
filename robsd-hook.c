@@ -69,9 +69,6 @@ main(int argc, char *argv[])
 		goto out;
 	}
 
-	if (pledge("stdio exec", NULL) == -1)
-		err(1, "pledge");
-
 	for (i = 0; i < VECTOR_LENGTH(vars); i++) {
 		if (config_append_var(config, vars[i])) {
 			error = 1;
@@ -86,6 +83,9 @@ main(int argc, char *argv[])
 	case 0:
 		goto out;
 	}
+
+	if (pledge("stdio exec", NULL) == -1)
+		err(1, "pledge");
 
 	if (verbose > 0) {
 		fprintf(stdout, "robsd-hook: exec");
