@@ -135,8 +135,8 @@ struct config {
 
 static int	config_mode(const char *, enum robsd_mode *);
 
-static int	config_exec(struct config *);
-static int	config_exec1(struct config *, struct token *);
+static int	config_parse1(struct config *);
+static int	config_parse_keyword(struct config *, struct token *);
 static int	config_validate(const struct config *);
 static int	config_parse_boolean(struct config *, union variable_value *);
 static int	config_parse_string(struct config *, union variable_value *);
@@ -351,7 +351,7 @@ config_parse(struct config *cf)
 		error = 1;
 		goto out;
 	}
-	error = config_exec(cf);
+	error = config_parse1(cf);
 
 out:
 	parser_context_reset(&pc);
@@ -782,7 +782,7 @@ config_mode(const char *mode, enum robsd_mode *res)
 }
 
 static int
-config_exec(struct config *cf)
+config_parse1(struct config *cf)
 {
 	struct token *tk;
 	int error = 0;
@@ -795,7 +795,7 @@ config_exec(struct config *cf)
 			break;
 		}
 
-		switch (config_exec1(cf, tk)) {
+		switch (config_parse_keyword(cf, tk)) {
 		case 1:
 			error = 1;
 			break;
@@ -814,7 +814,7 @@ out:
 }
 
 static int
-config_exec1(struct config *cf, struct token *tk)
+config_parse_keyword(struct config *cf, struct token *tk)
 {
 	const struct grammar *gr;
 	union variable_value val;
