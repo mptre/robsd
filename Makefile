@@ -70,6 +70,12 @@ OBJS_robsd-step=	${SRCS_robsd-step:.c=.o}
 DEPS_robsd-step=	${SRCS_robsd-step:.c=.d}
 PROG_robsd-step=	robsd-step
 
+SRCS_fuzz-config+=	${SRCS}
+SRCS_fuzz-config+=	fuzz-config.c
+OBJS_fuzz-config=	${SRCS_fuzz-config:.c=.o}
+DEPS_fuzz-config=	${SRCS_fuzz-config:.c=.d}
+PROG_fuzz-config=	fuzz-config
+
 KNFMT+=	alloc.c
 KNFMT+=	alloc.h
 KNFMT+=	cdefs.h
@@ -77,6 +83,7 @@ KNFMT+=	compat-sys-sched.h
 KNFMT+=	compat-sys-sysctl.h
 KNFMT+=	conf.c
 KNFMT+=	conf.h
+KNFMT+=	fuzz-config.c
 KNFMT+=	html.c
 KNFMT+=	html.h
 KNFMT+=	interpolate.c
@@ -109,6 +116,7 @@ CLANGTIDY+=	alloc.h
 CLANGTIDY+=	cdefs.h
 CLANGTIDY+=	conf.c
 CLANGTIDY+=	conf.h
+CLANGTIDY+=	fuzz-config.c
 CLANGTIDY+=	html.c
 CLANGTIDY+=	html.h
 CLANGTIDY+=	interpolate.c
@@ -138,6 +146,7 @@ CLANGTIDY+=	util.h
 
 CPPCHECK+=	alloc.c
 CPPCHECK+=	conf.c
+CPPCHECK+=	fuzz-config.c
 CPPCHECK+=	html.c
 CPPCHECK+=	interpolate.c
 CPPCHECK+=	invocation.c
@@ -208,6 +217,7 @@ DISTFILES+=	compat-warnc.c
 DISTFILES+=	conf.c
 DISTFILES+=	conf.h
 DISTFILES+=	configure
+DISTFILES+=	fuzz-config.c
 DISTFILES+=	html.c
 DISTFILES+=	html.h
 DISTFILES+=	interpolate.c
@@ -437,6 +447,11 @@ dist:
 	(cd ${.CURDIR}; sha256 $$d.tar.gz >$$d.sha256); \
 	rm -r $$d
 .PHONY: dist
+
+fuzz: ${PROG_fuzz-config}
+
+${PROG_fuzz-config}: ${OBJS_fuzz-config}
+	${CC} ${DEBUG} -o ${PROG_fuzz-config} ${OBJS_fuzz-config} ${LDFLAGS}
 
 install: all
 	mkdir -p ${DESTDIR}${BINDIR}

@@ -2,7 +2,7 @@ export LC_ALL=C
 
 mkls "$@" \
 SRCS \
-	!(robsd-*).c \
+	!(fuzz-*|robsd-*).c \
 	$(find libks -type f -name '*.c' -exec basename {} \;) \
 	-- \
 KNFMT \
