@@ -855,8 +855,7 @@ config_validate(const struct config *cf)
 		const struct grammar *gr = &cf->cf_grammar[i];
 		const char *str = gr->gr_kw;
 
-		if ((gr->gr_flags & REQ) &&
-		    !config_present(cf, str)) {
+		if ((gr->gr_flags & REQ) && !config_present(cf, str)) {
 			log_warnx(cf->cf_path, 0,
 			    "mandatory variable '%s' missing", str);
 			error = 1;
