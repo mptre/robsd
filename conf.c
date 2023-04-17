@@ -606,10 +606,6 @@ again:
 
 			x = ch - '0';
 			if (val > INT_MAX / 10 || val * 10 > INT_MAX - x) {
-				if (!error) {
-					lexer_warnx(lx, s.lno,
-					    "integer too big");
-				}
 				error = 1;
 			} else {
 				val *= 10;
@@ -620,7 +616,7 @@ again:
 		}
 		lexer_ungetc(lx, ch);
 		if (error)
-			return NULL;
+			lexer_warnx(lx, s.lno, "integer too big");
 
 		tk = lexer_emit(lx, &s, TOKEN_INTEGER);
 		tk->tk_int = val;

@@ -422,10 +422,12 @@ fi
 if testcase "invalid integer overflow"; then
 	cat <<-EOF >"$CONFIG"
 	keep 1111111111111111111111111111111111111111
+	reboot "nein"
 	EOF
-	robsd_config -e | head -1 >"$TMP1"
+	robsd_config -e >"$TMP1"
 	assert_file - "$TMP1" <<-EOF
 	robsd-config: ${CONFIG}:1: integer too big
+	robsd-config: ${CONFIG}:2: want BOOLEAN, got STRING
 	EOF
 fi
 
