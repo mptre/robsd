@@ -1181,7 +1181,8 @@ config_default_inet(struct config *cf)
 	inet = ifgrinet("egress");
 	if (inet == NULL)
 		return NULL;
-	return config_append_string(cf, "inet", inet);
+	return config_append(cf, STRING, "inet",
+	    &(union variable_value){.str = inet}, 0, VARIABLE_FLAG_DIRTY);
 }
 
 static struct variable *
