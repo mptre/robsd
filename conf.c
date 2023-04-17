@@ -13,7 +13,6 @@
 #include <glob.h>
 #include <limits.h>
 #include <pwd.h>
-#include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -21,7 +20,6 @@
 
 #include "alloc.h"
 #include "buffer.h"
-#include "cdefs.h"
 #include "interpolate.h"
 #include "lexer.h"
 #include "token.h"
