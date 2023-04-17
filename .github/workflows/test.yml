@@ -72,6 +72,20 @@ jobs:
           ./configure --pedantic
           make -j`nproc` test "TESTS=${TESTS}"
 
+  fuzz:
+    runs-on: ubuntu-22.04
+    steps:
+      - name: checkout
+        uses: actions/checkout@v2
+      - name: dependenices
+        run: sudo apt-get update && sudo apt-get install afl
+      - name: test
+        env:
+          CC: afl-gcc
+        run: |
+          ./configure --pedantic
+          make -j`nproc` fuzz
+
   clang-tidy:
     runs-on: ubuntu-22.04
     steps:
