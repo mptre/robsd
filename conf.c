@@ -68,7 +68,6 @@ struct variable {
 	size_t			 va_namelen;
 	union variable_value	 va_val;
 
-	int			 va_lno;
 	unsigned int		 va_flags;
 #define VARIABLE_FLAG_DIRTY	0x00000001u
 
@@ -156,7 +155,7 @@ static struct variable	*config_default_machine(struct config *);
 static struct variable	*config_default_x11_reldir(struct config *);
 
 static struct variable	*config_append(struct config *,
-    enum variable_type, const char *, const union variable_value *, int,
+    enum variable_type, const char *, const union variable_value *,
     unsigned int);
 static struct variable	*config_append_string(struct config *,
     const char *, const char *);
@@ -390,7 +389,7 @@ config_append_string(struct config *cf, const char *name, const char *str)
 		return NULL;
 
 	val.str = estrdup(str);
-	return config_append(cf, STRING, name, &val, 0, VARIABLE_FLAG_DIRTY);
+	return config_append(cf, STRING, name, &val, VARIABLE_FLAG_DIRTY);
 }
 
 struct variable *
@@ -834,10 +833,8 @@ config_parse_keyword(struct config *cf, struct token *tk)
 	}
 	assert(gr->gr_fn != NULL);
 	if (gr->gr_fn(cf, &val) == 0) {
-		if (val.ptr != novalue) {
-			config_append(cf, gr->gr_type, tk->tk_str, &val,
-			    tk->tk_lno, 0);
-		}
+		if (val.ptr != novalue)
+			config_append(cf, gr->gr_type, tk->tk_str, &val, 0);
 	} else {
 		error = 1;
 	}
@@ -997,7 +994,7 @@ config_parse_regress(struct config *cf, union variable_value *val)
 				lexer_warnx(lx, tk->tk_lno, "name too long");
 				return 1;
 			}
-			config_append(cf, LIST, name, &newval, tk->tk_lno, 0);
+			config_append(cf, LIST, name, &newval, 0);
 		} else if (lexer_if(lx, TOKEN_OBJ, &tk)) {
 			union variable_value newval;
 			struct variable *obj;
@@ -1010,7 +1007,7 @@ config_parse_regress(struct config *cf, union variable_value *val)
 
 				variable_value_init(&def, LIST);
 				obj = config_append(cf, LIST, "regress-obj",
-				    &def, 0, 0);
+				    &def, 0);
 			}
 			variable_value_concat(&obj->va_val, &newval);
 		} else if (lexer_if(lx, TOKEN_PACKAGES, &tk)) {
@@ -1025,7 +1022,7 @@ config_parse_regress(struct config *cf, union variable_value *val)
 
 				variable_value_init(&def, LIST);
 				packages = config_append(cf, LIST,
-				    "regress-packages", &def, 0, 0);
+				    "regress-packages", &def, 0);
 			}
 			variable_value_concat(&packages->va_val, &newval);
 		} else if (lexer_if(lx, TOKEN_QUIET, &tk)) {
@@ -1035,8 +1032,7 @@ config_parse_regress(struct config *cf, union variable_value *val)
 				lexer_warnx(lx, tk->tk_lno, "name too long");
 				return 1;
 			}
-			config_append(cf, INTEGER, name, &newval,
-			    tk->tk_lno, 0);
+			config_append(cf, INTEGER, name, &newval, 0);
 		} else if (lexer_if(lx, TOKEN_ROOT, &tk)) {
 			union variable_value newval = {.integer = 1};
 
@@ -1044,8 +1040,7 @@ config_parse_regress(struct config *cf, union variable_value *val)
 				lexer_warnx(lx, tk->tk_lno, "name too long");
 				return 1;
 			}
-			config_append(cf, INTEGER, name, &newval,
-			    tk->tk_lno, 0);
+			config_append(cf, INTEGER, name, &newval, 0);
 		} else if (lexer_if(lx, TOKEN_TARGET, &tk)) {
 			union variable_value newval;
 
@@ -1055,8 +1050,7 @@ config_parse_regress(struct config *cf, union variable_value *val)
 				lexer_warnx(lx, tk->tk_lno, "name too long");
 				return 1;
 			}
-			config_append(cf, STRING, name, &newval,
-			    tk->tk_lno, 0);
+			config_append(cf, STRING, name, &newval, 0);
 		} else {
 			break;
 		}
@@ -1067,7 +1061,7 @@ config_parse_regress(struct config *cf, union variable_value *val)
 		union variable_value newval;
 
 		variable_value_init(&newval, LIST);
-		regress = config_append(cf, LIST, "regress", &newval, 0, 0);
+		regress = config_append(cf, LIST, "regress", &newval, 0);
 	}
 	str = estrdup(path);
 	*VECTOR_ALLOC(regress->va_val.list) = str;
@@ -1177,7 +1171,7 @@ config_default_inet(struct config *cf)
 	if (inet == NULL)
 		return NULL;
 	return config_append(cf, STRING, "inet",
-	    &(union variable_value){.str = inet}, 0, VARIABLE_FLAG_DIRTY);
+	    &(union variable_value){.str = inet}, VARIABLE_FLAG_DIRTY);
 }
 
 static struct variable *
@@ -1200,7 +1194,7 @@ config_default_x11_reldir(struct config *cf)
 
 static struct variable *
 config_append(struct config *cf, enum variable_type type, const char *name,
-    const union variable_value *val, int lno, unsigned int flags)
+    const union variable_value *val, unsigned int flags)
 {
 	struct variable *va;
 
@@ -1208,7 +1202,6 @@ config_append(struct config *cf, enum variable_type type, const char *name,
 	if (va == NULL)
 		err(1, NULL);
 	va->va_type = type;
-	va->va_lno = lno;
 	va->va_flags = flags;
 	va->va_name = estrdup(name);
 	va->va_namelen = strlen(name);
