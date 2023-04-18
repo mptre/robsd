@@ -119,7 +119,7 @@ hook_to_argv(struct config *config, char ***out)
 {
 	VECTOR(char *) args;
 	const struct variable *va;
-	const union variable_value *val;
+	const struct variable_value *val;
 	size_t i, nargs;
 	int error = 0;
 

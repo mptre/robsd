@@ -1,8 +1,17 @@
-union variable_value {
-	const void	 *ptr;
-	char		 *str;
-	char		**list;
-	int		  integer;
+struct variable_value {
+	enum variable_type {
+		INTEGER,
+		STRING,
+		DIRECTORY,
+		LIST,
+	} type;
+
+	union {
+		const void	 *ptr;
+		char		 *str;
+		char		**list;
+		int		  integer;
+	};
 };
 
 struct config	*config_alloc(const char *, const char *);
@@ -13,4 +22,4 @@ struct variable	*config_find(struct config *, const char *);
 int		 config_interpolate(struct config *);
 char		*config_interpolate_lookup(const char *, void *);
 
-const union variable_value *variable_get_value(const struct variable *);
+const struct variable_value *variable_get_value(const struct variable *);

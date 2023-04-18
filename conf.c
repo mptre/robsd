@@ -66,24 +66,17 @@ static const char	*token_serialize(const struct token *);
 struct variable {
 	char			*va_name;
 	size_t			 va_namelen;
-	union variable_value	 va_val;
+	struct variable_value	 va_val;
 
 	unsigned int		 va_flags;
 #define VARIABLE_FLAG_DIRTY	0x00000001u
-
-	enum variable_type {
-		INTEGER,
-		STRING,
-		DIRECTORY,
-		LIST,
-	} va_type;
 };
 
-static void	variable_value_init(union variable_value *, enum variable_type);
-static void	variable_value_clear(union variable_value *,
+static void	variable_value_init(struct variable_value *,
     enum variable_type);
-static void	variable_value_concat(union variable_value *,
-    union variable_value *);
+static void	variable_value_clear(struct variable_value *);
+static void	variable_value_concat(struct variable_value *,
+    struct variable_value *);
 
 /*
  * grammar ---------------------------------------------------------------------
@@ -93,7 +86,7 @@ struct grammar {
 	const char		*gr_kw;
 	enum variable_type	 gr_type;
 	int			 (*gr_fn)(struct config *,
-	    union variable_value *);
+	    struct variable_value *);
 	unsigned int		 gr_flags;
 #define REQ	0x00000001u	/* required */
 #define REP	0x00000002u	/* may be repeated */
@@ -137,14 +130,15 @@ static int	config_mode(const char *, enum robsd_mode *);
 static int	config_parse1(struct config *);
 static int	config_parse_keyword(struct config *, struct token *);
 static int	config_validate(const struct config *);
-static int	config_parse_boolean(struct config *, union variable_value *);
-static int	config_parse_string(struct config *, union variable_value *);
-static int	config_parse_integer(struct config *, union variable_value *);
-static int	config_parse_glob(struct config *, union variable_value *);
-static int	config_parse_list(struct config *, union variable_value *);
-static int	config_parse_user(struct config *, union variable_value *);
-static int	config_parse_regress(struct config *, union variable_value *);
-static int	config_parse_directory(struct config *, union variable_value *);
+static int	config_parse_boolean(struct config *, struct variable_value *);
+static int	config_parse_string(struct config *, struct variable_value *);
+static int	config_parse_integer(struct config *, struct variable_value *);
+static int	config_parse_glob(struct config *, struct variable_value *);
+static int	config_parse_list(struct config *, struct variable_value *);
+static int	config_parse_user(struct config *, struct variable_value *);
+static int	config_parse_regress(struct config *, struct variable_value *);
+static int	config_parse_directory(struct config *,
+    struct variable_value *);
 
 static struct variable	*config_default_arch(struct config *);
 static struct variable	*config_default_bsd_reldir(struct config *);
@@ -154,9 +148,8 @@ static struct variable	*config_default_keep_dir(struct config *);
 static struct variable	*config_default_machine(struct config *);
 static struct variable	*config_default_x11_reldir(struct config *);
 
-static struct variable	*config_append(struct config *,
-    enum variable_type, const char *, const union variable_value *,
-    unsigned int);
+static struct variable	*config_append(struct config *, const char *,
+    const struct variable_value *, unsigned int);
 static struct variable	*config_append_string(struct config *,
     const char *, const char *);
 static int		 config_present(const struct config *,
@@ -310,18 +303,9 @@ config_free(struct config *cf)
 		struct variable *va;
 
 		va = VECTOR_POP(cf->cf_variables);
-		switch (va->va_type) {
-		case INTEGER:
-			break;
-		case STRING:
-		case DIRECTORY:
-			if (va->va_flags & VARIABLE_FLAG_DIRTY)
-				free(va->va_val.str);
-			break;
-		case LIST:
-			variable_value_clear(&va->va_val, LIST);
-			break;
-		}
+		variable_value_clear(&va->va_val);
+		if (va->va_flags & VARIABLE_FLAG_DIRTY)
+			free((void *)va->va_val.ptr);
 		free(va->va_name);
 	}
 	VECTOR_FREE(cf->cf_variables);
@@ -383,13 +367,14 @@ config_append_var(struct config *cf, const char *str)
 static struct variable *
 config_append_string(struct config *cf, const char *name, const char *str)
 {
-	union variable_value val;
+	struct variable_value val;
 
 	if (grammar_find(cf->cf_grammar, name))
 		return NULL;
 
+	variable_value_init(&val, STRING);
 	val.str = estrdup(str);
-	return config_append(cf, STRING, name, &val, VARIABLE_FLAG_DIRTY);
+	return config_append(cf, name, &val, VARIABLE_FLAG_DIRTY);
 }
 
 struct variable *
@@ -422,9 +407,9 @@ config_find(struct config *cf, const char *name)
 			return gr->gr_default.fun(cf);
 
 		memset(&vadef, 0, sizeof(vadef));
-		vadef.va_type = gr->gr_type;
+		vadef.va_val.type = gr->gr_type;
 		val = gr->gr_default.ptr;
-		switch (vadef.va_type) {
+		switch (vadef.va_val.type) {
 		case INTEGER:
 			vadef.va_val.integer = 0;
 			break;
@@ -476,7 +461,7 @@ config_interpolate_lookup(const char *name, void *arg)
 	bf = buffer_alloc(128);
 	if (bf == NULL)
 		err(1, NULL);
-	switch (va->va_type) {
+	switch (va->va_val.type) {
 	case INTEGER:
 		buffer_printf(bf, "%d", va->va_val.integer);
 		break;
@@ -502,7 +487,7 @@ config_interpolate_lookup(const char *name, void *arg)
 	return str;
 }
 
-const union variable_value *
+const struct variable_value *
 variable_get_value(const struct variable *va)
 {
 	return &va->va_val;
@@ -688,8 +673,11 @@ token_serialize(const struct token *tk)
 }
 
 static void
-variable_value_init(union variable_value *val, enum variable_type type)
+variable_value_init(struct variable_value *val, enum variable_type type)
 {
+	memset(val, 0, sizeof(*val));
+	val->type = type;
+
 	switch (type) {
 	case LIST:
 		if (VECTOR_INIT(val->list) == NULL)
@@ -703,9 +691,9 @@ variable_value_init(union variable_value *val, enum variable_type type)
 }
 
 static void
-variable_value_clear(union variable_value *val, enum variable_type type)
+variable_value_clear(struct variable_value *val)
 {
-	switch (type) {
+	switch (val->type) {
 	case LIST: {
 		while (!VECTOR_EMPTY(val->list))
 			free(*VECTOR_POP(val->list));
@@ -721,7 +709,7 @@ variable_value_clear(union variable_value *val, enum variable_type type)
 }
 
 static void
-variable_value_concat(union variable_value *dst, union variable_value *src)
+variable_value_concat(struct variable_value *dst, struct variable_value *src)
 {
 	size_t i;
 
@@ -816,7 +804,7 @@ static int
 config_parse_keyword(struct config *cf, struct token *tk)
 {
 	const struct grammar *gr;
-	union variable_value val;
+	struct variable_value val;
 	int error = 0;
 
 	gr = grammar_find(cf->cf_grammar, tk->tk_str);
@@ -834,7 +822,7 @@ config_parse_keyword(struct config *cf, struct token *tk)
 	assert(gr->gr_fn != NULL);
 	if (gr->gr_fn(cf, &val) == 0) {
 		if (val.ptr != novalue)
-			config_append(cf, gr->gr_type, tk->tk_str, &val, 0);
+			config_append(cf, tk->tk_str, &val, 0);
 	} else {
 		error = 1;
 	}
@@ -863,40 +851,43 @@ config_validate(const struct config *cf)
 }
 
 static int
-config_parse_boolean(struct config *cf, union variable_value *val)
+config_parse_boolean(struct config *cf, struct variable_value *val)
 {
 	struct token *tk;
 
 	if (!lexer_expect(cf->cf_lx, TOKEN_BOOLEAN, &tk))
 		return 1;
+	variable_value_init(val, INTEGER);
 	val->integer = tk->tk_int;
 	return 0;
 }
 
 static int
-config_parse_string(struct config *cf, union variable_value *val)
+config_parse_string(struct config *cf, struct variable_value *val)
 {
 	struct token *tk;
 
 	if (!lexer_expect(cf->cf_lx, TOKEN_STRING, &tk))
 		return 1;
+	variable_value_init(val, STRING);
 	val->str = tk->tk_str;
 	return 0;
 }
 
 static int
-config_parse_integer(struct config *cf, union variable_value *val)
+config_parse_integer(struct config *cf, struct variable_value *val)
 {
 	struct token *tk;
 
 	if (!lexer_expect(cf->cf_lx, TOKEN_INTEGER, &tk))
 		return 1;
+	variable_value_init(val, INTEGER);
 	val->integer = tk->tk_int;
 	return 0;
 }
 
 static int
-config_parse_glob(struct config *cf, union variable_value *val)
+config_parse_glob(struct config *cf, struct variable_value *val)
 {
 	glob_t g;
 	struct token *tk;
@@ -925,7 +916,7 @@ out:
 }
 
 static int
-config_parse_list(struct config *cf, union variable_value *val)
+config_parse_list(struct config *cf, struct variable_value *val)
 {
 	struct token *tk;
 
@@ -948,18 +939,19 @@ config_parse_list(struct config *cf, union variable_value *val)
 	return 0;
 
 err:
-	variable_value_clear(val, LIST);
+	variable_value_clear(val);
 	return 1;
 }
 
 static int
-config_parse_user(struct config *cf, union variable_value *val)
+config_parse_user(struct config *cf, struct variable_value *val)
 {
 	struct token *tk;
 	const char *user;
 
 	if (!lexer_expect(cf->cf_lx, TOKEN_STRING, &tk))
 		return 1;
+	variable_value_init(val, STRING);
 	user = val->str = tk->tk_str;
 	if (getpwnam(user) == NULL) {
 		lexer_warnx(cf->cf_lx, tk->tk_lno, "user '%s' not found",
@@ -970,7 +962,7 @@ config_parse_user(struct config *cf, union variable_value *val)
 }
 
 static int
-config_parse_regress(struct config *cf, union variable_value *val)
+config_parse_regress(struct config *cf, struct variable_value *val)
 {
 	struct lexer *lx = cf->cf_lx;
 	struct token *tk;
@@ -986,7 +978,7 @@ config_parse_regress(struct config *cf, union variable_value *val)
 		char name[128];
 
 		if (lexer_if(lx, TOKEN_ENV, &tk)) {
-			union variable_value newval;
+			struct variable_value newval;
 
 			if (config_parse_list(cf, &newval))
 				return 1;
@@ -994,55 +986,58 @@ config_parse_regress(struct config *cf, union variable_value *val)
 				lexer_warnx(lx, tk->tk_lno, "name too long");
 				return 1;
 			}
-			config_append(cf, LIST, name, &newval, 0);
+			config_append(cf, name, &newval, 0);
 		} else if (lexer_if(lx, TOKEN_OBJ, &tk)) {
-			union variable_value newval;
+			struct variable_value newval;
 			struct variable *obj;
 
 			if (config_parse_list(cf, &newval))
 				return 1;
 			obj = config_find(cf, "regress-obj");
 			if (obj == NULL) {
-				union variable_value def;
+				struct variable_value def;
 
 				variable_value_init(&def, LIST);
-				obj = config_append(cf, LIST, "regress-obj",
-				    &def, 0);
+				obj = config_append(cf, "regress-obj", &def, 0);
 			}
 			variable_value_concat(&obj->va_val, &newval);
 		} else if (lexer_if(lx, TOKEN_PACKAGES, &tk)) {
-			union variable_value newval;
+			struct variable_value newval;
 			struct variable *packages;
 
 			if (config_parse_list(cf, &newval))
 				return 1;
 			packages = config_find(cf, "regress-packages");
 			if (packages == NULL) {
-				union variable_value def;
+				struct variable_value def;
 
 				variable_value_init(&def, LIST);
-				packages = config_append(cf, LIST,
+				packages = config_append(cf,
 				    "regress-packages", &def, 0);
 			}
 			variable_value_concat(&packages->va_val, &newval);
 		} else if (lexer_if(lx, TOKEN_QUIET, &tk)) {
-			union variable_value newval = {.integer = 1};
+			struct variable_value newval;
 
 			if (regressname(name, sizeof(name), path, "quiet")) {
 				lexer_warnx(lx, tk->tk_lno, "name too long");
 				return 1;
 			}
-			config_append(cf, INTEGER, name, &newval, 0);
+			variable_value_init(&newval, INTEGER);
+			newval.integer = 1;
+			config_append(cf, name, &newval, 0);
 		} else if (lexer_if(lx, TOKEN_ROOT, &tk)) {
-			union variable_value newval = {.integer = 1};
+			struct variable_value newval;
 
 			if (regressname(name, sizeof(name), path, "root")) {
 				lexer_warnx(lx, tk->tk_lno, "name too long");
 				return 1;
 			}
-			config_append(cf, INTEGER, name, &newval, 0);
+			variable_value_init(&newval, INTEGER);
+			newval.integer = 1;
+			config_append(cf, name, &newval, 0);
 		} else if (lexer_if(lx, TOKEN_TARGET, &tk)) {
-			union variable_value newval;
+			struct variable_value newval;
 
 			if (config_parse_string(cf, &newval))
 				return 1;
@@ -1050,7 +1045,7 @@ config_parse_regress(struct config *cf, union variable_value *val)
 				lexer_warnx(lx, tk->tk_lno, "name too long");
 				return 1;
 			}
-			config_append(cf, STRING, name, &newval, 0);
+			config_append(cf, name, &newval, 0);
 		} else {
 			break;
 		}
@@ -1058,10 +1053,10 @@ config_parse_regress(struct config *cf, union variable_value *val)
 
 	regress = config_find(cf, "regress");
 	if (regress == NULL) {
-		union variable_value newval;
+		struct variable_value newval;
 
 		variable_value_init(&newval, LIST);
-		regress = config_append(cf, LIST, "regress", &newval, 0);
+		regress = config_append(cf, "regress", &newval, 0);
 	}
 	str = estrdup(path);
 	*VECTOR_ALLOC(regress->va_val.list) = str;
@@ -1071,7 +1066,7 @@ config_parse_regress(struct config *cf, union variable_value *val)
 }
 
 static int
-config_parse_directory(struct config *cf, union variable_value *val)
+config_parse_directory(struct config *cf, struct variable_value *val)
 {
 	struct stat st;
 	struct token *tk;
@@ -1081,6 +1076,7 @@ config_parse_directory(struct config *cf, union variable_value *val)
 
 	if (!lexer_expect(cf->cf_lx, TOKEN_STRING, &tk))
 		return 1;
+	variable_value_init(val, STRING);
 	dir = val->str = tk->tk_str;
 	/* Empty string error already reported by the lexer. */
 	if (dir[0] == '\0')
@@ -1165,13 +1161,15 @@ out:
 static struct variable *
 config_default_inet(struct config *cf)
 {
+	struct variable_value val;
 	char *inet;
 
 	inet = ifgrinet("egress");
 	if (inet == NULL)
 		return NULL;
-	return config_append(cf, STRING, "inet",
-	    &(union variable_value){.str = inet}, VARIABLE_FLAG_DIRTY);
+	variable_value_init(&val, STRING);
+	val.str = inet;
+	return config_append(cf, "inet", &val, VARIABLE_FLAG_DIRTY);
 }
 
 static struct variable *
@@ -1193,15 +1191,14 @@ config_default_x11_reldir(struct config *cf)
 }
 
 static struct variable *
-config_append(struct config *cf, enum variable_type type, const char *name,
-    const union variable_value *val, unsigned int flags)
+config_append(struct config *cf, const char *name,
+    const struct variable_value *val, unsigned int flags)
 {
 	struct variable *va;
 
 	va = VECTOR_CALLOC(cf->cf_variables);
 	if (va == NULL)
 		err(1, NULL);
-	va->va_type = type;
 	va->va_flags = flags;
 	va->va_name = estrdup(name);
 	va->va_namelen = strlen(name);
