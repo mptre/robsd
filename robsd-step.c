@@ -17,8 +17,8 @@ enum step_mode {
 };
 
 struct step_context {
-	const char		*sc_path;
-	VECTOR(struct step)	 sc_steps;
+	const char		*path;
+	VECTOR(struct step)	 steps;
 };
 
 static void	usage(void)
@@ -52,7 +52,7 @@ main(int argc, char *argv[])
 			mode = MODE_WRITE;
 			break;
 		case 'f':
-			sc.sc_path = optarg;
+			sc.path = optarg;
 			break;
 		default:
 			dobreak = 1;
@@ -64,28 +64,28 @@ main(int argc, char *argv[])
 		argc -= optind - 2;
 		argv += optind - 2;
 	}
-	if (mode == 0 || sc.sc_path == NULL)
+	if (mode == 0 || sc.path == NULL)
 		usage();
 
 	switch (mode) {
 	case MODE_READ:
 		if (unveil("/dev/stdin", "r") == -1)
 			err(1, "unveil: /dev/stdin");
-		if (unveil(sc.sc_path, "r") == -1)
-			err(1, "unveil: %s", sc.sc_path);
+		if (unveil(sc.path, "r") == -1)
+			err(1, "unveil: %s", sc.path);
 		if (pledge("stdio rpath", NULL) == -1)
 			err(1, "pledge");
 		break;
 	case MODE_WRITE:
-		if (unveil(sc.sc_path, "rwc") == -1)
-			err(1, "unveil: %s", sc.sc_path);
+		if (unveil(sc.path, "rwc") == -1)
+			err(1, "unveil: %s", sc.path);
 		if (pledge("stdio rpath wpath cpath", NULL) == -1)
 			err(1, "pledge");
 		break;
 	}
 
-	sc.sc_steps = steps_parse(sc.sc_path);
-	if (sc.sc_steps == NULL) {
+	sc.steps = steps_parse(sc.path);
+	if (sc.steps == NULL) {
 		error = 1;
 		goto out;
 	}
@@ -102,7 +102,7 @@ main(int argc, char *argv[])
 	}
 
 out:
-	steps_free(sc.sc_steps);
+	steps_free(sc.steps);
 	return error;
 }
 
@@ -154,17 +154,17 @@ steps_read(struct step_context *sc, int argc, char **argv)
 		return 1;
 	}
 
-	nsteps = VECTOR_LENGTH(sc->sc_steps);
+	nsteps = VECTOR_LENGTH(sc->steps);
 	if (name != NULL) {
-		st = steps_find_by_name(sc->sc_steps, name);
+		st = steps_find_by_name(sc->steps, name);
 		if (st == NULL) {
 			warnx("step with name '%s' not found", name);
 			return 1;
 		}
 	} else if (lno > 0 && (size_t)lno - 1 < nsteps) {
-		st = &sc->sc_steps[lno - 1];
+		st = &sc->steps[lno - 1];
 	} else if (lno < 0 && (size_t)-lno <= nsteps) {
-		st = &sc->sc_steps[(int)nsteps + lno];
+		st = &sc->steps[(int)nsteps + lno];
 	} else {
 		warnx("step at line %d not found", lno);
 		return 1;
@@ -228,9 +228,9 @@ steps_write(struct step_context *sc, int argc, char **argv)
 		goto out;
 	}
 
-	st = steps_find_by_id(sc->sc_steps, id);
+	st = steps_find_by_id(sc->steps, id);
 	if (st == NULL) {
-		st = VECTOR_CALLOC(sc->sc_steps);
+		st = VECTOR_CALLOC(sc->steps);
 		if (st == NULL)
 			err(1, NULL);
 		if (step_init(st) ||
@@ -246,24 +246,24 @@ steps_write(struct step_context *sc, int argc, char **argv)
 		}
 	}
 
-	steps_sort(sc->sc_steps);
+	steps_sort(sc->steps);
 	steps_header(bf);
-	for (i = 0; i < VECTOR_LENGTH(sc->sc_steps); i++) {
-		if (step_serialize(&sc->sc_steps[i], bf)) {
+	for (i = 0; i < VECTOR_LENGTH(sc->steps); i++) {
+		if (step_serialize(&sc->steps[i], bf)) {
 			error = 1;
 			goto out;
 		}
 	}
 
-	fh = fopen(sc->sc_path, "we");
+	fh = fopen(sc->path, "we");
 	if (fh == NULL) {
-		warn("fopen: %s", sc->sc_path);
+		warn("fopen: %s", sc->path);
 		error = 1;
 		goto out;
 	}
 	n = fwrite(buffer_get_ptr(bf), buffer_get_len(bf), 1, fh);
 	if (n < 1) {
-		warn("fwrite: %s", sc->sc_path);
+		warn("fwrite: %s", sc->path);
 		error = 1;
 		goto out;
 	}
