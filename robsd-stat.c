@@ -26,6 +26,7 @@
 #include <unistd.h>
 
 #include "alloc.h"
+#include "vector.h"
 
 struct robsd_stat {
 	char		rs_directory[PATH_MAX];
@@ -42,7 +43,7 @@ static void	usage(void)
 
 /* stat collect routines */
 static int	stat_cpu(struct robsd_stat *);
-static int	stat_directory(struct robsd_stat *, char *const *);
+static int	stat_directory(struct robsd_stat *, char **);
 static int	stat_directory1(struct robsd_stat *, const char *);
 static int	stat_loadavg(struct robsd_stat *);
 static int	stat_time(struct robsd_stat *);
@@ -54,32 +55,31 @@ static int	cpustate(int);
 int
 main(int argc, char *argv[])
 {
+	VECTOR(char *) users;
 	struct robsd_stat rs;
-	char **users;
 	FILE *fh = stdout;
-	unsigned int nusers = 0;
 	unsigned int tick_s = 10;
 	int doheader = 0;
 	int error = 0;
 	int ch;
 
-	users = reallocarray(NULL, 1, sizeof(*users));
-	if (users == NULL)
+	if (VECTOR_INIT(users) == NULL)
 		err(1, NULL);
-	users[0] = NULL;
 
 	while ((ch = getopt(argc, argv, "Hu:")) != -1) {
 		switch (ch) {
 		case 'H':
 			doheader = 1;
 			break;
-		case 'u':
-			users = reallocarray(users, nusers + 2, sizeof(*users));
-			if (users == NULL)
+		case 'u': {
+			char **dst;
+
+			dst = VECTOR_ALLOC(users);
+			if (dst == NULL)
 				err(1, NULL);
-			users[nusers++] = optarg;
-			users[nusers] = NULL;
+			*dst = optarg;
 			break;
+		}
 		default:
 			usage();
 		}
@@ -92,11 +92,11 @@ main(int argc, char *argv[])
 	if (doheader) {
 		/* Keep in sync with the robsd-stat.8 manual. */
 		fprintf(fh, "time,load,user,sys,spin,intr,idle,directory\n");
-		free(users);
+		VECTOR_FREE(users);
 		return 0;
 	}
 
-	if (nusers == 0)
+	if (VECTOR_EMPTY(users))
 		usage();
 
 	/* Close common file descriptors since we want to act like a daemon. */
@@ -116,7 +116,7 @@ main(int argc, char *argv[])
 		usleep(tick_s * 1000 * 1000);
 	}
 
-	free(users);
+	VECTOR_FREE(users);
 
 	return error;
 }
@@ -170,10 +170,12 @@ stat_cpu(struct robsd_stat *rs)
  * current working directory. A surprisingly accurate guess.
  */
 static int
-stat_directory(struct robsd_stat *rs, char *const *users)
+stat_directory(struct robsd_stat *rs, char **users)
 {
-	for (; *users != NULL; users++) {
-		switch (stat_directory1(rs, *users)) {
+	size_t i;
+
+	for (i = 0; i < VECTOR_LENGTH(users); i++) {
+		switch (stat_directory1(rs, users[i])) {
 		case -1:
 			return 1;
 		case 0:
