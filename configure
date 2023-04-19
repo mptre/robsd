@@ -215,7 +215,7 @@ check_sys_sysctl()  {
 	#include <sys/sysctl.h>
 
 	int main(void) {
-		return 0;
+		return HW_NCPUONLINE;
 	}
 	EOF
 }
@@ -315,7 +315,7 @@ check_reallocarray && HAVE_REALLOCARRAY=1
 check_strlcpy && HAVE_STRLCPY=1
 check_strtonum && HAVE_STRTONUM=1
 check_sys_sched && HAVE_SYS_SCHED_H=1
-check_sys_sysctl sys/sysctl.h && HAVE_SYS_SYSCTL_H=1
+check_sys_sysctl && HAVE_SYS_SYSCTL_H=1
 check_unveil && HAVE_UNVEIL=1
 check_warnc && HAVE_WARNC=1
 
