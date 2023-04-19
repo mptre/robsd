@@ -16,10 +16,10 @@ jobs:
         env:
           CC: gcc
           DEBUG: -fsanitize=address,undefined -fno-sanitize-recover=all
-          TESTS: regress-failed.sh regress-report-log.sh robsd-config.sh robsd-hook.sh robsd-ls.sh robsd-regress-html.sh robsd-step.sh
+          PORTABLE: yes
         run: |
           ./configure --pedantic
-          make -j`nproc` test "TESTS=${TESTS}"
+          make -j`nproc` test
 
   linux-clang-sanitize:
     runs-on: ubuntu-22.04
@@ -33,10 +33,10 @@ jobs:
           CC: clang
           # unsigned-integer-overflow disabled due to problem with uthash.
           DEBUG: -fsanitize=address,undefined -fno-sanitize-recover=all
-          TESTS: regress-failed.sh regress-report-log.sh robsd-config.sh robsd-hook.sh robsd-ls.sh robsd-regress-html.sh robsd-step.sh
+          PORTABLE: yes
         run: |
           ./configure --pedantic
-          make -j`nproc` test "TESTS=${TESTS}"
+          make -j`nproc` test
 
   valgrind:
     runs-on: ubuntu-22.04
@@ -49,12 +49,12 @@ jobs:
         env:
           CC: gcc
           EXEC: valgrind
+          PORTABLE: yes
           TESTFLAGS: -Tmemleak
-          TESTS: regress-failed.sh regress-report-log.sh robsd-config.sh robsd-hook.sh robsd-ls.sh robsd-regress-html.sh robsd-step.sh
           VALGRIND_OPTS: --quiet --error-exitcode=1 --leak-check=full --errors-for-leak-kinds=all --show-leak-kinds=all
         run: |
           ./configure --pedantic
-          make -j`nproc` test "TESTS=${TESTS}"
+          make -j`nproc` test
 
   ndebug:
     runs-on: ubuntu-22.04
@@ -67,10 +67,10 @@ jobs:
         env:
           CC: gcc
           CPPFLAGS: -DNDEBUG
-          TESTS: regress-failed.sh regress-report-log.sh robsd-config.sh robsd-hook.sh robsd-ls.sh robsd-regress-html.sh robsd-step.sh
+          PORTABLE: yes
         run: |
           ./configure --pedantic
-          make -j`nproc` test "TESTS=${TESTS}"
+          make -j`nproc` test
 
   fuzz:
     runs-on: ubuntu-22.04
