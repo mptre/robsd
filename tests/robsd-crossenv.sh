@@ -1,3 +1,5 @@
+portable no
+
 ROBSDCROSSENV="${EXECDIR}/robsd-crossenv"
 
 if testcase "basic"; then

@@ -1,3 +1,5 @@
+portable no
+
 # Stub for su expected to call patch.
 su() (
 	shift 2 # strip of su $login

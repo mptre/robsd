@@ -1,3 +1,5 @@
+portable no
+
 if testcase "basic"; then
 	{
 		step_serialize -n one -d 1

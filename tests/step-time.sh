@@ -1,3 +1,5 @@
+portable no
+
 BUILDDIR="$TSHDIR"; export BUILDDIR
 EXECDIR="$TSHDIR"
 

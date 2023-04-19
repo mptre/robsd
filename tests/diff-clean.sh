@@ -1,3 +1,5 @@
+portable no
+
 if testcase "basic"; then
 	mkdir "${TSHDIR}/diff"
 	(cd "${TSHDIR}/diff" && touch a.c a.c.orig a.c.rej .#a.c.1.1)

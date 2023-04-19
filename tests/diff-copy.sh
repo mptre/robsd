@@ -1,3 +1,5 @@
+portable no
+
 if testcase "copy not present"; then
 	: >"${TSHDIR}/src.diff"
 	diff_copy -d /var/empty "${TSHDIR}/dst.diff" "${TSHDIR}/src.diff" >/dev/null

@@ -180,6 +180,16 @@ index eca3934..c629ecf 100644
 EOF
 }
 
+# portable no | yes
+#
+# Annotate tests as portable or not. Non-portable tests are only executed when
+# the PORTABLE environment variable is unset.
+portable() {
+	if [ -n "${PORTABLE:-}" ] && [ "$1" = "no" ]; then
+		exit 0
+	fi
+}
+
 ROBSDDIR="$TSHDIR"; export ROBSDDIR
 PATH="/bin:/sbin:/usr/bin:/usr/sbin:/usr/X11R6/bin"; export PATH
 TMP1="${TSHDIR}/tmp1"; export TMP1

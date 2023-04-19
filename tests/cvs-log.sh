@@ -1,3 +1,5 @@
+portable no
+
 # Stub for su which in turn is expected to call `xargs cvs log'.
 su() {
 	local _file

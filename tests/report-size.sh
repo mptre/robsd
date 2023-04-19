@@ -1,3 +1,5 @@
+portable no
+
 # zero size path
 zero() {
 	[ -e "$2" ] && : >"$2"

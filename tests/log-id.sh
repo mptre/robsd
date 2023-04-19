@@ -1,3 +1,5 @@
+portable no
+
 if testcase "basic"; then
 	assert_eq "001-env.log" "$(log_id -b "$TSHDIR" -n env -s 1)"
 	assert_eq "010-env.log" "$(log_id -b "$TSHDIR" -n env -s 10)"

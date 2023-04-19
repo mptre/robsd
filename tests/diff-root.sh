@@ -1,3 +1,5 @@
+portable no
+
 BSDSRCDIR="$TSHDIR"
 XSRCDIR="$TSHDIR"
 

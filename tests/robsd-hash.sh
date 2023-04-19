@@ -1,3 +1,5 @@
+portable no
+
 if testcase "basic"; then
 	robsd_config - <<-EOF
 	robsddir "${TSHDIR}"

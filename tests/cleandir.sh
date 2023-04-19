@@ -1,3 +1,5 @@
+portable no
+
 if testcase "entries are removed"; then
 	mkdir -p "${TSHDIR}/clean/foo"
 	touch "${TSHDIR}/clean/bar"

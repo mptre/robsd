@@ -1,3 +1,5 @@
+portable no
+
 if testcase "basic"; then
 	assert_eq "2" "$(step_id cvs)"
 fi

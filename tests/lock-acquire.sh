@@ -1,3 +1,5 @@
+portable no
+
 if testcase "not acquired"; then
 	lock_acquire "$TSHDIR" "2021-06-16.1"
 	echo "2021-06-16.1" | assert_file "${TSHDIR}/.running" -

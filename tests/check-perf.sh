@@ -1,3 +1,5 @@
+portable no
+
 if testcase "basic"; then
 	cat <<-'EOF' >"${TSHDIR}/sysctl"
 	case "$2" in

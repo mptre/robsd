@@ -1,3 +1,5 @@
+portable no
+
 export WRKDIR
 robsd_mock >"$TMP1"; read -r WRKDIR BINDIR ROBSDDIR <"$TMP1"
 

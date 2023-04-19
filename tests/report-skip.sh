@@ -1,3 +1,5 @@
+portable no
+
 . "${EXECDIR}/util-ports.sh"
 . "${EXECDIR}/util-regress.sh"
 

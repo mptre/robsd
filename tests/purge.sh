@@ -1,3 +1,5 @@
+portable no
+
 if testcase "basic"; then
 	# shellcheck disable=SC2086
 	mkdir -p ${ROBSDDIR}/2019-03-0{1,2}/rel

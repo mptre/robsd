@@ -1,3 +1,5 @@
+portable no
+
 if testcase "step exit zero"; then
 	step_serialize -s 1 -n cvs -e 0 >"$TMP1"
 	assert_eq "2" "$(step_next "$TMP1")"

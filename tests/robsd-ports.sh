@@ -1,3 +1,5 @@
+portable no
+
 robsd_mock >"$TMP1"; read -r _ BINDIR ROBSDDIR <"$TMP1"
 
 cat <<'EOF' >"${BINDIR}/dpb"

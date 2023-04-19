@@ -1,3 +1,5 @@
+portable no
+
 . "${EXECDIR}/util-ports.sh"
 
 TMP1="${TSHDIR}/tmp1"

@@ -1,3 +1,5 @@
+portable no
+
 if testcase "basic"; then
 	touch "${TSHDIR}/src.diff.1" "${TSHDIR}/src.diff.2"
 	mkdir "${TSHDIR}/rel"
