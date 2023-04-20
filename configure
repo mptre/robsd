@@ -63,6 +63,16 @@ pedantic() {
 	EOF
 }
 
+# rmdup arg ...
+#
+# Remove duplicates from the given arguments while preserving the order.
+rmdup() {
+	echo "$@" |
+	xargs printf '%s\n' |
+	awk '!x[$1]++' |
+	xargs
+}
+
 check_attribute_fallthrough() {
 	compile <<-EOF
 	int main(void) {
@@ -295,7 +305,7 @@ MANDIR="$(makevar MANDIR || echo "${PREFIX}/man")"
 INSTALL="$(makevar INSTALL || echo install)"
 INSTALL_MAN="$(makevar INSTALL_MAN || echo install)"
 
-# Must happen after CC is defined.
+# Following chunks must happen after CC is defined.
 if [ "$_pedantic" = 1 ]; then
 	CFLAGS="$(cc_has_option -Wformat-signedness) ${CFLAGS}"
 	CFLAGS="$(cc_has_option -Wimplicit-fallthrough) ${CFLAGS}"
@@ -356,7 +366,7 @@ fi
 [ $HAVE_GLOB_MATCHC -eq 0 ] && printf '#define gl_matchc gl_pathc\n'
 
 [ $HAVE_ERRC -eq 0 ] && {
-	printf 'void errc(int eval, int code, const char *fmt, ...)\n';
+	printf 'void errc(int, int, const char *, ...)\n';
 	printf '\t__attribute__((__noreturn__, __format__ (printf, 3, 4)));\n'; }
 [ $HAVE_PLEDGE -eq 0 ] &&
 	printf 'int pledge(const char *, const char *);\n'
@@ -369,7 +379,7 @@ fi
 [ $HAVE_UNVEIL -eq 0 ] &&
 	printf 'int unveil(const char *, const char *);\n'
 [ $HAVE_WARNC -eq 0 ] && {
-	printf 'void warnc(int code, const char *fmt, ...)\n'
+	printf 'void warnc(int, const char *, ...)\n'
 	printf '\t__attribute__((__format__ (printf, 2, 3)));\n'; }
 
 # Redirect stdout to config.mk.
@@ -378,10 +388,10 @@ exec 1>config.mk
 # Use echo to normalize whitespace.
 cat <<EOF
 CC=		$(echo $CC)
-CFLAGS=		$(echo $CFLAGS)
-CPPFLAGS=	$(echo $CPPFLAGS -I\${.CURDIR} -I\${.CURDIR}/libks)
-DEBUG=		$(echo $DEBUG)
-LDFLAGS=	$(echo $LDFLAGS)
+CFLAGS=		$(rmdup $CFLAGS)
+CPPFLAGS=	$(rmdup $CPPFLAGS -I\${.CURDIR} -I\${.CURDIR}/libks)
+DEBUG=		$(rmdup $DEBUG)
+LDFLAGS=	$(rmdup $LDFLAGS)
 
 BINDIR?=	$(echo $BINDIR)
 MANDIR?=	$(echo $MANDIR)
