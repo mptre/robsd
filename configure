@@ -171,34 +171,6 @@ check_pledge() {
 	EOF
 }
 
-check_queue() {
-	compile <<-EOF
-	#include <sys/queue.h>
-
-	#if !defined(TAILQ_FOREACH_SAFE)
-	#error "TAILQ_FOREACH_SAFE not present"
-	#endif
-
-	#if !defined(TAILQ_END)
-	#error "TAILQ_END not present"
-	#endif
-
-	int main(void) {
-		return 0;
-	}
-	EOF
-}
-
-check_reallocarray() {
-	compile <<-EOF
-	#include <stdlib.h>
-
-	int main(void) {
-		return !(reallocarray(NULL, 1, 1) != NULL);
-	}
-	EOF
-}
-
 check_strlcpy() {
 	compile <<-EOF
 	#include <string.h>
@@ -294,9 +266,6 @@ HAVE_GNU_SOURCE=0
 HAVE_MACHINE=0
 HAVE_MACHINE_ARCH=0
 HAVE_PLEDGE=0
-HAVE_PRAGMA_DIAGNOSTIC=1
-HAVE_QUEUE=0
-HAVE_REALLOCARRAY=0
 HAVE_STRLCPY=0
 HAVE_STRTONUM=0
 HAVE_SYS_SCHED_H=0
@@ -337,8 +306,6 @@ check_gnu_source && HAVE_GNU_SOURCE=1
 check_machine && HAVE_MACHINE=1
 check_machine_arch && HAVE_MACHINE_ARCH=1
 check_pledge && HAVE_PLEDGE=1
-check_queue && HAVE_QUEUE=1
-check_reallocarray && HAVE_REALLOCARRAY=1
 check_strlcpy && HAVE_STRLCPY=1
 check_strtonum && HAVE_STRTONUM=1
 check_sys_sched && HAVE_SYS_SCHED_H=1
@@ -355,7 +322,6 @@ exec 1>config.h
 # Headers needed for function prototypes.
 {
 [ $HAVE_PLEDGE -eq 0 ] && echo stdlib.h
-[ $HAVE_REALLOCARRAY -eq 0 ] && echo stdlib.h
 [ $HAVE_STRLCPY -eq 0 ] && echo stdlib.h
 [ $HAVE_STRTONUM -eq 0 ] && echo stdlib.h
 } | sort | uniq | headers
@@ -364,9 +330,6 @@ exec 1>config.h
 [ $HAVE_MACHINE -eq 1 ] || printf '#define MACHINE\t"%s"\n' "$(arch)"
 [ $HAVE_MACHINE_ARCH -eq 1 ] || printf '#define MACHINE_ARCH\t"%s"\n' "$(arch)"
 [ $HAVE_PLEDGE -eq 1 ] && printf '#define HAVE_PLEDGE\t1\n'
-[ $HAVE_PRAGMA_DIAGNOSTIC -eq 1 ] && printf '#define HAVE_PRAGMA_DIAGNOSTIC\t1\n'
-[ $HAVE_QUEUE -eq 1 ] && printf '#define HAVE_QUEUE\t1\n'
-[ $HAVE_REALLOCARRAY -eq 1 ] && printf '#define HAVE_REALLOCARRAY\t1\n'
 [ $HAVE_STRLCPY -eq 1 ] && printf '#define HAVE_STRLCPY\t1\n'
 [ $HAVE_STRTONUM -eq 1 ] && printf '#define HAVE_STRTONUM\t1\n'
 [ $HAVE_SYS_SCHED_H -eq 1 ] && printf '#define HAVE_SYS_SCHED_H\t1\n'
@@ -387,8 +350,6 @@ fi
 	printf '\t__attribute__((__noreturn__, __format__ (printf, 3, 4)));\n'; }
 [ $HAVE_PLEDGE -eq 0 ] &&
 	printf 'int pledge(const char *, const char *);\n'
-[ $HAVE_REALLOCARRAY -eq 0 ] &&
-	printf 'void *reallocarray(void *, size_t, size_t);\n'
 [ $HAVE_STRLCPY -eq 0 ] &&
 	printf 'size_t strlcpy(char *, const char *, size_t);\n'
 [ $HAVE_STRTONUM -eq 0 ] && \
