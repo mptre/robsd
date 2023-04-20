@@ -109,6 +109,20 @@ check_glob_matchc() {
 	EOF
 }
 
+# Check if the compiler implicitly supports GNU C99.
+check_gnu99() {
+	compile <<-EOF
+	int main(void) {
+		int n = __extension__ ({ int _n = 0; _n + 1; });
+		for (int i = 0; i < n; i++)
+			return 0;
+		return 1;
+
+	}
+	EOF
+}
+
+
 # Check if strptime(3) is hidden behind _GNU_SOURCE.
 check_gnu_source() {
 	cat <<-EOF >"$TMP1"
@@ -306,6 +320,9 @@ INSTALL="$(makevar INSTALL || echo install)"
 INSTALL_MAN="$(makevar INSTALL_MAN || echo install)"
 
 # Following chunks must happen after CC is defined.
+if ! check_gnu99; then
+	CFLAGS="-std=gnu99 ${CFLAGS}"
+fi
 if [ "$_pedantic" = 1 ]; then
 	CFLAGS="$(cc_has_option -Wformat-signedness) ${CFLAGS}"
 	CFLAGS="$(cc_has_option -Wimplicit-fallthrough) ${CFLAGS}"
