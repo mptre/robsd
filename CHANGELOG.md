@@ -1,3 +1,15 @@
+# 17.4.3 - 2023-04-20
+
+## Bug fixes
+
+- Sense if attribute fallthrough is supported in configure script.
+  (bc30d31)
+  (Anton Lindqvist)
+
+- Sense if GNU C99 is implicitly supported in configure script.
+  (01c45b2)
+  (Anton Lindqvist)
+
 # 17.4.2 - 2023-04-16
 
 ## Bug fixes
