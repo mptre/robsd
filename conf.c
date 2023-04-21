@@ -19,6 +19,7 @@
 #include <unistd.h>
 
 #include "alloc.h"
+#include "arithmetic.h"
 #include "buffer.h"
 #include "interpolate.h"
 #include "lexer.h"
@@ -586,15 +587,11 @@ again:
 		int val = 0;
 
 		while (isdigit((unsigned char)ch)) {
-			int x;
+			int x = ch - '0';
 
-			x = ch - '0';
-			if (val > INT_MAX / 10 || val * 10 > INT_MAX - x) {
+			if (i32_mul_overflow(val, 10, &val) ||
+			    i32_add_overflow(val, x, &val))
 				error = 1;
-			} else {
-				val *= 10;
-				val += x;
-			}
 			if (lexer_getc(lx, &ch))
 				return NULL;
 		}
