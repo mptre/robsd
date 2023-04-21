@@ -3,6 +3,7 @@ include ${.CURDIR}/config.mk
 VERSION=	17.4.4
 
 SRCS+=	alloc.c
+SRCS+=	arithmetic.c
 SRCS+=	buffer.c
 SRCS+=	compat-errc.c
 SRCS+=	compat-pledge.c
@@ -226,6 +227,8 @@ DISTFILES+=	invocation.c
 DISTFILES+=	invocation.h
 DISTFILES+=	lexer.c
 DISTFILES+=	lexer.h
+DISTFILES+=	libks/arithmetic.c
+DISTFILES+=	libks/arithmetic.h
 DISTFILES+=	libks/buffer.c
 DISTFILES+=	libks/buffer.h
 DISTFILES+=	libks/vector.c
