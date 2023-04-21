@@ -1,6 +1,6 @@
 include ${.CURDIR}/config.mk
 
-VERSION=	17.4.3
+VERSION=	17.4.4
 
 SRCS+=	alloc.c
 SRCS+=	buffer.c
