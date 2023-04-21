@@ -1,3 +1,11 @@
+# 17.4.4 - 2023-04-21
+
+## Bug fixes
+
+- Make tests timezone independant.
+  (60986ca)
+  (Anton Lindqvist)
+
 # 17.4.3 - 2023-04-20
 
 ## Bug fixes
