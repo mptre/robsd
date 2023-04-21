@@ -1,19 +1,11 @@
+#ifdef __OpenBSD__
+
 #include "config.h"
 
 #include <sys/types.h>
 #include <sys/resource.h>
-
-#ifdef HAVE_SYS_SCHED_H
-#  include <sys/sched.h>
-#else
-#  include "compat-sys-sched.h"
-#endif
-
-#ifdef HAVE_SYS_SYSCTL_H
-#  include <sys/sysctl.h>
-#else
-#  include "compat-sys-sysctl.h"
-#endif
+#include <sys/sched.h>
+#include <sys/sysctl.h>
 
 #include <err.h>
 #include <inttypes.h>
@@ -331,3 +323,13 @@ cpustate(int state)
 		return state;
 	}
 }
+
+#else
+
+int
+main(void)
+{
+	return 0;
+}
+
+#endif
