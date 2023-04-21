@@ -4,7 +4,7 @@ portable no
 su() {
 	local _file
 
-	if echo "$3" | grep -s "'>2019-07-20 11:56:01'"; then
+	if echo "$3" | grep -s "'>2019-07-20 09:56:01'"; then
 		return 0
 	elif ! echo "$3" | grep -s "'>2019-07-14 00:00:00'"; then
 		fail "invalid date: ${3}"

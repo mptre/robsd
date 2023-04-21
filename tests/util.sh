@@ -193,6 +193,7 @@ portable() {
 ROBSDDIR="$TSHDIR"; export ROBSDDIR
 PATH="/bin:/sbin:/usr/bin:/usr/sbin:/usr/X11R6/bin"; export PATH
 TMP1="${TSHDIR}/tmp1"; export TMP1
+TZ=""; export TZ
 
 . "${EXECDIR}/util.sh"
 
