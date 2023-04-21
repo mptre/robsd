@@ -148,18 +148,6 @@ check_pledge() {
 	EOF
 }
 
-check_strlcpy() {
-	compile <<-EOF
-	#include <string.h>
-
-	int main(void) {
-		char buf[128];
-
-		return !(strlcpy(buf, "strlcpy", sizeof(buf)) < sizeof(buf));
-	}
-	EOF
-}
-
 check_strtonum() {
 	compile <<-EOF
 	#include <stdlib.h>
@@ -218,7 +206,6 @@ HAVE_GNU_SOURCE=0
 HAVE_MACHINE=0
 HAVE_MACHINE_ARCH=0
 HAVE_PLEDGE=0
-HAVE_STRLCPY=0
 HAVE_STRTONUM=0
 HAVE_UNVEIL=0
 HAVE_WARNC=0
@@ -254,7 +241,6 @@ check_gnu_source && HAVE_GNU_SOURCE=1
 check_machine && HAVE_MACHINE=1
 check_machine_arch && HAVE_MACHINE_ARCH=1
 check_pledge && HAVE_PLEDGE=1
-check_strlcpy && HAVE_STRLCPY=1
 check_strtonum && HAVE_STRTONUM=1
 check_unveil && HAVE_UNVEIL=1
 check_warnc && HAVE_WARNC=1
@@ -268,14 +254,12 @@ exec 1>config.h
 # Headers needed for function prototypes.
 {
 [ $HAVE_PLEDGE -eq 0 ] && echo stdlib.h
-[ $HAVE_STRLCPY -eq 0 ] && echo stdlib.h
 [ $HAVE_STRTONUM -eq 0 ] && echo stdlib.h
 } | sort | uniq | headers
 
 [ $HAVE_MACHINE -eq 1 ] || printf '#define MACHINE\t"%s"\n' "$(arch)"
 [ $HAVE_MACHINE_ARCH -eq 1 ] || printf '#define MACHINE_ARCH\t"%s"\n' "$(arch)"
 [ $HAVE_PLEDGE -eq 1 ] && printf '#define HAVE_PLEDGE\t1\n'
-[ $HAVE_STRLCPY -eq 1 ] && printf '#define HAVE_STRLCPY\t1\n'
 [ $HAVE_STRTONUM -eq 1 ] && printf '#define HAVE_STRTONUM\t1\n'
 [ $HAVE_UNVEIL -eq 1 ] && printf '#define HAVE_UNVEIL\t1\n'
 [ $HAVE_WARNC -eq 1 ] && printf '#define HAVE_WARNC\t1\n'
@@ -288,8 +272,6 @@ fi
 
 [ $HAVE_PLEDGE -eq 0 ] &&
 	printf 'int pledge(const char *, const char *);\n'
-[ $HAVE_STRLCPY -eq 0 ] &&
-	printf 'size_t strlcpy(char *, const char *, size_t);\n'
 [ $HAVE_STRTONUM -eq 0 ] && \
 	printf 'long long strtonum(const char *, long long, long long, const char **);\n'
 [ $HAVE_UNVEIL -eq 0 ] &&
