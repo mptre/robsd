@@ -87,17 +87,6 @@ check_attribute_fallthrough() {
 	EOF
 }
 
-check_errc() {
-	compile <<-EOF
-	#include <err.h>
-
-	int main(void) {
-		errc(1, 0, "");
-		return 0;
-	}
-	EOF
-}
-
 check_glob_matchc() {
 	compile <<-EOF
 	#include <glob.h>
@@ -236,7 +225,6 @@ set -u
 set -x
 
 HAVE_ATTRIBUTE_FALLTHROUGH=0
-HAVE_ERRC=0
 HAVE_GLOB_MATCHC=0
 HAVE_GNU_SOURCE=0
 HAVE_MACHINE=0
@@ -274,7 +262,6 @@ if [ "$_pedantic" = 1 ]; then
 fi
 
 check_attribute_fallthrough && HAVE_ATTRIBUTE_FALLTHROUGH=1
-check_errc && HAVE_ERRC=1
 check_glob_matchc && HAVE_GLOB_MATCHC=1
 check_gnu_source && HAVE_GNU_SOURCE=1
 check_machine && HAVE_MACHINE=1
@@ -298,7 +285,6 @@ exec 1>config.h
 [ $HAVE_STRTONUM -eq 0 ] && echo stdlib.h
 } | sort | uniq | headers
 
-[ $HAVE_ERRC -eq 1 ] && printf '#define HAVE_ERRC\t1\n'
 [ $HAVE_MACHINE -eq 1 ] || printf '#define MACHINE\t"%s"\n' "$(arch)"
 [ $HAVE_MACHINE_ARCH -eq 1 ] || printf '#define MACHINE_ARCH\t"%s"\n' "$(arch)"
 [ $HAVE_PLEDGE -eq 1 ] && printf '#define HAVE_PLEDGE\t1\n'
@@ -315,9 +301,6 @@ fi
 
 [ $HAVE_GLOB_MATCHC -eq 0 ] && printf '#define gl_matchc gl_pathc\n'
 
-[ $HAVE_ERRC -eq 0 ] && {
-	printf 'void errc(int, int, const char *, ...)\n';
-	printf '\t__attribute__((__noreturn__, __format__ (printf, 3, 4)));\n'; }
 [ $HAVE_PLEDGE -eq 0 ] &&
 	printf 'int pledge(const char *, const char *);\n'
 [ $HAVE_STRLCPY -eq 0 ] &&
