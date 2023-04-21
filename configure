@@ -87,17 +87,6 @@ check_attribute_fallthrough() {
 	EOF
 }
 
-check_glob_matchc() {
-	compile <<-EOF
-	#include <glob.h>
-
-	int main(void) {
-		glob_t g;
-		return g.gl_matchc;
-	}
-	EOF
-}
-
 # Check if the compiler implicitly supports GNU C99.
 check_gnu99() {
 	compile <<-EOF
@@ -225,7 +214,6 @@ set -u
 set -x
 
 HAVE_ATTRIBUTE_FALLTHROUGH=0
-HAVE_GLOB_MATCHC=0
 HAVE_GNU_SOURCE=0
 HAVE_MACHINE=0
 HAVE_MACHINE_ARCH=0
@@ -262,7 +250,6 @@ if [ "$_pedantic" = 1 ]; then
 fi
 
 check_attribute_fallthrough && HAVE_ATTRIBUTE_FALLTHROUGH=1
-check_glob_matchc && HAVE_GLOB_MATCHC=1
 check_gnu_source && HAVE_GNU_SOURCE=1
 check_machine && HAVE_MACHINE=1
 check_machine_arch && HAVE_MACHINE_ARCH=1
@@ -298,8 +285,6 @@ if [ $HAVE_ATTRIBUTE_FALLTHROUGH -eq 1 ]; then
 else
 	printf '#define FALLTHROUGH do {} while (0) /* FALLTHROUGH */\n'
 fi
-
-[ $HAVE_GLOB_MATCHC -eq 0 ] && printf '#define gl_matchc gl_pathc\n'
 
 [ $HAVE_PLEDGE -eq 0 ] &&
 	printf 'int pledge(const char *, const char *);\n'

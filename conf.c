@@ -900,7 +900,7 @@ config_parse_glob(struct config *cf, struct variable_value *val)
 	}
 
 	variable_value_init(val, LIST);
-	for (i = 0; i < g.gl_matchc; i++) {
+	for (i = 0; i < g.gl_pathc; i++) {
 		char *str;
 
 		str = estrdup(g.gl_pathv[i]);
