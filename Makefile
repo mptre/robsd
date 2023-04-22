@@ -369,6 +369,7 @@ MANLINT+=	robsd.8
 MANLINT+=	robsd.conf.5
 
 SHLINT+=	${SCRIPTS}
+SHLINT+=	configure
 SHLINT+=	robsd
 SHLINT+=	robsd-clean
 SHLINT+=	robsd-cross
