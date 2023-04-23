@@ -15,10 +15,9 @@ jobs:
       - name: test
         env:
           CC: gcc
-          DEBUG: -fsanitize=address,undefined -fno-sanitize-recover=all
           PORTABLE: yes
         run: |
-          ./configure --pedantic
+          ./configure --pedantic --sanitize
           make -j`nproc` test
 
   linux-gcc-4:
@@ -46,10 +45,10 @@ jobs:
         env:
           CC: clang
           # unsigned-integer-overflow disabled due to problem with uthash.
-          DEBUG: -fsanitize=address,undefined -fno-sanitize-recover=all
+          CFLAGS: -fno-sanitize=unsigned-integer-overflow
           PORTABLE: yes
         run: |
-          ./configure --pedantic
+          ./configure --pedantic --sanitize
           make -j`nproc` test
 
   valgrind:
