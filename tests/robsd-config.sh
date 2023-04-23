@@ -116,11 +116,25 @@ fi
 if testcase "regress env"; then
 	{
 		default_regress_config
+		echo 'regress-env { "GLOBAL1=1" }'
 		echo 'regress "env" env { "FOO=1" "BAR=2" }'
+		echo 'regress-env { "GLOBAL2=2" }'
 	} >"$CONFIG"
 	echo "\${regress-env-env}" >"$STDIN"
 	robsd_config -R - <<-EOF
-	FOO=1 BAR=2
+	GLOBAL1=1 GLOBAL2=2 FOO=1 BAR=2
+	EOF
+fi
+
+if testcase "regress env missing"; then
+	{
+		default_regress_config
+		echo 'regress "env"'
+		echo 'regress-env { "GLOBAL1=1" }'
+	} >"$CONFIG"
+	echo "\${regress-env-env}" >"$STDIN"
+	robsd_config -R - <<-EOF
+	GLOBAL1=1
 	EOF
 fi
 

@@ -138,6 +138,8 @@ static int	config_parse_glob(struct config *, struct variable_value *);
 static int	config_parse_list(struct config *, struct variable_value *);
 static int	config_parse_user(struct config *, struct variable_value *);
 static int	config_parse_regress(struct config *, struct variable_value *);
+static int	config_parse_regress_env(struct config *,
+    struct variable_value *);
 static int	config_parse_directory(struct config *,
     struct variable_value *);
 
@@ -147,6 +149,7 @@ static struct variable	*config_default_build_dir(struct config *);
 static struct variable	*config_default_inet(struct config *);
 static struct variable	*config_default_keep_dir(struct config *);
 static struct variable	*config_default_machine(struct config *);
+static struct variable	*config_default_regress_env(struct config *);
 static struct variable	*config_default_x11_reldir(struct config *);
 
 static struct variable	*config_append(struct config *, const char *,
@@ -159,6 +162,8 @@ static int		 config_present(const struct config *,
 static int	regressname(char *, size_t, const char *, const char *);
 
 static const void *novalue;
+
+#define F(f) {.fun = (f)}
 
 #define COMMON_DEFAULTS							\
 	{ "arch",	STRING,	NULL,	DEF,	{ .fun = config_default_arch } },\
@@ -232,22 +237,25 @@ static const struct grammar robsd_ports[] = {
 };
 
 static const struct grammar robsd_regress[] = {
-	{ "robsddir",		DIRECTORY,	config_parse_directory,	REQ,		{ NULL } },
-	{ "execdir",		DIRECTORY,	config_parse_directory,	0,		{ "/usr/local/libexec/robsd" } },
-	{ "hook",		LIST,		config_parse_list,	0,		{ NULL } },
-	{ "keep",		INTEGER,	config_parse_integer,	0,		{ NULL } },
-	{ "rdonly",		INTEGER,	config_parse_boolean,	0,		{ NULL } },
-	{ "sudo",		STRING,		config_parse_string,	0,		{ "doas -n" } },
-	{ "bsd-diff",		LIST,		config_parse_glob,	0,		{ NULL } },
-	{ "bsd-srcdir",		DIRECTORY,	config_parse_directory,	0,		{ "/usr/src" } },
-	{ "cvs-root",		STRING,		config_parse_string,	0,		{ NULL } },
-	{ "cvs-user",		STRING,		config_parse_user,	0,		{ NULL } },
-	{ "regress",		LIST,		config_parse_regress,	REQ|REP,	{ NULL } },
-	{ "regress-user",	STRING,		config_parse_user,	0,		{ "build" } },
-	{ "regress-*-target",	STRING,		NULL,			PAT,		{ "regress" } },
+	{ "robsddir",		DIRECTORY,	config_parse_directory,		REQ,		{ NULL } },
+	{ "execdir",		DIRECTORY,	config_parse_directory,		0,		{ "/usr/local/libexec/robsd" } },
+	{ "hook",		LIST,		config_parse_list,		0,		{ NULL } },
+	{ "keep",		INTEGER,	config_parse_integer,		0,		{ NULL } },
+	{ "rdonly",		INTEGER,	config_parse_boolean,		0,		{ NULL } },
+	{ "sudo",		STRING,		config_parse_string,		0,		{ "doas -n" } },
+	{ "bsd-diff",		LIST,		config_parse_glob,		0,		{ NULL } },
+	{ "bsd-srcdir",		DIRECTORY,	config_parse_directory,		0,		{ "/usr/src" } },
+	{ "cvs-root",		STRING,		config_parse_string,		0,		{ NULL } },
+	{ "cvs-user",		STRING,		config_parse_user,		0,		{ NULL } },
+	{ "regress",		LIST,		config_parse_regress,		REQ|REP,	{ NULL } },
+	{ "regress-env",	LIST,		config_parse_regress_env,	REP,		{ NULL } },
+	{ "regress-user",	STRING,		config_parse_user,		0,		{ "build" } },
+	{ "regress-*-target",	STRING,		NULL,				PAT,		{ "regress" } },
 
 	COMMON_DEFAULTS,
-	{ NULL, 0, NULL, 0, { NULL } },
+	{ "regress-*-env",	STRING,	NULL,	PAT|DEF,	F(config_default_regress_env) },
+
+	{ NULL,	0, NULL, 0, { NULL } },
 };
 
 struct config *
@@ -975,7 +983,8 @@ config_parse_regress(struct config *cf, struct variable_value *val)
 		char name[128];
 
 		if (lexer_if(lx, TOKEN_ENV, &tk)) {
-			struct variable_value newval;
+			struct variable_value defval, newval;
+			char **dst;
 
 			if (config_parse_list(cf, &newval))
 				return 1;
@@ -983,7 +992,15 @@ config_parse_regress(struct config *cf, struct variable_value *val)
 				lexer_warnx(lx, tk->tk_lno, "name too long");
 				return 1;
 			}
-			config_append(cf, name, &newval, 0);
+
+			/* Add default enviroment. */
+			variable_value_init(&defval, LIST);
+			dst = VECTOR_ALLOC(defval.list);
+			if (dst == NULL)
+				err(1, NULL);
+			*dst = estrdup("${regress-env}");
+			variable_value_concat(&defval, &newval);
+			config_append(cf, name, &defval, 0);
 		} else if (lexer_if(lx, TOKEN_OBJ, &tk)) {
 			struct variable_value newval;
 			struct variable *obj;
@@ -1058,6 +1075,26 @@ config_parse_regress(struct config *cf, struct variable_value *val)
 	str = estrdup(path);
 	*VECTOR_ALLOC(regress->va_val.list) = str;
 
+	val->ptr = novalue;
+	return 0;
+}
+
+static int
+config_parse_regress_env(struct config *cf, struct variable_value *val)
+{
+	struct variable *env;
+
+	if (config_parse_list(cf, val))
+		return 1;
+
+	if (!config_present(cf, "regress-env")) {
+		struct variable_value def;
+
+		variable_value_init(&def, LIST);
+		config_append(cf, "regress-env", &def, 0);
+	}
+	env = config_find(cf, "regress-env");
+	variable_value_concat(&env->va_val, val);
 	val->ptr = novalue;
 	return 0;
 }
@@ -1179,6 +1216,12 @@ static struct variable *
 config_default_machine(struct config *cf)
 {
 	return config_append_string(cf, "machine", MACHINE);
+}
+
+static struct variable *
+config_default_regress_env(struct config *cf)
+{
+	return config_append_string(cf, "regress-*-env", "${regress-env}");
 }
 
 static struct variable *
