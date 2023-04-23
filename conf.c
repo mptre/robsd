@@ -718,6 +718,8 @@ variable_value_concat(struct variable_value *dst, struct variable_value *src)
 {
 	size_t i;
 
+	assert(dst->type == LIST && src->type == LIST);
+
 	for (i = 0; i < VECTOR_LENGTH(src->list); i++)
 		*VECTOR_ALLOC(dst->list) = src->list[i];
 	VECTOR_FREE(src->list);
