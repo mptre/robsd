@@ -159,6 +159,8 @@ static struct variable	*config_append_string(struct config *,
     const char *, const char *);
 static int		 config_present(const struct config *,
     const char *);
+static struct variable	*config_find_or_create_list(struct config *,
+    const char *);
 
 static const char	*regressname(struct buffer *, const char *,
     const char *);
@@ -390,6 +392,18 @@ config_append_string(struct config *cf, const char *name, const char *str)
 	variable_value_init(&val, STRING);
 	val.str = estrdup(str);
 	return config_append(cf, name, &val, VARIABLE_FLAG_DIRTY);
+}
+
+static struct variable *
+config_find_or_create_list(struct config *cf, const char *name)
+{
+	if (!config_present(cf, name)) {
+		struct variable_value val;
+
+		variable_value_init(&val, LIST);
+		config_append(cf, name, &val, 0);
+	}
+	return config_find(cf, name);
 }
 
 struct variable *
@@ -1013,13 +1027,7 @@ config_parse_regress(struct config *cf, struct variable_value *val)
 
 			if (config_parse_list(cf, &newval))
 				return 1;
-			if (!config_present(cf, "regress-obj")) {
-				struct variable_value def;
-
-				variable_value_init(&def, LIST);
-				config_append(cf, "regress-obj", &def, 0);
-			}
-			obj = config_find(cf, "regress-obj");
+			obj = config_find_or_create_list(cf, "regress-obj");
 			variable_value_concat(&obj->va_val, &newval);
 		} else if (lexer_if(lx, TOKEN_PACKAGES, &tk)) {
 			struct variable_value newval;
@@ -1027,13 +1035,8 @@ config_parse_regress(struct config *cf, struct variable_value *val)
 
 			if (config_parse_list(cf, &newval))
 				return 1;
-			if (!config_present(cf, "regress-packages")) {
-				struct variable_value def;
-
-				variable_value_init(&def, LIST);
-				config_append(cf, "regress-packages", &def, 0);
-			}
-			packages = config_find(cf, "regress-packages");
+			packages = config_find_or_create_list(cf,
+			    "regress-packages");
 			variable_value_concat(&packages->va_val, &newval);
 		} else if (lexer_if(lx, TOKEN_QUIET, &tk)) {
 			struct variable_value newval;
@@ -1061,16 +1064,9 @@ config_parse_regress(struct config *cf, struct variable_value *val)
 		}
 	}
 
-	if (!config_present(cf, "regress")) {
-		struct variable_value newval;
-
-		variable_value_init(&newval, LIST);
-		config_append(cf, "regress", &newval, 0);
-	}
-	regress = config_find(cf, "regress");
+	regress = config_find_or_create_list(cf, "regress");
 	str = estrdup(path);
 	*VECTOR_ALLOC(regress->va_val.list) = str;
-
 	val->ptr = novalue;
 	return 0;
 }
