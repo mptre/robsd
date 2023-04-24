@@ -1,3 +1,11 @@
+# 17.5.0 - 2023-04-24
+
+## News
+
+- Add support for declaring global environment variables to robsd-regress.conf.
+  (c307c02)
+  (Anton Lindqvist)
+
 # 17.4.4 - 2023-04-21
 
 ## Bug fixes
