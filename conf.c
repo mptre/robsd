@@ -110,6 +110,7 @@ static int			 grammar_equals(const struct grammar *,
  */
 
 struct config {
+	struct buffer		*cf_scratch;
 	struct lexer		*cf_lx;
 	const struct grammar	*cf_grammar;
 	const char		*cf_path;
@@ -159,7 +160,8 @@ static struct variable	*config_append_string(struct config *,
 static int		 config_present(const struct config *,
     const char *);
 
-static int	regressname(char *, size_t, const char *, const char *);
+static const char	*regressname(struct buffer *, const char *,
+    const char *);
 
 static const void *novalue;
 
@@ -271,6 +273,9 @@ config_alloc(const char *mode, const char *path)
 	}
 
 	cf = ecalloc(1, sizeof(*cf));
+	cf->cf_scratch = buffer_alloc(128);
+	if (cf->cf_scratch == NULL)
+		err(1, NULL);
 	cf->cf_path = path;
 	cf->cf_mode = m;
 	if (VECTOR_INIT(cf->cf_variables) == NULL)
@@ -319,6 +324,7 @@ config_free(struct config *cf)
 	}
 	VECTOR_FREE(cf->cf_variables);
 
+	buffer_free(cf->cf_scratch);
 	lexer_free(cf->cf_lx);
 	VECTOR_FREE(cf->cf_empty_list);
 	free(cf);
@@ -971,6 +977,7 @@ config_parse_user(struct config *cf, struct variable_value *val)
 static int
 config_parse_regress(struct config *cf, struct variable_value *val)
 {
+	struct buffer *bf = cf->cf_scratch;
 	struct lexer *lx = cf->cf_lx;
 	struct token *tk;
 	struct variable *regress;
@@ -982,7 +989,7 @@ config_parse_regress(struct config *cf, struct variable_value *val)
 	path = tk->tk_str;
 
 	for (;;) {
-		char name[128];
+		const char *name;
 
 		if (lexer_if(lx, TOKEN_ENV, &tk)) {
 			struct variable_value defval, newval;
@@ -990,12 +997,9 @@ config_parse_regress(struct config *cf, struct variable_value *val)
 
 			if (config_parse_list(cf, &newval))
 				return 1;
-			if (regressname(name, sizeof(name), path, "env")) {
-				lexer_warnx(lx, tk->tk_lno, "name too long");
-				return 1;
-			}
 
 			/* Add default enviroment. */
+			name = regressname(bf, path, "env");
 			variable_value_init(&defval, LIST);
 			dst = VECTOR_ALLOC(defval.list);
 			if (dst == NULL)
@@ -1034,20 +1038,14 @@ config_parse_regress(struct config *cf, struct variable_value *val)
 		} else if (lexer_if(lx, TOKEN_QUIET, &tk)) {
 			struct variable_value newval;
 
-			if (regressname(name, sizeof(name), path, "quiet")) {
-				lexer_warnx(lx, tk->tk_lno, "name too long");
-				return 1;
-			}
+			name = regressname(bf, path, "quiet");
 			variable_value_init(&newval, INTEGER);
 			newval.integer = 1;
 			config_append(cf, name, &newval, 0);
 		} else if (lexer_if(lx, TOKEN_ROOT, &tk)) {
 			struct variable_value newval;
 
-			if (regressname(name, sizeof(name), path, "root")) {
-				lexer_warnx(lx, tk->tk_lno, "name too long");
-				return 1;
-			}
+			name = regressname(bf, path, "root");
 			variable_value_init(&newval, INTEGER);
 			newval.integer = 1;
 			config_append(cf, name, &newval, 0);
@@ -1056,10 +1054,7 @@ config_parse_regress(struct config *cf, struct variable_value *val)
 
 			if (config_parse_string(cf, &newval))
 				return 1;
-			if (regressname(name, sizeof(name), path, "target")) {
-				lexer_warnx(lx, tk->tk_lno, "name too long");
-				return 1;
-			}
+			name = regressname(bf, path, "target");
 			config_append(cf, name, &newval, 0);
 		} else {
 			break;
@@ -1261,13 +1256,11 @@ config_present(const struct config *cf, const char *name)
 	return 0;
 }
 
-static int
-regressname(char *buf, size_t bufsiz, const char *path, const char *suffix)
+static const char *
+regressname(struct buffer *bf, const char *path, const char *suffix)
 {
-	int n;
-
-	n = snprintf(buf, bufsiz, "regress-%s-%s", path, suffix);
-	if (n < 0 || (size_t)n >= bufsiz)
-		return 1;
-	return 0;
+	buffer_reset(bf);
+	buffer_printf(bf, "regress-%s-%s", path, suffix);
+	buffer_putc(bf, '\0');
+	return buffer_get_ptr(bf);
 }

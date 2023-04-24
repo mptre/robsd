@@ -198,6 +198,18 @@ if testcase "regress interpolation inet"; then
 	robsd_config -R >/dev/null
 fi
 
+if testcase "regress long name"; then
+	_name="$(awk 'END {while (i++ < 256) printf("r")}' </dev/null)"
+	{
+		default_regress_config
+		printf 'regress "%s" root\n' "$_name"
+	} >"$CONFIG"
+	echo "\${regress-${_name}-root}" >"$STDIN"
+	robsd_config -R - <<-EOF
+	1
+	EOF
+fi
+
 if testcase "regress invalid flags"; then
 	echo 'regress "bin/csh" noway' >"$CONFIG"
 	robsd_config -R -e | grep -e noway >"$TMP1"
