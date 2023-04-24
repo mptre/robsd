@@ -1,5 +1,7 @@
 portable no
 
+_step="${EXECDIR}/robsd-hash.sh"
+
 if testcase "basic"; then
 	robsd_config - <<-EOF
 	robsddir "${TSHDIR}"
@@ -15,10 +17,7 @@ if testcase "basic"; then
 	} >"$(step_path "$_builddir")"
 	echo "P bin/ksh/ksh.c" >"${_builddir}/tmp/cvs-src-up.log"
 
-	_err=0
-	env "BUILDDIR=${_builddir}" sh -eux -o pipefail \
-		"${EXECDIR}/robsd-hash.sh" >"$TMP1" 2>&1 || _err="$?"
-	if [ "$_err" -ne 0 ]; then
+	if ! sh -eux -o pipefail "$_step" >"$TMP1" 2>&1; then
 		fail - "expected exit zero" <"$TMP1"
 	fi
 
@@ -49,10 +48,7 @@ if testcase "previous cvs date"; then
 	step_serialize -s 1 -n cvs -t 1555555555 \
 		>"$(step_path "${TSHDIR}/2022-11-20")"
 
-	_err=0
-	env "BUILDDIR=${_builddir}" sh -eux -o pipefail \
-		"${EXECDIR}/robsd-hash.sh" >"$TMP1" 2>&1 || _err="$?"
-	if [ "$_err" -ne 0 ]; then
+	if ! sh -eux -o pipefail "$_step" >"$TMP1" 2>&1; then
 		fail - "expected exit zero" <"$TMP1"
 	fi
 
