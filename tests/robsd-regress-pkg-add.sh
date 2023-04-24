@@ -24,8 +24,7 @@ if testcase "basic"; then
 	fi
 
 	assert_file - "${_builddir}/tmp/packages" <<-EOF
+	dup
 	uniq
-	dup
-	dup
 	EOF
 fi

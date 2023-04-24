@@ -7,8 +7,9 @@ EOF
 
 _tmpdir="${BUILDDIR}/tmp"
 
-_packages="$(config_value regress-packages 2>/dev/null || :)"
-for _p in $_packages; do
+{ config_value regress-packages 2>/dev/null || :; } |
+xargs printf '%s\n' | sort | uniq |
+while read -r _p; do
 	if ! PKG_PATH='' pkg_info "$_p" >/dev/null; then
 		echo "$_p" >>"${_tmpdir}/packages"
 	fi
