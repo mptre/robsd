@@ -289,14 +289,15 @@ if testcase "list interpolation"; then
 fi
 
 if testcase "glob"; then
-	touch "${TSHDIR}/one.diff" "${TSHDIR}/two.diff"
+	touch "${TSHDIR}/src-one.diff" "${TSHDIR}/src-two.diff"
 	{
 		default_config
-		echo "bsd-diff \"${TSHDIR}/*.diff\""
+		echo "bsd-diff \"${TSHDIR}/src-*.diff\""
+		echo "x11-diff \"${TSHDIR}/x11-*.diff\""
 	} >"$CONFIG"
-	echo "\${bsd-diff}" >"$STDIN"
+	echo "'\${bsd-diff}' '\${x11-diff}'" >"$STDIN"
 	robsd_config - <<-EOF
-	${TSHDIR}/one.diff ${TSHDIR}/two.diff
+	'${TSHDIR}/src-one.diff ${TSHDIR}/src-two.diff' ''
 	EOF
 fi
 
