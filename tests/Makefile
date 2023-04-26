@@ -27,6 +27,7 @@ TESTS+=	robsd-hook.sh
 TESTS+=	robsd-ls.sh
 TESTS+=	robsd-ports.sh
 TESTS+=	robsd-regress-html.sh
+TESTS+=	robsd-regress-obj.sh
 TESTS+=	robsd-regress-pkg-add.sh
 TESTS+=	robsd-regress.sh
 TESTS+=	robsd-rescue.sh

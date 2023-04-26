@@ -322,6 +322,7 @@ DISTFILES+=	tests/robsd-hook.sh
 DISTFILES+=	tests/robsd-ls.sh
 DISTFILES+=	tests/robsd-ports.sh
 DISTFILES+=	tests/robsd-regress-html.sh
+DISTFILES+=	tests/robsd-regress-obj.sh
 DISTFILES+=	tests/robsd-regress-pkg-add.sh
 DISTFILES+=	tests/robsd-regress.sh
 DISTFILES+=	tests/robsd-rescue.sh
