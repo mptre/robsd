@@ -1,3 +1,15 @@
+# 17.5.1 - 2023-04-26
+
+## Bug fixes
+
+- Fix glob(3) no matches regression.
+  (aedb040)
+  (Anton Lindqvist)
+
+- Ignore absent regression tests in robsd-regress obj step.
+  (5fcdae9)
+  (Anton Lindqvist)
+
 # 17.5.0 - 2023-04-24
 
 ## News
