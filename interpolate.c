@@ -127,12 +127,13 @@ interpolate(struct interpolate_context *ic, struct buffer *bf,
 
 	for (;;) {
 		const char *p, *ve, *vs;
-		char *lookup, *name, *rep;
+		char *lookup, *name;
 		size_t len;
 
 		p = strchr(str, '$');
 		if (p == NULL)
 			break;
+		buffer_puts(bf, str, (size_t)(p - str));
 		vs = &p[1];
 		if (*vs != '{') {
 			log_warnx(ic->ic_path, ic->ic_lno,
@@ -166,16 +167,10 @@ interpolate(struct interpolate_context *ic, struct buffer *bf,
 			error = 1;
 			break;
 		}
-		rep = interpolate_str1(lookup, ic);
+		error = interpolate(ic, bf, lookup);
 		free(lookup);
-		if (rep == NULL) {
-			error = 1;
+		if (error)
 			break;
-		}
-		len = (size_t)(p - str);
-		buffer_puts(bf, str, len);
-		buffer_puts(bf, rep, strlen(rep));
-		free(rep);
 		str = &ve[1];
 	}
 	ic->ic_depth--;
