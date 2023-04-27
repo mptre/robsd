@@ -18,8 +18,7 @@ struct interpolate_context {
 	int				 ic_depth;
 };
 
-static char	*interpolate_str1(const char *, struct interpolate_context *);
-static int	 interpolate(struct interpolate_context *, struct buffer *,
+static int	interpolate(struct interpolate_context *, struct buffer *,
     const char *);
 
 char *
@@ -76,10 +75,16 @@ interpolate_file(const char *path, const struct interpolate_arg *arg)
 char *
 interpolate_str(const char *str, const struct interpolate_arg *arg)
 {
-	return interpolate_str1(str, &(struct interpolate_context){
-	    .ic_arg	= arg,
-	    .ic_lno	= arg->lno,
-	});
+	struct buffer *bf;
+	char *buf = NULL;
+
+	bf = buffer_alloc(1024);
+	if (bf == NULL)
+		err(1, NULL);
+	if (interpolate_buffer(str, bf, arg) == 0)
+		buf = buffer_str(bf);
+	buffer_free(bf);
+	return buf;
 }
 
 int
@@ -94,23 +99,6 @@ interpolate_buffer(const char *str, struct buffer *bf,
 
 	error = interpolate(&ic, bf, str);
 	return error;
-}
-
-static char *
-interpolate_str1(const char *str, struct interpolate_context *ic)
-{
-	struct buffer *bf;
-	char *buf = NULL;
-
-	bf = buffer_alloc(1024);
-	if (bf == NULL)
-		err(1, NULL);
-	if (interpolate(ic, bf, str) == 0) {
-		buffer_putc(bf, '\0');
-		buf = buffer_release(bf);
-	}
-	buffer_free(bf);
-	return buf;
 }
 
 static int
