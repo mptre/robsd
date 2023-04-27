@@ -92,7 +92,7 @@ struct grammar {
 #define REQ	0x00000001u	/* required */
 #define REP	0x00000002u	/* may be repeated */
 #define PAT	0x00000004u	/* fnmatch(3) keyword fallback */
-#define DEF	0x00000008u	/* default, read-only */
+#define FUN	0x00000008u	/* default obtain through function call */
 
 	union {
 		const void	*ptr;
@@ -144,14 +144,8 @@ static int	config_parse_regress_env(struct config *,
 static int	config_parse_directory(struct config *,
     struct variable_value *);
 
-static struct variable	*config_default_arch(struct config *);
-static struct variable	*config_default_bsd_reldir(struct config *);
 static struct variable	*config_default_build_dir(struct config *);
 static struct variable	*config_default_inet(struct config *);
-static struct variable	*config_default_keep_dir(struct config *);
-static struct variable	*config_default_machine(struct config *);
-static struct variable	*config_default_regress_env(struct config *);
-static struct variable	*config_default_x11_reldir(struct config *);
 
 static struct variable	*config_append(struct config *, const char *,
     const struct variable_value *, unsigned int);
@@ -167,16 +161,14 @@ static const char	*regressname(struct buffer *, const char *,
 
 static const void *novalue;
 
-#define F(f) {.fun = (f)}
-
 #define COMMON_DEFAULTS							\
-	{ "arch",	STRING,	NULL,	DEF,	{ .fun = config_default_arch } },\
-	{ "bsd-reldir",	STRING,	NULL,	DEF,	{ .fun = config_default_bsd_reldir } },\
-	{ "builddir",	STRING,	NULL,	DEF,	{ .fun = config_default_build_dir } },\
-	{ "inet",	STRING,	NULL,	DEF,	{ .fun = config_default_inet } },\
-	{ "keep-dir",	STRING,	NULL,	DEF,	{ .fun = config_default_keep_dir } },\
-	{ "machine",	STRING,	NULL,	DEF,	{ .fun = config_default_machine } },\
-	{ "x11-reldir",	STRING,	NULL,	DEF,	{ .fun = config_default_x11_reldir } }
+	{ "arch",	STRING,	NULL,	0,	{ MACHINE_ARCH } },	\
+	{ "bsd-reldir",	STRING,	NULL,	0,	{ "${builddir}/rel" } },\
+	{ "builddir",	STRING,	NULL,	FUN,	{ .fun = config_default_build_dir } },\
+	{ "inet",	STRING,	NULL,	FUN,	{ .fun = config_default_inet } },\
+	{ "keep-dir",	STRING,	NULL,	0,	{ "${robsddir}/attic" } },\
+	{ "machine",	STRING,	NULL,	0,	{ MACHINE } },		\
+	{ "x11-reldir",	STRING,	NULL,	0,	{ "${builddir}/relx" } }
 
 static const struct grammar robsd[] = {
 	{ "robsddir",		DIRECTORY,	config_parse_directory,	REQ,	{ NULL } },
@@ -257,7 +249,7 @@ static const struct grammar robsd_regress[] = {
 	{ "regress-*-target",	STRING,		NULL,				PAT,		{ "regress" } },
 
 	COMMON_DEFAULTS,
-	{ "regress-*-env",	STRING,	NULL,	PAT|DEF,	F(config_default_regress_env) },
+	{ "regress-*-env",	STRING,	NULL,	PAT, { "${regress-env}" } },
 
 	{ NULL,	0, NULL, 0, { NULL } },
 };
@@ -432,7 +424,7 @@ config_find(struct config *cf, const char *name)
 		if (!grammar_equals(gr, name, namelen))
 			continue;
 
-		if (gr->gr_flags & DEF)
+		if (gr->gr_flags & FUN)
 			return gr->gr_default.fun(cf);
 
 		memset(&vadef, 0, sizeof(vadef));
@@ -753,7 +745,7 @@ grammar_find(const struct grammar *grammar, const char *name)
 	for (i = 0; grammar[i].gr_kw != NULL; i++) {
 		const struct grammar *gr = &grammar[i];
 
-		if (strcmp(gr->gr_kw, name) == 0 && (gr->gr_flags & DEF) == 0)
+		if (gr->gr_fn != NULL && strcmp(gr->gr_kw, name) == 0)
 			return gr;
 	}
 	return NULL;
@@ -1132,18 +1124,6 @@ config_parse_directory(struct config *cf, struct variable_value *val)
 }
 
 static struct variable *
-config_default_arch(struct config *cf)
-{
-	return config_append_string(cf, "arch", MACHINE_ARCH);
-}
-
-static struct variable *
-config_default_bsd_reldir(struct config *cf)
-{
-	return config_append_string(cf, "bsd-reldir", "${builddir}/rel");
-}
-
-static struct variable *
 config_default_build_dir(struct config *cf)
 {
 	struct buffer *bf = NULL;
@@ -1200,30 +1180,6 @@ config_default_inet(struct config *cf)
 	variable_value_init(&val, STRING);
 	val.str = inet;
 	return config_append(cf, "inet", &val, VARIABLE_FLAG_DIRTY);
-}
-
-static struct variable *
-config_default_keep_dir(struct config *cf)
-{
-	return config_append_string(cf, "keep-dir", "${robsddir}/attic");
-}
-
-static struct variable *
-config_default_machine(struct config *cf)
-{
-	return config_append_string(cf, "machine", MACHINE);
-}
-
-static struct variable *
-config_default_regress_env(struct config *cf)
-{
-	return config_append_string(cf, "regress-*-env", "${regress-env}");
-}
-
-static struct variable *
-config_default_x11_reldir(struct config *cf)
-{
-	return config_append_string(cf, "x11-reldir", "${builddir}/relx");
 }
 
 static struct variable *
