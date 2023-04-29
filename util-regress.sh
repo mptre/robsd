@@ -20,7 +20,7 @@ regress_failed() {
 #
 # Exec wrapper for robsd-regress-log.
 regress_log() {
-	${EXEC:-} "${ROBSDREGRESSLOG:-${EXECDIR}/robsd-regress-log}" "$@"
+	"${ROBSDREGRESSLOG:-${EXECDIR}/robsd-regress-log}" "$@"
 }
 
 # regress_report_log -e step-exit -n step-name -l step-log -t tmp-dir
