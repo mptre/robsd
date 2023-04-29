@@ -82,9 +82,8 @@ regress_log_parse(const char *path, struct buffer *out, unsigned int flags)
 	int xtrace = 1;
 
 	if (reader_open(&rd, path))
-		return 1;
+		return -1;
 
-	buffer_reset(out);
 	bf = buffer_alloc(1 << 20);
 	if (bf == NULL)
 		err(1, NULL);

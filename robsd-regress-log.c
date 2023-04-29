@@ -16,7 +16,9 @@ main(int argc, char *argv[])
 	struct buffer *bf;
 	unsigned int flags = 0;
 	int doprint = 1;
-	int ch, n;
+	int error = 0;
+	int n = 0;
+	int ch, i;
 
 	if (pledge("stdio rpath unveil", NULL) == -1)
 		err(1, "pledge");
@@ -41,11 +43,13 @@ main(int argc, char *argv[])
 	}
 	argc -= optind;
 	argv += optind;
-	if (argc != 1 || flags == 0)
+	if (argc == 0 || flags == 0)
 		usage();
 
-	if (unveil(*argv, "r") == -1)
-		err(1, "unveil: %s", *argv);
+	for (i = 0; i < argc; i++) {
+		if (unveil(argv[i], "r") == -1)
+			err(1, "unveil: %s", argv[i]);
+	}
 	if (pledge("stdio rpath", NULL) == -1)
 		err(1, "pledge");
 
@@ -53,14 +57,28 @@ main(int argc, char *argv[])
 	if (bf == NULL)
 		err(1, NULL);
 	regress_log_init();
-	n = regress_log_parse(*argv, bf, flags);
+	for (i = 0; i < argc; i++) {
+		if (n > 0)
+			buffer_putc(bf, '\n');
+		switch (regress_log_parse(argv[i], bf, flags)) {
+		case -1:
+			error = 1;
+			break;
+		case 0:
+			if (n > 0)
+				buffer_pop(bf, 1);
+			break;
+		default:
+			n++;
+		}
+	}
 	regress_log_shutdown();
-	if (n > 0 && doprint) {
+	if (!error && n > 0 && doprint) {
 		buffer_putc(bf, '\0');
 		printf("%s", buffer_get_ptr(bf));
 	}
 	buffer_free(bf);
-	if (n == -1)
+	if (error)
 		return 2;
 	if (n == 0)
 		return 1;
@@ -70,6 +88,6 @@ main(int argc, char *argv[])
 static void
 usage(void)
 {
-	fprintf(stderr, "usage: robsd-regress-log [-FSXn] path\n");
+	fprintf(stderr, "usage: robsd-regress-log [-FSXn] path ...\n");
 	exit(1);
 }

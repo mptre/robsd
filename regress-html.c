@@ -304,6 +304,7 @@ parse_invocation(struct regress_html *r, const char *arch,
 		buffer_printf(scratch, "%s/%s/%s", arch, date, log);
 		run->log = estrdup(buffer_get_ptr(scratch));
 		run->time = time;
+		buffer_reset(scratch);
 
 		path = joinpath(r->path, "%s/%s", directory, log);
 		if (exit != 0) {
@@ -315,8 +316,11 @@ parse_invocation(struct regress_html *r, const char *arch,
 				error = 1;
 				goto out;
 			}
-		} else if (regress_log_parse(path, scratch,
-		    REGRESS_LOG_XFAILED) > 0) {
+			continue;
+		}
+
+		if (regress_log_parse(path, scratch, REGRESS_LOG_XFAILED) > 0) {
+			buffer_reset(scratch);
 			regress_log_parse(path, scratch,
 			    REGRESS_LOG_XFAILED | REGRESS_LOG_SKIPPED);
 			run->status = XFAIL;
@@ -324,14 +328,21 @@ parse_invocation(struct regress_html *r, const char *arch,
 				error = 1;
 				goto out;
 			}
-		} else if (regress_log_parse(path, scratch,
-		    REGRESS_LOG_SKIPPED) > 0) {
+			continue;
+		}
+
+		buffer_reset(scratch);
+		if (regress_log_parse(path, scratch, REGRESS_LOG_SKIPPED) > 0) {
 			run->status = SKIP;
 			if (create_log(r, run, scratch)) {
 				error = 1;
 				goto out;
 			}
-		} else if (regress_log_trim(path, scratch)) {
+			continue;
+		}
+
+		buffer_reset(scratch);
+		if (regress_log_trim(path, scratch)) {
 			run->status = PASS;
 			if (create_log(r, run, scratch)) {
 				error = 1;

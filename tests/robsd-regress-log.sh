@@ -7,7 +7,7 @@ robsd_regress_log() {
 
 	while [ $# -gt 0 ]; do
 		case "$1" in
-		-e)	_err0=1;;
+		-e)	_err0=$((_err0 + 1));;
 		-)	_stdin=1;;
 		*)	break;;
 		esac
@@ -218,6 +218,39 @@ if testcase "unexpected pass"; then
 	./unexpected
 	UNEXPECTED_PASS
 	EOF
+fi
+
+if testcase "multiple paths"; then
+	_failed="${TSHDIR}/failed"
+	cat <<-EOF >"$_failed"
+	==== test ====
+	FAILED
+	EOF
+
+	_skipped="${TSHDIR}/skipped"
+	cat <<-EOF >"$_skipped"
+	==== skip ====
+	SKIPPED
+	EOF
+
+	_empty="${TSHDIR}/empty"
+	: >"$_empty"
+
+	_absent="${TSHDIR}/absent"
+
+	robsd_regress_log - -- -FS "$_failed" "$_skipped" "$_empty" <<-EOF
+	==== test ====
+	FAILED
+
+	==== skip ====
+	SKIPPED
+	EOF
+
+	robsd_regress_log -e -e - -- \
+		-F "$_failed" "$_skipped" "$_empty" "$_absent" <<-EOF
+robsd-regress-log: open: ${_absent}: No such file or directory
+	EOF
+
 fi
 
 if testcase "missing arguments"; then
