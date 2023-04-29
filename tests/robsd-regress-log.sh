@@ -220,6 +220,15 @@ if testcase "unexpected pass"; then
 	EOF
 fi
 
+if testcase "no print"; then
+	cat <<-EOF >"$TMP1"
+	==== t1 ====
+	FAILED
+	EOF
+
+	robsd_regress_log - -- -Fn "$TMP1" </dev/null
+fi
+
 if testcase "multiple paths"; then
 	_failed="${TSHDIR}/failed"
 	cat <<-EOF >"$_failed"
