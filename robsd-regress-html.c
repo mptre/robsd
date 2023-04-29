@@ -10,8 +10,7 @@
 #include "regress-html.h"
 #include "regress-log.h"
 
-static void	usage(void)
-	__attribute__((__noreturn__));
+static void	usage(void) __attribute__((__noreturn__));
 
 int
 main(int argc, char *argv[])

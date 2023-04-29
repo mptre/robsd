@@ -30,8 +30,7 @@ struct robsd_stat {
 	} rs_cpu;
 };
 
-static void	usage(void)
-	__attribute__((__noreturn__));
+static void	usage(void) __attribute__((__noreturn__));
 
 /* stat collect routines */
 static int	stat_cpu(struct robsd_stat *);

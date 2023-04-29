@@ -10,8 +10,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 
-static void	usage(void)
-	__attribute__((__noreturn__));
+static void	usage(void) __attribute__((__noreturn__));
 
 static int	exitstatus(int);
 static int	waiteof(int, int);

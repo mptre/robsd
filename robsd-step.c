@@ -21,8 +21,7 @@ struct step_context {
 	VECTOR(struct step)	 steps;
 };
 
-static void	usage(void)
-	__attribute__((__noreturn__));
+static void	usage(void) __attribute__((__noreturn__));
 
 static int	steps_read(struct step_context *, int, char **);
 static int	steps_write(struct step_context *, int, char **);

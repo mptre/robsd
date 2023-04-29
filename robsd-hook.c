@@ -12,8 +12,7 @@
 #include "interpolate.h"
 #include "vector.h"
 
-static void	usage(void)
-	__attribute__((__noreturn__));
+static void	usage(void) __attribute__((__noreturn__));
 
 static int	hook_to_argv(struct config *, char ***);
 
