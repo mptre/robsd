@@ -252,7 +252,8 @@ isskipped(const char *str)
 static int
 isfailed(const char *str)
 {
-	return strstr(str, "FAILED") != NULL;
+	return strstr(str, "FAILED") != NULL ||
+	    strstr(str, "UNEXPECTED_PASS") != NULL;
 }
 
 static int
