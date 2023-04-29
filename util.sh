@@ -963,8 +963,6 @@ report() {
 		printf 'Duration: %s\n' \
 			"$(report_duration -d "$_name" "$_duration")"
 		printf 'Log: %s\n' "$(step_value log)"
-		# Honor step specific headers.
-		sed -n -e 's/^X-//p' "$_log"
 
 		report_log -e "$_exit" -n "$_name" -l "$_log" \
 			-t "${_builddir}/tmp" >"${_builddir}/tmp/log"

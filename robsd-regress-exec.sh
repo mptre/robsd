@@ -23,11 +23,5 @@ else
 	unpriv -c staff "$REGRESSUSER" "exec ${_make}" || _err="$?"
 fi
 
-# Add extra headers to report.
-_fail="$(sed -n -e "s,${1}/,," -e 's/^FAIL //p' "$_log" | xargs)"
-[ -z "$_fail" ] || echo "X-Fail: ${_fail}"
-_skip="$(sed -n -e "s,${1}/,," -e 's/^SKIP //p' "$_log" | xargs)"
-[ -z "$_skip" ] || echo "X-Skip: ${_skip}"
-
 rm -f "$_log"
 exit "$_err"

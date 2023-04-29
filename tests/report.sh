@@ -195,8 +195,6 @@ if testcase "regress"; then
 	cat <<-EOF >"${BUILDDIR}/error.log"
 	cc -O2 -pipe  -Wall  -MD -MP  -c log.c
 	error: unable to open output file 'log.o': 'Read-only file system'
-	X-Fail: error
-	X-Skip: skip
 	EOF
 	cat <<-EOF >"${BUILDDIR}/skipignore.log"
 	===> test
@@ -269,13 +267,9 @@ if testcase "regress"; then
 	Exit: 1
 	Duration: 00:00:01
 	Log: error.log
-	Fail: error
-	Skip: skip
 
 	cc -O2 -pipe  -Wall  -MD -MP  -c log.c
 	error: unable to open output file 'log.o': 'Read-only file system'
-	X-Fail: error
-	X-Skip: skip
 
 	> xfail:
 	Exit: 0
