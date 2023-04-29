@@ -163,12 +163,10 @@ static const void *novalue;
 
 #define COMMON_DEFAULTS							\
 	{ "arch",	STRING,	NULL,	0,	{ MACHINE_ARCH } },	\
-	{ "bsd-reldir",	STRING,	NULL,	0,	{ "${builddir}/rel" } },\
 	{ "builddir",	STRING,	NULL,	FUN,	{ .fun = config_default_build_dir } },\
 	{ "inet",	STRING,	NULL,	FUN,	{ .fun = config_default_inet } },\
 	{ "keep-dir",	STRING,	NULL,	0,	{ "${robsddir}/attic" } },\
-	{ "machine",	STRING,	NULL,	0,	{ MACHINE } },		\
-	{ "x11-reldir",	STRING,	NULL,	0,	{ "${builddir}/relx" } }
+	{ "machine",	STRING,	NULL,	0,	{ MACHINE } }
 
 static const struct grammar robsd[] = {
 	{ "robsddir",		DIRECTORY,	config_parse_directory,	REQ,	{ NULL } },
@@ -182,6 +180,7 @@ static const struct grammar robsd[] = {
 	{ "skip",		LIST,		config_parse_list,	0,	{ NULL } },
 	{ "bsd-diff",		LIST,		config_parse_glob,	0,	{ NULL } },
 	{ "bsd-objdir",		DIRECTORY,	config_parse_directory,	0,	{ "/usr/obj" } },
+	{ "bsd-reldir",		STRING,		NULL,			0,	{ "${builddir}/rel" } },
 	{ "bsd-srcdir",		DIRECTORY,	config_parse_directory,	0,	{ "/usr/src" } },
 	{ "cvs-root",		STRING,		config_parse_string,	0,	{ NULL } },
 	{ "cvs-user",		STRING,		config_parse_user,	0,	{ NULL } },
@@ -191,6 +190,7 @@ static const struct grammar robsd[] = {
 	{ "distrib-user",	STRING,		config_parse_user,	0,	{ NULL } },
 	{ "x11-diff",		LIST,		config_parse_glob,	0,	{ NULL } },
 	{ "x11-objdir",		DIRECTORY,	config_parse_directory,	0,	{ "/usr/xobj" } },
+	{ "x11-reldir",		STRING,		NULL,			0,	{ "${builddir}/relx" } },
 	{ "x11-srcdir",		DIRECTORY,	config_parse_directory,	0,	{ "/usr/xenocara" } },
 
 	COMMON_DEFAULTS,
@@ -246,12 +246,11 @@ static const struct grammar robsd_regress[] = {
 	{ "regress",		LIST,		config_parse_regress,		REQ|REP,	{ NULL } },
 	{ "regress-env",	LIST,		config_parse_regress_env,	REP,		{ NULL } },
 	{ "regress-user",	STRING,		config_parse_user,		0,		{ "build" } },
+	{ "regress-*-env",	STRING,		NULL,				PAT,		{ "${regress-env}" } },
 	{ "regress-*-target",	STRING,		NULL,				PAT,		{ "regress" } },
 
 	COMMON_DEFAULTS,
-	{ "regress-*-env",	STRING,	NULL,	PAT, { "${regress-env}" } },
-
-	{ NULL,	0, NULL, 0, { NULL } },
+	{ NULL, 0, NULL, 0, { NULL } },
 };
 
 struct config *

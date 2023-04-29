@@ -929,7 +929,9 @@ report() {
 			cat "${_builddir}/tags"
 		fi
 
-		report_sizes "$(config_value bsd-reldir)"
+		if [ "$_MODE" = "robsd" ]; then
+			report_sizes "$(config_value bsd-reldir)"
+		fi
 	} >>"$_tmp"
 
 	_i=1
