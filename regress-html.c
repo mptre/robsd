@@ -307,8 +307,7 @@ parse_invocation(struct regress_html *r, const char *arch,
 
 		path = joinpath(r->path, "%s/%s", directory, log);
 		if (exit != 0) {
-			regress_log_parse(path, scratch,
-			    REGRESS_LOG_FAILED | REGRESS_LOG_ERROR);
+			regress_log_parse(path, scratch, REGRESS_LOG_FAILED);
 			ri->fail++;
 			suite->fail++;
 			run->status = FAIL;

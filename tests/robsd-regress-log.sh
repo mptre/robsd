@@ -168,7 +168,7 @@ if testcase "error"; then
 	robsd-regress-exec: process group exited 2
 	EOF
 
-	robsd_regress_log - -- -E "$TMP1" <<-EOF
+	robsd_regress_log - -- -F "$TMP1" <<-EOF
 	===> asn1
 	cc -O2 -pipe  -Wall -Wundef -Werror -c asn1basic.c
 	asn1basic.c:519:7: error: implicit declaration of function 'ASN1_INTEGER_set_uint64' is invalid in C99

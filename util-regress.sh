@@ -45,7 +45,7 @@ regress_report_log() {
 	: "${_name:?}"
 
 	regress_quiet "$_name" || _quiet="yes"
-	regress_log -EF ${_quiet:+-SX} "$_log" || tail "$_log"
+	regress_log -F ${_quiet:+-SX} "$_log" || tail "$_log"
 }
 
 # regress_report_skip -b build-dir -n step-name -l step-log -t tmp-dir
