@@ -32,9 +32,9 @@ main(int argc, char *argv[])
 	if (VECTOR_INIT(vars) == NULL)
 		err(1, NULL);
 
-	while ((ch = getopt(argc, argv, "f:m:v:")) != -1) {
+	while ((ch = getopt(argc, argv, "C:m:v:")) != -1) {
 		switch (ch) {
-		case 'f':
+		case 'C':
 			path = optarg;
 			break;
 		case 'm':
@@ -90,7 +90,7 @@ out:
 static void
 usage(void)
 {
-	fprintf(stderr, "usage: robsd-config -m mode [-f file] [-v var=val] "
+	fprintf(stderr, "usage: robsd-config -m mode [-v var=val] "
 	    "[-]\n");
 	exit(1);
 }

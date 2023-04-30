@@ -7,7 +7,6 @@
 .Sh SYNOPSIS
 .Nm robsd-config
 .Fl m Ar mode
-.Op Fl f Ar path
 .Op Fl v Ar var=val
 .Op Fl
 .Sh DESCRIPTION
@@ -75,10 +74,6 @@ Root option for a given regression test.
 .Pp
 The options are as follows:
 .Bl -tag -width Ds
-.It Fl f Ar path
-Use the configuration file located at
-.Ar path ,
-as opposed of the default path for the current mode.
 .It Fl m Ar mode
 Mode used to indicate the kind of configuration, must be either robsd,
 robsd-cross, robsd-ports or robsd-regress.

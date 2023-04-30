@@ -35,13 +35,13 @@ main(int argc, char *argv[])
 	if (VECTOR_INIT(vars) == NULL)
 		err(1, NULL);
 
-	while ((ch = getopt(argc, argv, "Vf:m:v:")) != -1) {
+	while ((ch = getopt(argc, argv, "C:Vm:v:")) != -1) {
 		switch (ch) {
+		case 'C':
+			path = optarg;
+			break;
 		case 'V':
 			verbose++;
-			break;
-		case 'f':
-			path = optarg;
 			break;
 		case 'm':
 			mode = optarg;

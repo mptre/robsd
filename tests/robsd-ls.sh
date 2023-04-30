@@ -15,7 +15,7 @@ robsd_ls() {
 	done
 	[ "${1:-}" = "--" ] && shift
 
-	${EXEC:-} "$ROBSDLS" -f "$ROBSDCONF" "$@" >"$_stdout" 2>&1 || _err1="$?"
+	${EXEC:-} "$ROBSDLS" -C "$ROBSDCONF" "$@" >"$_stdout" 2>&1 || _err1="$?"
 	if [ "$_err0" -ne "$_err1" ]; then
 		fail - "expected exit ${_err0}, got ${_err1}" <"$_stdout"
 		return 0

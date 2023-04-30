@@ -30,12 +30,12 @@ main(int argc, char *argv[])
 	if (pledge("stdio rpath inet route", NULL) == -1)
 		err(1, "pledge");
 
-	while ((ch = getopt(argc, argv, "Bf:m:")) != -1) {
+	while ((ch = getopt(argc, argv, "BC:m:")) != -1) {
 		switch (ch) {
 		case 'B':
 			skip_builddir = 1;
 			break;
-		case 'f':
+		case 'C':
 			path = optarg;
 			break;
 		case 'm':

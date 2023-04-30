@@ -118,7 +118,7 @@ config_load() {
 	{
 		cat
 		echo "EXECDIR=\${execdir}"
-	} | "$ROBSDCONFIG" -m "$_MODE" ${ROBSDCONF:+"-f${ROBSDCONF}"} "$@" - \
+	} | "$ROBSDCONFIG" -m "$_MODE" ${ROBSDCONF:+"-C${ROBSDCONF}"} "$@" - \
 		>"$_tmp" || _err="$?"
 	[ "$_err" -eq 0 ] && eval "$(<"$_tmp")"
 	rm "$_tmp"
@@ -150,7 +150,7 @@ config_value()
 	_var="$1"; : "${_var:?}"
 
 	echo "\${${_var}}" |
-	"$ROBSDCONFIG" -m "$_MODE" ${ROBSDCONF:+"-f${ROBSDCONF}"} -
+	"$ROBSDCONFIG" -m "$_MODE" ${ROBSDCONF:+"-C${ROBSDCONF}"} -
 }
 
 # cvs_changelog -t tmp-dir
@@ -777,7 +777,7 @@ path_strip() {
 #
 # Get previous invocations.
 prev_release() {
-	"$ROBSDLS" -m "${_MODE}" ${ROBSDCONF:+"-f${ROBSDCONF}"} "$@"
+	"$ROBSDLS" -m "${_MODE}" ${ROBSDCONF:+"-C${ROBSDCONF}"} "$@"
 }
 
 # purge dir count
@@ -1278,7 +1278,7 @@ robsd() {
 # Invoke robsd hook.
 robsd_hook() {
 	# Ignore non-zero exit.
-	"$ROBSDHOOK" -m "$_MODE" -V ${ROBSDCONF:+"-f${ROBSDCONF}"} "$@" || :
+	"$ROBSDHOOK" -m "$_MODE" -V ${ROBSDCONF:+"-C${ROBSDCONF}"} "$@" || :
 }
 
 # setmode mode

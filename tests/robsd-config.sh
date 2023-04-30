@@ -22,7 +22,7 @@ robsd_config() {
 	[ -e "$CONFIG" ] || : >"$CONFIG"
 	[ -e "$STDIN" ] || : >"$STDIN"
 
-	${EXEC:-} "$ROBSDCONFIG" -m "$_mode" -f "$CONFIG" "$@" - \
+	${EXEC:-} "$ROBSDCONFIG" -m "$_mode" -C "$CONFIG" "$@" - \
 		<"$STDIN" >"$_stdout" 2>&1 || _err1="$?"
 	if [ "$_err0" -ne "$_err1" ]; then
 		fail - "expected exit ${_err0}, got ${_err1}" <"$_stdout"
@@ -523,7 +523,7 @@ if testcase "invalid mode"; then
 fi
 
 if testcase "invalid not found"; then
-	if ${EXEC:-} "$ROBSDCONFIG" -m robsd -f /var/empty/nein >"$TMP1" 2>&1; then
+	if ${EXEC:-} "$ROBSDCONFIG" -m robsd -C /var/empty/nein >"$TMP1" 2>&1; then
 		fail - "expected exit non-zero" <"$TMP1"
 	fi
 	assert_file - "$TMP1" <<-EOF
