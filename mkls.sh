@@ -21,7 +21,7 @@ DISTFILES \
 	*.c !(config).h libks/*.[ch] *.md !(mkls).sh \
 	configure \
 	robsd?(-clean|-cross|-crossenv|-kill|-ports|-regress|-rescue) \
-	*.5 robsd?(-clean|-config|-cross|-crossenv|-kill|-ports|-regress|-regress-html|-rescue|-stat|-step).[0-9] \
+	*.5 robsd?(-clean|-config|-cross|-crossenv|-kill|-ports|-regress|-regress-html|-regress-log|-rescue|-stat|-step).[0-9] \
 	LICENSE Makefile Makefile.inc \
 	tests/*.sh tests/Makefile
 

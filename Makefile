@@ -270,6 +270,7 @@ DISTFILES+=	robsd-regress
 DISTFILES+=	robsd-regress-exec.sh
 DISTFILES+=	robsd-regress-html.8
 DISTFILES+=	robsd-regress-html.c
+DISTFILES+=	robsd-regress-log.8
 DISTFILES+=	robsd-regress-log.c
 DISTFILES+=	robsd-regress-mount.sh
 DISTFILES+=	robsd-regress-obj.sh
@@ -363,6 +364,7 @@ MANLINT+=	robsd-hook.5
 MANLINT+=	robsd-ports.8
 MANLINT+=	robsd-ports.conf.5
 MANLINT+=	robsd-regress-html.8
+MANLINT+=	robsd-regress-log.8
 MANLINT+=	robsd-regress.8
 MANLINT+=	robsd-regress.conf.5
 MANLINT+=	robsd-rescue.8
@@ -512,6 +514,7 @@ install: all
 	${INSTALL_MAN} ${.CURDIR}/robsd-regress-html.8 ${DESTDIR}${MANDIR}/man8
 # robsd-regress-log
 	${INSTALL} -m 0555 ${PROG_robsd-regress-log} ${DESTDIR}${LIBEXECDIR}/robsd
+	${INSTALL_MAN} ${.CURDIR}/robsd-regress-log.8 ${DESTDIR}${MANDIR}/man8
 .PHONY: install
 
 lint-clang-tidy:

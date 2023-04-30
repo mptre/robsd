@@ -1,0 +1,42 @@
+.Dd $Mdocdate: Apr 29 2023$
+.Dt ROBSD-REGRESS-LOG 8
+.Os
+.Sh NAME
+.Nm robsd-regress-log
+.Nd bsd.regress.mk log parser
+.Sh SYNOPSIS
+.Nm robsd-regress-log
+.Op Fl FSXn
+.Ar path ...
+.Sh DESCRIPTION
+The
+.Nm
+utility extracts make targets
+.Pq i.e. test cases
+with a specific outcome from output produced by
+.Xr bsd.regress.mk 5 .
+.Pp
+The options are as follows:
+.Bl -tag -width Ds
+.It Fl F
+Extract failed targets.
+Note that unexpected pass targets are also interpreted as failures.
+.It Fl S
+Extract skipped targets.
+.It Fl X
+Extract expected fail targets.
+.It Fl n
+Do not output extracted targets.
+The exit status can be used to determine if any targets where found.
+.It Ar path
+Path to output produced by
+.Xr bsd.regress.mk 5 .
+.El
+.Sh DIAGNOSTICS
+.Ex -std
+.Sh SEE ALSO
+.Xr bsd.regress.mk 5 ,
+.Xr robsd-regress 8 ,
+.Xr robsd-regress-html 8
+.Sh AUTHORS
+.An Anton Lindqvist Aq Mt anton@basename.se
