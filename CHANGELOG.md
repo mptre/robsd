@@ -1,3 +1,25 @@
+# 17.6.0 - 2023-04-30
+
+## News
+
+- robsd-regress: treat unexpected pass as failures.
+  (f37b9b1)
+  (Anton Lindqvist)
+
+- Add robsd-regress-log manual.
+  (5898000)
+  (Anton Lindqvist)
+
+## Bug fixes
+
+- robsd-regress-html: cope with multiple invocations per day.
+  (9368096)
+  (Anton Lindqvist)
+
+- robsd-ls: fix keep-dir regression.
+  (0640835)
+  (Anton Lindqvist)
+
 # 17.5.1 - 2023-04-26
 
 ## Bug fixes
