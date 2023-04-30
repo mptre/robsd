@@ -27,7 +27,7 @@ main(int argc, char *argv[])
 	int skip_builddir = 0;
 	int ch;
 
-	if (pledge("stdio rpath inet route", NULL) == -1)
+	if (pledge("stdio rpath", NULL) == -1)
 		err(1, "pledge");
 
 	while ((ch = getopt(argc, argv, "BC:m:")) != -1) {
@@ -64,9 +64,6 @@ main(int argc, char *argv[])
 		if (va != NULL)
 			builddir = variable_get_value(va)->str;
 	}
-
-	if (pledge("stdio rpath", NULL) == -1)
-		err(1, "pledge");
 
 	robsddir = config_interpolate_str(config, "${robsddir}");
 	if (robsddir == NULL) {
