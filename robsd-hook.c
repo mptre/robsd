@@ -109,7 +109,7 @@ out:
 static void
 usage(void)
 {
-	fprintf(stderr, "usage: robsd-hook -m mode [-f file] [-v var=val]\n");
+	fprintf(stderr, "usage: robsd-hook -m mode [-v var=val]\n");
 	exit(1);
 }
 
