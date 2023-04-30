@@ -1,8 +1,7 @@
 portable no
 
 if testcase "basic"; then
-	# shellcheck disable=SC2086
-	mkdir -p ${ROBSDDIR}/2019-03-0{1,2}/rel
+	mkdir -p "${ROBSDDIR}/2019-03-01/rel" "${ROBSDDIR}/2019-03-02/rel"
 	for _d in "$ROBSDDIR"/*; do
 		for _f in \
 			01-base.log 01-base.log.1 03-env.log comment dmesg \
@@ -42,8 +41,7 @@ if testcase "basic"; then
 fi
 
 if testcase "missing log files"; then
-	# shellcheck disable=SC2086
-	mkdir -p ${ROBSDDIR}/2019-03-0{1,2}/rel
+	mkdir -p "${ROBSDDIR}/2019-03-01/rel" "${ROBSDDIR}/2019-03-02/rel"
 	robsd_config - <<-EOF
 	robsddir "${TSHDIR}"
 	EOF
@@ -53,8 +51,7 @@ if testcase "missing log files"; then
 fi
 
 if testcase "attic already present"; then
-	# shellcheck disable=SC2086
-	mkdir -p ${ROBSDDIR}/2019-03-0{1,2}
+	mkdir -p "${ROBSDDIR}/2019-03-01/rel" "${ROBSDDIR}/2019-03-02/rel"
 	mkdir -p "${ROBSDDIR}/attic"
 	robsd_config - <<-EOF
 	robsddir "${TSHDIR}"

@@ -798,11 +798,9 @@ purge() {
 
 	_attic="$(config_value keep-dir)"
 
-	find "$_dir" -mindepth 1 -maxdepth 1 -type d |
-	grep -v "$_attic" |
+	prev_release -B |
 	sort -n |
-	tail -r |
-	tail -n "+$((_n + 1))" |
+	head -n "$_n" |
 	while read -r _d; do
 		[ -d "$_attic" ] || mkdir "$_attic"
 
