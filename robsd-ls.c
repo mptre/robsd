@@ -100,6 +100,6 @@ out:
 static void
 usage(void)
 {
-	fprintf(stderr, "usage: robsd-ls -m mode [-B] [-f path]\n");
+	fprintf(stderr, "usage: robsd-ls -m mode [-B]\n");
 	exit(1);
 }
