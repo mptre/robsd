@@ -74,7 +74,7 @@ if testcase "regress"; then
 fi
 
 if testcase "keep dir"; then
-	mkdir "${TSHDIR}/2022-11-28" "${TSHDIR}/2022-11-29"
+	mkdir "${TSHDIR}/2022-11-28" "${TSHDIR}/2022-11-29" "${TSHDIR}/attic"
 	robsd_config - <<-EOF
 	robsddir "${TSHDIR}"
 	EOF

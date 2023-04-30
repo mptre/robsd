@@ -20,6 +20,7 @@ int		 config_parse(struct config *);
 int		 config_append_var(struct config *, const char *);
 struct variable	*config_find(struct config *, const char *);
 int		 config_interpolate(struct config *);
+char		*config_interpolate_str(struct config *, const char *);
 char		*config_interpolate_lookup(const char *, void *);
 
 const struct variable_value *variable_get_value(const struct variable *);

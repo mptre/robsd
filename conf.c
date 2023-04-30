@@ -467,6 +467,15 @@ config_interpolate(struct config *cf)
 }
 
 char *
+config_interpolate_str(struct config *cf, const char *str)
+{
+	return interpolate_str(str, &(struct interpolate_arg){
+	    .lookup	= config_interpolate_lookup,
+	    .arg	= cf,
+	});
+}
+
+char *
 config_interpolate_lookup(const char *name, void *arg)
 {
 	struct config *cf = (struct config *)arg;

@@ -20,7 +20,9 @@ main(int argc, char *argv[])
 	const char *builddir = NULL;
 	const char *mode = NULL;
 	const char *path = NULL;
-	const char *keepdir, *p, *robsddir;
+	const char *p;
+	char *keepdir = NULL;
+	char *robsddir = NULL;
 	int error = 0;
 	int skip_builddir = 0;
 	int ch;
@@ -66,10 +68,16 @@ main(int argc, char *argv[])
 	if (pledge("stdio rpath", NULL) == -1)
 		err(1, "pledge");
 
-	va = config_find(config, "robsddir");
-	robsddir = variable_get_value(va)->str;
-	va = config_find(config, "keep-dir");
-	keepdir = variable_get_value(va)->str;
+	robsddir = config_interpolate_str(config, "${robsddir}");
+	if (robsddir == NULL) {
+		error = 1;
+		goto out;
+	}
+	keepdir = config_interpolate_str(config, "${keep-dir}");
+	if (keepdir == NULL) {
+		error = 1;
+		goto out;
+	}
 	is = invocation_alloc(robsddir, keepdir, INVOCATION_SORT_DESC);
 	if (is == NULL) {
 		error = 1;
@@ -82,6 +90,8 @@ main(int argc, char *argv[])
 	}
 
 out:
+	free(keepdir);
+	free(robsddir);
 	invocation_free(is);
 	config_free(config);
 	return error;
