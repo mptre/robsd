@@ -6,29 +6,42 @@ setup() {
 		echo "${TSHDIR}/arm64/2022-10-25" 1666659600 0
 		echo "${TSHDIR}/arm64/2022-10-24" 1666573200 1
 	} | while read -r _dir _time _exit; do
-		mkdir -p "$_dir"
-		printf 'comment\n' >"${_dir}/comment"
-		printf 'dmesg\n' >"${_dir}/dmesg"
-		printf 'tags\n' >"${_dir}/tags"
-
-		_marker="$(printf '===> subdir\n==== test ====')"
-		_xtrace="+ x"
-		printf '%s\n%s\nPASSED\n%s\n' "$_xtrace" "$_marker" "$_xtrace" >"${_dir}/pass.log"
-		printf '%s\nSKIPPED\n' "$_marker" >"${_dir}/skip.log"
-		printf '%s\nFAILED\n' "$_marker" >"${_dir}/fail-always.log"
-		printf '%s\nFAILED\n' "$_marker" >"${_dir}/fail-once.log"
-		printf '%s\nSKIPPED\n%s\nEXPECTED_FAIL\n' \
-			"$_marker" "$_marker" >"${_dir}/xfail.log"
-
-		{
-			step_serialize -s 1 -n test/pass -l pass.log -t "$_time"
-			step_serialize -H -s 2 -n test/skip -l skip.log -t "$_time"
-			step_serialize -H -s 3 -n test/fail/once -e "$_exit" -l fail-once.log -t "$_time"
-			step_serialize -H -s 4 -n test/fail/always -e 1 -l fail-always.log -t "$_time"
-			step_serialize -H -s 4 -n test/xfail -l xfail.log -t "$_time"
-		} >"$(step_path "$_dir")"
+		create_invocation "$_dir" "$_time" "$_exit"
 	done
 
+}
+
+# create_invocation directory time exit
+create_invocation() {
+	local _dir
+	local _time
+	local _exit
+
+	_dir="$1"; : "${_dir:?}"
+	_time="$2"; : "${_time:?}"
+	_exit="$3"; : "${_exit:?}"
+
+	mkdir -p "$_dir"
+	printf 'comment\n' >"${_dir}/comment"
+	printf 'dmesg\n' >"${_dir}/dmesg"
+	printf 'tags\n' >"${_dir}/tags"
+
+	_marker="$(printf '===> subdir\n==== test ====')"
+	_xtrace="+ x"
+	printf '%s\n%s\nPASSED\n%s\n' "$_xtrace" "$_marker" "$_xtrace" >"${_dir}/pass.log"
+	printf '%s\nSKIPPED\n' "$_marker" >"${_dir}/skip.log"
+	printf '%s\nFAILED\n' "$_marker" >"${_dir}/fail-always.log"
+	printf '%s\nFAILED\n' "$_marker" >"${_dir}/fail-once.log"
+	printf '%s\nSKIPPED\n%s\nEXPECTED_FAIL\n' \
+		"$_marker" "$_marker" >"${_dir}/xfail.log"
+
+	{
+		step_serialize -s 1 -n test/pass -l pass.log -t "$_time"
+		step_serialize -H -s 2 -n test/skip -l skip.log -t "$_time"
+		step_serialize -H -s 3 -n test/fail/once -e "$_exit" -l fail-once.log -t "$_time"
+		step_serialize -H -s 4 -n test/fail/always -e 1 -l fail-always.log -t "$_time"
+		step_serialize -H -s 4 -n test/xfail -l xfail.log -t "$_time"
+	} >"$(step_path "$_dir")"
 }
 
 # robsd_regress_html [-e] [-] -- [robsd-regress-html-argument ...]
@@ -209,6 +222,21 @@ if testcase -t xmllint "patches"; then
 	src.diff.2
 	EOF
 fi
+
+if testcase -t xmllint "multiple invocations per day"; then
+	create_invocation "${TSHDIR}/amd64/2022-10-25.2" 1666663200 0
+	printf 'cvs\n' >"${TSHDIR}/amd64/2022-10-25.2/tags"
+	printf 'cvs\n' >"${TSHDIR}/amd64/2022-10-25/tags"
+	robsd_regress_html - -- -o "${TSHDIR}/html" "amd64:${TSHDIR}/amd64" </dev/null
+
+	xpath '//th[@class="date"]/text()' "${TSHDIR}/html/index.html" >"$TMP1"
+	assert_file - "$TMP1" "dates" <<-EOF
+	2022-10-25.2
+	2022-10-25
+	2022-10-24
+	EOF
+fi
+
 
 if testcase "missing runs"; then
 	{

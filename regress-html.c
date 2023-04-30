@@ -77,8 +77,8 @@ static int				  parse_invocation(struct regress_html *,
     const char *, const char *);
 static struct regress_invocation	 *create_regress_invocation(
     struct regress_html *, const char *, const char *, int64_t);
-static int				  create_directories(
-    struct regress_html *, struct regress_invocation *, const char *);
+static int				  copy_files(struct regress_html *,
+    struct regress_invocation *, const char *);
 static int				  create_patches(struct regress_html *,
     struct regress_invocation *, const char *);
 static struct suite			 *find_suite(struct regress_html *,
@@ -181,7 +181,7 @@ regress_html_parse(struct regress_html *r, const char *arch,
 	if (bf == NULL)
 		err(1, NULL);
 	keepdir = joinpath(bf, "%s/attic", robsddir);
-	is = invocation_alloc(robsddir, keepdir);
+	is = invocation_alloc(robsddir, keepdir, INVOCATION_SORT_ASC);
 	if (is == NULL) {
 		error = 1;
 		goto out;
@@ -271,7 +271,11 @@ parse_invocation(struct regress_html *r, const char *arch,
 	}
 
 	ri = create_regress_invocation(r, arch, date, time);
-	if (create_directories(r, ri, directory)) {
+	if (ri == NULL) {
+		error = 1;
+		goto out;
+	}
+	if (copy_files(r, ri, directory)) {
 		error = 1;
 		goto out;
 	}
@@ -361,8 +365,38 @@ static struct regress_invocation *
 create_regress_invocation(struct regress_html *r, const char *arch,
     const char *date, int64_t time)
 {
-	struct regress_invocation *ri;
-	const char *comment, *dmesg, *patches;
+	struct buffer *bf;
+	struct regress_invocation *ri = NULL;
+	const char *comment, *dmesg, *patches, *path;
+	int ntries = 0;
+
+	/* Create architecture specific directory. */
+	path = joinpath(r->path, "%s/%s", r->output, arch);
+	if (mkdir(path, 0755) == -1 && errno != EEXIST) {
+		warn("mkdir: %s", path);
+		return NULL;
+	}
+
+	/* Cope with multiple invocations per day. */
+	bf = buffer_alloc(16);
+	if (bf == NULL)
+		err(1, NULL);
+	for (;;) {
+		buffer_reset(bf);
+		buffer_printf(bf, "%s", date);
+		if (++ntries > 1)
+			buffer_printf(bf, ".%d", ntries);
+		buffer_putc(bf, '\0');
+		path = joinpath(r->path, "%s/%s/%s", r->output, arch,
+		    buffer_get_ptr(bf));
+		if (mkdir(path, 0755) == 0)
+			break;
+		if (errno == EEXIST)
+			continue;
+		warn("mkdir: %s", path);
+		goto out;
+	}
+	date = buffer_get_ptr(bf);
 
 	ri = VECTOR_CALLOC(r->invocations);
 	if (ri == NULL)
@@ -381,29 +415,18 @@ create_regress_invocation(struct regress_html *r, const char *arch,
 
 	ri->time = time;
 
+out:
+	buffer_free(bf);
 	return ri;
 }
 
 static int
-create_directories(struct regress_html *r, struct regress_invocation *ri,
+copy_files(struct regress_html *r, struct regress_invocation *ri,
     const char *directory)
 {
 	struct buffer *bf = NULL;
 	const char *path;
 	int error = 0;
-
-	path = joinpath(r->path, "%s/%s", r->output, ri->arch);
-	if (mkdir(path, 0755) == -1 && errno != EEXIST) {
-		warn("mkdir: %s", path);
-		error = 1;
-		goto out;
-	}
-	path = joinpath(r->path, "%s/%s/%s", r->output, ri->arch, ri->date);
-	if (mkdir(path, 0755) == -1 && errno != EEXIST) {
-		warn("mkdir: %s", path);
-		error = 1;
-		goto out;
-	}
 
 	path = joinpath(r->path, "%s/dmesg", directory);
 	bf = buffer_read(path);

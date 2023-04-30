@@ -70,7 +70,7 @@ main(int argc, char *argv[])
 	robsddir = variable_get_value(va)->str;
 	va = config_find(config, "keep-dir");
 	keepdir = variable_get_value(va)->str;
-	is = invocation_alloc(robsddir, keepdir);
+	is = invocation_alloc(robsddir, keepdir, INVOCATION_SORT_DESC);
 	if (is == NULL) {
 		error = 1;
 		goto out;
