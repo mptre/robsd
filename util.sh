@@ -149,7 +149,8 @@ config_value()
 
 	_var="$1"; : "${_var:?}"
 
-	echo "echo \${${_var}}" | config_load
+	echo "\${${_var}}" |
+	"$ROBSDCONFIG" -m "$_MODE" ${ROBSDCONF:+"-f${ROBSDCONF}"} -
 }
 
 # cvs_changelog -t tmp-dir
