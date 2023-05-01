@@ -1,7 +1,9 @@
 portable no
 
 if testcase "basic"; then
-	mkdir -p "${ROBSDDIR}/2019-03-01/rel" "${ROBSDDIR}/2019-03-02/rel"
+	for _d in 2019-03-01 2019-03-02 2019-03-03; do
+		mkdir -p "${ROBSDDIR}/${_d}/rel"
+	done
 	for _d in "$ROBSDDIR"/*; do
 		for _f in \
 			01-base.log 01-base.log.1 03-env.log comment dmesg \
@@ -18,13 +20,17 @@ if testcase "basic"; then
 	robsddir "${TSHDIR}"
 	EOF
 
-	assert_eq "${ROBSDDIR}/2019-03-01" "$(purge "$ROBSDDIR" 1)"
-
-	[ -d "${ROBSDDIR}/2019-03-02" ] ||
-		fail "expected 2019-03-02 to be left"
+	purge "$ROBSDDIR" 2 >"$TMP1"
+	assert_file - "$TMP1" <<-EOF
+	${ROBSDDIR}/2019-03-01
+	EOF
 
 	[ -d "${ROBSDDIR}/attic/2019/03/01" ] ||
 		fail "expected 2019-03-01 to be moved"
+	[ -d "${ROBSDDIR}/2019-03-02" ] ||
+		fail "expected 2019-03-02 to be left"
+	[ -d "${ROBSDDIR}/2019-03-03" ] ||
+		fail "expected 2019-03-03 to be left"
 
 	for _f in 01-base.log 01-base.log.1 03-env.log dmesg tmp; do
 		_p="${ROBSDDIR}/attic/2019/03/01/${_f}"
