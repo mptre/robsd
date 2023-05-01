@@ -1,3 +1,11 @@
+# 17.6.1 - 2023-05-01
+
+## Bug fixes
+
+- Fix robsd-clean regression.
+  (f014803)
+  (Anton Lindqvist)
+
 # 17.6.0 - 2023-04-30
 
 ## News
