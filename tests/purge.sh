@@ -2,9 +2,9 @@ portable no
 
 if testcase "basic"; then
 	for _d in 2019-03-01 2019-03-02 2019-03-03; do
-		mkdir -p "${ROBSDDIR}/${_d}/rel"
+		mkdir -p "${TSHDIR}/${_d}/rel"
 	done
-	for _d in "$ROBSDDIR"/*; do
+	for _d in "$TSHDIR"/*; do
 		for _f in \
 			01-base.log 01-base.log.1 03-env.log comment dmesg \
 			rel/index.txt report stat.csv src.diff.1 tags
@@ -15,58 +15,58 @@ if testcase "basic"; then
 		mkdir "${_d}/tmp"
 		touch "${_d}/tmp/cvs.log"
 	done
-	touch -t 201903012233.44 "${ROBSDDIR}/2019-03-01"
+	touch -t 201903012233.44 "${TSHDIR}/2019-03-01"
 	robsd_config - <<-EOF
 	robsddir "${TSHDIR}"
 	EOF
 
-	purge "$ROBSDDIR" 2 >"$TMP1"
+	purge "$TSHDIR" 2 >"$TMP1"
 	assert_file - "$TMP1" <<-EOF
-	${ROBSDDIR}/2019-03-01
+	${TSHDIR}/2019-03-01
 	EOF
 
-	[ -d "${ROBSDDIR}/attic/2019/03/01" ] ||
+	[ -d "${TSHDIR}/attic/2019/03/01" ] ||
 		fail "expected 2019-03-01 to be moved"
-	[ -d "${ROBSDDIR}/2019-03-02" ] ||
+	[ -d "${TSHDIR}/2019-03-02" ] ||
 		fail "expected 2019-03-02 to be left"
-	[ -d "${ROBSDDIR}/2019-03-03" ] ||
+	[ -d "${TSHDIR}/2019-03-03" ] ||
 		fail "expected 2019-03-03 to be left"
 
 	for _f in 01-base.log 01-base.log.1 03-env.log dmesg tmp; do
-		_p="${ROBSDDIR}/attic/2019/03/01/${_f}"
+		_p="${TSHDIR}/attic/2019/03/01/${_f}"
 		[ -e "$_p" ] && fail "expected ${_p} to be removed"
 	done
 
 	for _f in comment rel/index.txt report stat.csv src.diff.1 step.csv tags; do
-		_p="${ROBSDDIR}/attic/2019/03/01/${_f}"
+		_p="${TSHDIR}/attic/2019/03/01/${_f}"
 		[ -e "$_p" ] || fail "expected ${_p} to be left"
 	done
 
 	assert_eq "Mar  1 22:33:44 2019" \
-		"$(stat -f '%Sm' "${ROBSDDIR}/attic/2019/03/01")"
+		"$(stat -f '%Sm' "${TSHDIR}/attic/2019/03/01")"
 fi
 
 if testcase "missing log files"; then
-	mkdir -p "${ROBSDDIR}/2019-03-01/rel" "${ROBSDDIR}/2019-03-02/rel"
+	mkdir -p "${TSHDIR}/2019-03-01/rel" "${TSHDIR}/2019-03-02/rel"
 	robsd_config - <<-EOF
 	robsddir "${TSHDIR}"
 	EOF
 
-	assert_eq "${ROBSDDIR}/2019-03-01" "$(purge "$ROBSDDIR" 1)"
-	assert_eq "" "$(find "${ROBSDDIR}/attic/2019/03/01" -type f)"
+	assert_eq "${TSHDIR}/2019-03-01" "$(purge "$TSHDIR" 1)"
+	assert_eq "" "$(find "${TSHDIR}/attic/2019/03/01" -type f)"
 fi
 
 if testcase "attic already present"; then
-	mkdir -p "${ROBSDDIR}/2019-03-01/rel" "${ROBSDDIR}/2019-03-02/rel"
-	mkdir -p "${ROBSDDIR}/attic"
+	mkdir -p "${TSHDIR}/2019-03-01/rel" "${TSHDIR}/2019-03-02/rel"
+	mkdir -p "${TSHDIR}/attic"
 	robsd_config - <<-EOF
 	robsddir "${TSHDIR}"
 	EOF
 
-	assert_eq "${ROBSDDIR}/2019-03-01" "$(purge "$ROBSDDIR" 1)"
+	assert_eq "${TSHDIR}/2019-03-01" "$(purge "$TSHDIR" 1)"
 
-	[ -d "${ROBSDDIR}/2019-03-02" ] ||
+	[ -d "${TSHDIR}/2019-03-02" ] ||
 		fail "expected 2019-03-02 to be left"
-	[ -d "${ROBSDDIR}/attic/2019/03/01" ] ||
+	[ -d "${TSHDIR}/attic/2019/03/01" ] ||
 		fail "expected 2019-03-01 to be moved"
 fi
