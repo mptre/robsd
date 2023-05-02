@@ -1,12 +1,11 @@
 . "${EXECDIR}/util.sh"
 
-if [ "$(config_value reboot)" -eq 0 ]; then
-	exit 0
-fi
-
 config_load <<-'EOF'
 BUILDDIR="${builddir}"
+REBOOT="${reboot}"
 EOF
+
+[ "$REBOOT" -eq 1 ] || exit 0
 
 cat <<-EOF >>/etc/rc.firsttime
 /usr/local/sbin/robsd -r ${BUILDDIR} >/dev/null
