@@ -58,18 +58,11 @@ regress_log_shutdown(void)
 }
 
 /*
- * Parse the given log located at path and extract regress test cases with a
- * specific outcome. The flags may be any combination of the following:
+ * Parse the given log located at path and extract regress test targets with a
+ * specific outcome. Returns one of the following:
  *
- *     REGRESS_LOG_FAILED     Extract failed test cases.
- *     REGRESS_LOG_SKIPPED    Extract skipped test cases.
- *     REGRESS_LOG_XFAILED    Extract expected failed test cases.
- *     REGRESS_LOG_ERROR      If no test cases are found, extract make errors.
- *
- * Returns one of the following:
- *
- *     >0    At least one or more test cases extracted.
- *     0     No test cases extracted.
+ *     >0    At least one or more test targets extracted.
+ *     0     No test targets extracted.
  *     <0    Fatal error occurred.
  */
 int
