@@ -6,7 +6,7 @@
 .Nd bsd.regress.mk log parser
 .Sh SYNOPSIS
 .Nm robsd-regress-log
-.Op Fl FSXn
+.Op Fl EFSXn
 .Ar path ...
 .Sh DESCRIPTION
 The
@@ -18,6 +18,13 @@ with a specific outcome from output produced by
 .Pp
 The options are as follows:
 .Bl -tag -width Ds
+.It Fl E
+Extract generic
+.Xr make 1
+errors.
+Intended to be used as a fallback when a failure occurred in a target not
+covered by
+.Ev REGRESS_TARGETS .
 .It Fl F
 Extract failed targets.
 Note that unexpected pass targets are also interpreted as failures.

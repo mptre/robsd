@@ -61,9 +61,10 @@ regress_log_shutdown(void)
  * Parse the given log located at path and extract regress test cases with a
  * specific outcome. The flags may be any combination of the following:
  *
- *     REGRESS_LOG_FAILED     Extract failed test cases or make errors.
+ *     REGRESS_LOG_FAILED     Extract failed test cases.
  *     REGRESS_LOG_SKIPPED    Extract skipped test cases.
  *     REGRESS_LOG_XFAILED    Extract expected failed test cases.
+ *     REGRESS_LOG_ERROR      If no test cases are found, extract make errors.
  *
  * Returns one of the following:
  *
@@ -106,7 +107,7 @@ regress_log_parse(const char *path, struct buffer *out, unsigned int flags)
 			buffer_reset(bf);
 		buffer_puts(bf, line, (size_t)n);
 
-		if ((flags & REGRESS_LOG_FAILED) && iserror(line))
+		if ((flags & REGRESS_LOG_ERROR) && iserror(line))
 			errorlen = buffer_get_len(bf);
 
 		if (((flags & REGRESS_LOG_SKIPPED) && isskipped(line)) ||
@@ -121,7 +122,7 @@ regress_log_parse(const char *path, struct buffer *out, unsigned int flags)
 			errorlen = 0;
 		}
 	}
-	if ((flags & REGRESS_LOG_FAILED) && nfound == 0 && !error &&
+	if ((flags & REGRESS_LOG_ERROR) && nfound == 0 && !error &&
 	    errorlen > 0) {
 		buffer_printf(out, "%.*s", (int)errorlen, buffer_get_ptr(bf));
 		nfound++;

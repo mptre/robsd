@@ -133,6 +133,20 @@ if testcase "failed"; then
 	EOF
 fi
 
+if testcase "failed only expected fail"; then
+	cat <<-EOF >"$TMP1"
+	==== test-pass ====
+	./test
+
+	==== test-expected-fail ====
+	./test
+	*** Error 1 in . (Makefile:54 'test-expected-fail')
+	EXPECTED_FAIL
+	EOF
+
+	robsd_regress_log -e - -- -F "$TMP1" </dev/null
+fi
+
 if testcase "failed and skipped"; then
 	cat <<-EOF >"$TMP1"
 	==== t0 ====
@@ -168,7 +182,7 @@ if testcase "error"; then
 	robsd-regress-exec: process group exited 2
 	EOF
 
-	robsd_regress_log - -- -F "$TMP1" <<-EOF
+	robsd_regress_log - -- -E "$TMP1" <<-EOF
 	===> asn1
 	cc -O2 -pipe  -Wall -Wundef -Werror -c asn1basic.c
 	asn1basic.c:519:7: error: implicit declaration of function 'ASN1_INTEGER_set_uint64' is invalid in C99
