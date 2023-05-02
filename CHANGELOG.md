@@ -1,3 +1,16 @@
+# 17.6.2 - 2023-05-02
+
+## Bug fixes
+
+- Fix robsd reboot step regression.
+  (1d0ecd7)
+  (Anton Lindqvist)
+
+- Fix robsd-regress-log regression in which certain passing tests where erroneously
+  labelled as failures.
+  (c9f995b)
+  (Anton Lindqvist)
+
 # 17.6.1 - 2023-05-01
 
 ## Bug fixes
