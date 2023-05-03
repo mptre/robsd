@@ -305,7 +305,7 @@ parse_invocation(struct regress_html *r, const char *arch,
 		if (run == NULL)
 			err(1, NULL);
 		buffer_reset(scratch);
-		buffer_printf(scratch, "%s/%s/%s", arch, date, log);
+		buffer_printf(scratch, "%s/%s/%s", arch, ri->date, log);
 		run->log = estrdup(buffer_get_ptr(scratch));
 		run->time = time;
 		buffer_reset(scratch);

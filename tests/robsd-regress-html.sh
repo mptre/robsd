@@ -230,10 +230,19 @@ if testcase -t xmllint "multiple invocations per day"; then
 	robsd_regress_html - -- -o "${TSHDIR}/html" "amd64:${TSHDIR}/amd64" </dev/null
 
 	xpath '//th[@class="date"]/text()' "${TSHDIR}/html/index.html" >"$TMP1"
-	assert_file - "$TMP1" "dates" <<-EOF
+	assert_file - "$TMP1" <<-EOF
 	2022-10-25.2
 	2022-10-25
 	2022-10-24
+	EOF
+
+	xpath '//td[@class="PASS"]/a/@href' "${TSHDIR}/html/index.html" >"$TMP1"
+	assert_file - "$TMP1" <<-EOF
+	href=amd64/2022-10-25.2/fail-once.log
+	href=amd64/2022-10-25/fail-once.log
+	href=amd64/2022-10-25.2/pass.log
+	href=amd64/2022-10-25/pass.log
+	href=amd64/2022-10-24/pass.log
 	EOF
 fi
 
