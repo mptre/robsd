@@ -364,8 +364,8 @@ create_regress_invocation(struct regress_html *r, const char *arch,
 	const char *comment, *dmesg, *patches, *path;
 
 	/*
-	 * Create architecture output directory, could already be created while
-	 * handling a previous invocation.
+	 * Create architecture output directory, could already have been created
+	 * while handling a previous invocation.
 	 */
 	path = joinpath(r->path, "%s/%s", r->output, arch);
 	if (mkdir(path, 0755) == -1 && errno != EEXIST) {
