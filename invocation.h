@@ -8,10 +8,10 @@ struct invocation_entry {
 	char basename[NAME_MAX + 1];
 };
 
-struct invocation_state	*invocation_alloc(const char *, const char *,
+struct invocation_state		*invocation_alloc(const char *, const char *,
     unsigned int);
-void			 invocation_free(struct invocation_state *);
-const char		*invocation_walk(struct invocation_state *);
+void				 invocation_free(struct invocation_state *);
+const struct invocation_entry	*invocation_walk(struct invocation_state *);
 
 struct invocation_entry	*invocation_find(const char *, const char *);
 void			 invocation_find_free(struct invocation_entry *);

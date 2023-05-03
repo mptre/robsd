@@ -79,12 +79,10 @@ invocation_free(struct invocation_state *s)
 	free(s);
 }
 
-const char *
+const struct invocation_entry *
 invocation_walk(struct invocation_state *s)
 {
-	if (VECTOR_EMPTY(s->directories))
-		return NULL;
-	return VECTOR_POP(s->directories)->path;
+	return VECTOR_POP(s->directories);
 }
 
 struct invocation_entry *
@@ -207,7 +205,9 @@ invocation_read(struct invocation_state *s, DIR *dir)
 		entry = VECTOR_ALLOC(s->directories);
 		if (entry == NULL)
 			err(1, NULL);
-		memcpy(entry->path, path, sizeof(path));
+		(void)snprintf(entry->path, sizeof(entry->path), "%s", path);
+		(void)snprintf(entry->basename, sizeof(entry->basename), "%s",
+		    de->d_name);
 	}
 	return 0;
 }

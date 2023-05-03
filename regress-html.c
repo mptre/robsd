@@ -74,7 +74,7 @@ struct suite {
 };
 
 static int				  parse_invocation(struct regress_html *,
-    const char *, const char *);
+    const char *, const char *, const char *);
 static struct regress_invocation	 *create_regress_invocation(
     struct regress_html *, const char *, const char *, int64_t);
 static int				  copy_files(struct regress_html *,
@@ -107,7 +107,6 @@ static void	render_run(struct regress_html *,
     const struct run *);
 
 static const char	*cvsweb_url(struct buffer *, const char *);
-static int		 dateformat(int64_t, char *, size_t);
 static const char	*joinpath(struct buffer *, const char *, ...)
 	__attribute__((__format__(printf, 2, 3)));
 static const char	*strstatus(enum run_status);
@@ -173,8 +172,9 @@ regress_html_parse(struct regress_html *r, const char *arch,
     const char *robsddir)
 {
 	struct buffer *bf;
-	const char *keepdir, *path;
+	const char *keepdir;
 	struct invocation_state *is;
+	const struct invocation_entry *entry;
 	int error = 0;
 
 	bf = buffer_alloc(PATH_MAX);
@@ -186,8 +186,8 @@ regress_html_parse(struct regress_html *r, const char *arch,
 		error = 1;
 		goto out;
 	}
-	while ((path = invocation_walk(is)) != NULL) {
-		if (parse_invocation(r, arch, path)) {
+	while ((entry = invocation_walk(is)) != NULL) {
+		if (parse_invocation(r, arch, entry->path, entry->basename)) {
 			error = 1;
 			goto out;
 		}
@@ -242,9 +242,8 @@ regress_html_render(struct regress_html *r)
 
 static int
 parse_invocation(struct regress_html *r, const char *arch,
-    const char *directory)
+    const char *directory, const char *date)
 {
-	char date[16];
 	struct buffer *dmesg = NULL;
 	struct buffer *scratch = r->scratch;
 	struct step *steps;
@@ -265,11 +264,6 @@ parse_invocation(struct regress_html *r, const char *arch,
 	}
 
 	time = step_get_field(&steps[0], "time")->integer;
-	if (dateformat(time, date, sizeof(date))) {
-		error = 1;
-		goto out;
-	}
-
 	ri = create_regress_invocation(r, arch, date, time);
 	if (ri == NULL) {
 		error = 1;
@@ -366,44 +360,31 @@ static struct regress_invocation *
 create_regress_invocation(struct regress_html *r, const char *arch,
     const char *date, int64_t time)
 {
-	struct buffer *bf;
 	struct regress_invocation *ri = NULL;
 	const char *comment, *dmesg, *patches, *path;
-	int ntries = 0;
 
-	/* Create architecture specific directory. */
+	/*
+	 * Create architecture output directory, could already be created while
+	 * handling a previous invocation.
+	 */
 	path = joinpath(r->path, "%s/%s", r->output, arch);
 	if (mkdir(path, 0755) == -1 && errno != EEXIST) {
 		warn("mkdir: %s", path);
 		return NULL;
 	}
-
-	/* Cope with multiple invocations per day. */
-	bf = buffer_alloc(16);
-	if (bf == NULL)
-		err(1, NULL);
-	for (;;) {
-		buffer_reset(bf);
-		buffer_printf(bf, "%s", date);
-		if (++ntries > 1)
-			buffer_printf(bf, ".%d", ntries);
-		buffer_putc(bf, '\0');
-		path = joinpath(r->path, "%s/%s/%s", r->output, arch,
-		    buffer_get_ptr(bf));
-		if (mkdir(path, 0755) == 0)
-			break;
-		if (errno == EEXIST)
-			continue;
+	/* Create invocation output directory. */
+	path = joinpath(r->path, "%s/%s/%s", r->output, arch, date);
+	if (mkdir(path, 0755) == -1) {
 		warn("mkdir: %s", path);
-		goto out;
+		return NULL;
 	}
-	date = buffer_get_ptr(bf);
 
 	ri = VECTOR_CALLOC(r->invocations);
 	if (ri == NULL)
 		err(1, NULL);
 	ri->arch = estrdup(arch);
 	ri->date = estrdup(date);
+	ri->time = time;
 
 	dmesg = joinpath(r->path, "%s/%s/dmesg", arch, date);
 	ri->dmesg = estrdup(dmesg);
@@ -414,10 +395,6 @@ create_regress_invocation(struct regress_html *r, const char *arch,
 	patches = joinpath(r->path, "%s/%s/diff", arch, date);
 	ri->patches = estrdup(patches);
 
-	ri->time = time;
-
-out:
-	buffer_free(bf);
 	return ri;
 }
 
@@ -814,23 +791,6 @@ cvsweb_url(struct buffer *bf, const char *path)
 	buffer_printf(bf,
 	    "https://cvsweb.openbsd.org/cgi-bin/cvsweb/src/regress/%s", path);
 	return buffer_get_ptr(bf);
-}
-
-static int
-dateformat(int64_t ts, char *buf, size_t bufsiz)
-{
-	struct tm tm;
-	time_t time = ts;
-
-	if (gmtime_r(&time, &tm) == NULL) {
-		warn("gmtime_r");
-		return 1;
-	}
-	if (strftime(buf, bufsiz, "%Y-%m-%d", &tm) == 0) {
-		warn("strftime");
-		return 1;
-	}
-	return 0;
 }
 
 static const char *

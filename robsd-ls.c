@@ -16,11 +16,11 @@ main(int argc, char *argv[])
 {
 	struct config *config = NULL;
 	struct invocation_state *is = NULL;
+	const struct invocation_entry *entry;
 	const struct variable *va;
 	const char *builddir = NULL;
 	const char *mode = NULL;
 	const char *path = NULL;
-	const char *p;
 	char *keepdir = NULL;
 	char *robsddir = NULL;
 	int error = 0;
@@ -80,10 +80,10 @@ main(int argc, char *argv[])
 		error = 1;
 		goto out;
 	}
-	while ((p = invocation_walk(is)) != NULL) {
-		if (builddir != NULL && strcmp(p, builddir) == 0)
+	while ((entry = invocation_walk(is)) != NULL) {
+		if (builddir != NULL && strcmp(entry->path, builddir) == 0)
 			continue;
-		printf("%s\n", p);
+		printf("%s\n", entry->path);
 	}
 
 out:
