@@ -10,10 +10,8 @@ struct invocation_entry {
 
 struct invocation_state		*invocation_alloc(const char *, const char *,
     unsigned int);
+struct invocation_state		*invocation_find(const char *, const char *);
 void				 invocation_free(struct invocation_state *);
 const struct invocation_entry	*invocation_walk(struct invocation_state *);
-
-struct invocation_entry	*invocation_find(const char *, const char *);
-void			 invocation_find_free(struct invocation_entry *);
 
 int	invocation_has_tag(const char *, const char *);

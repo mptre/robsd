@@ -440,13 +440,13 @@ static int
 create_patches(struct regress_html *r, struct regress_invocation *ri,
     const char *directory)
 {
-	struct invocation_entry *patches;
+	struct invocation_state *is;
+	const struct invocation_entry *entry;
 	const char *path;
-	size_t i;
 	int error = 0;
 
-	patches = invocation_find(directory, "src.diff.*");
-	if (patches == NULL)
+	is = invocation_find(directory, "src.diff.*");
+	if (is == NULL)
 		return 0;
 
 	path = joinpath(r->path, "%s/%s", r->output, ri->patches);
@@ -455,17 +455,17 @@ create_patches(struct regress_html *r, struct regress_invocation *ri,
 		error = 1;
 		goto out;
 	}
-	for (i = 0; i < VECTOR_LENGTH(patches); i++) {
+	while ((entry = invocation_walk(is)) != NULL) {
 		struct buffer *bf;
 
-		bf = buffer_read(patches[i].path);
+		bf = buffer_read(entry->path);
 		if (bf == NULL) {
-			warn("%s", patches[i].path);
+			warn("%s", entry->path);
 			error = 1;
 			goto out;
 		}
 		path = joinpath(r->path, "%s/%s/%s",
-		    r->output, ri->patches, patches[i].basename);
+		    r->output, ri->patches, entry->basename);
 		error = write_log(path, bf);
 		buffer_free(bf);
 		if (error) {
@@ -475,7 +475,7 @@ create_patches(struct regress_html *r, struct regress_invocation *ri,
 	}
 
 out:
-	invocation_find_free(patches);
+	invocation_free(is);
 	/* coverity[leaked_storage: FALSE] */
 	return error ? 0 : 1;
 }

@@ -85,17 +85,21 @@ invocation_walk(struct invocation_state *s)
 	return VECTOR_POP(s->directories);
 }
 
-struct invocation_entry *
+struct invocation_state *
 invocation_find(const char *directory, const char *pattern)
 {
-	VECTOR(struct invocation_entry) entries;
-	DIR *dir;
+	DIR *dir = NULL;
+	struct invocation_state *s = NULL;
 	int error = 0;
 
 	dir = opendir(directory);
-	if (dir == NULL)
-		return NULL;
-	if (VECTOR_INIT(entries) == NULL)
+	if (dir == NULL) {
+		warn("opendir: %s", directory);
+		error = 1;
+		goto out;
+	}
+	s = ecalloc(1, sizeof(*s));
+	if (VECTOR_INIT(s->directories) == NULL)
 		err(1, NULL);
 
 	for (;;) {
@@ -115,7 +119,7 @@ invocation_find(const char *directory, const char *pattern)
 		if (fnmatch(pattern, de->d_name, 0) == FNM_NOMATCH)
 			continue;
 
-		entry = VECTOR_ALLOC(entries);
+		entry = VECTOR_ALLOC(s->directories);
 		if (entry == NULL)
 			err(1, NULL);
 		(void)snprintf(entry->path, sizeof(entry->path), "%s/%s",
@@ -125,20 +129,13 @@ invocation_find(const char *directory, const char *pattern)
 	}
 
 out:
+	if (dir != NULL)
+		closedir(dir);
 	if (error) {
-		VECTOR_FREE(entries);
-		entries = NULL;
+		invocation_free(s);
+		return NULL;
 	}
-	closedir(dir);
-	return entries;
-}
-
-void
-invocation_find_free(struct invocation_entry *entries)
-{
-	if (entries == NULL)
-		return;
-	VECTOR_FREE(entries);
+	return s;
 }
 
 int
