@@ -98,6 +98,8 @@ if testcase -t xmllint "basic"; then
 
 		step_serialize -H -s 5 -n test/xfail -l xfail.log -t "$_time"
 		step_log EXPECTED_FAIL >"${_buildir}/xfail.log"
+
+		step_serialize -H -s 6 -n end -t "$((_time + 3600))"
 	} >"$(step_path "$_buildir")"
 
 	_buildir="${TSHDIR}/amd64/2022-10-24.1"
@@ -118,6 +120,8 @@ if testcase -t xmllint "basic"; then
 
 		step_serialize -H -s 5 -n test/xfail -l xfail.log -t "$_time"
 		step_log EXPECTED_FAIL >"${_buildir}/xfail.log"
+
+		step_serialize -H -s 6 -n end -t "$((_time + 3600))"
 	} >"$(step_path "$_buildir")"
 
 	_buildir="${TSHDIR}/arm64/2022-10-25.1"
@@ -138,6 +142,8 @@ if testcase -t xmllint "basic"; then
 
 		step_serialize -H -s 5 -n test/xfail -l xfail.log -t "$_time"
 		step_log EXPECTED_FAIL >"${_buildir}/xfail.log"
+
+		step_serialize -H -s 6 -n end -t "$((_time + 3600))"
 	} >"$(step_path "$_buildir")"
 
 	_buildir="${TSHDIR}/arm64/2022-10-24.1"
@@ -158,6 +164,8 @@ if testcase -t xmllint "basic"; then
 
 		step_serialize -H -s 5 -n test/xfail -l xfail.log -t "$_time"
 		step_log EXPECTED_FAIL >"${_buildir}/xfail.log"
+
+		step_serialize -H -s 6 -n end -t "$((_time + 3600))"
 	} >"$(step_path "$_buildir")"
 
 	robsd_regress_html -- -o "${TSHDIR}/html" \
@@ -261,6 +269,8 @@ if testcase -t xmllint "changelog"; then
 	{
 		step_serialize -s 1 -n test/pass -l pass.log -t "$_time"
 		step_log PASSED >"${_buildir}/pass.log"
+
+		step_serialize -H -s 2 -n end -t "$((_time + 3600))"
 	} >"$(step_path "$_buildir")"
 
 	_buildir="${TSHDIR}/amd64/2022-10-24.1"
@@ -269,6 +279,8 @@ if testcase -t xmllint "changelog"; then
 	{
 		step_serialize -s 1 -n test/pass -l pass.log -t "$_time"
 		step_log PASSED >"${_buildir}/pass.log"
+
+		step_serialize -H -s 2 -n end -t "$((_time + 3600))"
 	} >"$(step_path "$_buildir")"
 
 	robsd_regress_html -- -o "${TSHDIR}/html" "amd64:${TSHDIR}/amd64"
@@ -293,6 +305,8 @@ if testcase -t xmllint "patches"; then
 	{
 		step_serialize -s 1 -n test/pass -l pass.log -t "$_time"
 		step_log PASSED >"${_buildir}/pass.log"
+
+		step_serialize -H -s 2 -n end -t "$((_time + 3600))"
 	} >"$(step_path "$_buildir")"
 
 	_buildir="${TSHDIR}/amd64/2022-10-24.1"
@@ -301,6 +315,8 @@ if testcase -t xmllint "patches"; then
 	{
 		step_serialize -s 1 -n test/pass -l pass.log -t "$_time"
 		step_log PASSED >"${_buildir}/pass.log"
+
+		step_serialize -H -s 2 -n end -t "$((_time + 3600))"
 	} >"$(step_path "$_buildir")"
 
 	robsd_regress_html -- -o "${TSHDIR}/html" "amd64:${TSHDIR}/amd64"
@@ -331,6 +347,8 @@ if testcase -t xmllint "multiple invocations per day"; then
 	{
 		step_serialize -s 1 -n test/pass -l pass.log -t "$_time"
 		step_log PASSED >"${_buildir}/pass.log"
+
+		step_serialize -H -s 2 -n end -t "$((_time + 3600))"
 	} >"$(step_path "$_buildir")"
 
 	_buildir="${TSHDIR}/amd64/2022-10-25.1"
@@ -339,6 +357,8 @@ if testcase -t xmllint "multiple invocations per day"; then
 	{
 		step_serialize -s 1 -n test/pass -l pass.log -t "$_time"
 		step_log PASSED >"${_buildir}/pass.log"
+
+		step_serialize -H -s 2 -n end -t "$((_time + 3600))"
 	} >"$(step_path "$_buildir")"
 
 	robsd_regress_html - -- -o "${TSHDIR}/html" "amd64:${TSHDIR}/amd64" </dev/null
@@ -364,6 +384,8 @@ if testcase "missing runs"; then
 	{
 		step_serialize -s 1 -n test/always -l always.log -t "$_time"
 		step_log PASSED >"${_buildir}/always.log"
+
+		step_serialize -H -s 2 -n end -t "$((_time + 3600))"
 	} >"$(step_path "$_buildir")"
 
 	_buildir="${TSHDIR}/amd64/2022-10-24.1"
@@ -375,6 +397,8 @@ if testcase "missing runs"; then
 
 		step_serialize -H -s 2 -n test/once -l once.log -t "$_time"
 		step_log SKIPPED >"${_buildir}/once.log"
+
+		step_serialize -H -s 2 -n end -t "$((_time + 3600))"
 	} >"$(step_path "$_buildir")"
 
 	_buildir="${TSHDIR}/amd64/2022-10-23.1"
@@ -383,6 +407,8 @@ if testcase "missing runs"; then
 	{
 		step_serialize -s 1 -n test/always -l always.log -t "$_time"
 		step_log PASSED >"${_buildir}/always.log"
+
+		step_serialize -H -s 2 -n end -t "$((_time + 3600))"
 	} >"$(step_path "$_buildir")"
 
 	robsd_regress_html -- -o "${TSHDIR}/html" "macppc:${TSHDIR}/amd64"
@@ -406,6 +432,8 @@ if testcase "dmesg missing"; then
 	{
 		step_serialize -s 1 -n test/pass -l pass.log -t "$_time"
 		step_log PASSED >"${_buildir}/pass.log"
+
+		step_serialize -H -s 2 -n end -t "$((_time + 3600))"
 	} >"$(step_path "$_buildir")"
 
 	robsd_regress_html - -- -o "${TSHDIR}/html" "amd64:${TSHDIR}/amd64" <<-EOF
@@ -421,6 +449,8 @@ if testcase "comment missing"; then
 	{
 		step_serialize -s 1 -n test/pass -l pass.log -t "$_time"
 		step_log PASSED >"${_buildir}/pass.log"
+
+		step_serialize -H -s 2 -n end -t "$((_time + 3600))"
 	} >"$(step_path "$_buildir")"
 
 	robsd_regress_html - -- -o "${TSHDIR}/html" "amd64:${TSHDIR}/amd64" <<-EOF
