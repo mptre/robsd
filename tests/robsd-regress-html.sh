@@ -1,47 +1,24 @@
 setup() {
 	mkdir "${TSHDIR}/html"
-	{
-		echo "${TSHDIR}/amd64/2022-10-25" 1666659600 0
-		echo "${TSHDIR}/amd64/2022-10-24" 1666573200 1
-		echo "${TSHDIR}/arm64/2022-10-25" 1666659600 0
-		echo "${TSHDIR}/arm64/2022-10-24" 1666573200 1
-	} | while read -r _dir _time _exit; do
-		create_invocation "$_dir" "$_time" "$_exit"
-	done
-
 }
 
-# create_invocation directory time exit
-create_invocation() {
-	local _dir
-	local _time
-	local _exit
+# mkbuilddir [-t tags] path
+mkbuilddir() {
+	local _tags="tags"
 
-	_dir="$1"; : "${_dir:?}"
-	_time="$2"; : "${_time:?}"
-	_exit="$3"; : "${_exit:?}"
+	while [ $# -gt 0 ]; do
+		case "$1" in
+		-t)	shift; _tags="$1";;
+		*)	break;;
+		esac
+		shift
+	done
 
-	mkdir -p "$_dir"
-	printf 'comment\n' >"${_dir}/comment"
-	printf 'dmesg\n' >"${_dir}/dmesg"
-	printf 'tags\n' >"${_dir}/tags"
-
-	_marker="$(printf '===> subdir\n==== test ====')"
-	_xtrace="+ x"
-	printf '%s\n%s\nPASSED\n%s\n' "$_xtrace" "$_marker" "$_xtrace" >"${_dir}/pass.log"
-	printf '%s\nSKIPPED\n' "$_marker" >"${_dir}/skip.log"
-	printf '%s\nFAILED\n' "$_marker" >"${_dir}/fail-always.log"
-	printf '%s\nFAILED\n' "$_marker" >"${_dir}/fail-once.log"
-	printf '%s\nSKIPPED\n%s\nEXPECTED_FAIL\n' \
-		"$_marker" "$_marker" >"${_dir}/xfail.log"
-
-	{
-		step_serialize -s 1 -n test/pass -l pass.log -t "$_time"
-		step_serialize -H -s 2 -n test/skip -l skip.log -t "$_time"
-		step_serialize -H -s 3 -n test/fail/once -e "$_exit" -l fail-once.log -t "$_time"
-		step_serialize -H -s 4 -n test/fail/always -e 1 -l fail-always.log -t "$_time"
-		step_serialize -H -s 4 -n test/xfail -l xfail.log -t "$_time"
-	} >"$(step_path "$_dir")"
+	_path="$1"; : "${_path:?}"
+	mkdir -p "$_path"
+	echo comment >"${_path}/comment"
+	echo dmesg >"${_path}/dmesg"
+	echo "$_tags" >"${_path}/tags"
 }
 
 # robsd_regress_html [-e] [-] -- [robsd-regress-html-argument ...]
@@ -73,6 +50,16 @@ robsd_regress_html() {
 	fi
 }
 
+# step_log outcome
+step_log() {
+	local _outcome
+
+	_outcome="$1"; : "${_outcome:?}"
+	print 'junk\n'
+	printf '==== test ====\n'
+	printf '%s\n' "$_outcome"
+}
+
 # xpath xpath path
 xpath() {
 	local _xpath
@@ -88,12 +75,96 @@ xpath() {
 	xargs -r printf '%s\n'
 }
 
+_2022_10_25=1666659600
+_2022_10_24=$((_2022_10_25 - 86400))
+_2022_10_23=$((_2022_10_24 - 86400))
+
 if testcase -t xmllint "basic"; then
+	_buildir="${TSHDIR}/amd64/2022-10-25.1"
+	_time="$_2022_10_25"
+	mkbuilddir "$_buildir"
+	{
+		step_serialize -s 1 -n test/pass -l pass.log -t "$_time"
+		step_log PASSED >"${_buildir}/pass.log"
+
+		step_serialize -H -s 2 -n test/skip -l skip.log -t "$_time"
+		step_log SKIPPED >"${_buildir}/skip.log"
+
+		step_serialize -H -s 3 -n test/fail/once -l fail-once.log -t "$_time"
+		step_log FAILED >"${_buildir}/fail-once.log"
+
+		step_serialize -H -s 4 -n test/fail/always -l fail-always.log -t "$_time" -e 1
+		step_log FAILED >"${_buildir}/fail-always.log"
+
+		step_serialize -H -s 5 -n test/xfail -l xfail.log -t "$_time"
+		step_log EXPECTED_FAIL >"${_buildir}/xfail.log"
+	} >"$(step_path "$_buildir")"
+
+	_buildir="${TSHDIR}/amd64/2022-10-24.1"
+	_time="$_2022_10_24"
+	mkbuilddir "$_buildir"
+	{
+		step_serialize -s 1 -n test/pass -l pass.log -t "$_time"
+		step_log PASSED >"${_buildir}/pass.log"
+
+		step_serialize -H -s 2 -n test/skip -l skip.log -t "$_time"
+		step_log SKIPPED >"${_buildir}/skip.log"
+
+		step_serialize -H -s 3 -n test/fail/once -l fail-once.log -t "$_time" -e 1
+		step_log PASSED >"${_buildir}/fail-once.log"
+
+		step_serialize -H -s 4 -n test/fail/always -l fail-always.log -t "$_time" -e 1
+		step_log FAILED >"${_buildir}/fail-always.log"
+
+		step_serialize -H -s 5 -n test/xfail -l xfail.log -t "$_time"
+		step_log EXPECTED_FAIL >"${_buildir}/xfail.log"
+	} >"$(step_path "$_buildir")"
+
+	_buildir="${TSHDIR}/arm64/2022-10-25.1"
+	_time="$_2022_10_25"
+	mkbuilddir "$_buildir"
+	{
+		step_serialize -s 1 -n test/pass -l pass.log -t "$_time"
+		step_log PASSED >"${_buildir}/pass.log"
+
+		step_serialize -H -s 2 -n test/skip -l skip.log -t "$_time"
+		step_log SKIPPED >"${_buildir}/skip.log"
+
+		step_serialize -H -s 3 -n test/fail/once -l fail-once.log -t "$_time"
+		step_log FAILED >"${_buildir}/fail-once.log"
+
+		step_serialize -H -s 4 -n test/fail/always -l fail-always.log -t "$_time" -e 1
+		step_log FAILED >"${_buildir}/fail-always.log"
+
+		step_serialize -H -s 5 -n test/xfail -l xfail.log -t "$_time"
+		step_log EXPECTED_FAIL >"${_buildir}/xfail.log"
+	} >"$(step_path "$_buildir")"
+
+	_buildir="${TSHDIR}/arm64/2022-10-24.1"
+	_time="$_2022_10_24"
+	mkbuilddir "$_buildir"
+	{
+		step_serialize -s 1 -n test/pass -l pass.log -t "$_time"
+		step_log PASSED >"${_buildir}/pass.log"
+
+		step_serialize -H -s 2 -n test/skip -l skip.log -t "$_time"
+		step_log SKIPPED >"${_buildir}/skip.log"
+
+		step_serialize -H -s 3 -n test/fail/once -l fail-once.log -t "$_time" -e 1
+		step_log PASSED >"${_buildir}/fail-once.log"
+
+		step_serialize -H -s 4 -n test/fail/always -l fail-always.log -t "$_time" -e 1
+		step_log FAILED >"${_buildir}/fail-always.log"
+
+		step_serialize -H -s 5 -n test/xfail -l xfail.log -t "$_time"
+		step_log EXPECTED_FAIL >"${_buildir}/xfail.log"
+	} >"$(step_path "$_buildir")"
+
 	robsd_regress_html -- -o "${TSHDIR}/html" \
 		"amd64:${TSHDIR}/amd64" "arm64:${TSHDIR}/arm64"
 
 	xpath '//th[@class="rate"]/text()' "${TSHDIR}/html/index.html" >"$TMP1"
-	assert_file - "$TMP1" "dates" <<-EOF
+	assert_file - "$TMP1" "rate" <<-EOF
 	80%
 	80%
 	60%
@@ -101,11 +172,11 @@ if testcase -t xmllint "basic"; then
 	EOF
 
 	xpath '//th[@class="date"]/text()' "${TSHDIR}/html/index.html" >"$TMP1"
-	assert_file - "$TMP1" "dates" <<-EOF
-	2022-10-25
-	2022-10-25
-	2022-10-24
-	2022-10-24
+	assert_file - "$TMP1" "date" <<-EOF
+	2022-10-25.1
+	2022-10-25.1
+	2022-10-24.1
+	2022-10-24.1
 	EOF
 
 	xpath '//th[@class="arch"]/a/text()' "${TSHDIR}/html/index.html" >"$TMP1"
@@ -117,7 +188,7 @@ if testcase -t xmllint "basic"; then
 	EOF
 
 	xpath '//a[@class="suite" or @class="status"]' "${TSHDIR}/html/index.html" >"$TMP1"
-	assert_file - "$TMP1" "test suites" <<-EOF
+	assert_file - "$TMP1" "suites" <<-EOF
 	test/fail/always
 	FAIL
 	FAIL
@@ -145,12 +216,12 @@ if testcase -t xmllint "basic"; then
 	XFAIL
 	EOF
 
-	for _dir in \
-		"${TSHDIR}/html/amd64/2022-10-25" \
-		"${TSHDIR}/html/amd64/2022-10-24" \
-		"${TSHDIR}/html/arm64/2022-10-25" \
-		"${TSHDIR}/html/arm64/2022-10-24"
+	for _d in \
+		amd64/2022-10-25.1 amd64/2022-10-24.1 \
+		arm64/2022-10-25.1 arm64/2022-10-24.1
 	do
+		_dir="${TSHDIR}/html/${_d}"
+
 		assert_file - "${_dir}/comment" <<-EOF
 		comment
 		EOF
@@ -160,7 +231,8 @@ if testcase -t xmllint "basic"; then
 		EOF
 
 		assert_file - "${_dir}/pass.log" <<-EOF
-		===> subdir
+		junk
+
 		==== test ====
 		PASSED
 		EOF
@@ -177,16 +249,27 @@ if testcase -t xmllint "basic"; then
 
 		assert_file - "${_dir}/xfail.log" <<-EOF
 		==== test ====
-		SKIPPED
-
-		==== test ====
 		EXPECTED_FAIL
 		EOF
 	done
 fi
 
 if testcase -t xmllint "changelog"; then
-	printf 'cvs\n' >"${TSHDIR}/amd64/2022-10-25/tags"
+	_buildir="${TSHDIR}/amd64/2022-10-25.1"
+	_time="$_2022_10_25"
+	mkbuilddir -t cvs "$_buildir"
+	{
+		step_serialize -s 1 -n test/pass -l pass.log -t "$_time"
+		step_log PASSED >"${_buildir}/pass.log"
+	} >"$(step_path "$_buildir")"
+
+	_buildir="${TSHDIR}/amd64/2022-10-24.1"
+	_time="$_2022_10_24"
+	mkbuilddir "$_buildir"
+	{
+		step_serialize -s 1 -n test/pass -l pass.log -t "$_time"
+		step_log PASSED >"${_buildir}/pass.log"
+	} >"$(step_path "$_buildir")"
 
 	robsd_regress_html -- -o "${TSHDIR}/html" "amd64:${TSHDIR}/amd64"
 
@@ -194,6 +277,7 @@ if testcase -t xmllint "changelog"; then
 	assert_file - "$TMP1" <<-EOF
 	cvs
 	EOF
+
 	xpath '//th[@class="cvs"]/text()' "${TSHDIR}/html/index.html" >"$TMP1"
 	assert_file - "$TMP1" <<-EOF
 	n/a
@@ -201,9 +285,23 @@ if testcase -t xmllint "changelog"; then
 fi
 
 if testcase -t xmllint "patches"; then
-	printf 'cvs\n' >"${TSHDIR}/amd64/2022-10-25/tags"
-	printf 'src.diff.1\n' >"${TSHDIR}/amd64/2022-10-25/src.diff.1"
-	printf 'src.diff.2\n' >"${TSHDIR}/amd64/2022-10-25/src.diff.2"
+	_buildir="${TSHDIR}/amd64/2022-10-25.1"
+	_time="$_2022_10_25"
+	mkbuilddir -t cvs "$_buildir"
+	printf 'src.diff.1\n' >"${_buildir}/src.diff.1"
+	printf 'src.diff.2\n' >"${_buildir}/src.diff.2"
+	{
+		step_serialize -s 1 -n test/pass -l pass.log -t "$_time"
+		step_log PASSED >"${_buildir}/pass.log"
+	} >"$(step_path "$_buildir")"
+
+	_buildir="${TSHDIR}/amd64/2022-10-24.1"
+	_time="$_2022_10_24"
+	mkbuilddir "$_buildir"
+	{
+		step_serialize -s 1 -n test/pass -l pass.log -t "$_time"
+		step_log PASSED >"${_buildir}/pass.log"
+	} >"$(step_path "$_buildir")"
 
 	robsd_regress_html -- -o "${TSHDIR}/html" "amd64:${TSHDIR}/amd64"
 
@@ -211,84 +309,133 @@ if testcase -t xmllint "patches"; then
 	assert_file - "$TMP1" <<-EOF
 	patches
 	EOF
+
 	xpath '//th[@class="patch"]/text()' "${TSHDIR}/html/index.html" >"$TMP1"
 	assert_file - "$TMP1" <<-EOF
 	n/a
 	EOF
-	assert_file - "${TSHDIR}/html/amd64/2022-10-25/diff/src.diff.1" <<-EOF
+
+	assert_file - "${TSHDIR}/html/amd64/2022-10-25.1/diff/src.diff.1" <<-EOF
 	src.diff.1
 	EOF
-	assert_file - "${TSHDIR}/html/amd64/2022-10-25/diff/src.diff.2" <<-EOF
+
+	assert_file - "${TSHDIR}/html/amd64/2022-10-25.1/diff/src.diff.2" <<-EOF
 	src.diff.2
 	EOF
 fi
 
 if testcase -t xmllint "multiple invocations per day"; then
-	create_invocation "${TSHDIR}/amd64/2022-10-25.2" 1666663200 0
-	printf 'cvs\n' >"${TSHDIR}/amd64/2022-10-25.2/tags"
-	printf 'cvs\n' >"${TSHDIR}/amd64/2022-10-25/tags"
+	_buildir="${TSHDIR}/amd64/2022-10-25.2"
+	_time="$((_2022_10_25 + 3600))"
+	mkbuilddir -t cvs "$_buildir"
+	{
+		step_serialize -s 1 -n test/pass -l pass.log -t "$_time"
+		step_log PASSED >"${_buildir}/pass.log"
+	} >"$(step_path "$_buildir")"
+
+	_buildir="${TSHDIR}/amd64/2022-10-25.1"
+	_time="$_2022_10_25"
+	mkbuilddir -t cvs "$_buildir"
+	{
+		step_serialize -s 1 -n test/pass -l pass.log -t "$_time"
+		step_log PASSED >"${_buildir}/pass.log"
+	} >"$(step_path "$_buildir")"
+
 	robsd_regress_html - -- -o "${TSHDIR}/html" "amd64:${TSHDIR}/amd64" </dev/null
 
 	xpath '//th[@class="date"]/text()' "${TSHDIR}/html/index.html" >"$TMP1"
 	assert_file - "$TMP1" <<-EOF
 	2022-10-25.2
-	2022-10-25
-	2022-10-24
+	2022-10-25.1
 	EOF
 
 	xpath '//td[@class="PASS"]/a/@href' "${TSHDIR}/html/index.html" >"$TMP1"
 	assert_file - "$TMP1" <<-EOF
-	href=amd64/2022-10-25.2/fail-once.log
-	href=amd64/2022-10-25/fail-once.log
 	href=amd64/2022-10-25.2/pass.log
-	href=amd64/2022-10-25/pass.log
-	href=amd64/2022-10-24/pass.log
+	href=amd64/2022-10-25.1/pass.log
 	EOF
 fi
 
 
 if testcase "missing runs"; then
+	_buildir="${TSHDIR}/amd64/2022-10-25.1"
+	_time="$_2022_10_25"
+	mkbuilddir "$_buildir"
 	{
-		echo "${TSHDIR}/macppc/2022-10-25" 1666659600 0
-		echo "${TSHDIR}/macppc/2022-10-24" 1666573200 1
-		echo "${TSHDIR}/macppc/2022-10-23" 1666486800 0
-	} | while read -r _dir _time _maybe; do
-		mkdir -p "$_dir"
-		for _f in comment dmesg empty.log tags; do
-			: >"${_dir}/${_f}"
-		done
-		{
-			step_serialize -s 1 -n test/always -l empty.log -t "$_time"
-			if [ "$_maybe" -eq 1 ]; then
-				step_serialize -H -s 2 -n test/maybe -l empty.log -t "$_time"
-			fi
-		} >"$(step_path "$_dir")"
-	done
+		step_serialize -s 1 -n test/always -l always.log -t "$_time"
+		step_log PASSED >"${_buildir}/always.log"
+	} >"$(step_path "$_buildir")"
 
-	robsd_regress_html -- -o "${TSHDIR}/html" "macppc:${TSHDIR}/macppc"
+	_buildir="${TSHDIR}/amd64/2022-10-24.1"
+	_time="$_2022_10_24"
+	mkbuilddir "$_buildir"
+	{
+		step_serialize -s 1 -n test/always -l always.log -t "$_time"
+		step_log PASSED >"${_buildir}/always.log"
+
+		step_serialize -H -s 2 -n test/once -l once.log -t "$_time"
+		step_log SKIPPED >"${_buildir}/once.log"
+	} >"$(step_path "$_buildir")"
+
+	_buildir="${TSHDIR}/amd64/2022-10-23.1"
+	_time="$_2022_10_23"
+	mkbuilddir "$_buildir"
+	{
+		step_serialize -s 1 -n test/always -l always.log -t "$_time"
+		step_log PASSED >"${_buildir}/always.log"
+	} >"$(step_path "$_buildir")"
+
+	robsd_regress_html -- -o "${TSHDIR}/html" "macppc:${TSHDIR}/amd64"
+
+	xpath '//a[@class="suite" or @class="status"]' "${TSHDIR}/html/index.html" >"$TMP1"
+	assert_file - "$TMP1" <<-EOF
+	test/always
+	PASS
+	PASS
+	PASS
+	test/once
+	SKIP
+	EOF
 fi
 
 if testcase "dmesg missing"; then
-	rm "${TSHDIR}/amd64/2022-10-25/dmesg"
+	_buildir="${TSHDIR}/amd64/2022-10-25.1"
+	_time="$_2022_10_25"
+	mkbuilddir "$_buildir"
+	rm "${_buildir}/dmesg"
+	{
+		step_serialize -s 1 -n test/pass -l pass.log -t "$_time"
+		step_log PASSED >"${_buildir}/pass.log"
+	} >"$(step_path "$_buildir")"
 
 	robsd_regress_html - -- -o "${TSHDIR}/html" "amd64:${TSHDIR}/amd64" <<-EOF
-	robsd-regress-html: ${TSHDIR}/amd64/2022-10-25/dmesg: No such file or directory
+	robsd-regress-html: ${TSHDIR}/amd64/2022-10-25.1/dmesg: No such file or directory
 	EOF
 fi
 
 if testcase "comment missing"; then
-	rm "${TSHDIR}/amd64/2022-10-25/comment"
+	_buildir="${TSHDIR}/amd64/2022-10-25.1"
+	_time="$_2022_10_25"
+	mkbuilddir "$_buildir"
+	rm "${_buildir}/comment"
+	{
+		step_serialize -s 1 -n test/pass -l pass.log -t "$_time"
+		step_log PASSED >"${_buildir}/pass.log"
+	} >"$(step_path "$_buildir")"
 
 	robsd_regress_html - -- -o "${TSHDIR}/html" "amd64:${TSHDIR}/amd64" <<-EOF
-	robsd-regress-html: ${TSHDIR}/amd64/2022-10-25/comment: No such file or directory
+	robsd-regress-html: ${TSHDIR}/amd64/2022-10-25.1/comment: No such file or directory
 	EOF
 fi
 
 if testcase "invalid: steps empty"; then
-	: >"$(step_path "${TSHDIR}/amd64/2022-10-25")"
+	_buildir="${TSHDIR}/amd64/2022-10-25.1"
+	_time="$_2022_10_25"
+	mkbuilddir "$_buildir"
+	: >"$(step_path "$_buildir")"
 
 	robsd_regress_html -e - -- -o "${TSHDIR}/html" "amd64:${TSHDIR}/amd64" <<-EOF
-	robsd-regress-html: ${TSHDIR}/amd64/2022-10-25/step.csv: no steps found
+	robsd-regress-html: ${TSHDIR}/amd64/2022-10-25.1/step.csv: no steps found
 	EOF
 fi
 
