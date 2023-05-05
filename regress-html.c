@@ -79,7 +79,7 @@ static struct regress_invocation	 *create_regress_invocation(
     struct regress_html *, const char *, const char *, int64_t);
 static int				  copy_files(struct regress_html *,
     struct regress_invocation *, const char *);
-static int				  create_patches(struct regress_html *,
+static int				  copy_patches(struct regress_html *,
     struct regress_invocation *, const char *);
 static struct suite			 *find_suite(struct regress_html *,
     const char *);
@@ -275,8 +275,11 @@ parse_invocation(struct regress_html *r, const char *arch,
 	}
 	if (invocation_has_tag(directory, "cvs")) {
 		ri->flags |= REGRESS_INVOCATION_CVS;
-		if (create_patches(r, ri, directory))
-			ri->flags |= REGRESS_INVOCATION_PATCH;
+		if (copy_patches(r, ri, directory)) {
+			error = 1;
+			goto out;
+		}
+		ri->flags |= REGRESS_INVOCATION_PATCH;
 	}
 
 	for (i = 0; i < VECTOR_LENGTH(steps); i++) {
@@ -437,7 +440,7 @@ out:
 }
 
 static int
-create_patches(struct regress_html *r, struct regress_invocation *ri,
+copy_patches(struct regress_html *r, struct regress_invocation *ri,
     const char *directory)
 {
 	struct invocation_state *is;
@@ -477,7 +480,7 @@ create_patches(struct regress_html *r, struct regress_invocation *ri,
 out:
 	invocation_free(is);
 	/* coverity[leaked_storage: FALSE] */
-	return error ? 0 : 1;
+	return error;
 }
 
 static struct suite *
