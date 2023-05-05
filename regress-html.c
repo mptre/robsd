@@ -92,8 +92,8 @@ static int	regress_invocation_cmp(const struct regress_invocation *,
 static int	run_cmp(const struct run *, const struct run *);
 static int	suite_cmp(struct suite *const *, struct suite *const *);
 
-static int	create_log(struct regress_html *,
-    const struct run *, const struct buffer *);
+static int	copy_log(struct regress_html *, const char *,
+    const struct buffer *);
 static int	write_log(const char *, const struct buffer *);
 
 static void	render_pass_rates(struct regress_html *);
@@ -314,7 +314,7 @@ parse_invocation(struct regress_html *r, const char *arch,
 			ri->fail++;
 			suite->fail++;
 			run->status = FAIL;
-			if (create_log(r, run, scratch)) {
+			if (copy_log(r, run->log, scratch)) {
 				error = 1;
 				goto out;
 			}
@@ -326,7 +326,7 @@ parse_invocation(struct regress_html *r, const char *arch,
 			regress_log_parse(path, scratch,
 			    REGRESS_LOG_XFAILED | REGRESS_LOG_SKIPPED);
 			run->status = XFAIL;
-			if (create_log(r, run, scratch)) {
+			if (copy_log(r, run->log, scratch)) {
 				error = 1;
 				goto out;
 			}
@@ -336,7 +336,7 @@ parse_invocation(struct regress_html *r, const char *arch,
 		buffer_reset(scratch);
 		if (regress_log_parse(path, scratch, REGRESS_LOG_SKIPPED) > 0) {
 			run->status = SKIP;
-			if (create_log(r, run, scratch)) {
+			if (copy_log(r, run->log, scratch)) {
 				error = 1;
 				goto out;
 			}
@@ -346,7 +346,7 @@ parse_invocation(struct regress_html *r, const char *arch,
 		buffer_reset(scratch);
 		if (regress_log_trim(path, scratch)) {
 			run->status = PASS;
-			if (create_log(r, run, scratch)) {
+			if (copy_log(r, run->log, scratch)) {
 				error = 1;
 				goto out;
 			}
@@ -414,8 +414,7 @@ copy_files(struct regress_html *r, struct regress_invocation *ri,
 	if (bf == NULL) {
 		warn("%s", path);
 	} else {
-		path = joinpath(r->path, "%s/%s", r->output, ri->dmesg);
-		if (write_log(path, bf)) {
+		if (copy_log(r, ri->dmesg, bf)) {
 			error = 1;
 			goto out;
 		}
@@ -427,8 +426,7 @@ copy_files(struct regress_html *r, struct regress_invocation *ri,
 	if (bf == NULL) {
 		warn("%s", path);
 	} else {
-		path = joinpath(r->path, "%s/%s", r->output, ri->comment);
-		if (write_log(path, bf)) {
+		if (copy_log(r, ri->comment, bf)) {
 			error = 1;
 			goto out;
 		}
@@ -573,12 +571,12 @@ suite_cmp(struct suite *const *a, struct suite *const *b)
 }
 
 static int
-create_log(struct regress_html *r, const struct run *run,
+copy_log(struct regress_html *r, const char *basename,
     const struct buffer *bf)
 {
 	const char *path;
 
-	path = joinpath(r->path, "%s/%s", r->output, run->log);
+	path = joinpath(r->path, "%s/%s", r->output, basename);
 	return write_log(path, bf);
 }
 
