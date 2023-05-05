@@ -99,7 +99,7 @@ if testcase -t xmllint "basic"; then
 		step_serialize -H -s 5 -n test/xfail -l xfail.log -t "$_time"
 		step_log EXPECTED_FAIL >"${_buildir}/xfail.log"
 
-		step_serialize -H -s 6 -n end -t "$((_time + 3600))"
+		step_serialize -H -s 6 -n end -d 1800 -t "$((_time + 3600))"
 	} >"$(step_path "$_buildir")"
 
 	_buildir="${TSHDIR}/amd64/2022-10-24.1"
@@ -121,7 +121,7 @@ if testcase -t xmllint "basic"; then
 		step_serialize -H -s 5 -n test/xfail -l xfail.log -t "$_time"
 		step_log EXPECTED_FAIL >"${_buildir}/xfail.log"
 
-		step_serialize -H -s 6 -n end -t "$((_time + 3600))"
+		step_serialize -H -s 6 -n end -t "$((_time + 3600))" -d 3660
 	} >"$(step_path "$_buildir")"
 
 	_buildir="${TSHDIR}/arm64/2022-10-25.1"
@@ -143,7 +143,7 @@ if testcase -t xmllint "basic"; then
 		step_serialize -H -s 5 -n test/xfail -l xfail.log -t "$_time"
 		step_log EXPECTED_FAIL >"${_buildir}/xfail.log"
 
-		step_serialize -H -s 6 -n end -t "$((_time + 3600))"
+		step_serialize -H -s 6 -n end -t "$((_time + 3600))" -d 3660
 	} >"$(step_path "$_buildir")"
 
 	_buildir="${TSHDIR}/arm64/2022-10-24.1"
@@ -165,14 +165,14 @@ if testcase -t xmllint "basic"; then
 		step_serialize -H -s 5 -n test/xfail -l xfail.log -t "$_time"
 		step_log EXPECTED_FAIL >"${_buildir}/xfail.log"
 
-		step_serialize -H -s 6 -n end -t "$((_time + 3600))"
+		step_serialize -H -s 6 -n end -t "$((_time + 3600))" -d 1800
 	} >"$(step_path "$_buildir")"
 
 	robsd_regress_html -- -o "${TSHDIR}/html" \
 		"amd64:${TSHDIR}/amd64" "arm64:${TSHDIR}/arm64"
 
-	xpath '//th[@class="rate"]/text()' "${TSHDIR}/html/index.html" >"$TMP1"
-	assert_file - "$TMP1" "rate" <<-EOF
+	xpath '//th[@class="pass"]/text()' "${TSHDIR}/html/index.html" >"$TMP1"
+	assert_file - "$TMP1" "pass" <<-EOF
 	80%
 	80%
 	60%
@@ -185,6 +185,14 @@ if testcase -t xmllint "basic"; then
 	2022-10-25.1
 	2022-10-24.1
 	2022-10-24.1
+	EOF
+
+	xpath '//th[@class="dura"]/text()' "${TSHDIR}/html/index.html" >"$TMP1"
+	assert_file - "$TMP1" "duration" <<-EOF
+	00:30
+	01:01
+	01:01
+	00:30
 	EOF
 
 	xpath '//th[@class="arch"]/a/text()' "${TSHDIR}/html/index.html" >"$TMP1"
@@ -466,6 +474,20 @@ if testcase "invalid: steps empty"; then
 
 	robsd_regress_html -e - -- -o "${TSHDIR}/html" "amd64:${TSHDIR}/amd64" <<-EOF
 	robsd-regress-html: ${TSHDIR}/amd64/2022-10-25.1/step.csv: no steps found
+	EOF
+fi
+
+if testcase "invalid: end step missing"; then
+	_buildir="${TSHDIR}/amd64/2022-10-25.1"
+	_time="$_2022_10_25"
+	mkbuilddir "$_buildir"
+	{
+		step_serialize -s 1 -n test/pass -l pass.log -t "$_time"
+		step_log PASSED >"${_buildir}/pass.log"
+	} >"$(step_path "$_buildir")"
+
+	robsd_regress_html -e - -- -o "${TSHDIR}/html" "amd64:${TSHDIR}/amd64" <<-EOF
+	robsd-regress-html: ${TSHDIR}/amd64/2022-10-25.1/step.csv: end step not found
 	EOF
 fi
 

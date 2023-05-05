@@ -48,6 +48,14 @@ struct regress_invocation {
 	char		*comment;
 	char		*patches;
 	int64_t		 time;
+	struct {
+		int64_t	seconds;
+		enum duration_delta {
+			NONE,
+			FASTER,
+			SLOWER,
+		} delta;
+	} duration;
 	int		 total;
 	int		 fail;
 	unsigned int	 flags;
@@ -76,7 +84,7 @@ struct suite {
 static int				  parse_invocation(struct regress_html *,
     const char *, const char *, const char *);
 static struct regress_invocation	 *create_regress_invocation(
-    struct regress_html *, const char *, const char *, int64_t);
+    struct regress_html *, const char *, const char *, int64_t, int64_t);
 static int				  copy_files(struct regress_html *,
     struct regress_invocation *, const char *);
 static int				  copy_patches(struct regress_html *,
@@ -84,7 +92,9 @@ static int				  copy_patches(struct regress_html *,
 static struct suite			 *find_suite(struct regress_html *,
     const char *);
 static struct suite			**sort_suites(struct suite *);
-static const char			 *pass_rate(struct regress_html *,
+static const char			 *render_duration(struct regress_html *,
+    const struct regress_invocation *);
+static const char			 *render_rate(struct regress_html *,
     const struct regress_invocation *);
 
 static int	regress_invocation_cmp(const struct regress_invocation *,
@@ -98,6 +108,7 @@ static int	write_log(const char *, const struct buffer *);
 
 static void	render_pass_rates(struct regress_html *);
 static void	render_dates(struct regress_html *);
+static void	render_durations(struct regress_html *);
 static void	render_changelog(struct regress_html *);
 static void	render_patches(struct regress_html *);
 static void	render_arches(struct regress_html *);
@@ -106,10 +117,11 @@ static void	render_suite(struct regress_html *,
 static void	render_run(struct regress_html *,
     const struct run *);
 
-static const char	*cvsweb_url(struct buffer *, const char *);
-static const char	*joinpath(struct buffer *, const char *, ...)
+static const char		*cvsweb_url(struct buffer *, const char *);
+static enum duration_delta	 duration_delta(int64_t, int64_t);
+static const char		*joinpath(struct buffer *, const char *, ...)
 	__attribute__((__format__(printf, 2, 3)));
-static const char	*strstatus(enum run_status);
+static const char		*strstatus(enum run_status);
 
 struct regress_html *
 regress_html_alloc(const char *directory)
@@ -176,6 +188,7 @@ regress_html_parse(struct regress_html *r, const char *arch,
 	struct invocation_state *is;
 	const struct invocation_entry *entry;
 	int error = 0;
+	int ninvocations = 0;
 
 	bf = buffer_alloc(PATH_MAX);
 	if (bf == NULL)
@@ -190,6 +203,15 @@ regress_html_parse(struct regress_html *r, const char *arch,
 		if (parse_invocation(r, arch, entry->path, entry->basename)) {
 			error = 1;
 			goto out;
+		}
+
+		if (++ninvocations >= 2) {
+			size_t n;
+
+			n = VECTOR_LENGTH(r->invocations);
+			r->invocations[n - 1].duration.delta = duration_delta(
+			    r->invocations[n - 1].duration.seconds,
+			    r->invocations[n - 2].duration.seconds);
 		}
 	}
 
@@ -223,6 +245,7 @@ regress_html_render(struct regress_html *r)
 		HTML_NODE(html, "thead") {
 			render_pass_rates(r);
 			render_dates(r);
+			render_durations(r);
 			render_changelog(r);
 			render_patches(r);
 			render_arches(r);
@@ -246,10 +269,10 @@ parse_invocation(struct regress_html *r, const char *arch,
 {
 	struct buffer *dmesg = NULL;
 	struct buffer *scratch = r->scratch;
-	struct step *steps;
+	struct step *end, *steps;
 	struct regress_invocation *ri;
 	const char *path;
-	int64_t time;
+	int64_t duration, time;
 	size_t i;
 	int error = 0;
 
@@ -263,8 +286,15 @@ parse_invocation(struct regress_html *r, const char *arch,
 		goto out;
 	}
 
+	end = steps_find_by_name(steps, "end");
+	if (end == NULL) {
+		warnx("%s: end step not found", path);
+		error = 1;
+		goto out;
+	}
+	duration = step_get_field(end, "duration")->integer;
 	time = step_get_field(&steps[0], "time")->integer;
-	ri = create_regress_invocation(r, arch, date, time);
+	ri = create_regress_invocation(r, arch, date, time, duration);
 	if (ri == NULL) {
 		error = 1;
 		goto out;
@@ -361,7 +391,7 @@ out:
 
 static struct regress_invocation *
 create_regress_invocation(struct regress_html *r, const char *arch,
-    const char *date, int64_t time)
+    const char *date, int64_t time, int64_t duration)
 {
 	struct regress_invocation *ri = NULL;
 	const char *comment, *dmesg, *patches, *path;
@@ -388,6 +418,7 @@ create_regress_invocation(struct regress_html *r, const char *arch,
 	ri->arch = estrdup(arch);
 	ri->date = estrdup(date);
 	ri->time = time;
+	ri->duration.seconds = duration;
 
 	dmesg = joinpath(r->path, "%s/%s/dmesg", arch, date);
 	ri->dmesg = estrdup(dmesg);
@@ -524,7 +555,26 @@ sort_suites(struct suite *suites)
 }
 
 static const char *
-pass_rate(struct regress_html *r, const struct regress_invocation *ri)
+render_duration(struct regress_html *r, const struct regress_invocation *ri)
+{
+	const char *arrows[] = {
+		[NONE]		= "",
+		[FASTER]	= " &#8600;",
+		[SLOWER]	= " &#8599;",
+	};
+	struct buffer *bf = r->scratch;
+	int64_t hours, minutes;
+
+	hours = ri->duration.seconds / 3600;
+	minutes = (ri->duration.seconds % 3600) / 60;
+	buffer_reset(bf);
+	buffer_printf(bf, "%02d:%02d<span>%s</span>",
+	    (int)hours, (int)minutes, arrows[ri->duration.delta]);
+	return buffer_get_ptr(bf);
+}
+
+static const char *
+render_rate(struct regress_html *r, const struct regress_invocation *ri)
 {
 	struct buffer *bf = r->scratch;
 	float rate = 0;
@@ -627,8 +677,8 @@ render_pass_rates(struct regress_html *r)
 		for (i = 0; i < VECTOR_LENGTH(r->invocations); i++) {
 			const struct regress_invocation *ri = &r->invocations[i];
 
-			HTML_NODE_ATTR(html, "th", HTML_ATTR("class", "rate"))
-				HTML_TEXT(html, pass_rate(r, ri));
+			HTML_NODE_ATTR(html, "th", HTML_ATTR("class", "pass"))
+				HTML_TEXT(html, render_rate(r, ri));
 		}
 	}
 }
@@ -648,6 +698,25 @@ render_dates(struct regress_html *r)
 
 			HTML_NODE_ATTR(html, "th", HTML_ATTR("class", "date"))
 				HTML_TEXT(html, ri->date);
+		}
+	}
+}
+
+static void
+render_durations(struct regress_html *r)
+{
+	struct html *html = r->html;
+
+	HTML_NODE(html, "tr") {
+		size_t i;
+
+		HTML_NODE(html, "th")
+			HTML_TEXT(html, "duration");
+		for (i = 0; i < VECTOR_LENGTH(r->invocations); i++) {
+			const struct regress_invocation *ri = &r->invocations[i];
+
+			HTML_NODE_ATTR(html, "th", HTML_ATTR("class", "dura"))
+				HTML_TEXT(html, render_duration(r, ri));
 		}
 	}
 }
@@ -792,6 +861,18 @@ cvsweb_url(struct buffer *bf, const char *path)
 	buffer_printf(bf,
 	    "https://cvsweb.openbsd.org/cgi-bin/cvsweb/src/regress/%s", path);
 	return buffer_get_ptr(bf);
+}
+
+static enum duration_delta
+duration_delta(int64_t a, int64_t b)
+{
+	int64_t abs, delta;
+
+	delta = a - b;
+	abs = delta < 0 ? -delta : delta;
+	if (abs <= 5 * 60)
+		return NONE;
+	return delta < 0 ? FASTER : SLOWER;
 }
 
 static const char *
