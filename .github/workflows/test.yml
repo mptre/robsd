@@ -44,8 +44,6 @@ jobs:
       - name: test
         env:
           CC: clang
-          # unsigned-integer-overflow disabled due to problem with uthash.
-          CFLAGS: -fno-sanitize=unsigned-integer-overflow
           PORTABLE: yes
         run: |
           ./configure --pedantic --sanitize

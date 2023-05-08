@@ -6,10 +6,10 @@ SRCS \
 	$(find libks -type f -name '*.c' -exec basename {} \;) \
 	-- \
 KNFMT \
-	!(compat-*).c !(config|uthash).h \
+	!(compat-*).c !(config).h \
 	-- \
 CLANGTIDY \
-	!(config|compat-*|uthash).h !(compat-*).c \
+	!(config|compat-*).h !(compat-*).c \
 	-- \
 CPPCHECK \
 	!(compat-*).c \

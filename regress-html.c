@@ -20,21 +20,14 @@
 #include "cdefs.h"
 #include "html.h"
 #include "invocation.h"
+#include "map.h"
 #include "regress-log.h"
 #include "step.h"
 #include "vector.h"
 
-/*
- * cppcheck is having a hard time dealing with all macro gymnastics going on in
- * this file.
- */
-#ifndef NO_UTHASH
-#include "uthash.h"
-#endif
-
 struct regress_html {
 	VECTOR(struct regress_invocation)	 invocations;
-	struct suite				*suites;
+	MAP(const char, *, struct suite)	*suites;
 	const char				*output;
 	struct html				*html;
 	struct buffer				*scratch;
@@ -75,10 +68,9 @@ struct run {
 };
 
 struct suite {
-	char			*name;
+	const char		*name;
 	int			 fail;
 	VECTOR(struct run)	 runs;
-	UT_hash_handle		 hh;
 };
 
 static int				  parse_invocation(struct regress_html *,
@@ -131,6 +123,8 @@ regress_html_alloc(const char *directory)
 	r = ecalloc(1, sizeof(*r));
 	if (VECTOR_INIT(r->invocations) == NULL)
 		err(1, NULL);
+	if (MAP_INIT(r->suites))
+		err(1, NULL);
 	r->output = directory;
 	r->html = html_alloc();
 	r->scratch = buffer_alloc(1 << 10);
@@ -145,7 +139,8 @@ regress_html_alloc(const char *directory)
 void
 regress_html_free(struct regress_html *r)
 {
-	struct suite *suite, *tmp;
+	struct map_iterator it = {0};
+	struct suite *suite;
 
 	if (r == NULL)
 		return;
@@ -161,8 +156,7 @@ regress_html_free(struct regress_html *r)
 		free(ri->patches);
 	}
 	VECTOR_FREE(r->invocations);
-	HASH_ITER(hh, r->suites, suite, tmp) {
-		free(suite->name);
+	while ((suite = MAP_ITERATE(r->suites, &it)) != NULL) {
 		while (!VECTOR_EMPTY(suite->runs)) {
 			struct run *run;
 
@@ -170,9 +164,9 @@ regress_html_free(struct regress_html *r)
 			free(run->log);
 		}
 		VECTOR_FREE(suite->runs);
-		HASH_DELETE(hh, r->suites, suite);
-		free(suite);
+		MAP_REMOVE(r->suites, suite);
 	}
+	MAP_FREE(r->suites);
 	html_free(r->html);
 	buffer_free(r->scratch);
 	buffer_free(r->path);
@@ -517,13 +511,12 @@ find_suite(struct regress_html *r, const char *name)
 {
 	struct suite *suite;
 
-	HASH_FIND_STR(r->suites, name, suite);
+	suite = MAP_FIND(r->suites, name);
 	if (suite == NULL) {
-		suite = ecalloc(1, sizeof(*suite));
-		suite->name = estrdup(name);
+		suite = MAP_INSERT(r->suites, name);
+		suite->name = MAP_KEY(r->suites, suite);
 		if (VECTOR_INIT(suite->runs) == NULL)
 			err(1, NULL);
-		HASH_ADD_STR(r->suites, name, suite);
 	}
 	return suite;
 }
@@ -533,7 +526,8 @@ sort_suites(struct regress_html *r)
 {
 	VECTOR(struct suite *) all;
 	VECTOR(struct suite *) pass;
-	struct suite *suite, *tmp;
+	struct map_iterator it = {0};
+	struct suite *suite;
 	size_t i;
 
 	if (VECTOR_INIT(all) == NULL)
@@ -541,7 +535,7 @@ sort_suites(struct regress_html *r)
 	if (VECTOR_INIT(pass) == NULL)
 		err(1, NULL);
 
-	HASH_ITER(hh, r->suites, suite, tmp) {
+	while ((suite = MAP_ITERATE(r->suites, &it)) != NULL) {
 		if (suite->fail > 0)
 			*VECTOR_ALLOC(all) = suite;
 		else

@@ -14,6 +14,7 @@ SRCS+=	html.c
 SRCS+=	interpolate.c
 SRCS+=	invocation.c
 SRCS+=	lexer.c
+SRCS+=	map.c
 SRCS+=	regress-html.c
 SRCS+=	regress-log.c
 SRCS+=	step.c
@@ -223,6 +224,8 @@ DISTFILES+=	libks/arithmetic.c
 DISTFILES+=	libks/arithmetic.h
 DISTFILES+=	libks/buffer.c
 DISTFILES+=	libks/buffer.h
+DISTFILES+=	libks/map.c
+DISTFILES+=	libks/map.h
 DISTFILES+=	libks/vector.c
 DISTFILES+=	libks/vector.h
 DISTFILES+=	regress-html.c
@@ -340,7 +343,6 @@ DISTFILES+=	tests/t.sh
 DISTFILES+=	tests/util.sh
 DISTFILES+=	token.c
 DISTFILES+=	token.h
-DISTFILES+=	uthash.h
 DISTFILES+=	util-cross.sh
 DISTFILES+=	util-ports.sh
 DISTFILES+=	util-regress.sh
@@ -524,7 +526,6 @@ lint-clang-tidy:
 lint-cppcheck:
 	cd ${.CURDIR} && cppcheck --quiet --enable=all --error-exitcode=1 \
 		--max-configs=2 --suppress-xml=cppcheck-suppressions.xml \
-		-DNO_UTHASH \
 		${CPPCHECK}
 .PHONY: lint-cppcheck
 
