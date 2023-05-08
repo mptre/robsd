@@ -189,10 +189,10 @@ if testcase -t xmllint "basic"; then
 
 	xpath '//th[@class="dura"]/text()' "${TSHDIR}/html/index.html" >"$TMP1"
 	assert_file - "$TMP1" "duration" <<-EOF
-	00:30
-	01:01
-	01:01
-	00:30
+	0h30m
+	1h1m
+	1h1m
+	0h30m
 	EOF
 
 	xpath '//th[@class="arch"]/a/text()' "${TSHDIR}/html/index.html" >"$TMP1"

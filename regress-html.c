@@ -568,7 +568,7 @@ render_duration(struct regress_html *r, const struct regress_invocation *ri)
 	hours = ri->duration.seconds / 3600;
 	minutes = (ri->duration.seconds % 3600) / 60;
 	buffer_reset(bf);
-	buffer_printf(bf, "%02d:%02d<span>%s</span>",
+	buffer_printf(bf, "%dh%dm<span>%s</span>",
 	    (int)hours, (int)minutes, arrows[ri->duration.delta]);
 	return buffer_get_ptr(bf);
 }
