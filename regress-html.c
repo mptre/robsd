@@ -870,7 +870,7 @@ duration_delta(int64_t a, int64_t b)
 
 	delta = a - b;
 	abs = delta < 0 ? -delta : delta;
-	if (abs <= 5 * 60)
+	if (abs <= 5ll * 60ll)
 		return NONE;
 	return delta < 0 ? FASTER : SLOWER;
 }
