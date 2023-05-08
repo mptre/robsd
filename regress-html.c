@@ -91,7 +91,7 @@ static int				  copy_patches(struct regress_html *,
     struct regress_invocation *, const char *);
 static struct suite			 *find_suite(struct regress_html *,
     const char *);
-static struct suite			**sort_suites(struct suite *);
+static struct suite			**sort_suites(struct regress_html *);
 static const char			 *render_duration(struct regress_html *,
     const struct regress_invocation *);
 static const char			 *render_rate(struct regress_html *,
@@ -238,7 +238,7 @@ regress_html_render(struct regress_html *r)
 	HTML_NODE(html, "h1")
 		HTML_TEXT(html, "OpenBSD regress latest test results");
 
-	suites = sort_suites(r->suites);
+	suites = sort_suites(r);
 	HTML_NODE(html, "table") {
 		size_t i;
 
@@ -529,7 +529,7 @@ find_suite(struct regress_html *r, const char *name)
 }
 
 static struct suite **
-sort_suites(struct suite *suites)
+sort_suites(struct regress_html *r)
 {
 	VECTOR(struct suite *) all;
 	VECTOR(struct suite *) pass;
@@ -541,7 +541,7 @@ sort_suites(struct suite *suites)
 	if (VECTOR_INIT(pass) == NULL)
 		err(1, NULL);
 
-	HASH_ITER(hh, suites, suite, tmp) {
+	HASH_ITER(hh, r->suites, suite, tmp) {
 		if (suite->fail > 0)
 			*VECTOR_ALLOC(all) = suite;
 		else
