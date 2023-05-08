@@ -55,7 +55,7 @@ step_log() {
 	local _outcome
 
 	_outcome="$1"; : "${_outcome:?}"
-	print 'junk\n'
+	printf 'junk\n\n'
 	printf '==== test ====\n'
 	printf '%s\n' "$_outcome"
 }
