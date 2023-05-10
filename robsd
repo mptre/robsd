@@ -101,7 +101,7 @@ if [ "$KEEP" -gt 0 ]; then
 	/usr/local/sbin/robsd-clean "$KEEP"
 fi
 
-"$ROBSDSTAT" -u build >>"${BUILDDIR}/stat.csv" &
+"$ROBSDSTAT" -u build >>"${BUILDDIR}/stat.csv" 2>&1 &
 _statpid="$!"
 
 if [ "$DETACH" -eq 1 ]; then
