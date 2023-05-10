@@ -172,7 +172,6 @@ static const struct grammar robsd[] = {
 	{ "robsddir",		DIRECTORY,	config_parse_directory,	REQ,	{ NULL } },
 	{ "builduser",		STRING,		config_parse_user,	0,	{ "build" } },
 	{ "destdir",		DIRECTORY,	config_parse_directory,	REQ,	{ NULL } },
-	{ "execdir",		DIRECTORY,	config_parse_directory,	0,	{ "/usr/local/libexec/robsd" } },
 	{ "hook",		LIST,		config_parse_list,	0,	{ NULL } },
 	{ "keep",		INTEGER,	config_parse_integer,	0,	{ NULL } },
 	{ "kernel",		STRING,		config_parse_string,	0,	{ "GENERIC.MP" } },
@@ -201,7 +200,6 @@ static const struct grammar robsd_cross[] = {
 	{ "robsddir",	DIRECTORY,	config_parse_directory,	REQ,	{ NULL } },
 	{ "builduser",	STRING,		config_parse_user,	0,	{ "build" } },
 	{ "crossdir",	STRING,		config_parse_string,	REQ,	{ NULL } },
-	{ "execdir",	DIRECTORY,	config_parse_directory,	0,	{ "/usr/local/libexec/robsd" } },
 	{ "keep",	INTEGER,	config_parse_integer,	0,	{ NULL } },
 	{ "skip",	LIST,		config_parse_list,	0,	{ NULL } },
 	{ "bsd-srcdir",	DIRECTORY,	config_parse_directory,	0,	{ "/usr/src" } },
@@ -213,7 +211,6 @@ static const struct grammar robsd_cross[] = {
 static const struct grammar robsd_ports[] = {
 	{ "robsddir",		DIRECTORY,	config_parse_directory,	REQ,	{ NULL } },
 	{ "chroot",		STRING,		config_parse_string,	REQ,	{ NULL } },
-	{ "execdir",		DIRECTORY,	config_parse_directory,	0,	{ "/usr/local/libexec/robsd" } },
 	{ "hook",		LIST,		config_parse_list,	0,	{ NULL } },
 	{ "keep",		INTEGER,	config_parse_integer,	0,	{ NULL } },
 	{ "skip",		LIST,		config_parse_list,	0,	{ NULL } },
@@ -234,7 +231,6 @@ static const struct grammar robsd_ports[] = {
 
 static const struct grammar robsd_regress[] = {
 	{ "robsddir",		DIRECTORY,	config_parse_directory,		REQ,		{ NULL } },
-	{ "execdir",		DIRECTORY,	config_parse_directory,		0,		{ "/usr/local/libexec/robsd" } },
 	{ "hook",		LIST,		config_parse_list,		0,		{ NULL } },
 	{ "keep",		INTEGER,	config_parse_integer,		0,		{ NULL } },
 	{ "rdonly",		INTEGER,	config_parse_boolean,		0,		{ NULL } },

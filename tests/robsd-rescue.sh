@@ -9,7 +9,6 @@ ROBSDRESCUE="${EXECDIR}/robsd-rescue"
 setup() {
 	robsd_config - <<-EOF
 	robsddir "${ROBSDDIR}"
-	execdir "${EXECDIR}"
 	bsd-diff "/var/empty"
 	EOF
 

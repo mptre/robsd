@@ -49,7 +49,6 @@ if testcase "basic"; then
 
 	robsd_config - <<-EOF
 	robsddir "${ROBSDDIR}"
-	execdir "${WRKDIR}/exec"
 	hook { "sh" "${_hook}" "\${builddir}" "\${step}" "\${exit}" }
 	EOF
 	mkdir -p "$ROBSDDIR"
@@ -58,7 +57,7 @@ if testcase "basic"; then
 	echo "Index: dir/file.c" >"${TSHDIR}/xenocara.diff"
 
 	_fail="${TSHDIR}/fail"
-	env PATH="${BINDIR}:${PATH}" \
+	env EXECDIR="${WRKDIR}/exec" PATH="${BINDIR}:${PATH}" \
 		sh "$ROBSD" -d \
 		-S "${TSHDIR}/src-one.diff" \
 		-S "${TSHDIR}/src-two.diff" \
@@ -135,14 +134,14 @@ fi
 if testcase "reboot"; then
 	robsd_config - <<-EOF
 	robsddir "${ROBSDDIR}"
-	execdir "${WRKDIR}/exec"
 	hook { "true" }
 	reboot yes
 	EOF
 	mkdir -p "$ROBSDDIR"
 
 	_fail="${TSHDIR}/fail"
-	PATH="${BINDIR}:${PATH}" sh "$ROBSD" -d >"$TMP1" 2>&1 || : >"$_fail"
+	env EXECDIR="${WRKDIR}/exec" PATH="${BINDIR}:${PATH}" \
+		sh "$ROBSD" -d >"$TMP1" 2>&1 || : >"$_fail"
 	if [ -e "$_fail" ]; then
 		fail - "expected exit zero" <"$TMP1"
 	fi
@@ -178,7 +177,8 @@ if testcase "already running"; then
 	EOF
 	mkdir -p "$ROBSDDIR"
 	echo /var/empty >"${ROBSDDIR}/.running"
-	PATH="${BINDIR}:${PATH}" sh "$ROBSD" -d 2>&1 | grep -v 'using ' >"$TMP1"
+	env EXECDIR="${WRKDIR}/exec" PATH="${BINDIR}:${PATH}" \
+		sh "$ROBSD" -d 2>&1 | grep -v 'using ' >"$TMP1"
 	if ! [ -e "${ROBSDDIR}/.running" ]; then
 		fail - "lock not preserved" <"$TMP1"
 	fi
@@ -194,7 +194,8 @@ if testcase "already running detached"; then
 	EOF
 	mkdir -p "$ROBSDDIR"
 	echo /var/empty >"${ROBSDDIR}/.running"
-	PATH="${BINDIR}:${PATH}" sh "$ROBSD" 2>&1 | grep -v 'using ' >"$TMP1"
+	env EXECDIR="${WRKDIR}/exec" PATH="${BINDIR}:${PATH}" \
+		sh "$ROBSD" 2>&1 | grep -v 'using ' >"$TMP1"
 	if ! [ -e "${ROBSDDIR}/.running" ]; then
 		fail - "lock not preserved" <"$TMP1"
 	fi
@@ -210,7 +211,8 @@ if testcase "early failure"; then
 	EOF
 	echo 'echo 0' >"${BINDIR}/sysctl"
 	mkdir -p "$ROBSDDIR"
-	if PATH="${BINDIR}:${PATH}" sh "$ROBSD" -d >"$TMP1" 2>&1; then
+	if env EXECDIR="${WRKDIR}/exec" PATH="${BINDIR}:${PATH}" \
+	   sh "$ROBSD" -d >"$TMP1" 2>&1; then
 		fail - "expected exit non-zero" <"$TMP1"
 	fi
 	assert_file - "$TMP1" <<-EOF

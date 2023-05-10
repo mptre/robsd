@@ -19,7 +19,6 @@ robsd_ports() (
 if testcase "basic"; then
 	robsd_config -P - <<-EOF
 	robsddir "${ROBSDDIR}"
-	execdir "${EXECDIR}"
 	ports { "devel/updated" "devel/outdated" }
 	EOF
 	mkdir "$ROBSDDIR" "${TSHDIR}/ports"
@@ -69,7 +68,6 @@ fi
 if testcase "oneshot"; then
 	robsd_config -P - <<-EOF
 	robsddir "${ROBSDDIR}"
-	execdir "${EXECDIR}"
 	ports { "devel/ignored" }
 	EOF
 	mkdir "$ROBSDDIR"

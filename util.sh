@@ -117,7 +117,6 @@ config_load() {
 	_tmp="$(mktemp -t robsd.XXXXXX)"
 	{
 		cat
-		echo "EXECDIR=\${execdir}"
 	} | "$ROBSDCONFIG" -m "$_MODE" ${ROBSDCONF:+"-C${ROBSDCONF}"} "$@" - \
 		>"$_tmp" || _err="$?"
 	[ "$_err" -eq 0 ] && eval "$(<"$_tmp")"

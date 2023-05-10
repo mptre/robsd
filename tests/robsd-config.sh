@@ -40,7 +40,6 @@ default_config() {
 	cat <<-EOF
 	robsddir "${TSHDIR}"
 	destdir "/tmp"
-	execdir "/tmp"
 	bsd-objdir "/tmp"
 	bsd-srcdir "/tmp"
 	x11-objdir "/tmp"
@@ -53,7 +52,6 @@ default_cross_config() {
 	cat <<-EOF
 	robsddir "${TSHDIR}"
 	crossdir "/tmp"
-	execdir "/tmp"
 	bsd-srcdir "/tmp"
 	EOF
 }
@@ -63,7 +61,6 @@ default_ports_config() {
 	cat <<-EOF
 	robsddir "${TSHDIR}"
 	chroot "/tmp"
-	execdir "/tmp"
 	ports-user "nobody"
 	ports { "devel/knfmt" "mail/mdsort" }
 	EOF
@@ -73,7 +70,6 @@ default_ports_config() {
 default_regress_config() {
 	cat <<-EOF
 	robsddir "/tmp"
-	execdir "/tmp"
 	bsd-srcdir "/tmp"
 	regress "bin/csh" root
 	regress "bin/ksh" root quiet
@@ -383,7 +379,7 @@ if testcase "invalid directory missing"; then
 		echo 'bsd-objdir "/nein"'
 	} >"$CONFIG"
 	robsd_config -e - <<-EOF
-	robsd-config: ${CONFIG}:7: /nein: No such file or directory
+	robsd-config: ${CONFIG}:6: /nein: No such file or directory
 	EOF
 fi
 
@@ -400,7 +396,7 @@ fi
 if testcase "invalid already defined"; then
 	{ default_config; echo 'robsddir "/tmp"'; } >"$CONFIG"
 	robsd_config -e - <<-EOF
-	robsd-config: ${CONFIG}:8: variable 'robsddir' already defined
+	robsd-config: ${CONFIG}:7: variable 'robsddir' already defined
 	EOF
 fi
 
@@ -554,7 +550,7 @@ fi
 if testcase "invalid read only assign"; then
 	{ default_config; echo 'arch "exotic"'; } >"$CONFIG"
 	robsd_config -e - <<-EOF
-	robsd-config: ${TSHDIR}/robsd.conf:8: unknown keyword 'arch'
+	robsd-config: ${TSHDIR}/robsd.conf:7: unknown keyword 'arch'
 	EOF
 fi
 

@@ -7,7 +7,6 @@ ROBSDCROSS="${EXECDIR}/robsd-cross"
 if testcase "basic"; then
 	robsd_config -C - <<-EOF
 	robsddir "${ROBSDDIR}"
-	execdir "${EXECDIR}"
 	EOF
 	mkdir "$ROBSDDIR"
 	cat <<EOF >"${TSHDIR}/Makefile.cross"
