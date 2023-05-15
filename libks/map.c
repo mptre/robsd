@@ -187,6 +187,7 @@ map_remove(void *mp, void *val)
 	struct map *m = mp;
 	struct map_element *el = val;
 
+	/* coverity[address_free: FALSE] */
 	HASH_DELETE(m, &el[-1]);
 }
 
