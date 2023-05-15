@@ -62,10 +62,8 @@ interpolate_file(const char *path, const struct interpolate_arg *arg)
 			break;
 		}
 	}
-	if (error == 0) {
-		buffer_putc(bf, '\0');
-		buf = buffer_release(bf);
-	}
+	if (error == 0)
+		buf = buffer_str(bf);
 	buffer_free(bf);
 	free(line);
 	fclose(fh);
