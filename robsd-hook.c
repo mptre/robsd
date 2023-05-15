@@ -32,7 +32,7 @@ main(int argc, char *argv[])
 	if (pledge("stdio rpath inet exec getpw route", NULL) == -1)
 		err(1, "pledge");
 
-	if (VECTOR_INIT(vars) == NULL)
+	if (VECTOR_INIT(vars))
 		err(1, NULL);
 
 	while ((ch = getopt(argc, argv, "C:Vm:v:")) != -1) {
@@ -130,9 +130,9 @@ hook_to_argv(struct config *config, char ***out)
 	if (nargs == 0)
 		return 0;
 
-	if (VECTOR_INIT(args) == NULL)
+	if (VECTOR_INIT(args))
 		err(1, NULL);
-	if (VECTOR_RESERVE(args, nargs + 1) == NULL)
+	if (VECTOR_RESERVE(args, nargs + 1))
 		err(1, NULL);
 	args[nargs] = NULL;
 	for (i = 0; i < VECTOR_LENGTH(val->list); i++) {

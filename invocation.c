@@ -47,7 +47,7 @@ invocation_alloc(const char *robsddir, const char *keepdir, unsigned int flags)
 	s = ecalloc(1, sizeof(*s));
 	s->robsdir = robsddir;
 	s->keepdir = keepdir;
-	if (VECTOR_INIT(s->directories) == NULL)
+	if (VECTOR_INIT(s->directories))
 		err(1, NULL);
 
 	if (invocation_read(s, dir)) {
@@ -99,7 +99,7 @@ invocation_find(const char *directory, const char *pattern)
 		goto out;
 	}
 	s = ecalloc(1, sizeof(*s));
-	if (VECTOR_INIT(s->directories) == NULL)
+	if (VECTOR_INIT(s->directories))
 		err(1, NULL);
 
 	for (;;) {

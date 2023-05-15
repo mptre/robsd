@@ -121,7 +121,7 @@ regress_html_alloc(const char *directory)
 	struct regress_html *r;
 
 	r = ecalloc(1, sizeof(*r));
-	if (VECTOR_INIT(r->invocations) == NULL)
+	if (VECTOR_INIT(r->invocations))
 		err(1, NULL);
 	if (MAP_INIT(r->suites))
 		err(1, NULL);
@@ -515,7 +515,7 @@ find_suite(struct regress_html *r, const char *name)
 	if (suite == NULL) {
 		suite = MAP_INSERT(r->suites, name);
 		suite->name = MAP_KEY(r->suites, suite);
-		if (VECTOR_INIT(suite->runs) == NULL)
+		if (VECTOR_INIT(suite->runs))
 			err(1, NULL);
 	}
 	return suite;
@@ -530,9 +530,9 @@ sort_suites(struct regress_html *r)
 	struct suite *suite;
 	size_t i;
 
-	if (VECTOR_INIT(all) == NULL)
+	if (VECTOR_INIT(all))
 		err(1, NULL);
-	if (VECTOR_INIT(pass) == NULL)
+	if (VECTOR_INIT(pass))
 		err(1, NULL);
 
 	while ((suite = MAP_ITERATE(r->suites, &it)) != NULL) {

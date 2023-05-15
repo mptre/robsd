@@ -29,7 +29,7 @@ main(int argc, char *argv[])
 	if (pledge("stdio rpath inet getpw route", NULL) == -1)
 		err(1, "pledge");
 
-	if (VECTOR_INIT(vars) == NULL)
+	if (VECTOR_INIT(vars))
 		err(1, NULL);
 
 	while ((ch = getopt(argc, argv, "C:m:v:")) != -1) {

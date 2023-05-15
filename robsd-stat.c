@@ -54,7 +54,7 @@ main(int argc, char *argv[])
 	int error = 0;
 	int ch;
 
-	if (VECTOR_INIT(users) == NULL)
+	if (VECTOR_INIT(users))
 		err(1, NULL);
 
 	while ((ch = getopt(argc, argv, "Hu:")) != -1) {

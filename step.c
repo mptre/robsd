@@ -217,7 +217,7 @@ step_init(struct step *st)
 {
 	size_t i;
 
-	if (VECTOR_INIT(st->st_fields) == NULL)
+	if (VECTOR_INIT(st->st_fields))
 		err(1, NULL);
 	for (i = 0; i < nfields; i++) {
 		if (VECTOR_CALLOC(st->st_fields) == NULL)
@@ -338,9 +338,9 @@ parser_context_init(struct parser_context *pc)
 	pc->pc_bf = buffer_alloc(512);
 	if (pc->pc_bf == NULL)
 		err(1, NULL);
-	if (VECTOR_INIT(pc->pc_columns) == NULL)
+	if (VECTOR_INIT(pc->pc_columns))
 		err(1, NULL);
-	if (VECTOR_INIT(pc->pc_steps) == NULL)
+	if (VECTOR_INIT(pc->pc_steps))
 		err(1, NULL);
 }
 

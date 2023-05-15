@@ -216,9 +216,9 @@ static struct map_element *
 map_alloc_element(struct map *m, size_t keysize)
 {
 	struct map_element *el;
+	uint64_t totsize = m->element.size;
 
 	if (m->flags & MAP_KEY_STR) {
-		uint64_t totsize = m->element.size;
 		uint64_t keysize_aligned;
 
 		/* Add one byte to ensure NUL-terminator. */
@@ -228,14 +228,11 @@ map_alloc_element(struct map *m, size_t keysize)
 			errno = EOVERFLOW;
 			return NULL;
 		}
-		el = calloc(1, totsize);
-		if (el == NULL)
-			return NULL;
-	} else {
-		el = calloc(1, m->element.size);
-		if (el == NULL)
-			return NULL;
 	}
+
+	el = calloc(1, totsize);
+	if (el == NULL)
+		return NULL;
 	return el;
 }
 

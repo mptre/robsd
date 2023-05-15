@@ -267,9 +267,9 @@ config_alloc(const char *mode, const char *path)
 		err(1, NULL);
 	cf->cf_path = path;
 	cf->cf_mode = m;
-	if (VECTOR_INIT(cf->cf_variables) == NULL)
+	if (VECTOR_INIT(cf->cf_variables))
 		err(1, NULL);
-	if (VECTOR_INIT(cf->cf_empty_list) == NULL)
+	if (VECTOR_INIT(cf->cf_empty_list))
 		err(1, NULL);
 
 	switch (cf->cf_mode) {
@@ -701,7 +701,7 @@ variable_value_init(struct variable_value *val, enum variable_type type)
 
 	switch (type) {
 	case LIST:
-		if (VECTOR_INIT(val->list) == NULL)
+		if (VECTOR_INIT(val->list))
 			err(1, NULL);
 		break;
 	case INTEGER:
