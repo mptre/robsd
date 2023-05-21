@@ -520,7 +520,8 @@ install: all
 .PHONY: install
 
 lint-clang-tidy:
-	cd ${.CURDIR} && clang-tidy --quiet ${CLANGTIDY} -- ${CPPFLAGS}
+	cd ${.CURDIR} && echo ${CLANGTIDY} | xargs printf '%s\n' | \
+		xargs -I{} clang-tidy --quiet {} -- ${CPPFLAGS}
 .PHONY: lint-clang-tidy
 
 lint-cppcheck:
