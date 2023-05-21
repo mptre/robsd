@@ -68,7 +68,7 @@ ifgrinet(const char *group)
 	size_t inetsiz = 16;
 	int sock;
 
-	sock = socket(AF_INET, SOCK_DGRAM, 0);
+	sock = socket(AF_INET, SOCK_DGRAM | SOCK_CLOEXEC, 0);
 	if (sock == -1) {
 		warn("socket");
 		return NULL;
