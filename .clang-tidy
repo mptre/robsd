@@ -8,6 +8,10 @@ Checks: |
     -bugprone-narrowing-conversions,
     -bugprone-sizeof-expression,
   cert-c-*,
+  clang-analyzer-*,
+    -clang-analyzer-deadcode.DeadStores,
+    -clang-analyzer-optin.performance.Padding,
+    -clang-analyzer-security.insecureAPI.DeprecatedOrUnsafeBufferHandling,
   performance-*,
   portability-*,
 WarningsAsErrors: '*'
