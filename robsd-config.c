@@ -40,9 +40,15 @@ main(int argc, char *argv[])
 		case 'm':
 			mode = optarg;
 			break;
-		case 'v':
-			*VECTOR_ALLOC(vars) = optarg;
+		case 'v': {
+			const char **dst;
+
+			dst = VECTOR_ALLOC(vars);
+			if (dst == NULL)
+				err(1, NULL);
+			*dst = optarg;
 			break;
+		}
 		default:
 			usage();
 		}

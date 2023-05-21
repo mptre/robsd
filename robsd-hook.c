@@ -46,9 +46,15 @@ main(int argc, char *argv[])
 		case 'm':
 			mode = optarg;
 			break;
-		case 'v':
-			*VECTOR_ALLOC(vars) = optarg;
+		case 'v': {
+			const char **dst;
+
+			dst = VECTOR_ALLOC(vars);
+			if (dst == NULL)
+				err(1, NULL);
+			*dst = optarg;
 			break;
+		}
 		default:
 			usage();
 		}
@@ -137,6 +143,7 @@ hook_to_argv(struct config *config, char ***out)
 	args[nargs] = NULL;
 	for (i = 0; i < VECTOR_LENGTH(val->list); i++) {
 		const char *str = val->list[i];
+		char **dst;
 		char *arg;
 
 		arg = interpolate_str(str, &(struct interpolate_arg){
@@ -147,7 +154,10 @@ hook_to_argv(struct config *config, char ***out)
 			error = 1;
 			break;
 		}
-		*VECTOR_ALLOC(args) = arg;
+		dst = VECTOR_ALLOC(args);
+		if (dst == NULL)
+			err(1, NULL);
+		*dst = arg;
 	}
 
 	if (error) {

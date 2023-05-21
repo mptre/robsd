@@ -527,6 +527,7 @@ sort_suites(struct regress_html *r)
 	VECTOR(struct suite *) all;
 	VECTOR(struct suite *) pass;
 	struct map_iterator it = {0};
+	struct suite **dst;
 	struct suite *suite;
 	size_t i;
 
@@ -537,13 +538,20 @@ sort_suites(struct regress_html *r)
 
 	while ((suite = MAP_ITERATE(r->suites, &it)) != NULL) {
 		if (suite->fail > 0)
-			*VECTOR_ALLOC(all) = suite;
+			dst = VECTOR_ALLOC(all);
 		else
-			*VECTOR_ALLOC(pass) = suite;
+			dst = VECTOR_ALLOC(pass);
+		if (dst == NULL)
+			err(1, NULL);
+		*dst = suite;
 	}
 	VECTOR_SORT(all, suite_cmp);
-	for (i = 0; i < VECTOR_LENGTH(pass); i++)
-		*VECTOR_ALLOC(all) = pass[i];
+	for (i = 0; i < VECTOR_LENGTH(pass); i++) {
+		dst = VECTOR_ALLOC(all);
+		if (dst == NULL)
+			err(1, NULL);
+		*dst = pass[i];
+	}
 	VECTOR_FREE(pass);
 	return all;
 }

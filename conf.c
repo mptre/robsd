@@ -716,8 +716,12 @@ variable_value_clear(struct variable_value *val)
 {
 	switch (val->type) {
 	case LIST: {
-		while (!VECTOR_EMPTY(val->list))
-			free(*VECTOR_POP(val->list));
+		while (!VECTOR_EMPTY(val->list)) {
+			char **str;
+
+			str = VECTOR_POP(val->list);
+			free(*str);
+		}
 		VECTOR_FREE(val->list);
 		break;
 	}
@@ -736,8 +740,14 @@ variable_value_concat(struct variable_value *dst, struct variable_value *src)
 
 	assert(dst->type == LIST && src->type == LIST);
 
-	for (i = 0; i < VECTOR_LENGTH(src->list); i++)
-		*VECTOR_ALLOC(dst->list) = src->list[i];
+	for (i = 0; i < VECTOR_LENGTH(src->list); i++) {
+		char **str;
+
+		str = VECTOR_ALLOC(dst->list);
+		if (str == NULL)
+			err(1, NULL);
+		*str = src->list[i];
+	}
 	VECTOR_FREE(src->list);
 }
 
@@ -932,10 +942,12 @@ config_parse_glob(struct config *cf, struct variable_value *val)
 	}
 
 	for (i = 0; i < g.gl_pathc; i++) {
-		char *str;
+		char **dst;
 
-		str = estrdup(g.gl_pathv[i]);
-		*VECTOR_ALLOC(val->list) = str;
+		dst = VECTOR_ALLOC(val->list);
+		if (dst == NULL)
+			err(1, NULL);
+		*dst = estrdup(g.gl_pathv[i]);
 	}
 
 	globfree(&g);
@@ -951,14 +963,16 @@ config_parse_list(struct config *cf, struct variable_value *val)
 		return 1;
 	variable_value_init(val, LIST);
 	for (;;) {
-		char *str;
+		char **dst;
 
 		if (lexer_peek(cf->cf_lx, TOKEN_RBRACE))
 			break;
 		if (!lexer_expect(cf->cf_lx, TOKEN_STRING, &tk))
 			goto err;
-		str = estrdup(tk->tk_str);
-		*VECTOR_ALLOC(val->list) = str;
+		dst = VECTOR_ALLOC(val->list);
+		if (dst == NULL)
+			err(1, NULL);
+		*dst = estrdup(tk->tk_str);
 	}
 	if (!lexer_expect(cf->cf_lx, TOKEN_RBRACE, &tk))
 		goto err;
@@ -996,7 +1010,7 @@ config_parse_regress(struct config *cf, struct variable_value *val)
 	struct token *tk;
 	struct variable *regress;
 	const char *path;
-	char *str;
+	char **dst;
 
 	if (!lexer_expect(lx, TOKEN_STRING, &tk))
 		return 1;
@@ -1007,7 +1021,6 @@ config_parse_regress(struct config *cf, struct variable_value *val)
 
 		if (lexer_if(lx, TOKEN_ENV, &tk)) {
 			struct variable_value defval, newval;
-			char **dst;
 
 			if (config_parse_list(cf, &newval))
 				return 1;
@@ -1065,8 +1078,10 @@ config_parse_regress(struct config *cf, struct variable_value *val)
 	}
 
 	regress = config_find_or_create_list(cf, "regress");
-	str = estrdup(path);
-	*VECTOR_ALLOC(regress->va_val.list) = str;
+	dst = VECTOR_ALLOC(regress->va_val.list);
+	if (dst == NULL)
+		err(1, NULL);
+	*dst = estrdup(path);
 	val->ptr = novalue;
 	return 0;
 }
