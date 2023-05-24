@@ -527,7 +527,7 @@ lint-clang-tidy:
 lint-cppcheck:
 	cd ${.CURDIR} && cppcheck --quiet --enable=all --error-exitcode=1 \
 		--max-configs=2 --suppress-xml=cppcheck-suppressions.xml \
-		${CPPCHECK}
+		${CPPFLAGS} ${CPPCHECK}
 .PHONY: lint-cppcheck
 
 test: all
