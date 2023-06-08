@@ -2,21 +2,9 @@
 
 #include "config.h"
 
-#include <sys/types.h>
-#include <sys/ioctl.h>
-
-#include <sys/socket.h>
-#include <arpa/inet.h>
-#include <net/if.h>
-#include <netinet/in.h>
-#include <ifaddrs.h>
-
 #include <err.h>
 #include <stdarg.h>
 #include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <unistd.h>
 
 #include "alloc.h"
 
@@ -48,18 +36,27 @@ logv(void (*pr)(const char *, ...), const char *path, int lno, const char *fmt,
 	    msg);
 }
 
+#ifdef __OpenBSD__
+
+#include <sys/types.h>
+#include <sys/ioctl.h>
+
+#include <sys/socket.h>
+#include <arpa/inet.h>
+#include <net/if.h>
+#include <netinet/in.h>
+#include <ifaddrs.h>
+
+#include <stdlib.h>
+#include <string.h>
+#include <unistd.h>
+
 /*
  * Get the first IPv4 address associated with the given interface group.
  */
 char *
 ifgrinet(const char *group)
 {
-#ifndef __OpenBSD__
-	char *inet;
-
-	inet = estrdup(group);
-	return inet;
-#else
 	struct ifgroupreq ifgr;
 	struct ifaddrs *ifap = NULL;
 	struct ifaddrs *ifa;
@@ -116,5 +113,14 @@ out:
 	freeifaddrs(ifap);
 	close(sock);
 	return inet;
-#endif
 }
+
+#else
+
+char *
+ifgrinet(const char *group)
+{
+	return estrdup(group);
+}
+
+#endif
