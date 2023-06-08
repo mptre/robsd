@@ -8,16 +8,16 @@
 #include <err.h>
 #include <errno.h>
 #include <fcntl.h>
+#include <limits.h>	/* PATH_MAX */
 #include <stdarg.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <time.h>
 #include <unistd.h>
 
 #include "alloc.h"
 #include "buffer.h"
-#include "cdefs.h"
 #include "html.h"
 #include "invocation.h"
 #include "map.h"

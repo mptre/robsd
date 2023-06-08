@@ -3,15 +3,14 @@
 #include "config.h"
 
 #include <err.h>
-#include <errno.h>
 #include <inttypes.h>
+#include <limits.h>	/* LLONG_MIN, LLONG_MAX */
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
 #include "alloc.h"
 #include "buffer.h"
-#include "cdefs.h"
 #include "interpolate.h"
 #include "lexer.h"
 #include "token.h"

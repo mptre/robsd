@@ -1,5 +1,3 @@
-#include <stddef.h>	/* size_t */
-
 #define CONCAT_INNER(a, b) a ## b
 #define CONCAT(a, b) CONCAT_INNER(a, b)
 #define NODE() CONCAT(node, __LINE__)
