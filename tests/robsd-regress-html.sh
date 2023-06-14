@@ -466,6 +466,39 @@ if testcase "comment missing"; then
 	EOF
 fi
 
+if testcase "suites ordering"; then
+	_buildir="${TSHDIR}/amd64/2022-10-25.1"
+	_time="$_2022_10_25"
+	mkbuilddir "$_buildir"
+	{
+		step_serialize -s 1 -n test/new -l new.log -t "$_time"
+		step_log PASSED >"${_buildir}/new.log"
+
+		step_serialize -H -s 2 -n test/pass -l pass.log -t "$_time"
+		step_log PASSED >"${_buildir}/pass.log"
+
+		step_serialize -H -s 3 -n end -t "$((_time + 3600))"
+	} >"$(step_path "$_buildir")"
+
+	_buildir="${TSHDIR}/amd64/2022-10-24.1"
+	_time="$_2022_10_24"
+	mkbuilddir "$_buildir"
+	{
+		step_serialize -s 1 -n test/pass -l pass.log -t "$_time"
+		step_log PASSED >"${_buildir}/pass.log"
+
+		step_serialize -H -s 2 -n end -t "$((_time + 3600))"
+	} >"$(step_path "$_buildir")"
+
+	robsd_regress_html -- -o "${TSHDIR}/html" "amd64:${TSHDIR}/amd64"
+
+	xpath '//a[@class="suite"]' "${TSHDIR}/html/index.html" >"$TMP1"
+	assert_file - "$TMP1" "suites" <<-EOF
+	test/new
+	test/pass
+	EOF
+fi
+
 if testcase "invalid: steps empty"; then
 	_buildir="${TSHDIR}/amd64/2022-10-25.1"
 	_time="$_2022_10_25"

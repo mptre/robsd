@@ -546,6 +546,7 @@ sort_suites(struct regress_html *r)
 		*dst = suite;
 	}
 	VECTOR_SORT(all, suite_cmp);
+	VECTOR_SORT(pass, suite_cmp);
 	for (i = 0; i < VECTOR_LENGTH(pass); i++) {
 		dst = VECTOR_ALLOC(all);
 		if (dst == NULL)
@@ -619,7 +620,7 @@ suite_cmp(struct suite *const *a, struct suite *const *b)
 		return 1;
 	if ((*a)->fail > (*b)->fail)
 		return -1;
-	return 0;
+	return strcmp((*a)->name, (*b)->name);
 }
 
 static int
