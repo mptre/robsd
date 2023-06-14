@@ -67,6 +67,13 @@ void	*map_key(void *, const void *);
 })
 void	*map_find(void *, const void *const *);
 
+#define MAP_FIND_N(m, key, keysize) __extension__ ({			\
+        const __typeof__((m)->kp) _k = (key);				\
+	const void *_kk = &_k;						\
+	(__typeof__((m)->v))map_find_n((m), _kk, (keysize));		\
+})
+void	*map_find_n(void *, const void *const *, size_t);
+
 #define MAP_REMOVE(m, val) do {						\
 	__typeof__((m)->v) _v = (val);					\
 	map_remove((m), _v);						\

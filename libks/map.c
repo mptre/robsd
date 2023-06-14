@@ -181,6 +181,18 @@ map_find(void *mp, const void *const *key)
 	return el != NULL ? element_get_val(el) : NULL;
 }
 
+void *
+map_find_n(void *mp, const void *const *key, size_t keysize)
+{
+	struct map *m = mp;
+	struct map_element *el;
+	const void *keyptr;
+
+	keyptr = key_get_ptr(m, key);
+	el = HASH_FIND(m, keyptr, keysize);
+	return el != NULL ? element_get_val(el) : NULL;
+}
+
 void
 map_remove(void *mp, void *val)
 {
