@@ -869,11 +869,12 @@ cvsweb_url(struct buffer *bf, const char *path)
 static enum duration_delta
 duration_delta(int64_t a, int64_t b)
 {
+	int64_t threshold_s = 10ll * 60ll;
 	int64_t abs, delta;
 
 	delta = a - b;
 	abs = delta < 0 ? -delta : delta;
-	if (abs <= 5ll * 60ll)
+	if (abs <= threshold_s)
 		return NONE;
 	return delta < 0 ? FASTER : SLOWER;
 }
