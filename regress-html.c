@@ -78,7 +78,7 @@ static int				  parse_invocation(struct regress_html *,
 static struct regress_invocation	 *create_regress_invocation(
     struct regress_html *, const char *, const char *, int64_t, int64_t);
 static int				  copy_files(struct regress_html *,
-    struct regress_invocation *, const char *);
+    const struct regress_invocation *, const char *);
 static int				  copy_patches(struct regress_html *,
     struct regress_invocation *, const char *);
 static struct suite			 *find_suite(struct regress_html *,
@@ -427,7 +427,7 @@ create_regress_invocation(struct regress_html *r, const char *arch,
 }
 
 static int
-copy_files(struct regress_html *r, struct regress_invocation *ri,
+copy_files(struct regress_html *r, const struct regress_invocation *ri,
     const char *directory)
 {
 	struct buffer *bf = NULL;
