@@ -64,12 +64,10 @@ step_log() {
 xpath() {
 	local _xpath
 	local _path
-	local _xmllint
 
 	_xpath="$1"; : "${_xpath:?}"
 	_path="$2"; : "${_path:?}"
 
-	_xmllint="$(which xmllint 2>/dev/null || echo /usr/local/bin/xmllint)"
 	"$_xmllint" --html --xpath "$_xpath" "$_path" 2>/dev/null |
 	grep -v -e '^[[:space:]]*$' -e '<' |
 	xargs -r printf '%s\n'
@@ -79,7 +77,11 @@ _2022_10_25=1666659600
 _2022_10_24=$((_2022_10_25 - 86400))
 _2022_10_23=$((_2022_10_24 - 86400))
 
-if testcase -t xmllint "basic"; then
+# xmllint is required to run these tests.
+_xmllint="$(which xmllint 2>/dev/null || echo /usr/local/bin/xmllint)"
+ls "$_xmllint" >/dev/null
+
+if testcase "basic"; then
 	_buildir="${TSHDIR}/amd64/2022-10-25.1"
 	_time="$_2022_10_25"
 	mkbuilddir "$_buildir"
@@ -270,7 +272,7 @@ if testcase -t xmllint "basic"; then
 	done
 fi
 
-if testcase -t xmllint "changelog"; then
+if testcase "changelog"; then
 	_buildir="${TSHDIR}/amd64/2022-10-25.1"
 	_time="$_2022_10_25"
 	mkbuilddir -t cvs "$_buildir"
@@ -304,7 +306,7 @@ if testcase -t xmllint "changelog"; then
 	EOF
 fi
 
-if testcase -t xmllint "patches"; then
+if testcase "patches"; then
 	_buildir="${TSHDIR}/amd64/2022-10-25.1"
 	_time="$_2022_10_25"
 	mkbuilddir -t cvs "$_buildir"
@@ -348,7 +350,7 @@ if testcase -t xmllint "patches"; then
 	EOF
 fi
 
-if testcase -t xmllint "multiple invocations per day"; then
+if testcase "multiple invocations per day"; then
 	_buildir="${TSHDIR}/amd64/2022-10-25.2"
 	_time="$((_2022_10_25 + 3600))"
 	mkbuilddir -t cvs "$_buildir"
@@ -384,7 +386,7 @@ if testcase -t xmllint "multiple invocations per day"; then
 	EOF
 fi
 
-if testcase -t xmllint "non-regress suites"; then
+if testcase "non-regress suites"; then
 	_buildir="${TSHDIR}/amd64/2022-10-25.1"
 	_time="$_2022_10_25"
 	mkbuilddir "$_buildir"
