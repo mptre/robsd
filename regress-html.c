@@ -851,8 +851,9 @@ render_suite(struct regress_html *r, struct suite *suite)
 
 			/* Compensate for missing run(s). */
 			for (; ri->time > run->time; ri++) {
-				/* NOLINTNEXTLINE(bugprone-suspicious-semicolon) */
-				HTML_NODE(r->html, "td");
+				HTML_NODE(r->html, "td") {
+					/* nothing */
+				}
 			}
 			ri++;
 
