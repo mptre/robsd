@@ -569,3 +569,21 @@ if testcase "invalid: missing output directory"; then
 		fail - "expected usage" <"$TMP1"
 	fi
 fi
+
+if testcase "invalid: missing log"; then
+	_buildir="${TSHDIR}/amd64/2022-10-25.1"
+	_time="$_2022_10_25"
+	mkbuilddir "$_buildir"
+	{
+		step_serialize -s 1 -n test/nein -l nein.log -t "$_time"
+
+		step_serialize -H -s 2 -n end -t "$((_time + 3600))"
+	} >"$(step_path "$_buildir")"
+
+	robsd_regress_html -e - -- -o "${TSHDIR}/html" "amd64:${TSHDIR}/amd64" <<-EOF
+	robsd-regress-html: open: ${TSHDIR}/amd64/2022-10-25.1/nein.log: No such file or directory
+	robsd-regress-html: open: ${TSHDIR}/amd64/2022-10-25.1/nein.log: No such file or directory
+	robsd-regress-html: open: ${TSHDIR}/amd64/2022-10-25.1/nein.log: No such file or directory
+	robsd-regress-html: ${TSHDIR}/amd64/2022-10-25.1/nein.log: No such file or directory
+	EOF
+fi

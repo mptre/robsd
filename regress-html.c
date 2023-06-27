@@ -59,6 +59,7 @@ struct regress_invocation {
 struct run {
 	char	*log;
 	int64_t	 time;
+	int64_t	 exit;
 	enum run_status {
 		PASS,
 		FAIL,
@@ -75,6 +76,8 @@ struct suite {
 
 static int				  parse_invocation(struct regress_html *,
     const char *, const char *, const char *);
+static int				  parse_invocation_log(
+    struct regress_html *, const struct run *, const char *, enum run_status *);
 static struct regress_invocation	 *create_regress_invocation(
     struct regress_html *, const char *, const char *, int64_t, int64_t);
 static int				  copy_files(struct regress_html *,
@@ -309,8 +312,8 @@ parse_invocation(struct regress_html *r, const char *arch,
 	for (i = 0; i < VECTOR_LENGTH(steps); i++) {
 		struct suite *suite;
 		struct run *run;
-		const char *log, *name;
-		int exit;
+		const char *name;
+		enum run_status status;
 
 		name = step_get_field(&steps[i], "name")->str;
 		if (strchr(name, '/') == 0)
@@ -318,68 +321,68 @@ parse_invocation(struct regress_html *r, const char *arch,
 
 		ri->total++;
 
-		exit = step_get_field(&steps[i], "exit")->integer;
-		log = step_get_field(&steps[i], "log")->str;
-
 		suite = find_suite(r, name);
 		run = VECTOR_CALLOC(suite->runs);
 		if (run == NULL)
 			err(1, NULL);
 		buffer_reset(scratch);
-		buffer_printf(scratch, "%s/%s/%s", arch, ri->date, log);
+		buffer_printf(scratch, "%s/%s/%s",
+		    arch, ri->date, step_get_field(&steps[i], "log")->str);
 		run->log = estrdup(buffer_get_ptr(scratch));
 		run->time = time;
+		run->exit = step_get_field(&steps[i], "exit")->integer;
 		buffer_reset(scratch);
 
-		path = joinpath(r->path, "%s/%s", directory, log);
-		if (exit != 0) {
-			regress_log_parse(path, scratch,
-			    REGRESS_LOG_FAILED | REGRESS_LOG_ERROR);
+		path = joinpath(r->path, "%s/%s",
+		    directory, step_get_field(&steps[i], "log")->str);
+		if (parse_invocation_log(r, run, path, &status)) {
+			error = 1;
+			goto out;
+		}
+		run->status = status;
+		if (run->status == FAIL) {
 			ri->fail++;
 			suite->fail++;
-			run->status = FAIL;
-			if (copy_log(r, run->log, scratch)) {
-				error = 1;
-				goto out;
-			}
-			continue;
-		}
-
-		if (regress_log_parse(path, scratch, REGRESS_LOG_XFAILED) > 0) {
-			buffer_reset(scratch);
-			regress_log_parse(path, scratch,
-			    REGRESS_LOG_XFAILED | REGRESS_LOG_SKIPPED);
-			run->status = XFAIL;
-			if (copy_log(r, run->log, scratch)) {
-				error = 1;
-				goto out;
-			}
-			continue;
-		}
-
-		buffer_reset(scratch);
-		if (regress_log_parse(path, scratch, REGRESS_LOG_SKIPPED) > 0) {
-			run->status = SKIP;
-			if (copy_log(r, run->log, scratch)) {
-				error = 1;
-				goto out;
-			}
-			continue;
-		}
-
-		buffer_reset(scratch);
-		if (regress_log_trim(path, scratch)) {
-			run->status = PASS;
-			if (copy_log(r, run->log, scratch)) {
-				error = 1;
-				goto out;
-			}
 		}
 	}
 
 out:
 	buffer_free(dmesg);
 	steps_free(steps);
+	return error;
+}
+
+static int
+parse_invocation_log(struct regress_html *r, const struct run *run,
+    const char *log_path, enum run_status *status)
+{
+	struct buffer *bf = r->scratch;
+	int error = 0;
+
+	buffer_reset(bf);
+
+	if (run->exit != 0) {
+		regress_log_parse(log_path, bf,
+		    REGRESS_LOG_FAILED | REGRESS_LOG_ERROR);
+		*status = FAIL;
+		error = copy_log(r, run->log, bf);
+	} else if (regress_log_parse(log_path, bf, REGRESS_LOG_XFAILED) > 0) {
+		*status = XFAIL;
+		buffer_reset(bf);
+		regress_log_parse(log_path, bf,
+		    REGRESS_LOG_XFAILED | REGRESS_LOG_SKIPPED);
+		error = copy_log(r, run->log, bf);
+	} else if (regress_log_parse(log_path, bf, REGRESS_LOG_SKIPPED) > 0) {
+		*status = SKIP;
+		error = copy_log(r, run->log, bf);
+	} else if (regress_log_trim(log_path, bf) > 0) {
+		*status = PASS;
+		error = copy_log(r, run->log, bf);
+	} else {
+		warn("%s", log_path);
+		error = 1;
+	}
+
 	return error;
 }
 
