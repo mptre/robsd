@@ -526,6 +526,7 @@ sort_suites(struct regress_html *r)
 {
 	VECTOR(struct suite *) all;
 	VECTOR(struct suite *) pass;
+	VECTOR(struct suite *) nonregress;
 	struct map_iterator it = {0};
 	struct suite **dst;
 	struct suite *suite;
@@ -535,25 +536,43 @@ sort_suites(struct regress_html *r)
 		err(1, NULL);
 	if (VECTOR_INIT(pass))
 		err(1, NULL);
+	if (VECTOR_INIT(nonregress))
+		err(1, NULL);
 
 	while ((suite = MAP_ITERATE(r->suites, &it)) != NULL) {
-		if (suite->fail > 0)
+		if (suite->fail > 0) {
 			dst = VECTOR_ALLOC(all);
-		else
+		} else if (strncmp(suite->name, "../", 3) == 0) {
+			/*
+			 * Place step(s) outside of the regress directory last
+			 * as they are often dependencies that are not that
+			 * interesting.
+			 */
+			dst = VECTOR_ALLOC(nonregress);
+		} else {
 			dst = VECTOR_ALLOC(pass);
+		}
 		if (dst == NULL)
 			err(1, NULL);
 		*dst = suite;
 	}
 	VECTOR_SORT(all, suite_cmp);
 	VECTOR_SORT(pass, suite_cmp);
+	VECTOR_SORT(nonregress, suite_cmp);
 	for (i = 0; i < VECTOR_LENGTH(pass); i++) {
 		dst = VECTOR_ALLOC(all);
 		if (dst == NULL)
 			err(1, NULL);
 		*dst = pass[i];
 	}
+	for (i = 0; i < VECTOR_LENGTH(nonregress); i++) {
+		dst = VECTOR_ALLOC(all);
+		if (dst == NULL)
+			err(1, NULL);
+		*dst = nonregress[i];
+	}
 	VECTOR_FREE(pass);
+	VECTOR_FREE(nonregress);
 	return all;
 }
 

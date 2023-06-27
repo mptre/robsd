@@ -384,6 +384,33 @@ if testcase -t xmllint "multiple invocations per day"; then
 	EOF
 fi
 
+if testcase -t xmllint "non-regress suites"; then
+	_buildir="${TSHDIR}/amd64/2022-10-25.1"
+	_time="$_2022_10_25"
+	mkbuilddir "$_buildir"
+	{
+		step_serialize -s 1 -n test/first -l first.log -t "$_time"
+		step_log PASSED >"${_buildir}/first.log"
+
+		step_serialize -H -s 2 -n ../b -l b.log -t "$_time"
+		step_log PASSED >"${_buildir}/b.log"
+
+		step_serialize -H -s 3 -n ../a -l b.log -t "$_time"
+		step_log PASSED >"${_buildir}/a.log"
+
+		step_serialize -H -s 4 -n end -t "$((_time + 3600))"
+	} >"$(step_path "$_buildir")"
+
+	robsd_regress_html - -- -o "${TSHDIR}/html" "amd64:${TSHDIR}/amd64" </dev/null
+
+	xpath '//a[@class="suite"]/text()' "${TSHDIR}/html/index.html" >"$TMP1"
+	assert_file - "$TMP1" <<-EOF
+	test/first
+	../a
+	../b
+	EOF
+fi
+
 
 if testcase "missing runs"; then
 	_buildir="${TSHDIR}/amd64/2022-10-25.1"
