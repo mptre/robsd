@@ -362,9 +362,10 @@ parse_invocation_log(struct regress_html *r, const struct run *run,
 	buffer_reset(bf);
 
 	if (run->exit != 0) {
-		regress_log_parse(log_path, bf,
-		    REGRESS_LOG_FAILED | REGRESS_LOG_ERROR);
 		*status = FAIL;
+		if (regress_log_parse(log_path, bf,
+		    REGRESS_LOG_FAILED | REGRESS_LOG_ERROR) <= 0)
+			goto fallback;
 		error = copy_log(r, run->log, bf);
 	} else if (regress_log_parse(log_path, bf, REGRESS_LOG_XFAILED) > 0) {
 		*status = XFAIL;
@@ -375,12 +376,15 @@ parse_invocation_log(struct regress_html *r, const struct run *run,
 	} else if (regress_log_parse(log_path, bf, REGRESS_LOG_SKIPPED) > 0) {
 		*status = SKIP;
 		error = copy_log(r, run->log, bf);
-	} else if (regress_log_trim(log_path, bf) > 0) {
-		*status = PASS;
-		error = copy_log(r, run->log, bf);
 	} else {
-		warn("%s", log_path);
-		error = 1;
+		*status = PASS;
+fallback:
+		if (regress_log_trim(log_path, bf) > 0) {
+			error = copy_log(r, run->log, bf);
+		} else {
+			warn("%s", log_path);
+			error = 1;
+		}
 	}
 
 	return error;

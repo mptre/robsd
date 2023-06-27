@@ -528,6 +528,28 @@ if testcase "suites ordering"; then
 	EOF
 fi
 
+if testcase "unknown failure"; then
+	_buildir="${TSHDIR}/amd64/2022-10-25.1"
+	_time="$_2022_10_25"
+	mkbuilddir "$_buildir"
+	{
+		step_serialize -s 1 -n test/fail -l fail.log -t "$_time" -e 1
+		cat <<-'EOF' >"${_buildir}/fail.log"
+		+ shell trace expected to be stripped
+		something robsd-regress-log cannot interpret
+		+ shell trace expected to be stripped
+		EOF
+
+		step_serialize -H -s 2 -n end -t "$((_time + 3600))"
+	} >"$(step_path "$_buildir")"
+
+	robsd_regress_html -- -o "${TSHDIR}/html" "amd64:${TSHDIR}/amd64"
+
+	assert_file "${TSHDIR}/html/amd64/2022-10-25.1/fail.log" - <<-'EOF'
+	something robsd-regress-log cannot interpret
+	EOF
+fi
+
 if testcase "invalid: steps empty"; then
 	_buildir="${TSHDIR}/amd64/2022-10-25.1"
 	_time="$_2022_10_25"
