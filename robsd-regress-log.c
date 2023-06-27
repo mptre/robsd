@@ -59,7 +59,6 @@ main(int argc, char *argv[])
 	bf = buffer_alloc(1 << 20);
 	if (bf == NULL)
 		err(1, NULL);
-	regress_log_init();
 	for (i = 0; i < argc; i++) {
 		if (n > 0)
 			buffer_putc(bf, '\n');
@@ -75,7 +74,6 @@ main(int argc, char *argv[])
 			n++;
 		}
 	}
-	regress_log_shutdown();
 	if (!error && n > 0 && doprint) {
 		buffer_putc(bf, '\0');
 		printf("%s", buffer_get_ptr(bf));

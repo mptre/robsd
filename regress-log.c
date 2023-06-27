@@ -3,7 +3,6 @@
 #include "config.h"
 
 #include <err.h>
-#include <regex.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -23,39 +22,12 @@ static void	reader_close(struct reader *);
 
 static int	iserror(const char *);
 static int	ismarker(const char *);
+static int	ismarker_regress(const char *);
+static int	ismarker_subdir(const char *);
 static int	isskipped(const char *);
 static int	isfailed(const char *);
 static int	isxfailed(const char *);
 static int	isxtrace(const char *);
-
-static regex_t	reg_regress, reg_subdir;
-
-void
-regress_log_init(void)
-{
-	char errbuf[512];
-	int flags = REG_NOSUB | REG_NEWLINE;
-	int error;
-
-	error = regcomp(&reg_subdir, "^===>", flags);
-	if (error) {
-		(void)regerror(error, &reg_subdir, errbuf, sizeof(errbuf));
-		errx(1, "regcomp: %s", errbuf);
-	}
-
-	error = regcomp(&reg_regress, "^==== .* ====$", flags);
-	if (error) {
-		(void)regerror(error, &reg_regress, errbuf, sizeof(errbuf));
-		errx(1, "regcomp: %s", errbuf);
-	}
-}
-
-void
-regress_log_shutdown(void)
-{
-	regfree(&reg_regress);
-	regfree(&reg_subdir);
-}
 
 /*
  * Parse the given log located at path and extract regress test targets with a
@@ -227,11 +199,43 @@ iserror(const char *str)
 static int
 ismarker(const char *str)
 {
-	if (regexec(&reg_regress, str, 0, NULL, 0) == 0)
-		return 1;
-	if (regexec(&reg_subdir, str, 0, NULL, 0) == 0)
-		return 1;
-	return 0;
+	return ismarker_regress(str) || ismarker_subdir(str);
+}
+
+/*
+ * Returns non-zero if str matches /^==== .* ====$/.
+ */
+static int
+ismarker_regress(const char *str)
+{
+	const char needle[] = "====";
+
+	if (strncmp(str, needle, sizeof(needle) - 1) != 0)
+		return 0;
+	str += sizeof(needle) - 1;
+
+	if (str[0] != ' ')
+		return 0;
+	str += 1;
+
+	for (; str[0] != '\0'; str++) {
+		if (str[-1] == ' ' && str[0] == '=')
+			break;
+	}
+
+	if (strncmp(str, needle, sizeof(needle) - 1) != 0)
+		return 0;
+	str += sizeof(needle) - 1;
+
+	return str[0] == '\n';
+}
+
+static int
+ismarker_subdir(const char *str)
+{
+	const char needle[] = "===>";
+
+	return strncmp(str, needle, sizeof(needle) - 1) == 0;
 }
 
 static int

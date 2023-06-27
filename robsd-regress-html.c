@@ -8,7 +8,6 @@
 
 #include "alloc.h"
 #include "regress-html.h"
-#include "regress-log.h"
 
 static void	usage(void) __attribute__((__noreturn__));
 
@@ -37,7 +36,6 @@ main(int argc, char *argv[])
 	if (pledge("stdio rpath wpath cpath", NULL) == -1)
 		err(1, "pledge");
 
-	regress_log_init();
 	rh = regress_html_alloc(output);
 
 	for (; argc > 0; argc--, argv++) {
@@ -63,7 +61,6 @@ main(int argc, char *argv[])
 
 out:
 	regress_html_free(rh);
-	regress_log_shutdown();
 	return error;
 }
 
