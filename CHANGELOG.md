@@ -1,3 +1,29 @@
+# 17.7.0 - YYYY-MM-DD
+
+## News
+
+- robsd-regress-html: add duration column.
+  (70e4a25, d79258e, 27abf56)
+  (Anton Lindqvist)
+
+- robsd-regress-html: place suites outside of regress directory last.
+  (396d286)
+  (Anton Lindqvist)
+
+## Bug fixes
+
+- robsd-regress-html: use correct date in URLs to logs.
+  (7ba221c)
+  (Anton Lindqvist)
+
+- Close stderr when running in detached mode.
+  (1814d2f)
+  (Anton Lindqvist)
+
+- robsd-regress-html: fix sort ordering among suites.
+  (cf5af8a)
+  (Anton Lindqvist)
+
 # 17.6.2 - 2023-05-02
 
 ## Bug fixes
