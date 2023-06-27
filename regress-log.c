@@ -141,7 +141,7 @@ regress_log_trim(const char *path, struct buffer *out)
 	int error = 0;
 
 	if (reader_open(&rd, path))
-		return 1;
+		return -1;
 
 	buffer_reset(out);
 	bf = buffer_alloc(1 << 20);
@@ -178,7 +178,7 @@ regress_log_trim(const char *path, struct buffer *out)
 out:
 	buffer_free(bf);
 	reader_close(&rd);
-	return error ? 0 : 1;
+	return error ? -1 : 1;
 }
 
 static int
