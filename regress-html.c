@@ -939,8 +939,9 @@ is_run_status_failure(enum run_status status)
 	case PASS:
 	case XFAIL:
 	case SKIP:
-		return 0;
+		break;
 	}
+	return 0;
 }
 
 static const char *
