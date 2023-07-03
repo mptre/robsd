@@ -550,6 +550,44 @@ if testcase "unknown failure"; then
 	EOF
 fi
 
+if testcase "unexpected pass"; then
+	_buildir="${TSHDIR}/amd64/2022-10-25.1"
+	_time="$_2022_10_25"
+	mkbuilddir "$_buildir"
+	{
+		step_serialize -s 1 -n test/xpass -l xpass.log -t "$_time" -e 1
+		{ step_log UNEXPECTED_PASS; step_log FAILED; } >"${_buildir}/xpass.log"
+
+		step_serialize -H -s 2 -n test/fail -l fail.log -t "$_time" -e 1
+		step_log FAILED >"${_buildir}/fail.log"
+
+		step_serialize -H -s 3 -n test/pass -l pass.log -t "$_time"
+		step_log PASSED >"${_buildir}/pass.log"
+
+		step_serialize -H -s 4 -n end -t "$((_time + 3600))"
+	} >"$(step_path "$_buildir")"
+
+	robsd_regress_html -- -o "${TSHDIR}/html" "amd64:${TSHDIR}/amd64"
+
+	xpath '//a[@class="suite" or @class="status"]' "${TSHDIR}/html/index.html" >"$TMP1"
+	assert_file - "$TMP1" <<-EOF
+	test/fail
+	FAIL
+	test/xpass
+	XPASS
+	test/pass
+	PASS
+	EOF
+
+	assert_file - "${TSHDIR}/html/amd64/2022-10-25.1/xpass.log" <<-EOF
+	==== test ====
+	UNEXPECTED_PASS
+
+	==== test ====
+	FAILED
+	EOF
+fi
+
 if testcase "invalid: steps empty"; then
 	_buildir="${TSHDIR}/amd64/2022-10-25.1"
 	_time="$_2022_10_25"

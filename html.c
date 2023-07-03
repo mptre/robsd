@@ -82,6 +82,7 @@ html_head_enter(struct html *html)
 	    "    td.PASS { background: #80ff80; }\n"
 	    "    td.FAIL { background: #ff8080; }\n"
 	    "    td.XFAIL { background: #80ffc0; }\n"
+	    "    td.XPASS { background: #ff80c0; }\n"
 	    "    td.SKIP { background: #8080ff; }\n"
 	    "    a.status { color: #000; }\n"
 	    "  </style>\n";

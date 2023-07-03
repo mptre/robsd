@@ -223,11 +223,7 @@ if testcase "unexpected pass"; then
 	UNEXPECTED_PASS
 	EOF
 
-	robsd_regress_log - -- -F "$TMP1" <<-EOF
-	==== fail ====
-	./fail
-	FAILED
-
+	robsd_regress_log - -- -P "$TMP1" <<-EOF
 	==== unexpected ====
 	./unexpected
 	UNEXPECTED_PASS

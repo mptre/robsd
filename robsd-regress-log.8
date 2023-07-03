@@ -6,7 +6,7 @@
 .Nd bsd.regress.mk log parser
 .Sh SYNOPSIS
 .Nm robsd-regress-log
-.Op Fl EFSXn
+.Op Fl EFPSXn
 .Ar path ...
 .Sh DESCRIPTION
 The
@@ -27,7 +27,8 @@ covered by
 .Ev REGRESS_TARGETS .
 .It Fl F
 Extract failed targets.
-Note that unexpected pass targets are also interpreted as failures.
+.It Fl P
+Extract unexpected pass targets.
 .It Fl S
 Extract skipped targets.
 .It Fl X

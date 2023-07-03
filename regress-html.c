@@ -64,6 +64,7 @@ struct run {
 		PASS,
 		FAIL,
 		XFAIL,
+		XPASS,
 		SKIP,
 	} status;
 };
@@ -116,6 +117,7 @@ static const char		*cvsweb_url(struct buffer *, const char *);
 static enum duration_delta	 duration_delta(int64_t, int64_t);
 static const char		*joinpath(struct buffer *, const char *, ...)
 	__attribute__((__format__(printf, 2, 3)));
+static int			 is_run_status_failure(enum run_status);
 static const char		*strstatus(enum run_status);
 
 struct regress_html *
@@ -340,7 +342,7 @@ parse_invocation(struct regress_html *r, const char *arch,
 			goto out;
 		}
 		run->status = status;
-		if (run->status == FAIL) {
+		if (is_run_status_failure(run->status)) {
 			ri->fail++;
 			suite->fail++;
 		}
@@ -361,8 +363,17 @@ parse_invocation_log(struct regress_html *r, const struct run *run,
 
 	buffer_reset(bf);
 
-	if (run->exit != 0) {
+	/* Give higher precedence to XPASS than FAIL, matches what bluhm@ does. */
+	if (run->exit != 0 &&
+	    regress_log_parse(log_path, bf, REGRESS_LOG_XPASSED) > 0) {
+		*status = XPASS;
+		buffer_reset(bf);
+		regress_log_parse(log_path, bf,
+		    REGRESS_LOG_FAILED | REGRESS_LOG_XPASSED);
+		error = copy_log(r, run->log, bf);
+	} else if (run->exit != 0) {
 		*status = FAIL;
+		buffer_reset(bf);
 		if (regress_log_parse(log_path, bf,
 		    REGRESS_LOG_FAILED | REGRESS_LOG_ERROR) <= 0)
 			goto fallback;
@@ -918,6 +929,20 @@ joinpath(struct buffer *bf, const char *fmt, ...)
 	return buffer_get_ptr(bf);
 }
 
+static int
+is_run_status_failure(enum run_status status)
+{
+	switch (status) {
+	case FAIL:
+	case XPASS:
+		return 1;
+	case PASS:
+	case XFAIL:
+	case SKIP:
+		return 0;
+	}
+}
+
 static const char *
 strstatus(enum run_status status)
 {
@@ -928,6 +953,8 @@ strstatus(enum run_status status)
 		return "FAIL";
 	case XFAIL:
 		return "XFAIL";
+	case XPASS:
+		return "XPASS";
 	case SKIP:
 		return "SKIP";
 	}
