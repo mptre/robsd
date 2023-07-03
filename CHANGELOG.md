@@ -1,4 +1,4 @@
-# 17.7.0 - YYYY-MM-DD
+# 17.7.0 - 2023-07-03
 
 ## News
 
@@ -8,6 +8,11 @@
 
 - robsd-regress-html: place suites outside of regress directory last.
   (396d286)
+  (Anton Lindqvist)
+
+- robsd-regress-html: stop using regular expressions in robsd-regress-log
+  yielding a 2.5x speed up.
+  (b617b29)
   (Anton Lindqvist)
 
 ## Bug fixes
