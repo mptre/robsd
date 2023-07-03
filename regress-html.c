@@ -118,7 +118,7 @@ static enum duration_delta	 duration_delta(int64_t, int64_t);
 static const char		*joinpath(struct buffer *, const char *, ...)
 	__attribute__((__format__(printf, 2, 3)));
 static int			 is_run_status_failure(enum run_status);
-static const char		*strstatus(enum run_status);
+static const char		*run_status_str(enum run_status);
 
 struct regress_html *
 regress_html_alloc(const char *directory)
@@ -884,7 +884,7 @@ static void
 render_run(struct regress_html *r, const struct run *run)
 {
 	struct html *html = r->html;
-	const char *status = strstatus(run->status);
+	const char *status = run_status_str(run->status);
 
 	HTML_NODE_ATTR(html, "td", HTML_ATTR("class", status)) {
 		HTML_NODE_ATTR(html, "a",
@@ -944,7 +944,7 @@ is_run_status_failure(enum run_status status)
 }
 
 static const char *
-strstatus(enum run_status status)
+run_status_str(enum run_status status)
 {
 	switch (status) {
 	case PASS:
