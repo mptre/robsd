@@ -1,3 +1,17 @@
+# 17.8.0 - YYYY-MM-DD
+
+## News
+
+- robsd-regress-html: recognize unexpected pass targets.
+  (fa40ab3)
+  (Anton Lindqvist)
+
+## Bug fixes
+
+- Honor Makefile.bsd-wrapper in robsd-regress obj step.
+  (e1dbf74)
+  (Anton Lindqvist)
+
 # 17.7.0 - 2023-07-03
 
 ## News
