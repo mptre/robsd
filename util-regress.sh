@@ -23,6 +23,19 @@ regress_log() {
 	"${ROBSDREGRESSLOG:-${EXECDIR}/robsd-regress-log}" "$@"
 }
 
+# regress_makefile dir
+#
+# Get the name of the makefile present in the given directory if it deviates
+# from the default one.
+regress_makefile() {
+	local _dir
+
+	_dir="$1"; : "${_dir:?}"
+	if [ -e "${_dir}/Makefile.bsd-wrapper" ]; then
+		echo "Makefile.bsd-wrapper"
+	fi
+}
+
 # regress_report_log -e step-exit -n step-name -l step-log -t tmp-dir
 #
 # Get an excerpt of the given step log.
