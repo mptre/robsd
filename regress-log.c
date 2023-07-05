@@ -16,6 +16,9 @@ struct reader {
 	size_t		 linesiz;
 };
 
+static int	regress_log_parse_impl(const char *, struct buffer *,
+    struct buffer *, unsigned int);
+
 static int	reader_open(struct reader *, const char *);
 static ssize_t	reader_getline(struct reader *, const char **);
 static void	reader_close(struct reader *);
@@ -30,6 +33,20 @@ static int	isxfailed(const char *);
 static int	isxpassed(const char *);
 static int	isxtrace(const char *);
 
+int
+regress_log_parse(const char *path, struct buffer *out, unsigned int flags)
+{
+	struct buffer *bf;
+	int rv;
+
+	bf = buffer_alloc(1 << 20);
+	if (bf == NULL)
+		err(1, NULL);
+	rv = regress_log_parse_impl(path, bf, out, flags);
+	buffer_free(bf);
+	return rv;
+}
+
 /*
  * Parse the given log located at path and extract regress test targets with a
  * specific outcome. Returns one of the following:
@@ -38,11 +55,11 @@ static int	isxtrace(const char *);
  *     0     No test targets extracted.
  *     <0    Fatal error occurred.
  */
-int
-regress_log_parse(const char *path, struct buffer *out, unsigned int flags)
+static int
+regress_log_parse_impl(const char *path, struct buffer *bf, struct buffer *out,
+    unsigned int flags)
 {
 	struct reader rd;
-	struct buffer *bf;
 	size_t errorlen = 0;
 	int error = 0;
 	int nfound = 0;
@@ -51,9 +68,6 @@ regress_log_parse(const char *path, struct buffer *out, unsigned int flags)
 	if (reader_open(&rd, path))
 		return -1;
 
-	bf = buffer_alloc(1 << 20);
-	if (bf == NULL)
-		err(1, NULL);
 	for (;;) {
 		const char *line;
 		ssize_t n;
@@ -94,7 +108,6 @@ regress_log_parse(const char *path, struct buffer *out, unsigned int flags)
 		buffer_printf(out, "%.*s", (int)errorlen, buffer_get_ptr(bf));
 		nfound++;
 	}
-	buffer_free(bf);
 	reader_close(&rd);
 
 	if (error)
