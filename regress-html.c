@@ -359,43 +359,38 @@ parse_invocation_log(struct regress_html *r, const struct run *run,
     const char *log_path, enum run_status *status)
 {
 	struct buffer *bf = r->scratch;
-	int error = 0;
+	int error;
 
-	buffer_reset(bf);
-
-	/* Give higher precedence to XPASS than FAIL, matches what bluhm@ does. */
-	if (run->exit != 0 &&
-	    regress_log_parse(log_path, bf, REGRESS_LOG_XPASSED) > 0) {
-		*status = XPASS;
-		buffer_reset(bf);
-		regress_log_parse(log_path, bf,
-		    REGRESS_LOG_FAILED | REGRESS_LOG_XPASSED);
-		error = copy_log(r, run->log, bf);
-	} else if (run->exit != 0) {
+	if (run->exit != 0) {
 		*status = FAIL;
-		buffer_reset(bf);
-		if (regress_log_parse(log_path, bf,
-		    REGRESS_LOG_FAILED | REGRESS_LOG_ERROR) <= 0)
-			goto fallback;
-		error = copy_log(r, run->log, bf);
+	} else if (regress_log_parse(log_path, bf, REGRESS_LOG_XPASSED) > 0) {
+		/*
+		 * Give higher precedence to XPASS than FAIL, matches what
+		 * bluhm@ does.
+		 */
+		*status = XPASS;
+	} else if (regress_log_parse(log_path, bf, REGRESS_LOG_FAILED) > 0) {
+		*status = FAIL;
 	} else if (regress_log_parse(log_path, bf, REGRESS_LOG_XFAILED) > 0) {
 		*status = XFAIL;
-		buffer_reset(bf);
-		regress_log_parse(log_path, bf,
-		    REGRESS_LOG_XFAILED | REGRESS_LOG_SKIPPED);
-		error = copy_log(r, run->log, bf);
 	} else if (regress_log_parse(log_path, bf, REGRESS_LOG_SKIPPED) > 0) {
 		*status = SKIP;
-		error = copy_log(r, run->log, bf);
 	} else {
 		*status = PASS;
-fallback:
-		if (regress_log_trim(log_path, bf) > 0) {
-			error = copy_log(r, run->log, bf);
-		} else {
-			warn("%s", log_path);
-			error = 1;
-		}
+	}
+
+	buffer_reset(bf);
+	if (regress_log_parse(log_path, bf,
+	    REGRESS_LOG_FAILED | REGRESS_LOG_SKIPPED | REGRESS_LOG_XFAILED |
+	    REGRESS_LOG_XPASSED) > 0) {
+		error = copy_log(r, run->log, bf);
+	} else if (regress_log_parse(log_path, bf, REGRESS_LOG_ERROR) > 0) {
+		error = copy_log(r, run->log, bf);
+	} else if (regress_log_trim(log_path, bf) > 0) {
+		error = copy_log(r, run->log, bf);
+	} else {
+		warnx("%s: failed to parse log", log_path);
+		error = 1;
 	}
 
 	return error;
