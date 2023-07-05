@@ -101,6 +101,8 @@ regress_log_parse_impl(const char *path, struct buffer *bf, struct buffer *out,
 			buffer_reset(bf);
 			nfound++;
 			errorlen = 0;
+			if (flags & REGRESS_LOG_PEEK)
+				break;
 		}
 	}
 	if ((flags & REGRESS_LOG_ERROR) && nfound == 0 && !error &&
@@ -113,6 +115,20 @@ regress_log_parse_impl(const char *path, struct buffer *bf, struct buffer *out,
 	if (error)
 		return -1;
 	return nfound;
+}
+
+int
+regress_log_peek(const char *path, unsigned int flags)
+{
+	struct buffer *bf;
+	int rv;
+
+	bf = buffer_alloc(1 << 10);
+	if (bf == NULL)
+		err(1, NULL);
+	rv = regress_log_parse_impl(path, bf, bf, flags | REGRESS_LOG_PEEK);
+	buffer_free(bf);
+	return rv;
 }
 
 /*
