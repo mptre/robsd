@@ -11,13 +11,10 @@ if testcase "basic"; then
 	mkdir -p "${TSHDIR}/regress/good"
 	printf 'obj:\n' >"${TSHDIR}/regress/good/Makefile"
 
-	if ! (setmode "robsd-regress" && sh -eux -o pipefail "$_step") \
-	     >"$TMP1" 2>&1; then
-		fail - "expected exit zero" <"$TMP1"
-	fi
+	robsd_step_exec -m robsd-regress "$_step"
 fi
 
-if testcase "makefile bsd wrapper"; then
+if testcase "makefile wrapper"; then
 	robsd_config -R - <<-EOF
 	robsddir "${TSHDIR}"
 	regress "one" obj { "two" }
@@ -27,10 +24,7 @@ if testcase "makefile bsd wrapper"; then
 	mkdir -p "${TSHDIR}/two"
 	printf 'obj:\n\tmkdir obj\n' >"${TSHDIR}/two/Makefile.bsd-wrapper"
 
-	if ! (setmode "robsd-regress" && sh -eux -o pipefail "$_step") \
-	     >"$TMP1" 2>&1; then
-		fail - "expected exit zero" <"$TMP1"
-	fi
+	robsd_step_exec -m robsd-regress "$_step"
 	if ! [ -d "${TSHDIR}/regress/one/obj" ]; then
 		fail "expected regress/one/obj directory"
 	fi

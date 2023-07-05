@@ -17,9 +17,7 @@ if testcase "basic"; then
 	} >"$(step_path "$_builddir")"
 	echo "P bin/ksh/ksh.c" >"${_builddir}/tmp/cvs-src-up.log"
 
-	if ! sh -eux -o pipefail "$_step" >"$TMP1" 2>&1; then
-		fail - "expected exit zero" <"$TMP1"
-	fi
+	robsd_step_exec -m robsd "$_step"
 
 	assert_file - "${_builddir}/rel/BUILDINFO" <<-EOF
 	Build date: 1666666666 - Tue Oct 25 02:57:46 UTC 2022
@@ -48,9 +46,7 @@ if testcase "previous cvs date"; then
 	step_serialize -s 1 -n cvs -t 1555555555 \
 		>"$(step_path "${TSHDIR}/2022-11-20")"
 
-	if ! sh -eux -o pipefail "$_step" >"$TMP1" 2>&1; then
-		fail - "expected exit zero" <"$TMP1"
-	fi
+	robsd_step_exec -m robsd "$_step"
 
 	assert_file - "${_builddir}/rel/BUILDINFO" <<-EOF
 	Build date: 1666666666 - Tue Oct 25 02:57:46 UTC 2022

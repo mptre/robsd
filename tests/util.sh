@@ -116,6 +116,32 @@ robsd_mock() {
 	echo "$_tmpdir" "$_bindir" "$ROBSDDIR"
 }
 
+# robsd_step_exec -m mode step
+#
+# Execute a single step.
+robsd_step_exec() {
+	local _err0=0
+	local _err1=0
+	local _mode=""
+	local _out="${TSHDIR}/step"
+	local _step
+
+	while [ "$#" -gt 0 ]; do
+		case "$1" in
+		-m)	shift; _mode="$1";;
+		*)	break;;
+		esac
+		shift
+	done
+	: "${_mode:?}"
+	_step="$1"; : "${_step:?}"
+
+	(setmode "$_mode" && sh -eux -o pipefail "$_step") >"$_out" 2>&1 || _err1="$?"
+	if [ "$_err0" -ne "$_err1" ]; then
+		fail - "expected exit ${_err0}, got ${_err1}" <"$_out"
+	fi
+}
+
 # step_header
 #
 # Get the step file CSV header.
