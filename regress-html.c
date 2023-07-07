@@ -77,8 +77,8 @@ struct suite {
 
 static int				  parse_invocation(struct regress_html *,
     const char *, const char *, const char *);
-static int				  parse_invocation_log(
-    struct regress_html *, const struct run *, const char *, enum run_status *);
+static int				  parse_run_log(struct regress_html *,
+    const struct run *, const char *, enum run_status *);
 static struct regress_invocation	 *create_regress_invocation(
     struct regress_html *, const char *, const char *, int64_t, int64_t);
 static int				  copy_files(struct regress_html *,
@@ -337,7 +337,7 @@ parse_invocation(struct regress_html *r, const char *arch,
 
 		path = joinpath(r->path, "%s/%s",
 		    directory, step_get_field(&steps[i], "log")->str);
-		if (parse_invocation_log(r, run, path, &status)) {
+		if (parse_run_log(r, run, path, &status)) {
 			error = 1;
 			goto out;
 		}
@@ -355,7 +355,7 @@ out:
 }
 
 static int
-parse_invocation_log(struct regress_html *r, const struct run *run,
+parse_run_log(struct regress_html *r, const struct run *run,
     const char *log_path, enum run_status *status)
 {
 	struct buffer *bf = r->scratch;
