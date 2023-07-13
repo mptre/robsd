@@ -13,7 +13,7 @@ regress_failed() {
 	local _log
 
 	_log="$1"; : "${_log:?}"
-	regress_log -Fn "$_log"
+	regress_log -FPn "$_log"
 }
 
 # regress_log [robsd-regress-log-argument ...]

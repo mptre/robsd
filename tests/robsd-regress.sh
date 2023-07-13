@@ -14,6 +14,7 @@ if testcase "basic"; then
 	regress "test/env" env { "FOO=1" "BAR=2" }
 	regress "test/pkg" packages { "quirks" "not-installed" }
 	regress "test/target" target "one"
+	regress "test/xpass"
 	EOF
 	mkdir "$ROBSDDIR"
 	mkdir -p "${TSHDIR}/regress/test/fail"
@@ -57,6 +58,14 @@ one:
 
 obj:
 EOF
+	mkdir -p "${TSHDIR}/regress/test/xpass"
+	cat <<EOF >"${TSHDIR}/regress/test/xpass/Makefile"
+regress:
+	echo ==== test ====
+	echo UNEXPECTED_PASS
+
+obj:
+EOF
 	cat <<-EOF >"${BINDIR}/pkg_add"
 	#!/bin/sh
 	echo "pkg_add \${1}" >>${TSHDIR}/pkg
@@ -93,6 +102,13 @@ EOF
 	assert_file - "${TSHDIR}/target" <<-EOF
 	target
 	EOF
+	
+	_builddir="$(find "${ROBSDDIR}" -type d -mindepth 1 -maxdepth 1)"
+	_steps="$(step_path "$_builddir")"
+	step_eval -n test/xpass "$_steps"
+	if [ "$(step_value exit)" -ne 1 ]; then
+		fail "expected test/xpass to exit non-zero"
+	fi
 
 	rm "${BINDIR}/pkg_add"
 	rm "${BINDIR}/pkg_delete"

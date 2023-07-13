@@ -362,15 +362,12 @@ parse_run_log(struct regress_html *r, const struct run *run,
 	int error;
 
 	if (run->exit != 0) {
-		*status = FAIL;
-	} else if (regress_log_peek(log_path, REGRESS_LOG_XPASSED) > 0) {
 		/*
 		 * Give higher precedence to XPASS than FAIL, matches what
 		 * bluhm@ does.
 		 */
-		*status = XPASS;
-	} else if (regress_log_peek(log_path, REGRESS_LOG_FAILED) > 0) {
-		*status = FAIL;
+		*status = regress_log_peek(log_path, REGRESS_LOG_XPASSED) > 0 ?
+		    XPASS : FAIL;
 	} else if (regress_log_peek(log_path, REGRESS_LOG_XFAILED) > 0) {
 		*status = XFAIL;
 	} else if (regress_log_peek(log_path, REGRESS_LOG_SKIPPED) > 0) {

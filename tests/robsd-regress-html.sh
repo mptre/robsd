@@ -114,7 +114,7 @@ if testcase "basic"; then
 		step_serialize -H -s 2 -n test/skip -l skip.log -t "$_time"
 		step_log SKIPPED >"${_buildir}/skip.log"
 
-		step_serialize -H -s 3 -n test/fail/once -l fail-once.log -t "$_time"
+		step_serialize -H -s 3 -n test/fail/once -l fail-once.log -t "$_time" -e 1
 		step_log FAILED >"${_buildir}/fail-once.log"
 
 		step_serialize -H -s 4 -n test/fail/always -l fail-always.log -t "$_time" -e 1
@@ -158,7 +158,7 @@ if testcase "basic"; then
 		step_serialize -H -s 2 -n test/skip -l skip.log -t "$_time"
 		step_log SKIPPED >"${_buildir}/skip.log"
 
-		step_serialize -H -s 3 -n test/fail/once -l fail-once.log -t "$_time"
+		step_serialize -H -s 3 -n test/fail/once -l fail-once.log -t "$_time" -e 1
 		step_log FAILED >"${_buildir}/fail-once.log"
 
 		step_serialize -H -s 4 -n test/fail/always -l fail-always.log -t "$_time" -e 1
@@ -555,14 +555,14 @@ if testcase "unexpected pass"; then
 	_time="$_2022_10_25"
 	mkbuilddir "$_buildir"
 	{
-		step_serialize -s 1 -n test/xpass -l xpass.log -t "$_time"
+		step_serialize -s 1 -n test/xpass -l xpass.log -t "$_time" -e 1
 		{
 			step_log UNEXPECTED_PASS
 			step_log FAILED
 			step_log EXPECTED_FAIL
 		} >"${_buildir}/xpass.log"
 
-		step_serialize -H -s 2 -n test/fail -l fail.log -t "$_time"
+		step_serialize -H -s 2 -n test/fail -l fail.log -t "$_time" -e 1
 		step_log FAILED >"${_buildir}/fail.log"
 
 		step_serialize -H -s 3 -n test/pass -l pass.log -t "$_time"
@@ -650,8 +650,6 @@ if testcase "invalid: missing log"; then
 	} >"$(step_path "$_buildir")"
 
 	robsd_regress_html -e - -- -o "${TSHDIR}/html" "amd64:${TSHDIR}/amd64" <<-EOF
-	robsd-regress-html: open: ${TSHDIR}/amd64/2022-10-25.1/nein.log: No such file or directory
-	robsd-regress-html: open: ${TSHDIR}/amd64/2022-10-25.1/nein.log: No such file or directory
 	robsd-regress-html: open: ${TSHDIR}/amd64/2022-10-25.1/nein.log: No such file or directory
 	robsd-regress-html: open: ${TSHDIR}/amd64/2022-10-25.1/nein.log: No such file or directory
 	robsd-regress-html: open: ${TSHDIR}/amd64/2022-10-25.1/nein.log: No such file or directory
