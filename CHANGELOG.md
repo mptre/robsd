@@ -1,3 +1,11 @@
+# 17.8.1 - YYYY-MM-DD
+
+## Bug fixes
+
+- robsd-regress: treat XPASS as failures.
+  (5e79e70)
+  (Anton Lindqvist)
+
 # 17.8.0 - 2023-07-10
 
 ## News
