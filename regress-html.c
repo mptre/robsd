@@ -75,8 +75,8 @@ struct suite {
 	VECTOR(struct run)	 runs;
 };
 
-static int				  parse_invocation(struct regress_html *,
-    const char *, const char *, const char *);
+static int				  parse_invocation(
+    struct regress_html *, const char *, const char *, const char *);
 static int				  parse_run_log(struct regress_html *,
     const struct run *, const char *, enum run_status *);
 static struct regress_invocation	 *create_regress_invocation(
