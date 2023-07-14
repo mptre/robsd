@@ -102,7 +102,7 @@ EOF
 	assert_file - "${TSHDIR}/target" <<-EOF
 	target
 	EOF
-	
+
 	_builddir="$(find "${ROBSDDIR}" -type d -mindepth 1 -maxdepth 1)"
 	_steps="$(step_path "$_builddir")"
 	step_eval -n test/xpass "$_steps"
