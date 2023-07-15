@@ -143,12 +143,18 @@ void *
 map_insert(void *mp, const void *const *key)
 {
 	struct map *m = mp;
+
+	return map_insert_n(mp, key, key_get_size(m, key_get_ptr(m, key)));
+}
+
+void *
+map_insert_n(void *mp, const void *const *key, size_t keysize)
+{
+	struct map *m = mp;
 	struct map_element *el;
 	const void *keyptr;
-	size_t keysize;
 
 	keyptr = key_get_ptr(m, key);
-	keysize = key_get_size(m, keyptr);
 	el = map_alloc_element(m, keysize);
 	if (el == NULL)
 		return NULL;

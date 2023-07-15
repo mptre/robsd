@@ -47,6 +47,13 @@ void	map_free(void *);
 })
 void	*map_insert(void *, const void *const *);
 
+#define MAP_INSERT_N(m, key, keysize) __extension__ ({			\
+        __typeof__((m)->kp) _k = (key);					\
+	const void *_kk = &_k;						\
+	(__typeof__((m)->v))map_insert_n((m), _kk, (keysize));		\
+})
+void	*map_insert_n(void *, const void *const *, size_t);
+
 #define MAP_INSERT_VALUE(m, key, val) __extension__ ({			\
 	__typeof__((m)->v) _e = MAP_INSERT((m), (key));			\
 	if (_e != NULL)							\
