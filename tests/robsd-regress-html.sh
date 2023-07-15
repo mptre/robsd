@@ -189,7 +189,7 @@ if testcase "basic"; then
 	2022-10-24.1
 	EOF
 
-	xpath '//th[@class="dura"]/text()' "${TSHDIR}/html/index.html" >"$TMP1"
+	xpath '//th[@class="duration"]/text()' "${TSHDIR}/html/index.html" >"$TMP1"
 	assert_file - "$TMP1" "duration" <<-EOF
 	0h30m
 	1h1m

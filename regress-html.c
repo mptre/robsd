@@ -747,7 +747,8 @@ render_durations(struct regress_html *r)
 		for (i = 0; i < VECTOR_LENGTH(r->invocations); i++) {
 			const struct regress_invocation *ri = &r->invocations[i];
 
-			HTML_NODE_ATTR(html, "th", HTML_ATTR("class", "dura"))
+			HTML_NODE_ATTR(html, "th",
+			    HTML_ATTR("class", "duration"))
 				HTML_TEXT(html, render_duration(r, ri));
 		}
 	}
@@ -769,10 +770,8 @@ render_changelog(struct regress_html *r)
 			HTML_NODE_ATTR(html, "th", HTML_ATTR("class", "cvs")) {
 				if (ri->flags & REGRESS_INVOCATION_CVS) {
 					HTML_NODE_ATTR(html, "a",
-					    HTML_ATTR("href", ri->comment)) {
-						HTML_TEXT(html,
-						    "cvs");
-					}
+					    HTML_ATTR("href", ri->comment))
+						HTML_TEXT(html, "cvs");
 				} else {
 					HTML_TEXT(html, "n/a");
 				}
@@ -797,10 +796,8 @@ render_patches(struct regress_html *r)
 			HTML_NODE_ATTR(h, "th", HTML_ATTR("class", "patch")) {
 				if (ri->flags & REGRESS_INVOCATION_PATCH) {
 					HTML_NODE_ATTR(h, "a",
-					    HTML_ATTR("href", ri->patches)) {
-						HTML_TEXT(h,
-						    "patches");
-					}
+					    HTML_ATTR("href", ri->patches))
+						HTML_TEXT(h, "patches");
 				} else {
 					HTML_TEXT(h, "n/a");
 				}
@@ -824,10 +821,8 @@ render_arches(struct regress_html *r)
 
 			HTML_NODE_ATTR(html, "th", HTML_ATTR("class", "arch")) {
 				HTML_NODE_ATTR(html, "a",
-				    HTML_ATTR("href", ri->dmesg)) {
-					HTML_TEXT(html,
-					    ri->arch);
-				}
+				    HTML_ATTR("href", ri->dmesg))
+					HTML_TEXT(html, ri->arch);
 			}
 		}
 	}
@@ -848,10 +843,8 @@ render_suite(struct regress_html *r, struct suite *suite)
 
 			href = cvsweb_url(r->scratch, suite->name);
 			HTML_NODE_ATTR(html, "a", HTML_ATTR("class", "suite"),
-			    HTML_ATTR("href", href)) {
-				HTML_TEXT(html,
-				    suite->name);
-			}
+			    HTML_ATTR("href", href))
+				HTML_TEXT(html, suite->name);
 		}
 
 		VECTOR_SORT(runs, run_cmp);
@@ -880,10 +873,8 @@ render_run(struct regress_html *r, const struct run *run)
 
 	HTML_NODE_ATTR(html, "td", HTML_ATTR("class", status)) {
 		HTML_NODE_ATTR(html, "a",
-		    HTML_ATTR("class", "status"), HTML_ATTR("href", run->log)) {
-			HTML_TEXT(html,
-			    status);
-		}
+		    HTML_ATTR("class", "status"), HTML_ATTR("href", run->log))
+			HTML_TEXT(html, status);
 	}
 }
 
