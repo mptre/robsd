@@ -24,7 +24,7 @@
 	key		 k;						\
 	key ptr		 kp;						\
 	val		*v; /* NOLINT(bugprone-macro-parentheses) */	\
-}
+} *
 
 #define MAP_INIT(m) __extension__ ({					\
 	unsigned int _flags = 0;					\

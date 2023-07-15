@@ -27,7 +27,7 @@
 
 struct regress_html {
 	VECTOR(struct regress_invocation)	 invocations;
-	MAP(const char, *, struct suite)	*suites;
+	MAP(const char, *, struct suite)	 suites;
 	const char				*output;
 	struct html				*html;
 	struct buffer				*scratch;
