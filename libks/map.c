@@ -615,25 +615,22 @@ do {									\
 static unsigned
 HASH_JEN(const void *key, unsigned keylen)
 {
-	unsigned const char *_hj_key = (unsigned const char *)(key);
+	union {
+		const uint8_t   *u8;
+		const uint32_t  *u32;
+	} _hj_key = { .u8 = key };
 	unsigned hashv = 0xfeedbeefu;
 	unsigned _hj_i, _hj_j, _hj_k;
 	_hj_i = _hj_j = 0x9e3779b9u;
 	_hj_k = (unsigned)(keylen);
 	while (_hj_k >= 12U) {
-		_hj_i += (_hj_key[0] + ((unsigned)_hj_key[1] << 8) +
-		    ((unsigned)_hj_key[2] << 16) +
-		    ((unsigned)_hj_key[3] << 24));
-		_hj_j += (_hj_key[4] + ((unsigned)_hj_key[5] << 8) +
-		    ((unsigned)_hj_key[6] << 16) +
-		    ((unsigned)_hj_key[7] << 24));
-		hashv += (_hj_key[8] + ((unsigned)_hj_key[9] << 8) +
-		    ((unsigned)_hj_key[10] << 16) +
-		    ((unsigned)_hj_key[11] << 24));
+		_hj_i += _hj_key.u32[0];
+		_hj_j += _hj_key.u32[1];
+		hashv += _hj_key.u32[2];
 
 		HASH_JEN_MIX(_hj_i, _hj_j, hashv);
 
-		_hj_key += 12;
+		_hj_key.u8 += 12;
 		_hj_k -= 12U;
 	}
 	hashv += (unsigned)(keylen);
@@ -642,17 +639,17 @@ HASH_JEN(const void *key, unsigned keylen)
 #  pragma GCC diagnostic push
 #  pragma GCC diagnostic ignored "-Wimplicit-fallthrough"
 #endif
-	case 11: hashv += ((unsigned)_hj_key[10] << 24); /* FALLTHROUGH */
-	case 10: hashv += ((unsigned)_hj_key[9] << 16);  /* FALLTHROUGH */
-	case 9: hashv += ((unsigned)_hj_key[8] << 8);    /* FALLTHROUGH */
-	case 8: _hj_j += ((unsigned)_hj_key[7] << 24);   /* FALLTHROUGH */
-	case 7: _hj_j += ((unsigned)_hj_key[6] << 16);   /* FALLTHROUGH */
-	case 6: _hj_j += ((unsigned)_hj_key[5] << 8);    /* FALLTHROUGH */
-	case 5: _hj_j += _hj_key[4];                     /* FALLTHROUGH */
-	case 4: _hj_i += ((unsigned)_hj_key[3] << 24);   /* FALLTHROUGH */
-	case 3: _hj_i += ((unsigned)_hj_key[2] << 16);   /* FALLTHROUGH */
-	case 2: _hj_i += ((unsigned)_hj_key[1] << 8);    /* FALLTHROUGH */
-	case 1: _hj_i += _hj_key[0];                     /* FALLTHROUGH */
+	case 11: hashv += ((unsigned)_hj_key.u8[10] << 24); /* FALLTHROUGH */
+	case 10: hashv += ((unsigned)_hj_key.u8[9] << 16);  /* FALLTHROUGH */
+	case 9: hashv += ((unsigned)_hj_key.u8[8] << 8);    /* FALLTHROUGH */
+	case 8: _hj_j += ((unsigned)_hj_key.u8[7] << 24);   /* FALLTHROUGH */
+	case 7: _hj_j += ((unsigned)_hj_key.u8[6] << 16);   /* FALLTHROUGH */
+	case 6: _hj_j += ((unsigned)_hj_key.u8[5] << 8);    /* FALLTHROUGH */
+	case 5: _hj_j += _hj_key.u8[4];                     /* FALLTHROUGH */
+	case 4: _hj_i += ((unsigned)_hj_key.u8[3] << 24);   /* FALLTHROUGH */
+	case 3: _hj_i += ((unsigned)_hj_key.u8[2] << 16);   /* FALLTHROUGH */
+	case 2: _hj_i += ((unsigned)_hj_key.u8[1] << 8);    /* FALLTHROUGH */
+	case 1: _hj_i += _hj_key.u8[0];                     /* FALLTHROUGH */
 	default: ;
 #if defined(HAVE_IMPLICIT_FALLTHROUGH)
 #  pragma GCC diagnostic pop
