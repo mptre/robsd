@@ -78,7 +78,7 @@ struct suite {
 static int				  parse_invocation(
     struct regress_html *, const char *, const char *, const char *);
 static int				  parse_run_log(struct regress_html *,
-    const struct run *, const char *, enum run_status *);
+    const struct run *, const char *, const char *, enum run_status *);
 static struct regress_invocation	 *create_regress_invocation(
     struct regress_html *, const char *, const char *, int64_t, int64_t);
 static int				  copy_files(struct regress_html *,
@@ -270,24 +270,24 @@ parse_invocation(struct regress_html *r, const char *arch,
 	struct buffer *scratch = r->scratch;
 	struct step *end, *steps;
 	struct regress_invocation *ri;
-	const char *path;
+	const char *step_path;
 	int64_t duration, time;
 	size_t i;
 	int error = 0;
 
-	path = joinpath(r->path, "%s/step.csv", directory);
-	steps = steps_parse(path);
+	step_path = joinpath(r->path, "%s/step.csv", directory);
+	steps = steps_parse(step_path);
 	if (steps == NULL)
 		return 1;
 	if (VECTOR_EMPTY(steps)) {
-		warnx("%s: no steps found", path);
+		warnx("%s: no steps found", step_path);
 		error = 1;
 		goto out;
 	}
 
 	end = steps_find_by_name(steps, "end");
 	if (end == NULL) {
-		warnx("%s: end step not found", path);
+		warnx("%s: end step not found", step_path);
 		error = 1;
 		goto out;
 	}
@@ -314,7 +314,7 @@ parse_invocation(struct regress_html *r, const char *arch,
 	for (i = 0; i < VECTOR_LENGTH(steps); i++) {
 		struct suite *suite;
 		struct run *run;
-		const char *name;
+		const char *log_path, *name;
 		enum run_status status;
 
 		name = step_get_field(&steps[i], "name")->str;
@@ -335,9 +335,9 @@ parse_invocation(struct regress_html *r, const char *arch,
 		run->exit = step_get_field(&steps[i], "exit")->integer;
 		buffer_reset(scratch);
 
-		path = joinpath(r->path, "%s/%s",
+		log_path = joinpath(r->path, "%s/%s",
 		    directory, step_get_field(&steps[i], "log")->str);
-		if (parse_run_log(r, run, path, &status)) {
+		if (parse_run_log(r, run, log_path, run->log, &status)) {
 			error = 1;
 			goto out;
 		}
@@ -356,7 +356,7 @@ out:
 
 static int
 parse_run_log(struct regress_html *r, const struct run *run,
-    const char *log_path, enum run_status *status)
+    const char *src_path, const char *dst_path, enum run_status *status)
 {
 	struct buffer *bf = r->scratch;
 	int error;
@@ -366,27 +366,27 @@ parse_run_log(struct regress_html *r, const struct run *run,
 		 * Give higher precedence to XPASS than FAIL, matches what
 		 * bluhm@ does.
 		 */
-		*status = regress_log_peek(log_path, REGRESS_LOG_XPASSED) > 0 ?
+		*status = regress_log_peek(src_path, REGRESS_LOG_XPASSED) > 0 ?
 		    XPASS : FAIL;
-	} else if (regress_log_peek(log_path, REGRESS_LOG_XFAILED) > 0) {
+	} else if (regress_log_peek(src_path, REGRESS_LOG_XFAILED) > 0) {
 		*status = XFAIL;
-	} else if (regress_log_peek(log_path, REGRESS_LOG_SKIPPED) > 0) {
+	} else if (regress_log_peek(src_path, REGRESS_LOG_SKIPPED) > 0) {
 		*status = SKIP;
 	} else {
 		*status = PASS;
 	}
 
 	buffer_reset(bf);
-	if (regress_log_parse(log_path, bf,
+	if (regress_log_parse(src_path, bf,
 	    REGRESS_LOG_FAILED | REGRESS_LOG_SKIPPED | REGRESS_LOG_XFAILED |
 	    REGRESS_LOG_XPASSED) > 0) {
-		error = copy_log(r, run->log, bf);
-	} else if (regress_log_parse(log_path, bf, REGRESS_LOG_ERROR) > 0) {
-		error = copy_log(r, run->log, bf);
-	} else if (regress_log_trim(log_path, bf) > 0) {
-		error = copy_log(r, run->log, bf);
+		error = copy_log(r, dst_path, bf);
+	} else if (regress_log_parse(src_path, bf, REGRESS_LOG_ERROR) > 0) {
+		error = copy_log(r, dst_path, bf);
+	} else if (regress_log_trim(src_path, bf) > 0) {
+		error = copy_log(r, dst_path, bf);
 	} else {
-		warnx("%s: failed to parse log", log_path);
+		warnx("%s: failed to parse log", src_path);
 		error = 1;
 	}
 
