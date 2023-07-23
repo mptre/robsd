@@ -6,7 +6,8 @@
 #include <string.h>
 #include <unistd.h>
 
-#include "alloc.h"
+#include "libks/arena.h"
+
 #include "regress-html.h"
 
 static void	usage(void) __attribute__((__noreturn__));
@@ -14,6 +15,7 @@ static void	usage(void) __attribute__((__noreturn__));
 int
 main(int argc, char *argv[])
 {
+	ARENA arena[512 * 1024];
 	struct regress_html *rh;
 	const char *output = NULL;
 	int error = 0;
@@ -36,12 +38,14 @@ main(int argc, char *argv[])
 	if (pledge("stdio rpath wpath cpath", NULL) == -1)
 		err(1, "pledge");
 
-	rh = regress_html_alloc(output);
+	if (arena_init(arena, ARENA_FATAL))
+		err(1, "arena_init");
+
+	SCOPE s = arena_scope(arena);
+	rh = regress_html_alloc(output, &s);
 
 	for (; argc > 0; argc--, argv++) {
-		const char *colon, *path;
-		char *arch;
-		size_t archlen;
+		const char *arch, *colon, *path;
 
 		colon = strchr(argv[0], ':');
 		if (colon == NULL) {
@@ -49,11 +53,9 @@ main(int argc, char *argv[])
 			error = 1;
 			goto out;
 		}
-		archlen = (size_t)(colon - argv[0]);
-		arch = estrndup(argv[0], archlen);
+		arch = arena_strndup(&s, argv[0], (size_t)(colon - argv[0]));
 		path = &colon[1];
 		error = regress_html_parse(rh, arch, path);
-		free(arch);
 		if (error)
 			goto out;
 	}
@@ -61,6 +63,7 @@ main(int argc, char *argv[])
 
 out:
 	regress_html_free(rh);
+	arena_free(arena);
 	return error;
 }
 
