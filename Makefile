@@ -239,8 +239,59 @@ SHLINT+=	robsd-kill
 SHLINT+=	robsd-ports
 SHLINT+=	robsd-regress
 SHLINT+=	robsd-rescue
+SHLINT+=	tests/check-perf.sh
+SHLINT+=	tests/cleandir.sh
+SHLINT+=	tests/config-load.sh
+SHLINT+=	tests/cvs-log.sh
+SHLINT+=	tests/diff-apply.sh
+SHLINT+=	tests/diff-clean.sh
+SHLINT+=	tests/diff-copy.sh
+SHLINT+=	tests/diff-list.sh
+SHLINT+=	tests/diff-root.sh
+SHLINT+=	tests/duration-total.sh
+SHLINT+=	tests/format-duration.sh
+SHLINT+=	tests/lock-acquire.sh
+SHLINT+=	tests/log-id.sh
+SHLINT+=	tests/ports-report-log.sh
+SHLINT+=	tests/purge.sh
+SHLINT+=	tests/regress-failed.sh
+SHLINT+=	tests/regress-report-log.sh
+SHLINT+=	tests/report-duration.sh
+SHLINT+=	tests/report-size.sh
+SHLINT+=	tests/report-skip.sh
+SHLINT+=	tests/report.sh
+SHLINT+=	tests/robsd-config.sh
+SHLINT+=	tests/robsd-cross.sh
+SHLINT+=	tests/robsd-crossenv.sh
+SHLINT+=	tests/robsd-hash.sh
+SHLINT+=	tests/robsd-hook.sh
+SHLINT+=	tests/robsd-ls.sh
+SHLINT+=	tests/robsd-ports.sh
+SHLINT+=	tests/robsd-regress-html.sh
+SHLINT+=	tests/robsd-regress-log.sh
+SHLINT+=	tests/robsd-regress-obj.sh
+SHLINT+=	tests/robsd-regress-pkg-add.sh
+SHLINT+=	tests/robsd-regress.sh
+SHLINT+=	tests/robsd-rescue.sh
+SHLINT+=	tests/robsd-step.sh
+SHLINT+=	tests/robsd.sh
+SHLINT+=	tests/step-eval.sh
+SHLINT+=	tests/step-id.sh
+SHLINT+=	tests/step-next.sh
+SHLINT+=	tests/step-time.sh
+SHLINT+=	tests/step-value.sh
+SHLINT+=	tests/step-write.sh
+SHLINT+=	tests/util.sh
 
-SUBDIR+=	tests
+SHELLCHECKFLAGS+=	-f gcc
+SHELLCHECKFLAGS+=	-s ksh
+SHELLCHECKFLAGS+=	-e SC1090			# non-constant source
+SHELLCHECKFLAGS+=	-e SC1091			# not following source
+SHELLCHECKFLAGS+=	-e SC2012			# find instead of ls
+SHELLCHECKFLAGS+=	-e SC2164			# cd failure
+SHELLCHECKFLAGS+=	-o add-default-case
+SHELLCHECKFLAGS+=	-o avoid-nullary-conditions
+SHELLCHECKFLAGS+=	-o quote-safe-variables
 
 all: ${PROG_robsd-config}
 all: ${PROG_robsd-exec}
@@ -296,6 +347,10 @@ dist:
 	git archive --output $$p.tar.gz --prefix $$p/ v${VERSION}; \
 	sha256 $$p.tar.gz >$$p.sha256
 .PHONY: dist
+
+format:
+	cd ${.CURDIR} && knfmt -is ${KNFMT}
+.PHONY: format
 
 fuzz: ${PROG_fuzz-config}
 
@@ -365,6 +420,9 @@ install: all
 	${INSTALL_MAN} ${.CURDIR}/robsd-regress-log.8 ${DESTDIR}${MANDIR}/man8
 .PHONY: install
 
+lint: lint-knfmt lint-man lint-shellcheck
+.PHONY: lint
+
 lint-clang-tidy:
 	cd ${.CURDIR} && echo ${CLANGTIDY} | xargs printf '%s\n' | \
 		xargs -I{} clang-tidy --quiet {} -- ${CPPFLAGS}
@@ -380,6 +438,20 @@ lint-include-what-you-use:
 		xargs -I{} ${IWYU} ${CPPFLAGS} {}
 .PHONY: lint-include-what-you-use
 
+lint-knfmt:
+	cd ${.CURDIR} && knfmt -ds ${KNFMT}
+.PHONY: lint-knfmt
+
+lint-man:
+	cd ${.CURDIR} && mandoc -Tlint -Wstyle ${MANLINT}
+.PHONY: lint-man
+
+NCPU!!=	sysctl -n hw.ncpuonline
+lint-shellcheck:
+	cd ${.CURDIR} && echo ${SHLINT} | \
+	xargs -n1 -P${NCPU} shellcheck ${SHELLCHECKFLAGS}
+.PHONY: lint-shellcheck
+
 test: all
 	${MAKE} -C ${.CURDIR}/tests \
 		"EXECDIR=${.CURDIR}" \
@@ -393,9 +465,6 @@ test: all
 		"ROBSDSTEP=${.OBJDIR}/${PROG_robsd-step}" \
 		"TESTFLAGS=${TESTFLAGS}"
 .PHONY: test
-
-INC?=	${.CURDIR}/Makefile.inc
-include ${INC}
 
 -include ${DEPS_robsd-config}
 -include ${DEPS_robsd-exec}

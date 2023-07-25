@@ -1,5 +1,5 @@
 .CURDIR=	${CURDIR}
 .OBJDIR=	${CURDIR}
-INC=		/dev/null
+NCPU=		$(shell nproc)
 
 include ${.CURDIR}/Makefile

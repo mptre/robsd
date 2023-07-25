@@ -41,9 +41,6 @@ TESTS+=	step-time.sh
 TESTS+=	step-value.sh
 TESTS+=	step-write.sh
 
-SHLINT+=	${TESTS}
-SHLINT+=	util.sh
-
 all: test
 
 test: ${TESTS:.sh=.fake}
@@ -52,6 +49,3 @@ test: ${TESTS:.sh=.fake}
 
 .sh.fake:
 	sh ${.CURDIR}/t.sh ${TESTFLAGS} ${.CURDIR}/util.sh ${.CURDIR}/$<
-
-INC?=	${.CURDIR}/../Makefile.inc
-include ${INC}
