@@ -420,7 +420,9 @@ install: all
 	${INSTALL_MAN} ${.CURDIR}/robsd-regress-log.8 ${DESTDIR}${MANDIR}/man8
 .PHONY: install
 
-lint: lint-knfmt lint-man lint-shellcheck
+lint:
+	cd ${.CURDIR} && knfmt -ds ${KNFMT}
+	cd ${.CURDIR} && mandoc -Tlint -Wstyle ${MANLINT}
 .PHONY: lint
 
 lint-clang-tidy:
@@ -437,14 +439,6 @@ lint-include-what-you-use:
 	cd ${.CURDIR} && echo ${CPPCHECK} | xargs printf '%s\n' | \
 		xargs -I{} ${IWYU} ${CPPFLAGS} {}
 .PHONY: lint-include-what-you-use
-
-lint-knfmt:
-	cd ${.CURDIR} && knfmt -ds ${KNFMT}
-.PHONY: lint-knfmt
-
-lint-man:
-	cd ${.CURDIR} && mandoc -Tlint -Wstyle ${MANLINT}
-.PHONY: lint-man
 
 NCPU!!=	sysctl -n hw.ncpuonline
 lint-shellcheck:
