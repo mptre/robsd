@@ -440,7 +440,7 @@ lint-include-what-you-use:
 		xargs -I{} ${IWYU} ${CPPFLAGS} {}
 .PHONY: lint-include-what-you-use
 
-NCPU!!=	sysctl -n hw.ncpuonline
+NCPU!!?=	sysctl -n hw.ncpuonline
 lint-shellcheck:
 	cd ${.CURDIR} && echo ${SHLINT} | \
 	xargs -n1 -P${NCPU} shellcheck ${SHELLCHECKFLAGS}
