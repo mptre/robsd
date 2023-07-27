@@ -35,13 +35,13 @@
 #endif
 
 struct map_element {
-	struct map_element *prev;         /* prev element in app order      */
-	struct map_element *next;         /* next element in app order      */
-	struct map_element *hh_prev;      /* previous hh in bucket order    */
-	struct map_element *hh_next;      /* next hh in bucket order        */
-	const void *key;                  /* ptr to enclosing struct's key  */
-	unsigned keylen;                  /* enclosing struct's key len     */
-	unsigned hashv;                   /* result of hash-fcn(key)        */
+	struct map_element *prev;	/* prev element in app order      */
+	struct map_element *next;	/* next element in app order      */
+	struct map_element *hh_prev;	/* previous hh in bucket order    */
+	struct map_element *hh_next;	/* next hh in bucket order        */
+	const void *key;		/* ptr to enclosing struct's key  */
+	size_t keylen;			/* enclosing struct's key len     */
+	unsigned hashv;			/* result of hash-fcn(key)        */
 };
 
 struct map {
@@ -75,7 +75,7 @@ static size_t		 key_get_size(const struct map *, const void *);
 static int	pointer_align(uint64_t, uint64_t *);
 
 static int			 HASH_ADD(struct map *, const void *,
-    unsigned, struct map_element *);
+    size_t, struct map_element *);
 static int			 HASH_ADD_TO_TABLE(struct map *,
     unsigned, struct map_element *);
 static void			 HASH_APPEND_LIST(struct map *,
@@ -86,10 +86,10 @@ static void			 HASH_DEL_IN_BKT(struct map *,
     const struct map_element *);
 static int			 HASH_EXPAND_BUCKETS(struct map *);
 static struct map_element	*HASH_FIND(struct map *, const void *,
-    unsigned);
+    size_t);
 static struct UT_hash_table	*HASH_MAKE_TABLE(struct map_element *);
 static unsigned			 HASH_TO_BKT(unsigned, unsigned);
-static unsigned			 HASH_JEN(const void *, unsigned)
+static unsigned			 HASH_JEN(const void *, size_t)
 	__attribute((NO_SANITIZE_UNSIGNED_INT_OVERFLOW));
 
 int
@@ -364,7 +364,7 @@ struct UT_hash_table {
 };
 
 static int
-HASH_ADD(struct map *m, const void *key, unsigned keylen,
+HASH_ADD(struct map *m, const void *key, size_t keylen,
     struct map_element *add)
 {
 	unsigned _ha_hashv;
@@ -553,7 +553,7 @@ HASH_EXPAND_BUCKETS(struct map *m)
 }
 
 static struct map_element *
-HASH_FIND(struct map *m, const void *key, unsigned keylen)
+HASH_FIND(struct map *m, const void *key, size_t keylen)
 {
 	struct map_element *el;
 	unsigned bkt_idx, hashv;
@@ -613,17 +613,19 @@ do {									\
 } while (0)
 
 static unsigned
-HASH_JEN(const void *key, unsigned keylen)
+HASH_JEN(const void *key, size_t keylen)
 {
 	union {
 		const uint8_t   *u8;
 		const uint32_t  *u32;
 	} _hj_key = { .u8 = key };
+	size_t k;
 	unsigned hashv = 0xfeedbeefu;
-	unsigned _hj_i, _hj_j, _hj_k;
+	unsigned _hj_i, _hj_j;
+
 	_hj_i = _hj_j = 0x9e3779b9u;
-	_hj_k = (unsigned)(keylen);
-	while (_hj_k >= 12U) {
+	k = keylen;
+	while (k >= 12U) {
 		_hj_i += _hj_key.u32[0];
 		_hj_j += _hj_key.u32[1];
 		hashv += _hj_key.u32[2];
@@ -631,10 +633,10 @@ HASH_JEN(const void *key, unsigned keylen)
 		HASH_JEN_MIX(_hj_i, _hj_j, hashv);
 
 		_hj_key.u8 += 12;
-		_hj_k -= 12U;
+		k -= 12U;
 	}
 	hashv += (unsigned)(keylen);
-	switch (_hj_k) {
+	switch (k) {
 #if defined(HAVE_IMPLICIT_FALLTHROUGH)
 #  pragma GCC diagnostic push
 #  pragma GCC diagnostic ignored "-Wimplicit-fallthrough"
