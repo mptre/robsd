@@ -237,7 +237,7 @@ CC=$(makevar CC || fatal "CC: not defined")
 CFLAGS="$(unset CFLAGS DEBUG; makevar CFLAGS || :) ${CFLAGS:-} ${DEBUG}"
 CFLAGS="${CFLAGS} -MD -MP"
 CPPFLAGS="$(makevar CPPFLAGS || :)"
-LDFLAGS="$(DEBUG='' makevar LDFLAGS || :)"
+LDFLAGS="$(unset DEBUG; makevar LDFLAGS || :)"
 
 PREFIX="$(makevar PREFIX || echo /usr/local)"
 BINDIR="$(makevar BINDIR || echo "${PREFIX}/bin")"
@@ -287,8 +287,7 @@ exec 1>config.h
 
 # Headers needed for function prototypes.
 {
-[ "$HAVE_PLEDGE" -eq 0 ] && echo stdlib.h
-[ "$HAVE_STRTONUM" -eq 0 ] && echo stdlib.h
+	:
 } | sort | uniq | headers
 
 [ "$HAVE_MACHINE" -eq 1 ] || printf '#define MACHINE\t"%s"\n' "$(arch)"
