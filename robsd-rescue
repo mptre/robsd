@@ -7,14 +7,6 @@ usage() {
 	exit 1
 }
 
-# last_release
-last_release() {
-	find "$ROBSDDIR" -mindepth 1 -maxdepth 1 -type d |
-	grep -v -e "$KEEPDIR" |
-	sort -nr |
-	head -1
-}
-
 . "${EXECDIR:-/usr/local/libexec/robsd}/util.sh"
 . "${EXECDIR:-/usr/local/libexec/robsd}/util-ports.sh"
 
@@ -26,12 +18,13 @@ DETACH=0
 setmode -p "$0"
 setprogname "${_MODE}-rescue"
 [ "$(id -u)" -ne 0 ] && fatal "must be run as root"
+
 config_load <<-'EOF'
 ROBSDDIR="${robsddir}"
 KEEPDIR="${keep-dir}"
 EOF
 
-BUILDDIR="$(last_release)"
+BUILDDIR="$(prev_release | head -1)"
 if [ -z "$BUILDDIR" ]; then
 	fatal "release directory not found"
 else
