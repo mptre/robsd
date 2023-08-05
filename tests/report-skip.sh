@@ -33,37 +33,6 @@ if testcase "checkflist not empty"; then
 	fi
 fi
 
-if testcase "diff src present"; then
-	: >"${TSHDIR}/src.diff.1"
-
-	if report_skip -b "$TSHDIR" -n "patch" -l "/dev/null"; then
-		fail "expected patch to not be skipped"
-	fi
-	if report_skip -b "$TSHDIR" -n "revert" -l "/dev/null"; then
-		fail "expected revert to not be skipped"
-	fi
-fi
-
-if testcase "diff xenocara present"; then
-	: >"${TSHDIR}/xenocara.diff.1"
-
-	if report_skip -b "$TSHDIR" -n "patch" -l "/dev/null"; then
-		fail "expected patch to not be skipped"
-	fi
-	if report_skip -b "$TSHDIR" -n "revert" -l "/dev/null"; then
-		fail "expected revert to not be skipped"
-	fi
-fi
-
-if testcase "diff not present"; then
-	if ! report_skip -b "$TSHDIR" -n "patch" -l "/dev/null"; then
-		fail "expected patch to be skipped"
-	fi
-	if ! report_skip -b "$TSHDIR" -n "revert" -l "/dev/null"; then
-		fail "expected revert to be skipped"
-	fi
-fi
-
 if testcase "ports"; then
 	if (setmode "robsd-ports" &&
 	    PORTS="" report_skip -b "$TSHDIR" -n "devel/skip" -l "/dev/null")

@@ -1175,21 +1175,17 @@ report_skip() {
 	: "${_name:?}"
 
 	case "$_name" in
-	env|reboot|dmesg|end)
-		return 0
+	cvs)
+		return 1
 		;;
 	checkflist)
 		# Skip if the log only contains PS4 traces.
-		grep -vq '^\+' "$_log" || return 0
-		;;
-	patch|revert)
-		diff_list "$_builddir" "*.diff" | cmp -s - /dev/null && return 0
+		grep -vq '^\+' "$_log" && return 1
 		;;
 	*)
 		;;
 	esac
-
-	return 1
+	return 0
 }
 
 # robsd -b build-dir -s step-id
