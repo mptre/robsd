@@ -76,10 +76,11 @@ static const struct field_definition fields[] = {
 	{ "name",	STRING,		1, 0,		{ 0 } },
 	{ "exit",	INTEGER,	2, 0,		{ 0 } },
 	{ "duration",	INTEGER,	3, 0,		{ 0 } },
-	{ "log",	STRING,		4, OPTIONAL,	{ "" } },
-	{ "user",	STRING,		5, 0,		{ 0 } },
-	{ "time",	INTEGER,	6, 0,		{ 0 } },
-	{ "skip",	INTEGER,	7, OPTIONAL,	{ "0" } },
+	{ "delta",	INTEGER,	4, OPTIONAL,	{ "0" } },
+	{ "log",	STRING,		5, OPTIONAL,	{ "" } },
+	{ "user",	STRING,		6, 0,		{ 0 } },
+	{ "time",	INTEGER,	7, 0,		{ 0 } },
+	{ "skip",	INTEGER,	8, OPTIONAL,	{ "0" } },
 };
 static const size_t nfields = sizeof(fields) / sizeof(fields[0]);
 

@@ -22,10 +22,6 @@ if testcase "basic"; then
 	robsddir "${TSHDIR}"
 	EOF
 
-	# Create a previous release in order to report duration deltas.
-	build_init "${ROBSDDIR}/2019-02-21"
-	step_serialize -n cvs -d 30 >"$(step_path "${ROBSDDIR}/2019-02-21")"
-
 	# Create a previous release in order to report size deltas.
 	build_init "${ROBSDDIR}/2019-02-22"
 	step_serialize -n cvs -i 1 >"$(step_path "${ROBSDDIR}/2019-02-22")"
@@ -45,7 +41,7 @@ if testcase "basic"; then
 	: >"${BUILDDIR}/cvs.log"
 	{
 		step_serialize -s 1 -n env -d 0 -l env.log
-		step_serialize -H -s 2 -n cvs -d 60 -l cvs.log
+		step_serialize -H -s 2 -n cvs -d 60 -a 30 -l cvs.log
 		step_serialize -H -s 3 -n patch -d 0 -l patch.log
 		step_serialize -H -s 4 -n kernel -i 1 -l kernel.log
 		step_serialize -H -s 5 -n dmesg -d 0 -l dmesg.log

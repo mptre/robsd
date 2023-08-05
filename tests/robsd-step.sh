@@ -181,7 +181,7 @@ if testcase "write: new step"; then
 		log=/dev/null user=root time=1666666666
 	assert_file - "$TMP1" <<-EOF
 	$(step_header)
-	1,one,-1,-1,/dev/null,root,1666666666,0
+	1,one,-1,-1,0,/dev/null,root,1666666666,0
 	EOF
 fi
 
@@ -192,7 +192,7 @@ if testcase "write: replace step"; then
 	robsd_step -- -W -f "$TMP1" -i 1 -- exit=0
 	assert_file - "$TMP1" <<-EOF
 	$(step_header)
-	1,one,0,-1,/dev/null,root,1666666666,0
+	1,one,0,-1,0,/dev/null,root,1666666666,0
 	EOF
 fi
 
@@ -204,8 +204,8 @@ if testcase "write: order by id"; then
 		log=/dev/null user=root time=1666666666
 	assert_file - "$TMP1" <<-EOF
 	$(step_header)
-	1,one,-1,-1,/dev/null,root,1666666666,0
-	2,two,-1,-1,/dev/null,root,1666666666,0
+	1,one,-1,-1,0,/dev/null,root,1666666666,0
+	2,two,-1,-1,0,/dev/null,root,1666666666,0
 	EOF
 fi
 
@@ -217,8 +217,8 @@ if testcase "write: duplicate name"; then
 		log=/dev/null user=root time=1666666666
 	assert_file - "$TMP1" <<-EOF
 	$(step_header)
-	1,one,-1,-1,/dev/null,root,1666666666,0
-	2,one,-1,-1,/dev/null,root,1666666666,0
+	1,one,-1,-1,0,/dev/null,root,1666666666,0
+	2,one,-1,-1,0,/dev/null,root,1666666666,0
 	EOF
 fi
 

@@ -833,6 +833,7 @@ purge() {
 # Create and save build report.
 report() {
 	local _builddir
+	local _delta
 	local _duration=""
 	local _exit
 	local _f
@@ -888,7 +889,8 @@ report() {
 
 	if step_eval -n end "$_steps" 2>/dev/null; then
 		_duration="$(step_value duration)"
-		_duration="$(report_duration -d end -t 60 "$_duration")"
+		_delta="$(step_value delta)"
+		_duration="$(report_duration -d "$_delta" -t 60 "$_duration")"
 	else
 		_duration="$(duration_total -s "$_steps")"
 		_duration="$(report_duration "$_duration")"
@@ -954,12 +956,13 @@ report() {
 		fi
 
 		_duration="$(step_value duration)"
+		_delta="$(step_value delta)"
 
 		printf '\n'
 		printf '> %s:\n' "$_name"
 		printf 'Exit: %d\n' "$_exit"
 		printf 'Duration: %s\n' \
-			"$(report_duration -d "$_name" "$_duration")"
+			"$(report_duration -d "$_delta" "$_duration")"
 		printf 'Log: %s\n' "$(step_value log)"
 
 		report_log -e "$_exit" -n "$_name" -l "$_log" \
@@ -978,23 +981,21 @@ report() {
 	rm "$_tmp"
 }
 
-# report_duration [-d step] [-t threshold] duration
+# report_duration [-d delta] [-t threshold] duration
 #
 # Format the given duration to a human readable representation.
-# If option `-d' is given, the duration delta for the given step relative
-# to the previous successful release is also formatted if the delta is greater
-# than the given threshold.
+# If option `-d' is given, the duration delta is also formatted if the delta is
+# greater than the given threshold.
 report_duration() {
 	local _d
-	local _delta
+	local _delta=""
 	local _prev
 	local _sign
-	local _step=""
 	local _threshold=0
 
 	while [ $# -gt 0 ]; do
 		case "$1" in
-		-d)	shift; _step="$1";;
+		-d)	shift; _delta="$1";;
 		-t)	shift; _threshold="$1";;
 		*)	break;;
 		esac
@@ -1002,12 +1003,11 @@ report_duration() {
 	done
 	_d="$1"; : "${_d:?}"
 
-	if [ -z "$_step" ] || ! _prev="$(duration_prev "$_step")"; then
+	if [ -z "$_delta" ]; then
 		format_duration "$_d"
 		return 0
 	fi
 
-	_delta=$((_d - _prev))
 	if [ "$_delta" -lt 0 ]; then
 		_sign="-"
 		_delta=$((-_delta))
@@ -1196,6 +1196,8 @@ report_skip() {
 #
 # Main loop shared between utilities.
 robsd() {
+	local _d0
+	local _d1
 	local _exit
 	local _log
 	local _name
@@ -1247,8 +1249,15 @@ robsd() {
 		step_exec -f "${_builddir}/tmp/fail" -l "${_builddir}/${_log}" \
 			-s "$_name" || _exit="$?"
 		_t1="$(date '+%s')"
+		_d1="$((_t1 - _t0))"
+		_d0="$(duration_prev "$_name" || :)"
+		if [ -n "$_d0" ]; then
+			_delta="$((_d1 - _d0))"
+		else
+			_delta=0
+		fi
 		step_write -l "$_log" -s "$_s" -n "$_name" -e "$_exit" \
-			-d "$((_t1 - _t0))" "$_steps"
+			-d "$_d1" -a "$_delta" "$_steps"
 		robsd_hook -v "exit=${_exit}" -v "step=${_name}"
 
 		case "$_MODE" in
@@ -1315,10 +1324,10 @@ setprogname() {
 	_PROG="$1"; export _PROG
 }
 
-# step_write [-S] [-t] [-l step-log] -s step-id -n step-name -e exit -d duration file
-#
-# Write the given step.
+# step_write [-S] [-t] [-l step-log] [-a delta]
+#            -s step-id -n step-name -e exit -d duration file
 step_write() {
+	local _delta=0
 	local _duration
 	local _exit
 	local _log=""
@@ -1330,6 +1339,7 @@ step_write() {
 
 	while [ $# -gt 0 ]; do
 		case "$1" in
+		-a)	shift; _delta="$1";;
 		-S)	_skip="1";;
 		-t)	_time="$(date +%s)";;
 		-d)	shift; _duration="$1";;
@@ -1353,6 +1363,7 @@ step_write() {
 		"name=${_name}" \
 		"exit=${_exit}" \
 		"duration=${_duration}" \
+		${_delta:+delta=${_delta}} \
 		${_log:+log=${_log}} \
 		"user=${_user}" \
 		${_time:+time=${_time}} \
@@ -1387,7 +1398,7 @@ step_eval() {
 		# shellcheck disable=SC2016
 		printf '"${step}" "${name}" "${exit}" "${duration}" "${log}" '
 		# shellcheck disable=SC2016
-		printf '"${time}" "${user}" "${skip}"\n'
+		printf '"${time}" "${user}" "${skip}" "${delta}"\n'
 	} | "$ROBSDSTEP" -R -f "$_file" "$_flag" "$_step" >"$_tmp" || _err="$?"
 	[ "$_err" -eq 0 ] && eval "$(<"$_tmp")"
 	rm "$_tmp"
@@ -1476,6 +1487,7 @@ step_field() {
 	time)		echo 5;;
 	user)		echo 6;;
 	skip)		echo 7;;
+	delta)		echo 8;;
 	*)		echo -1;;
 	esac
 }

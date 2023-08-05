@@ -150,10 +150,11 @@ step_header() {
 }
 
 # step_serialize [-H] [-d duration] [-e exit] [-i skip] [-l log] [-n name] [-s step]
-#                [-t time] [-u user]
+#                [-t time] [-u user] [-a delta]
 #
 # Serialize the given step into a robsd-step complaint representation.
 step_serialize() {
+	local _delta="0"
 	local _duration="1"
 	local _exit="0"
 	local _header=1
@@ -167,6 +168,7 @@ step_serialize() {
 	while [ "$#" -gt 0 ]; do
 		case "$1" in
 		-H)	_header=0;;
+		-a)	shift; _delta="$1";;
 		-d)	shift; _duration="$1";;
 		-e)	shift; _exit="$1";;
 		-i)	shift; _skip="$1";;
@@ -181,8 +183,8 @@ step_serialize() {
 	done
 
 	[ "$_header" -eq 0 ] || step_header
-	printf '%s,%s,%s,%s,%s,%s,%s,%s\n' \
-		"${_step}" "${_name}" "${_exit}" "${_duration}" "${_log}" \
+	printf '%s,%s,%s,%s,%s,%s,%s,%s,%s\n' \
+		"${_step}" "${_name}" "${_exit}" "${_duration}" "${_delta}" "${_log}" \
 		"${_user}" "${_time}" "${_skip}"
 }
 
