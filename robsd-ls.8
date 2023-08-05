@@ -1,0 +1,32 @@
+.Dd $Mdocdate: Aug 5 2023$
+.Dt ROBSD-LS 8
+.Os
+.Sh NAME
+.Nm robsd-ls
+.Nd list robsd invocations
+.Sh SYNOPSIS
+.Nm robsd-ls
+.Op Fl B
+.Fl m Ar mode
+.Sh DESCRIPTION
+The
+.Nm
+utility list invocations for the corresponding robsd utility in descending
+order.
+The options are as follows:
+.Bl -tag -width Ds
+.It Fl B
+Exclude the currently running invocation, if present.
+.It Fl m Ar mode
+Mode used to indicate the robsd utility.
+Must be either robsd, robsd-cross, robsd-ports or robsd-regress.
+.El
+.Sh DIAGNOSTICS
+.Ex -std
+.Sh SEE ALSO
+.Xr robsd 8 ,
+.Xr robsd-cross 8 ,
+.Xr robsd-ports 8 ,
+.Xr robsd-regress 8
+.Sh AUTHORS
+.An Anton Lindqvist Aq Mt anton@basename.se

@@ -217,6 +217,7 @@ MANLINT+=	robsd-cross.8
 MANLINT+=	robsd-cross.conf.5
 MANLINT+=	robsd-crossenv.8
 MANLINT+=	robsd-hook.5
+MANLINT+=	robsd-ls.8
 MANLINT+=	robsd-ports.8
 MANLINT+=	robsd-ports.conf.5
 MANLINT+=	robsd-regress-html.8
@@ -382,6 +383,7 @@ install: all
 	${INSTALL_MAN} ${.CURDIR}/robsd-hook.5 ${DESTDIR}${MANDIR}/man5
 # robsd-ls
 	${INSTALL} -m 0555 ${PROG_robsd-ls} ${DESTDIR}${LIBEXECDIR}/robsd
+	${INSTALL_MAN} ${.CURDIR}/robsd-ls.8 ${DESTDIR}${MANDIR}/man8
 # robsd-stat
 	${INSTALL} -m 0555 ${PROG_robsd-stat} ${DESTDIR}${LIBEXECDIR}/robsd
 	${INSTALL_MAN} ${.CURDIR}/robsd-stat.8 ${DESTDIR}${MANDIR}/man8
