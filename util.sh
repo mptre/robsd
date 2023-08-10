@@ -1231,8 +1231,15 @@ robsd() {
 		if [ "$_name" = "end" ]; then
 			# The duration of the end step is the accumulated
 			# duration.
+			_d1="$(duration_total -s "$_steps")"
+			_d0="$(duration_prev "$_name" || :)"
+			if [ -n "$_d0" ]; then
+				_delta="$((_d1 - _d0))"
+			else
+				_delta=0
+			fi
 			step_write -t -s "$_s" -n "$_name" -e 0 \
-				-d "$(duration_total -s "$_steps")" "$_steps"
+				-d "$_d1" -a "$_delta" "$_steps"
 			# The hook is invoked as late as possible in the exit
 			# trap handler.
 			return 0
