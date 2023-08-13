@@ -16,14 +16,15 @@
 #include <string.h>
 #include <unistd.h>
 
+#include "libks/buffer.h"
+#include "libks/map.h"
+#include "libks/vector.h"
+
 #include "alloc.h"
-#include "buffer.h"
 #include "html.h"
 #include "invocation.h"
-#include "map.h"
 #include "regress-log.h"
 #include "step.h"
-#include "vector.h"
 
 struct regress_html {
 	VECTOR(struct regress_invocation)	 invocations;

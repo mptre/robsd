@@ -5,9 +5,10 @@
 #include <stdlib.h>
 #include <unistd.h>
 
+#include "libks/vector.h"
+
 #include "conf.h"
 #include "interpolate.h"
-#include "vector.h"
 
 static void	usage(void) __attribute__((__noreturn__));
 

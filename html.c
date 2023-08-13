@@ -8,8 +8,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include "libks/buffer.h"
+
 #include "alloc.h"
-#include "buffer.h"
 
 struct html {
 	struct buffer	*bf;

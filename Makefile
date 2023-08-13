@@ -10,6 +10,7 @@ SRCS+=	compat-strtonum.c
 SRCS+=	compat-unveil.c
 SRCS+=	compat-warnc.c
 SRCS+=	conf.c
+SRCS+=	consistency.c
 SRCS+=	html.c
 SRCS+=	interpolate.c
 SRCS+=	invocation.c

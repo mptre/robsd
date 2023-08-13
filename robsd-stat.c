@@ -17,8 +17,9 @@
 #include <time.h>
 #include <unistd.h>
 
+#include "libks/vector.h"
+
 #include "alloc.h"
-#include "vector.h"
 
 struct robsd_stat {
 	char		rs_directory[PATH_MAX];

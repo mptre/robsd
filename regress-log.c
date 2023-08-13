@@ -7,7 +7,8 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "buffer.h"
+#include "libks/buffer.h"
+#include "libks/consistency.h"
 
 struct reader {
 	const char	*path;

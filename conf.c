@@ -17,14 +17,15 @@
 #include <string.h>
 #include <unistd.h>
 
+#include "libks/arithmetic.h"
+#include "libks/buffer.h"
+#include "libks/vector.h"
+
 #include "alloc.h"
-#include "arithmetic.h"
-#include "buffer.h"
 #include "interpolate.h"
 #include "lexer.h"
 #include "token.h"
 #include "util.h"
-#include "vector.h"
 
 enum token_type {
 	/* sentinels */

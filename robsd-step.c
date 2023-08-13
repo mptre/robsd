@@ -7,10 +7,11 @@
 #include <string.h>
 #include <unistd.h>
 
-#include "buffer.h"
+#include "libks/buffer.h"
+#include "libks/vector.h"
+
 #include "interpolate.h"
 #include "step.h"
-#include "vector.h"
 
 enum step_mode {
 	MODE_READ = 1,

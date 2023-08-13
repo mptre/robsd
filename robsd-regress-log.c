@@ -5,7 +5,8 @@
 #include <stdlib.h>
 #include <unistd.h>
 
-#include "buffer.h"
+#include "libks/buffer.h"
+
 #include "regress-log.h"
 
 static void	usage(void) __attribute__((__noreturn__));
