@@ -66,6 +66,8 @@ regress_log_parse_impl(const char *path, struct buffer *scratch,
 	int nfound = 0;
 	int xtrace = 1;
 
+	ASSERT_CONSISTENCY(flags & REGRESS_LOG_PEEK, out == NULL);
+
 	if (reader_open(&rd, path))
 		return -1;
 
@@ -95,21 +97,26 @@ regress_log_parse_impl(const char *path, struct buffer *scratch,
 		    ((flags & REGRESS_LOG_FAILED) && isfailed(line)) ||
 		    ((flags & REGRESS_LOG_XFAILED) && isxfailed(line)) ||
 		    ((flags & REGRESS_LOG_XPASSED) && isxpassed(line))) {
-			if (nfound > 0)
-				buffer_putc(out, '\n');
-			buffer_putc(scratch, '\0');
-			buffer_printf(out, "%s", buffer_get_ptr(scratch));
-			buffer_reset(scratch);
+			int first = nfound == 0;
+
 			nfound++;
 			errorlen = 0;
 			if (flags & REGRESS_LOG_PEEK)
 				break;
+
+			if (!first)
+				buffer_putc(out, '\n');
+			buffer_putc(scratch, '\0');
+			buffer_printf(out, "%s", buffer_get_ptr(scratch));
+			buffer_reset(scratch);
 		}
 	}
 	if ((flags & REGRESS_LOG_ERROR) && nfound == 0 && !error &&
 	    errorlen > 0) {
-		buffer_printf(out, "%.*s",
-		    (int)errorlen, buffer_get_ptr(scratch));
+		if ((flags & REGRESS_LOG_PEEK) == 0) {
+			buffer_printf(out, "%.*s",
+			    (int)errorlen, buffer_get_ptr(scratch));
+		}
 		nfound++;
 	}
 	reader_close(&rd);
@@ -128,7 +135,7 @@ regress_log_peek(const char *path, unsigned int flags)
 	scratch = buffer_alloc(1 << 10);
 	if (scratch == NULL)
 		err(1, NULL);
-	rv = regress_log_parse_impl(path, scratch, scratch,
+	rv = regress_log_parse_impl(path, scratch, NULL,
 	    flags | REGRESS_LOG_PEEK);
 	buffer_free(scratch);
 	return rv;
