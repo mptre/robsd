@@ -36,14 +36,14 @@ static int	isxtrace(const char *);
 int
 regress_log_parse(const char *path, struct buffer *out, unsigned int flags)
 {
-	struct buffer *bf;
+	struct buffer *scratch;
 	int rv;
 
-	bf = buffer_alloc(1 << 20);
-	if (bf == NULL)
+	scratch = buffer_alloc(1 << 20);
+	if (scratch == NULL)
 		err(1, NULL);
-	rv = regress_log_parse_impl(path, bf, out, flags);
-	buffer_free(bf);
+	rv = regress_log_parse_impl(path, scratch, out, flags);
+	buffer_free(scratch);
 	return rv;
 }
 
@@ -56,8 +56,8 @@ regress_log_parse(const char *path, struct buffer *out, unsigned int flags)
  *     <0    Fatal error occurred.
  */
 static int
-regress_log_parse_impl(const char *path, struct buffer *bf, struct buffer *out,
-    unsigned int flags)
+regress_log_parse_impl(const char *path, struct buffer *scratch,
+    struct buffer *out, unsigned int flags)
 {
 	struct reader rd;
 	size_t errorlen = 0;
@@ -84,11 +84,11 @@ regress_log_parse_impl(const char *path, struct buffer *bf, struct buffer *out,
 		xtrace = 0;
 
 		if (ismarker(line))
-			buffer_reset(bf);
-		buffer_puts(bf, line, (size_t)n);
+			buffer_reset(scratch);
+		buffer_puts(scratch, line, (size_t)n);
 
 		if ((flags & REGRESS_LOG_ERROR) && iserror(line))
-			errorlen = buffer_get_len(bf);
+			errorlen = buffer_get_len(scratch);
 
 		if (((flags & REGRESS_LOG_SKIPPED) && isskipped(line)) ||
 		    ((flags & REGRESS_LOG_FAILED) && isfailed(line)) ||
@@ -96,9 +96,9 @@ regress_log_parse_impl(const char *path, struct buffer *bf, struct buffer *out,
 		    ((flags & REGRESS_LOG_XPASSED) && isxpassed(line))) {
 			if (nfound > 0)
 				buffer_putc(out, '\n');
-			buffer_putc(bf, '\0');
-			buffer_printf(out, "%s", buffer_get_ptr(bf));
-			buffer_reset(bf);
+			buffer_putc(scratch, '\0');
+			buffer_printf(out, "%s", buffer_get_ptr(scratch));
+			buffer_reset(scratch);
 			nfound++;
 			errorlen = 0;
 			if (flags & REGRESS_LOG_PEEK)
@@ -107,7 +107,8 @@ regress_log_parse_impl(const char *path, struct buffer *bf, struct buffer *out,
 	}
 	if ((flags & REGRESS_LOG_ERROR) && nfound == 0 && !error &&
 	    errorlen > 0) {
-		buffer_printf(out, "%.*s", (int)errorlen, buffer_get_ptr(bf));
+		buffer_printf(out, "%.*s",
+		    (int)errorlen, buffer_get_ptr(scratch));
 		nfound++;
 	}
 	reader_close(&rd);
@@ -120,14 +121,15 @@ regress_log_parse_impl(const char *path, struct buffer *bf, struct buffer *out,
 int
 regress_log_peek(const char *path, unsigned int flags)
 {
-	struct buffer *bf;
+	struct buffer *scratch;
 	int rv;
 
-	bf = buffer_alloc(1 << 10);
-	if (bf == NULL)
+	scratch = buffer_alloc(1 << 10);
+	if (scratch == NULL)
 		err(1, NULL);
-	rv = regress_log_parse_impl(path, bf, bf, flags | REGRESS_LOG_PEEK);
-	buffer_free(bf);
+	rv = regress_log_parse_impl(path, scratch, scratch,
+	    flags | REGRESS_LOG_PEEK);
+	buffer_free(scratch);
 	return rv;
 }
 
