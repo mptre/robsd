@@ -309,7 +309,7 @@ parse_invocation(struct regress_html *r, const char *arch,
 		enum run_status status;
 
 		name = step_get_field(&steps[i], "name")->str;
-		if (strchr(name, '/') == 0)
+		if (strchr(name, '/') == NULL)
 			continue;
 
 		ri->total++;
