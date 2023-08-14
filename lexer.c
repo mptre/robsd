@@ -36,7 +36,7 @@ lexer_alloc(const struct lexer_arg *arg)
 
 	fh = fopen(arg->path, "re");
 	if (fh == NULL) {
-		warn("open: %s", arg->path);
+		warn("%s", arg->path);
 		return NULL;
 	}
 	lx = ecalloc(1, sizeof(*lx));

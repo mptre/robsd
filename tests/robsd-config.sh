@@ -523,7 +523,7 @@ if testcase "invalid not found"; then
 		fail - "expected exit non-zero" <"$TMP1"
 	fi
 	assert_file - "$TMP1" <<-EOF
-	robsd-config: open: /var/empty/nein: No such file or directory
+	robsd-config: /var/empty/nein: No such file or directory
 	EOF
 fi
 

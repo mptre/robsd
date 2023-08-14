@@ -171,7 +171,7 @@ fi
 
 if testcase "read: invalid file not found"; then
 	robsd_step -e - -- -R -f "${TMP1}.nein" -l 1 <<-EOF
-	robsd-step: open: ${TMP1}.nein: No such file or directory
+	robsd-step: ${TMP1}.nein: No such file or directory
 	EOF
 fi
 
