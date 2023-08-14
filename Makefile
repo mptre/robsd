@@ -1,6 +1,6 @@
 include ${.CURDIR}/config.mk
 
-VERSION=	18.0.0rc3
+VERSION=	18.0.0rc4
 
 SRCS+=	alloc.c
 SRCS+=	arena.c
