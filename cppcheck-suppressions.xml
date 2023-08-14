@@ -4,6 +4,9 @@
   <suppress>
     <id>missingIncludeSystem</id>
   </suppress>
+  <suppress>
+    <id>redundantContinue</id>
+  </suppress>
 
   <!-- robsd-step.c -->
   <suppress>
