@@ -19,6 +19,7 @@ SRCS+=	lexer.c
 SRCS+=	map.c
 SRCS+=	regress-html.c
 SRCS+=	regress-log.c
+SRCS+=	report.c
 SRCS+=	step.c
 SRCS+=	token.c
 SRCS+=	util.c
@@ -60,6 +61,12 @@ OBJS_robsd-regress-log=		${SRCS_robsd-regress-log:.c=.o}
 DEPS_robsd-regress-log=		${SRCS_robsd-regress-log:.c=.d}
 PROG_robsd-regress-log=		robsd-regress-log
 
+SRCS_robsd-report+=	${SRCS}
+SRCS_robsd-report+=	robsd-report.c
+OBJS_robsd-report=	${SRCS_robsd-report:.c=.o}
+DEPS_robsd-report=	${SRCS_robsd-report:.c=.d}
+PROG_robsd-report=	robsd-report
+
 SRCS_robsd-stat+=	${SRCS}
 SRCS_robsd-stat+=	robsd-stat.c
 OBJS_robsd-stat=	${SRCS_robsd-stat:.c=.o}
@@ -96,12 +103,15 @@ KNFMT+=	regress-html.c
 KNFMT+=	regress-html.h
 KNFMT+=	regress-log.c
 KNFMT+=	regress-log.h
+KNFMT+=	report.c
+KNFMT+=	report.h
 KNFMT+=	robsd-config.c
 KNFMT+=	robsd-exec.c
 KNFMT+=	robsd-hook.c
 KNFMT+=	robsd-ls.c
 KNFMT+=	robsd-regress-html.c
 KNFMT+=	robsd-regress-log.c
+KNFMT+=	robsd-report.c
 KNFMT+=	robsd-stat.c
 KNFMT+=	robsd-step.c
 KNFMT+=	step.c
@@ -129,12 +139,15 @@ CLANGTIDY+=	regress-html.c
 CLANGTIDY+=	regress-html.h
 CLANGTIDY+=	regress-log.c
 CLANGTIDY+=	regress-log.h
+CLANGTIDY+=	report.c
+CLANGTIDY+=	report.h
 CLANGTIDY+=	robsd-config.c
 CLANGTIDY+=	robsd-exec.c
 CLANGTIDY+=	robsd-hook.c
 CLANGTIDY+=	robsd-ls.c
 CLANGTIDY+=	robsd-regress-html.c
 CLANGTIDY+=	robsd-regress-log.c
+CLANGTIDY+=	robsd-report.c
 CLANGTIDY+=	robsd-stat.c
 CLANGTIDY+=	robsd-step.c
 CLANGTIDY+=	step.c
@@ -153,12 +166,14 @@ CPPCHECK+=	invocation.c
 CPPCHECK+=	lexer.c
 CPPCHECK+=	regress-html.c
 CPPCHECK+=	regress-log.c
+CPPCHECK+=	report.c
 CPPCHECK+=	robsd-config.c
 CPPCHECK+=	robsd-exec.c
 CPPCHECK+=	robsd-hook.c
 CPPCHECK+=	robsd-ls.c
 CPPCHECK+=	robsd-regress-html.c
 CPPCHECK+=	robsd-regress-log.c
+CPPCHECK+=	robsd-report.c
 CPPCHECK+=	robsd-stat.c
 CPPCHECK+=	robsd-step.c
 CPPCHECK+=	step.c
@@ -275,6 +290,7 @@ SHLINT+=	tests/robsd-regress-log.sh
 SHLINT+=	tests/robsd-regress-obj.sh
 SHLINT+=	tests/robsd-regress-pkg-add.sh
 SHLINT+=	tests/robsd-regress.sh
+SHLINT+=	tests/robsd-report.sh
 SHLINT+=	tests/robsd-rescue.sh
 SHLINT+=	tests/robsd-step.sh
 SHLINT+=	tests/robsd.sh
@@ -302,6 +318,7 @@ all: ${PROG_robsd-hook}
 all: ${PROG_robsd-ls}
 all: ${PROG_robsd-regress-html}
 all: ${PROG_robsd-regress-log}
+all: ${PROG_robsd-report}
 all: ${PROG_robsd-stat}
 all: ${PROG_robsd-step}
 
@@ -323,6 +340,9 @@ ${PROG_robsd-regress-html}: ${OBJS_robsd-regress-html}
 ${PROG_robsd-regress-log}: ${OBJS_robsd-regress-log}
 	${CC} ${DEBUG} -o ${PROG_robsd-regress-log} ${OBJS_robsd-regress-log} ${LDFLAGS}
 
+${PROG_robsd-report}: ${OBJS_robsd-report}
+	${CC} ${DEBUG} -o ${PROG_robsd-report} ${OBJS_robsd-report} ${LDFLAGS}
+
 ${PROG_robsd-stat}: ${OBJS_robsd-stat}
 	${CC} ${DEBUG} -o ${PROG_robsd-stat} ${OBJS_robsd-stat} ${LDFLAGS}
 
@@ -337,6 +357,7 @@ clean:
 		${DEPS_robsd-ls} ${OBJS_robsd-ls} ${PROG_robsd-ls} \
 		${DEPS_robsd-regress-html} ${OBJS_robsd-regress-html} ${PROG_robsd-regress-html} \
 		${DEPS_robsd-regress-log} ${OBJS_robsd-regress-log} ${PROG_robsd-regress-log} \
+		${DEPS_robsd-report} ${OBJS_robsd-report} ${PROG_robsd-report} \
 		${DEPS_robsd-stat} ${OBJS_robsd-stat} ${PROG_robsd-stat} \
 		${DEPS_robsd-step} ${OBJS_robsd-step} ${PROG_robsd-step}
 .PHONY: clean
@@ -422,6 +443,8 @@ install: all
 # robsd-regress-log
 	${INSTALL} -m 0555 ${PROG_robsd-regress-log} ${DESTDIR}${LIBEXECDIR}/robsd
 	${INSTALL_MAN} ${.CURDIR}/robsd-regress-log.8 ${DESTDIR}${MANDIR}/man8
+# robsd-report
+	${INSTALL} -m 0555 ${PROG_robsd-report} ${DESTDIR}${LIBEXECDIR}/robsd
 .PHONY: install
 
 lint:
@@ -459,6 +482,7 @@ test: all
 		"ROBSDLS=${.OBJDIR}/${PROG_robsd-ls}" \
 		"ROBSDREGRESSHTML=${.OBJDIR}/${PROG_robsd-regress-html}" \
 		"ROBSDREGRESSLOG=${.OBJDIR}/${PROG_robsd-regress-log}" \
+		"ROBSDREPORT=${.OBJDIR}/${PROG_robsd-report}" \
 		"ROBSDSTAT=${.OBJDIR}/${PROG_robsd-stat}" \
 		"ROBSDSTEP=${.OBJDIR}/${PROG_robsd-step}" \
 		"TESTFLAGS=${TESTFLAGS}"
@@ -470,5 +494,6 @@ test: all
 -include ${DEPS_robsd-ls}
 -include ${DEPS_robsd-regress-html}
 -include ${DEPS_robsd-regress-log}
+-include ${DEPS_robsd-report}
 -include ${DEPS_robsd-stat}
 -include ${DEPS_robsd-step}

@@ -111,6 +111,7 @@ config_load() {
 	: "${ROBSDCONFIG:=${EXECDIR}/robsd-config}"
 	: "${ROBSDHOOK:=${EXECDIR}/robsd-hook}"
 	: "${ROBSDLS:=${EXECDIR}/robsd-ls}"
+	: "${ROBSDREPORT:=${EXECDIR}/robsd-report}"
 	: "${ROBSDSTAT:=${EXECDIR}/robsd-stat}"
 	: "${ROBSDSTEP:=${EXECDIR}/robsd-step}"
 

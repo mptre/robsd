@@ -31,6 +31,7 @@ TESTS+=	robsd-regress-log.sh
 TESTS+=	robsd-regress-obj.sh
 TESTS+=	robsd-regress-pkg-add.sh
 TESTS+=	robsd-regress.sh
+TESTS+=	robsd-report.sh
 TESTS+=	robsd-rescue.sh
 TESTS+=	robsd-step.sh
 TESTS+=	robsd.sh
