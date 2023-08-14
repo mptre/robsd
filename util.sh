@@ -601,54 +601,6 @@ fatal() {
 	exit 1
 }
 
-# format_duration duration
-#
-# Format the given duration to a human readable representation.
-format_duration() {
-	local _d
-
-	_d="$1"; : "${_d:?}"
-
-	date -u -r "$_d" '+%T'
-}
-
-# format_size [-s] size
-#
-# Format the given size into a human readable representation.
-# Optionally include the sign if the size is a delta.
-format_size() {
-	local _abs
-	local _d=1
-	local _p=""
-	local _sign=0
-	local _size
-
-	while [ $# -gt 0 ]; do
-		case "$1" in
-		-s)	_sign=1;;
-		*)	break;;
-		esac
-		shift
-	done
-	_size="$1"; : "${_size:?}"
-
-	_abs="$(abs "$_size")"
-	if [ "$_abs" -ge "$((1024 * 1024))" ]; then
-		_d=$((1024 * 1024))
-		_p="M"
-	elif [ "$_abs" -ge "1024" ]; then
-		_d=1024
-		_p="K"
-	fi
-
-	if [ "$_sign" -eq 1 ] && [ "$_size" -ge 0 ]; then
-		echo -n '+'
-	fi
-
-	echo "${_size} ${_d} ${_p}" |
-	awk '{ printf("%.01f%s", $1 / $2, $3) }'
-}
-
 # info message ...
 #
 # Print the given message to stdout.
@@ -829,35 +781,23 @@ purge() {
 	done
 }
 
-# report -b build-dir -r robsd-dir
+# report -r robsd-dir
 #
-# Create and save build report.
+# Create and save report.
 report() {
 	local _builddir
-	local _delta
-	local _duration=""
-	local _exit
-	local _f
-	local _i=1
-	local _log
-	local _n
-	local _name
-	local _robsddir
 	local _report
-	local _status
-	local _steps
 	local _tmp
 	local _tmpdir
+	local _steps
 
 	while [ $# -gt 0 ]; do
 		case "$1" in
 		-b)	shift; _builddir="$1";;
-		-r)	shift; _robsddir="$1";;
 		*)	break;;
 		esac
 		shift
 	done
-	: "${_robsddir:?}"
 	: "${_builddir:?}"
 
 	_report="${_builddir}/report"
@@ -869,324 +809,12 @@ report() {
 	# another already running build.
 	[ -s "$_steps" ] || return 1
 
-	case "$_MODE" in
-	robsd-regress)
-		_status="$(regress_report_status -s "$_steps")"
-		;;
-	*)
-		# All other robsd utilities halts if a step failed, only bother
-		# checking the last non-skipped step.
-		while step_eval "-${_i}" "$_steps" 2>/dev/null; do
-			_i=$((_i + 1))
-			step_skip && continue
-			[ "$(step_value exit)" -eq 0 ] && break
-
-			_status="failed in $(step_value name)"
-			break
-		done
-		;;
-	esac
-	: "${_status:="ok"}"
-
-	if step_eval -n end "$_steps" 2>/dev/null; then
-		_duration="$(step_value duration)"
-		_delta="$(step_value delta)"
-		_duration="$(report_duration -d "$_delta" -t 60 "$_duration")"
-	else
-		_duration="$(duration_total -s "$_steps")"
-		_duration="$(report_duration "$_duration")"
-	fi
-
-	# Add subject header.
-	{
-		printf 'Subject: %s: %s: ' "$_MODE" "$(hostname -s)"
-		case "$_MODE" in
-		robsd-cross)	cross_report_subject -b "$_builddir";;
-		*)		;;
-		esac
-		printf '%s\n\n' "$_status"
-	} >"$_tmp"
-
-	# Add comment to the beginning of the report.
-	if [ -e "${_builddir}/comment" ]; then
-		cat <<-EOF >>"$_tmp"
-		> comment:
-		$(cat "${_builddir}/comment")
-
-		EOF
-	fi
-
-	# Add stats to the beginning of the report.
-	{
-		cat <<-EOF
-		> stats:
-		Status: ${_status}
-		Duration: ${_duration}
-		Build: ${_builddir}
-		EOF
-
-		if [ -e  "${_builddir}/tags" ]; then
-			printf 'Tags: '
-			cat "${_builddir}/tags"
-		fi
-
-		if [ "$_MODE" = "robsd" ]; then
-			report_sizes "$(config_value bsd-reldir)"
-		fi
-	} >>"$_tmp"
-
-	_i=1
-	while step_eval "$_i" "$_steps" 2>/dev/null; do
-		_i=$((_i + 1))
-
-		step_skip && continue
-
-		_name="$(step_value name)"
-		_exit="$(step_value exit)"
-		if step_value log >/dev/null 2>&1; then
-			_log="${_builddir}/$(step_value log)"
-		else
-			_log="/dev/null"
-		fi
-
-		if [ "$_exit" -eq 0 ] &&
-		   report_skip -b "$_builddir" -n "$_name" -l "$_log" \
-			-t "$_tmpdir"
-		then
-			continue
-		fi
-
-		_duration="$(step_value duration)"
-		_delta="$(step_value delta)"
-
-		printf '\n'
-		printf '> %s:\n' "$_name"
-		printf 'Exit: %d\n' "$_exit"
-		printf 'Duration: %s\n' \
-			"$(report_duration -d "$_delta" "$_duration")"
-		printf 'Log: %s\n' "$(step_value log)"
-
-		report_log -e "$_exit" -n "$_name" -l "$_log" \
-			-t "${_builddir}/tmp" >"${_builddir}/tmp/log"
-		if [ -s "${_builddir}/tmp/log" ]; then
-			trimfile "${_builddir}/tmp/log"
-			echo; cat "${_builddir}/tmp/log"
-		fi
-		rm "${_builddir}/tmp/log"
-	done >>"$_tmp"
-
+	"$ROBSDREPORT" -m "$_MODE" ${ROBSDCONF:+-C ${ROBSDCONF}} "$_builddir" >"$_tmp"
 	# smtpd(8) rejects messages with carriage return not followed by a
 	# newline. Play it safe and let vis(1) encode potential carriage
 	# returns.
 	vis "$_tmp" >"$_report"
 	rm "$_tmp"
-}
-
-# report_duration [-d delta] [-t threshold] duration
-#
-# Format the given duration to a human readable representation.
-# If option `-d' is given, the duration delta is also formatted if the delta is
-# greater than the given threshold.
-report_duration() {
-	local _d
-	local _delta=""
-	local _prev
-	local _sign
-	local _threshold=0
-
-	while [ $# -gt 0 ]; do
-		case "$1" in
-		-d)	shift; _delta="$1";;
-		-t)	shift; _threshold="$1";;
-		*)	break;;
-		esac
-		shift
-	done
-	_d="$1"; : "${_d:?}"
-
-	if [ -z "$_delta" ]; then
-		format_duration "$_d"
-		return 0
-	fi
-
-	if [ "$_delta" -lt 0 ]; then
-		_sign="-"
-		_delta=$((-_delta))
-	else
-		_sign="+"
-	fi
-	if [ "$_delta" -le "$_threshold" ]; then
-		format_duration "$_d"
-		return 0
-	fi
-	printf '%s (%s%s)\n' \
-		"$(format_duration "$_d")" \
-		"$_sign" \
-		"$(format_duration "$_delta")"
-}
-
-# report_log -e step-exit -n step-name -l step-log -t tmp-dir
-#
-# Writes an excerpt of the given step log.
-report_log() {
-	local _exit
-	local _f
-	local _log
-	local _name
-	local _tmpdir
-
-	case "$_MODE" in
-	robsd-ports)
-		ports_report_log "$@"
-		return $?
-		;;
-	robsd-regress)
-		regress_report_log "$@"
-		return $?
-		;;
-	*)
-		;;
-	esac
-
-	while [ $# -gt 0 ]; do
-		case "$1" in
-		-e)	shift; _exit="$1";;
-		-n)	shift; _name="$1";;
-		-l)	shift; _log="$1";;
-		-t)	shift; _tmpdir="$1";;
-		*)	break;;
-		esac
-		shift
-	done
-	: "${_exit:?}"
-	: "${_name:?}"
-	: "${_log:?}"
-	: "${_tmpdir:?}"
-
-	case "$_name" in
-	env|patch|checkflist|reboot|revert|distrib)
-		cat "$_log"
-		;;
-	cvs)
-		cvs_changelog -t "$_tmpdir"
-		;;
-	kernel)
-		tail -n 11 "$_log"
-		;;
-	*)
-		tail "$_log"
-		;;
-	esac
-}
-
-# report_size file
-#
-# If the given file is significantly larger than the same file in the previous
-# release, a human readable representation of the size and delta is reported.
-report_size() {
-	local _delta
-	local _f
-	local _name
-	local _path
-	local _prev
-	local _s1
-	local _s2
-	local _threshold
-
-	_f="$1"; : "${_f:?}"
-
-	_name="$(basename "$_f")"
-
-	[ -e "$_f" ] || return 0
-
-	_prev="$(prev_release -B | head -1)"
-	[ -z "$_prev" ] && return 0
-
-	_path="${_prev}/rel/${_name}"
-	[ -e "$_path" ] || return 0
-
-	_s1="$(ls -l "$_f" | awk '{print $5}')"
-	_s2="$(ls -l "$_path" | awk '{print $5}')"
-	_delta="$((_s1 - _s2))"
-	case "$_name" in
-	bsd.rd)	_threshold=$((1024 * 1));;
-	*)	_threshold=$((1024 * 100));;
-	esac
-	[ "$(abs "$_delta")" -ge "$_threshold" ] || return 0
-
-	echo "$_name" "$(format_size "$_s1")" \
-		"($(format_size -s "$_delta"))"
-}
-
-# report_sizes release-dir
-#
-# Report significant growth of any file present in the given release directory.
-report_sizes() {
-	local _dir
-	local _f
-	local _siz
-
-	_dir="$1"; : "${_dir:?}"
-	[ -d "$_dir" ] || return 0
-
-	find "$_dir" -type f |
-	grep -Ev '\.diff\.[0-9]+$' |
-	sort |
-	while read -r _f; do
-		_siz="$(report_size "$_f")"
-		[ -z "$_siz" ] && continue
-
-		echo "Size: ${_siz}"
-	done
-}
-
-# report_skip -b build-dir -n step-name -l step-log -t tmp-dir
-#
-# Exits zero if the given step should not be included in the report.
-report_skip() {
-	local _builddir
-	local _name
-	local _log
-
-	case "$_MODE" in
-	robsd-ports)
-		ports_report_skip "$@"
-		return $?
-		;;
-	robsd-regress)
-		regress_report_skip "$@"
-		return $?
-		;;
-	*)
-		;;
-	esac
-
-	while [ $# -gt 0 ]; do
-		case "$1" in
-		-b)	shift; _builddir="$1";;
-		-l)	shift; _log="$1";;
-		-n)	shift; _name="$1";;
-		-t)	shift;;
-		*)	break;;
-		esac
-		shift
-	done
-	: "${_builddir:?}"
-	: "${_log:?}"
-	: "${_name:?}"
-
-	case "$_name" in
-	cvs)
-		return 1
-		;;
-	checkflist)
-		# Skip if the log only contains PS4 traces.
-		grep -vq '^\+' "$_log" && return 1
-		;;
-	*)
-		;;
-	esac
-	return 0
 }
 
 # robsd -b build-dir -s step-id
@@ -1463,17 +1091,6 @@ step_exec() (
 	return "$_err"
 )
 
-# step_failures file
-#
-# Get the number of failing steps.
-step_failures() {
-	local _file
-
-	_file="$1"; : "${_file:?}"
-
-	tail -n +2 "$_file" | awk -F , '{s+= $3 == 0 ? 0 : 1} END {print s}'
-}
-
 # step_field step-name
 #
 # Get the corresponding _STEP array index for the given field name.
@@ -1678,7 +1295,7 @@ trap_exit() {
 	if [ "$_err" -ne 0 ] ||
 	   step_eval -n end "$_steps" 2>/dev/null
 	then
-		if report -r "$_robsddir" -b "$_builddir" &&
+		if report -b "$_builddir" &&
 		   [ "$DETACH" -ne 0 ]; then
 			# Do not send mail during interactive invocations.
 			sendmail root <"${_builddir}/report"
@@ -1695,18 +1312,6 @@ trap_exit() {
 	[ -s "$_steps" ] || rm -r "$_builddir"
 
 	return "$_err"
-}
-
-# trimfile path
-#
-# Remove empty lines at the end of the given file.
-trimfile() {
-	local _path
-
-	_path="$1"; : "${_path:?}"
-	while [ "$(sed -n -e '$p' "$_path")" = "" ]; do
-		sed -i -e '$d' "$_path"
-	done
 }
 
 # unpriv [-c class] user utility argument ...

@@ -62,7 +62,7 @@ if testcase "basic"; then
 		-S "${TSHDIR}/src-one.diff" \
 		-S "${TSHDIR}/src-two.diff" \
 		-X "${TSHDIR}/xenocara.diff" \
-		-s reboot -t daily \
+		-s cvs -s reboot -t daily \
 		>"$TMP1" 2>&1 || : >"$_fail"
 	if [ -e "$_fail" ]; then
 		fail - "expected exit zero" <"$TMP1"
@@ -91,11 +91,10 @@ if testcase "basic"; then
 	robsd: using diff ${TSHDIR}/src-one.diff rooted in ${TSHDIR}
 	robsd: using diff ${TSHDIR}/src-two.diff rooted in ${TSHDIR}
 	robsd: using diff ${TSHDIR}/xenocara.diff rooted in ${TSHDIR}
-	robsd: skipping steps: reboot
+	robsd: skipping steps: cvs reboot
 	robsd: step env
 	robsd-hook: exec "sh" "${_hook}" "${_builddir}" "env" "0"
-	robsd: step cvs
-	robsd-hook: exec "sh" "${_hook}" "${_builddir}" "cvs" "0"
+	robsd: step cvs skipped
 	robsd: step patch
 	robsd-hook: exec "sh" "${_hook}" "${_builddir}" "patch" "0"
 	robsd: step kernel
