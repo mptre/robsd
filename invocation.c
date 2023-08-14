@@ -117,7 +117,8 @@ invocation_find(const char *directory, const char *pattern)
 			}
 			break;
 		}
-		if (fnmatch(pattern, de->d_name, 0) == FNM_NOMATCH)
+		if (fnmatch(pattern, de->d_name, 0) == FNM_NOMATCH ||
+		    de->d_name[0] == '.')
 			continue;
 
 		entry = VECTOR_ALLOC(s->directories);
