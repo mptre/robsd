@@ -29,4 +29,6 @@ dpb -c -B "$CHROOT" -P "${_tmpdir}/ports"
 grep -m 1 'E:' "${CHROOT}${PORTSDIR}/logs/${_arch}/engine.log" && exit 1
 grep -m 1 'E=' "${CHROOT}${PORTSDIR}/logs/${_arch}/stats.log" && exit 1
 
+# Produce packages diff used in report.
 ls "${_packages}" >"${_tmpdir}/packages"
+(cd "$_tmpdir" && diff -U0 packages{.orig,} >packages.diff)

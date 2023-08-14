@@ -43,8 +43,7 @@ ports_report_log() {
 		;;
 	dpb)
 		if [ "$_exit" = 0 ]; then
-			diff -U0 -L packages.orig -L packages \
-				"${_tmpdir}/"packages{.orig,} 2>/dev/null || :
+			cat "${_tmpdir}/packages.diff"
 		else
 			tail "$_log"
 		fi

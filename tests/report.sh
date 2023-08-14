@@ -285,6 +285,7 @@ if testcase "ports"; then
 	echo "$BUILDDIR" >"${TSHDIR}/.running"
 	build_init "$BUILDDIR"
 	: >"${BUILDDIR}/dpb.log"
+	: >"${BUILDDIR}/tmp/packages.diff"
 	{
 		step_serialize -s 1 -n dpb -d 20 -l dpb.log
 		step_serialize -H -s 2 -n dmesg -d 0 -l dmesg.log
