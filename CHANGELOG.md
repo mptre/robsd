@@ -1,3 +1,29 @@
+# 18.0.0 - YYYY-MM-DD
+
+## Changes
+
+- Add step duration delta column to step.csv.
+  (6ceeed8)
+  (Anton Lindqvist)
+
+## News
+
+- robsd: only include failing steps and cvs step in report.
+  (b6a4726)
+  (Anton Lindqvist)
+
+- Add robsd-report utility used to generate report.
+  Significantly reduces the time taken to generate the report, especially for
+  robsd-regress.
+  (28d5c04)
+  (Anton Lindqvist)
+
+## Bug fixes
+
+- robsd-regress-log: stop abusing the scratch buffer as the output buffer.
+  (67c138b)
+  (Anton Lindqvist)
+
 # 17.8.1 - 2023-07-17
 
 ## Bug fixes
@@ -239,8 +265,6 @@
 - Turn log step field into a relative path.
   (35aa142)
   (Anton Lindqvist)
-
-## News
 
 ## Bug fixes
 
