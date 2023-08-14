@@ -114,12 +114,7 @@ struct config {
 	struct lexer		*cf_lx;
 	const struct grammar	*cf_grammar;
 	const char		*cf_path;
-	enum robsd_mode {
-		CONFIG_ROBSD,
-		CONFIG_ROBSD_CROSS,
-		CONFIG_ROBSD_PORTS,
-		CONFIG_ROBSD_REGRESS,
-	} cf_mode;
+	enum robsd_mode		 cf_mode;
 
 	VECTOR(struct variable)	 cf_variables;
 
@@ -510,6 +505,28 @@ config_interpolate_lookup(const char *name, void *arg)
 	str = buffer_str(bf);
 	buffer_free(bf);
 	return str;
+}
+
+enum robsd_mode
+config_get_mode(const struct config *cf)
+{
+	return cf->cf_mode;
+}
+
+const char *
+robsd_mode_str(enum robsd_mode mode)
+{
+	switch (mode) {
+	case CONFIG_ROBSD:
+		return "robsd";
+	case CONFIG_ROBSD_CROSS:
+		return "robsd-cross";
+	case CONFIG_ROBSD_PORTS:
+		return "robsd-ports";
+	case CONFIG_ROBSD_REGRESS:
+		return "robsd-regress";
+	}
+	return "unknown";
 }
 
 const struct variable_value *
