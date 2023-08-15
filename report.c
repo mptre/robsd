@@ -150,6 +150,7 @@ report_cvs_log(struct report_context *r)
 	buffer_putc(r->out, '\n');
 
 	for (i = 0; i < npaths; i++) {
+		struct stat st;
 		const char *path;
 
 		if (paths[i].mode != r->mode)
@@ -157,6 +158,8 @@ report_cvs_log(struct report_context *r)
 
 		path = arena_printf(&s, "%s/tmp/%s",
 		    r->builddir, paths[i].filename);
+		if (stat(path, &st) == 0 && st.st_size == 0)
+			continue;
 		if (ncvs++ > 0)
 			buffer_putc(r->out, '\n');
 		if (format_file(r, path))

@@ -147,8 +147,8 @@ if testcase "robsd: cvs"; then
 		step_serialize -s 1 -n cvs -l cvs.log
 		printf 'src up\n' >"${_builddir}/tmp/cvs-src-up.log"
 		printf 'src ci\n' >"${_builddir}/tmp/cvs-src-ci.log"
-		printf 'xenocara up\n' >"${_builddir}/tmp/cvs-xenocara-up.log"
-		printf 'xenocara ci\n' >"${_builddir}/tmp/cvs-xenocara-ci.log"
+		printf '' >"${_builddir}/tmp/cvs-xenocara-up.log"
+		printf '' >"${_builddir}/tmp/cvs-xenocara-ci.log"
 		printf 'ports up\n' >"${_builddir}/tmp/cvs-ports-up.log"
 		printf 'ports ci\n' >"${_builddir}/tmp/cvs-ports-ci.log"
 
@@ -165,10 +165,6 @@ if testcase "robsd: cvs"; then
 	src up
 
 	src ci
-
-	xenocara up
-
-	xenocara ci
 	EOF
 fi
 
