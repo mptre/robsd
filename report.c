@@ -14,6 +14,7 @@
 
 #include "libks/arena.h"
 #include "libks/buffer.h"
+#include "libks/map.h"
 #include "libks/vector.h"
 
 #include "cdefs.h"
@@ -31,6 +32,10 @@ struct report_context {
 	struct step	*steps;
 	struct buffer	*out;
 	enum robsd_mode	 mode;
+
+	struct {
+		MAP(const char, *, int) suites;
+	} regress;
 };
 
 static int	threshold_duration_s = 60;
@@ -232,6 +237,12 @@ ports_report_step_log(struct report_context *r, const struct step *step)
 }
 
 static int
+is_regress_step(struct report_context *r, const char *name)
+{
+	return MAP_FIND(r->regress.suites, name) != NULL;
+}
+
+static int
 is_regress_quiet(struct report_context *r, const char *name)
 {
 	SCOPE s = arena_scope(r->arena);
@@ -242,15 +253,32 @@ is_regress_quiet(struct report_context *r, const char *name)
 }
 
 static int
+regress_suites(struct report_context *r)
+{
+	VECTOR(char *) suites;
+	size_t i, nsuites;
+
+	if (MAP_INIT(r->regress.suites))
+		err(1, NULL);
+
+	suites = variable_get_value(config_find(r->config, "regress"))->list;
+	nsuites = VECTOR_LENGTH(suites);
+	for (i = 0; i < nsuites; i++) {
+		if (MAP_INSERT_VALUE(r->regress.suites, suites[i], 0) == NULL)
+			err(1, NULL);
+	}
+
+	return 0;
+}
+
+static int
 regress_report_skip_step(struct report_context *r, const struct step *step)
 {
 	SCOPE s = arena_scope(r->arena);
 	const char *log_path, *name;
 
 	name = step_get_field(step, "name")->str;
-	if (strchr(name, '/') == NULL)
-		return 1;
-	if (is_regress_quiet(r, name))
+	if (!is_regress_step(r, name) || is_regress_quiet(r, name))
 		return 1;
 
 	log_path = step_get_log_path(r, step, &s);
@@ -741,15 +769,22 @@ report_steps(struct report_context *r)
 	return 0;
 }
 
+static void
+report_context_free(struct report_context *r)
+{
+	MAP_FREE(r->regress.suites);
+}
+
 int
 report_generate(struct config *config, const char *builddir,
     struct buffer *out)
 {
 	ARENA arena[512 * 1024];
 	SCOPE s = {0};
-	struct report_context r;
+	struct report_context r = {0};
 	struct step *steps = NULL;
 	const char *steps_path;
+	enum robsd_mode mode;
 	int error = 1;
 
 	if (arena_init(arena, ARENA_FATAL)) {
@@ -763,6 +798,7 @@ report_generate(struct config *config, const char *builddir,
 	if (steps == NULL)
 		goto out;
 
+	mode = config_get_mode(config);
 	r = (struct report_context){
 	    .arena		= arena,
 	    .builddir		= builddir,
@@ -770,14 +806,17 @@ report_generate(struct config *config, const char *builddir,
 	    .config		= config,
 	    .steps		= steps,
 	    .out		= out,
-	    .mode		= config_get_mode(config),
+	    .mode		= mode,
 	};
+	if (mode == ROBSD_REGRESS && regress_suites(&r))
+		goto out;
 	error = report_subject(&r) ||
 	    report_comment(&r) ||
 	    report_stats(&r) ||
 	    report_steps(&r);
 
 out:
+	report_context_free(&r);
 	steps_free(steps);
 	arena_free(arena);
 	return error;

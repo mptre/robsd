@@ -82,6 +82,7 @@ SRCS_robsd-report+=	${SRCS_config}
 SRCS_robsd-report+=	arena.c
 SRCS_robsd-report+=	consistency.c
 SRCS_robsd-report+=	invocation.c
+SRCS_robsd-report+=	map.c
 SRCS_robsd-report+=	regress-log.c
 SRCS_robsd-report+=	report.c
 SRCS_robsd-report+=	step.c
