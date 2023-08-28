@@ -385,7 +385,8 @@ clean:
 		${DEPS_robsd-regress-log} ${OBJS_robsd-regress-log} ${PROG_robsd-regress-log} \
 		${DEPS_robsd-report} ${OBJS_robsd-report} ${PROG_robsd-report} \
 		${DEPS_robsd-stat} ${OBJS_robsd-stat} ${PROG_robsd-stat} \
-		${DEPS_robsd-step} ${OBJS_robsd-step} ${PROG_robsd-step}
+		${DEPS_robsd-step} ${OBJS_robsd-step} ${PROG_robsd-step} \
+		${DEPS_fuzz-config} ${OBJS_fuzz-config} ${PROG_fuzz-config}
 .PHONY: clean
 
 cleandir: clean
@@ -523,3 +524,4 @@ test: all
 -include ${DEPS_robsd-report}
 -include ${DEPS_robsd-stat}
 -include ${DEPS_robsd-step}
+-include ${DEPS_fuzz-config}
