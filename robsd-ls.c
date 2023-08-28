@@ -17,7 +17,6 @@ main(int argc, char *argv[])
 	struct config *config = NULL;
 	struct invocation_state *is = NULL;
 	const struct invocation_entry *entry;
-	const struct variable *va;
 	const char *builddir = NULL;
 	const char *mode = NULL;
 	const char *path = NULL;
@@ -59,11 +58,8 @@ main(int argc, char *argv[])
 		error = 1;
 		goto out;
 	}
-	if (skip_builddir) {
-		va = config_find(config, "builddir");
-		if (va != NULL)
-			builddir = variable_get_value(va)->str;
-	}
+	if (skip_builddir)
+		builddir = config_find_value(config, "builddir", str);
 
 	robsddir = config_interpolate_str(config, "${robsddir}");
 	if (robsddir == NULL) {

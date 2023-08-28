@@ -261,7 +261,7 @@ regress_suites(struct report_context *r)
 	if (MAP_INIT(r->regress.suites))
 		err(1, NULL);
 
-	suites = variable_get_value(config_find(r->config, "regress"))->list;
+	suites = config_find_value(r->config, "regress", list);
 	nsuites = VECTOR_LENGTH(suites);
 	for (i = 0; i < nsuites; i++) {
 		if (MAP_INSERT_VALUE(r->regress.suites, suites[i], 0) == NULL)

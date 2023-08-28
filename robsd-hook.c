@@ -121,16 +121,14 @@ static int
 hook_to_argv(struct config *config, char ***out)
 {
 	VECTOR(char *) args;
-	const struct variable *va;
-	const struct variable_value *val;
+	VECTOR(char *) hook;
 	size_t i, nargs;
 	int error = 0;
 
-	va = config_find(config, "hook");
-	if (va == NULL)
+	hook = config_find_value(config, "hook", list);
+	if (hook == NULL)
 		return 0;
-	val = variable_get_value(va);
-	nargs = VECTOR_LENGTH(val->list);
+	nargs = VECTOR_LENGTH(hook);
 	if (nargs == 0)
 		return 0;
 
@@ -139,8 +137,8 @@ hook_to_argv(struct config *config, char ***out)
 	if (VECTOR_RESERVE(args, nargs + 1))
 		err(1, NULL);
 	args[nargs] = NULL;
-	for (i = 0; i < VECTOR_LENGTH(val->list); i++) {
-		const char *str = val->list[i];
+	for (i = 0; i < VECTOR_LENGTH(hook); i++) {
+		const char *str = hook[i];
 		char **dst;
 		char *arg;
 

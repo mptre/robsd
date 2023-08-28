@@ -1,5 +1,15 @@
 #include "mode.h"
 
+#define config_find_value(config, name, field) __extension__ ({		\
+	struct variable_value *_val;					\
+	typeof(_val->field) _v = 0;					\
+	const struct variable *_va = config_find((config), (name));	\
+	if (_va != NULL) {						\
+		_v = variable_get_value(_va)->field;			\
+	}								\
+	_v;								\
+})
+
 struct variable_value {
 	enum variable_type {
 		INTEGER,
