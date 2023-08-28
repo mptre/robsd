@@ -370,8 +370,6 @@ report_status(struct report_context *r, struct arena_scope *s)
 	 * checking the last non-skipped step.
 	 */
 	nsteps = VECTOR_LENGTH(r->steps);
-	if (nsteps == 0)
-		goto ok;
 	for (;;) {
 		const struct step *step;
 		const char *name;
@@ -388,7 +386,6 @@ report_status(struct report_context *r, struct arena_scope *s)
 		return arena_printf(s, "failed in %s", name);
 	}
 
-ok:
 	return "ok";
 }
 
