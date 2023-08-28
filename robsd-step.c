@@ -28,6 +28,21 @@ static void	usage(void) __attribute__((__noreturn__));
 static int	steps_read(struct step_context *, int, char **);
 static int	steps_write(struct step_context *, int, char **);
 
+static int
+parse_id(const char *str, int *id)
+{
+	const char *errstr;
+	long long rv;
+
+	rv = strtonum(str, -INT_MAX, INT_MAX, &errstr);
+	if (errstr != NULL) {
+		warnx("id %s %s", str, errstr);
+		return 1;
+	}
+	*id = rv;
+	return 0;
+}
+
 int
 main(int argc, char *argv[])
 {
@@ -121,7 +136,6 @@ steps_read(struct step_context *sc, int argc, char **argv)
 {
 	struct step *st;
 	const char *name = NULL;
-	const char *errstr;
 	char *str;
 	size_t nsteps;
 	int error = 0;
@@ -131,11 +145,8 @@ steps_read(struct step_context *sc, int argc, char **argv)
 	while ((ch = getopt(argc, argv, "i:n:")) != -1) {
 		switch (ch) {
 		case 'i':
-			id = strtonum(optarg, -INT_MAX, INT_MAX, &errstr);
-			if (errstr != NULL) {
-				warnx("id %s %s", optarg, errstr);
+			if (parse_id(optarg, &id))
 				return 1;
-			}
 			break;
 		case 'n':
 			name = optarg;
@@ -188,7 +199,6 @@ steps_write(struct step_context *sc, int argc, char **argv)
 	FILE *fh = NULL;
 	struct buffer *bf = NULL;
 	struct step *st;
-	const char *errstr;
 	size_t i;
 	int id = 0;
 	int error = 0;
@@ -201,11 +211,8 @@ steps_write(struct step_context *sc, int argc, char **argv)
 			doheader = 1;
 			break;
 		case 'i':
-			id = strtonum(optarg, -INT_MAX, INT_MAX, &errstr);
-			if (errstr != NULL) {
-				warnx("id %s %s", optarg, errstr);
+			if (parse_id(optarg, &id))
 				return 1;
-			}
 			break;
 		default:
 			usage();
