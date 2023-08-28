@@ -36,7 +36,7 @@ robsd_step() {
 
 if testcase "read: positive index"; then
 	default_steps >"$TMP1"
-	robsd_step -- -R -f "$TMP1" -l 1 <<-'EOF' >"$OUT"
+	robsd_step -- -R -f "$TMP1" -i 1 <<-'EOF' >"$OUT"
 	${step}, ${name}, ${exit}, ${duration}, ${log}, ${user}, ${time}
 	EOF
 	assert_file - "$OUT" <<-EOF
@@ -46,7 +46,7 @@ fi
 
 if testcase "read: read: positive index boundary"; then
 	default_steps >"$TMP1"
-	robsd_step -- -R -f "$TMP1" -l 2 <<-'EOF' >"$OUT"
+	robsd_step -- -R -f "$TMP1" -i 2 <<-'EOF' >"$OUT"
 	${name}
 	EOF
 	assert_file - "$OUT" <<-EOF
@@ -56,14 +56,14 @@ fi
 
 if testcase "read: positive index out of bounds"; then
 	default_steps >"$TMP1"
-	robsd_step -e - -- -R -f "$TMP1" -l 3 <<-'EOF'
-	robsd-step: step at line 3 not found
+	robsd_step -e - -- -R -f "$TMP1" -i 3 <<-'EOF'
+	robsd-step: step with id 3 not found
 	EOF
 fi
 
 if testcase "read: negtive index"; then
 	default_steps >"$TMP1"
-	robsd_step -- -R -f "$TMP1" -l -1 <<-'EOF' >"$OUT"
+	robsd_step -- -R -f "$TMP1" -i -1 <<-'EOF' >"$OUT"
 	${name}
 	EOF
 	assert_file - "$OUT" <<-EOF
@@ -73,7 +73,7 @@ fi
 
 if testcase "read: negative index boundary"; then
 	default_steps >"$TMP1"
-	robsd_step -- -R -f "$TMP1" -l -2 <<-'EOF' >"$OUT"
+	robsd_step -- -R -f "$TMP1" -i -2 <<-'EOF' >"$OUT"
 	${name}
 	EOF
 	assert_file - "$OUT" <<-EOF
@@ -83,22 +83,22 @@ fi
 
 if testcase "read: negative index out of bounds"; then
 	default_steps >"$TMP1"
-	robsd_step -e - -- -R -f "$TMP1" -l -3 <<-'EOF'
-	robsd-step: step at line -3 not found
+	robsd_step -e - -- -R -f "$TMP1" -i -3 <<-'EOF'
+	robsd-step: step with id -3 not found
 	EOF
 fi
 
 if testcase "read: index too large"; then
 	default_steps >"$TMP1"
-	robsd_step -e - -- -R -f "$TMP1" -l $((1 << 31)) <<-'EOF'
-	robsd-step: line 2147483648 too large
+	robsd_step -e - -- -R -f "$TMP1" -i $((1 << 31)) <<-'EOF'
+	robsd-step: id 2147483648 too large
 	EOF
 fi
 
 if testcase "read: index too small"; then
 	default_steps >"$TMP1"
-	robsd_step -e - -- -R -f "$TMP1" -l -$((1 << 31)) <<-'EOF'
-	robsd-step: line -2147483648 too small
+	robsd_step -e - -- -R -f "$TMP1" -i -$((1 << 31)) <<-'EOF'
+	robsd-step: id -2147483648 too small
 	EOF
 fi
 
@@ -121,8 +121,8 @@ fi
 
 if testcase "read: invalid index and name are mutually exclusive"; then
 	default_steps >"$TMP1"
-	robsd_step -e - -- -R -f "$TMP1" -l 1 -n name <<-EOF
-	robsd-step: -l and -n are mutually exclusive
+	robsd_step -e - -- -R -f "$TMP1" -i 1 -n name <<-EOF
+	robsd-step: -i and -n are mutually exclusive
 	EOF
 fi
 
@@ -136,41 +136,41 @@ fi
 
 if testcase "read: invalid unterminated header"; then
 	printf 'step' >"$TMP1"
-	robsd_step -e - -- -R -f "$TMP1" -l 1 <<-EOF
+	robsd_step -e - -- -R -f "$TMP1" -i 1 <<-EOF
 	robsd-step: ${TMP1}:1: unterminated value
 	EOF
 fi
 
 if testcase "read: invalid unterminated row"; then
 	{ default_steps; printf '1'; } >"$TMP1"
-	robsd_step -e - -- -R -f "$TMP1" -l 1 <<-EOF
+	robsd_step -e - -- -R -f "$TMP1" -i 1 <<-EOF
 	robsd-step: ${TMP1}:4: unterminated value
 	EOF
 fi
 
 if testcase "read: invalid empty row"; then
 	{ default_steps; printf '\n'; } >"$TMP1"
-	robsd_step -e - -- -R -f "$TMP1" -l 1 <<-EOF
+	robsd_step -e - -- -R -f "$TMP1" -i 1 <<-EOF
 	robsd-step: ${TMP1}:4: want VALUE, got NEWLINE
 	EOF
 fi
 
 if testcase "read: invalid column"; then
 	{ printf 'step\n'; step_serialize -H -s 1 -n one; } >"$TMP1"
-	robsd_step -e - -- -R -f "$TMP1" -l 1 <<-EOF
+	robsd_step -e - -- -R -f "$TMP1" -i 1 <<-EOF
 	robsd-step: ${TMP1}:2: unknown column 1
 	EOF
 fi
 
 if testcase "read: invalid missing field"; then
 	default_steps | sed -e 's/one,/,/' >"$TMP1"
-	robsd_step -e - -- -R -f "$TMP1" -l 1 <<-EOF
+	robsd_step -e - -- -R -f "$TMP1" -i 1 <<-EOF
 	robsd-step: ${TMP1}:2: missing field 'name'
 	EOF
 fi
 
 if testcase "read: invalid file not found"; then
-	robsd_step -e - -- -R -f "${TMP1}.nein" -l 1 <<-EOF
+	robsd_step -e - -- -R -f "${TMP1}.nein" -i 1 <<-EOF
 	robsd-step: ${TMP1}.nein: No such file or directory
 	EOF
 fi

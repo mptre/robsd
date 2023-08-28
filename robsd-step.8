@@ -8,7 +8,7 @@
 .Nm robsd-step
 .Fl R
 .Fl f Ar path
-.Op Fl l Ar line
+.Op Fl i Ar id
 .Op Fl n Ar name
 .Nm robsd-step
 .Fl W
@@ -46,21 +46,16 @@ The options are as follows:
 Steps file located at
 .Ar path .
 .It Fl i Ar id
-In write mode, replace any existing step(s) with the same
-.Ar id .
-.It Fl l Ar line
-In read mode, select the step located at line number
-.Ar line
-in
-.Ar path
+In read mode, select the step with
+.Ar id
 to operate on.
 If
-.Ar line
-is negative, the step is selected starting from the last line in
+.Ar id
+is negative, the step is selected starting from the last one in
 .Ar path .
-In either case,
-.Ar line
-must be 1-based.
+.Pp
+In write mode, replace any existing step(s) with the same
+.Ar id .
 .It Fl n Ar name
 In read mode, select the step with
 .Ar name

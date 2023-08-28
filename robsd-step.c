@@ -32,7 +32,7 @@ int
 main(int argc, char *argv[])
 {
 	struct step_context sc;
-	int mode = 0;
+	enum step_mode mode = 0;
 	int error = 0;
 	int ch;
 
@@ -111,7 +111,7 @@ static void
 usage(void)
 {
 	fprintf(stderr,
-	    "usage: robsd-step -R -f path [-l line] [-n name]\n"
+	    "usage: robsd-step -R -f path [-i id] [-n name]\n"
 	    "       robsd-step -W -f path -i id -- key=val ...\n");
 	exit(1);
 }
@@ -125,19 +125,17 @@ steps_read(struct step_context *sc, int argc, char **argv)
 	char *str;
 	size_t nsteps;
 	int error = 0;
-	int gotlno = 0;
-	int lno = 0;
+	int id = 0;
 	int ch;
 
-	while ((ch = getopt(argc, argv, "l:n:")) != -1) {
+	while ((ch = getopt(argc, argv, "i:n:")) != -1) {
 		switch (ch) {
-		case 'l':
-			lno = strtonum(optarg, -INT_MAX, INT_MAX, &errstr);
+		case 'i':
+			id = strtonum(optarg, -INT_MAX, INT_MAX, &errstr);
 			if (errstr != NULL) {
-				warnx("line %s %s", optarg, errstr);
+				warnx("id %s %s", optarg, errstr);
 				return 1;
 			}
-			gotlno = 1;
 			break;
 		case 'n':
 			name = optarg;
@@ -150,8 +148,8 @@ steps_read(struct step_context *sc, int argc, char **argv)
 	argv += optind;
 	if (argc > 0)
 		usage();
-	if (name != NULL && gotlno) {
-		warnx("-l and -n are mutually exclusive");
+	if (name != NULL && id != 0) {
+		warnx("-i and -n are mutually exclusive");
 		return 1;
 	}
 
@@ -162,12 +160,12 @@ steps_read(struct step_context *sc, int argc, char **argv)
 			warnx("step with name '%s' not found", name);
 			return 1;
 		}
-	} else if (lno > 0 && (size_t)lno - 1 < nsteps) {
-		st = &sc->steps[lno - 1];
-	} else if (lno < 0 && (size_t)-lno <= nsteps) {
-		st = &sc->steps[(int)nsteps + lno];
+	} else if (id > 0 && (size_t)id - 1 < nsteps) {
+		st = &sc->steps[id - 1];
+	} else if (id < 0 && (size_t)-id <= nsteps) {
+		st = &sc->steps[(int)nsteps + id];
 	} else {
-		warnx("step at line %d not found", lno);
+		warnx("step with id %d not found", id);
 		return 1;
 	}
 

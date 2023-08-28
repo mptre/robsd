@@ -1010,7 +1010,7 @@ step_write() {
 step_eval() {
 	local _err=0
 	local _file
-	local _flag="-l"
+	local _flag="-i"
 	local _step
 	local _tmp
 
