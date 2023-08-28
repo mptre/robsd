@@ -4,7 +4,7 @@ extern int unused;
 
 #ifndef HAVE_UNVEIL
 
-#include "cdefs.h"
+#include "libks/compiler.h"
 
 int
 unveil(const char *UNUSED(path), const char *UNUSED(permissions))

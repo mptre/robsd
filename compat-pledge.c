@@ -7,7 +7,7 @@ extern int unused;
 #include <stdint.h>
 #include <unistd.h>
 
-#include "cdefs.h"
+#include "libks/compiler.h"
 
 int
 pledge(const char *UNUSED(promises), const char *UNUSED(execpromises))

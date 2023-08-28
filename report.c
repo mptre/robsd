@@ -14,10 +14,10 @@
 
 #include "libks/arena.h"
 #include "libks/buffer.h"
+#include "libks/compiler.h"
 #include "libks/map.h"
 #include "libks/vector.h"
 
-#include "cdefs.h"
 #include "conf.h"
 #include "invocation.h"
 #include "mode.h"

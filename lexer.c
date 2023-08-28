@@ -9,8 +9,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include "libks/compiler.h"
+
 #include "alloc.h"
-#include "cdefs.h"
 #include "token.h"
 #include "util.h"
 

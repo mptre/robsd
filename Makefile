@@ -122,7 +122,6 @@ PROG_fuzz-config=	fuzz-config
 
 KNFMT+=	alloc.c
 KNFMT+=	alloc.h
-KNFMT+=	cdefs.h
 KNFMT+=	conf.c
 KNFMT+=	conf.h
 KNFMT+=	fuzz-config.c
@@ -160,7 +159,6 @@ KNFMT+=	util.h
 
 CLANGTIDY+=	alloc.c
 CLANGTIDY+=	alloc.h
-CLANGTIDY+=	cdefs.h
 CLANGTIDY+=	conf.c
 CLANGTIDY+=	conf.h
 CLANGTIDY+=	fuzz-config.c
