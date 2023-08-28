@@ -252,7 +252,7 @@ is_regress_quiet(struct report_context *r, const char *name)
 	return config_find(r->config, quiet) != NULL;
 }
 
-static int
+static void
 regress_suites(struct report_context *r)
 {
 	VECTOR(char *) suites;
@@ -267,8 +267,6 @@ regress_suites(struct report_context *r)
 		if (MAP_INSERT_VALUE(r->regress.suites, suites[i], 0) == NULL)
 			err(1, NULL);
 	}
-
-	return 0;
 }
 
 static int
@@ -802,8 +800,8 @@ report_generate(struct config *config, const char *builddir,
 	    .out		= out,
 	    .mode		= mode,
 	};
-	if (mode == ROBSD_REGRESS && regress_suites(&r))
-		goto out;
+	if (mode == ROBSD_REGRESS)
+		regress_suites(&r);
 	error = report_subject(&r) ||
 	    report_comment(&r) ||
 	    report_stats(&r) ||
