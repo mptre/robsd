@@ -1,9 +1,4 @@
-enum robsd_mode {
-	CONFIG_ROBSD,
-	CONFIG_ROBSD_CROSS,
-	CONFIG_ROBSD_PORTS,
-	CONFIG_ROBSD_REGRESS,
-};
+#include "mode.h"
 
 struct variable_value {
 	enum variable_type {
@@ -31,6 +26,5 @@ char		*config_interpolate_str(struct config *, const char *);
 char		*config_interpolate_lookup(const char *, void *);
 
 enum robsd_mode	 config_get_mode(const struct config *);
-const char	*robsd_mode_str(enum robsd_mode);
 
 const struct variable_value *variable_get_value(const struct variable *);

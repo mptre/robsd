@@ -19,6 +19,7 @@
 #include "cdefs.h"
 #include "conf.h"
 #include "invocation.h"
+#include "mode.h"
 #include "regress-log.h"
 #include "step.h"
 

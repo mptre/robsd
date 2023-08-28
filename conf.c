@@ -122,8 +122,6 @@ struct config {
 	VECTOR(char *)		 cf_empty_list;
 };
 
-static int	config_mode(const char *, enum robsd_mode *);
-
 static int	config_parse1(struct config *);
 static int	config_parse_keyword(struct config *, struct token *);
 static int	config_validate(const struct config *);
@@ -251,7 +249,7 @@ config_alloc(const char *mode, const char *path)
 	const char *defaultpath = NULL;
 	enum robsd_mode m;
 
-	if (config_mode(mode, &m)) {
+	if (robsd_mode_parse(mode, &m)) {
 		warnx("unknown mode '%s'", mode);
 		return NULL;
 	}
@@ -511,22 +509,6 @@ enum robsd_mode
 config_get_mode(const struct config *cf)
 {
 	return cf->cf_mode;
-}
-
-const char *
-robsd_mode_str(enum robsd_mode mode)
-{
-	switch (mode) {
-	case CONFIG_ROBSD:
-		return "robsd";
-	case CONFIG_ROBSD_CROSS:
-		return "robsd-cross";
-	case CONFIG_ROBSD_PORTS:
-		return "robsd-ports";
-	case CONFIG_ROBSD_REGRESS:
-		return "robsd-regress";
-	}
-	return "unknown";
 }
 
 const struct variable_value *
@@ -799,22 +781,6 @@ grammar_equals(const struct grammar *gr, const char *str, size_t len)
 		free(buf);
 		return match;
 	}
-	return 0;
-}
-
-static int
-config_mode(const char *mode, enum robsd_mode *res)
-{
-	if (strcmp(mode, "robsd") == 0)
-		*res = CONFIG_ROBSD;
-	else if (strcmp(mode, "robsd-cross") == 0)
-		*res = CONFIG_ROBSD_CROSS;
-	else if (strcmp(mode, "robsd-ports") == 0)
-		*res = CONFIG_ROBSD_PORTS;
-	else if (strcmp(mode, "robsd-regress") == 0)
-		*res = CONFIG_ROBSD_REGRESS;
-	else
-		return 1;
 	return 0;
 }
 
