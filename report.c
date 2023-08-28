@@ -336,12 +336,6 @@ regress_report_step_log(struct report_context *r, const struct step *step)
 }
 
 static const char *
-report_mode(const struct report_context *r)
-{
-	return robsd_mode_str(r->mode);
-}
-
-static const char *
 report_hostname(struct arena_scope *s)
 {
 	char *dot, *name;
@@ -407,7 +401,7 @@ report_subject(struct report_context *r)
 	const char *status_prefix = " ";
 	const char *hostname, *mode, *status;
 
-	mode = report_mode(r);
+	mode = robsd_mode_str(r->mode);
 	hostname = report_hostname(&s);
 	if (hostname == NULL)
 		return 1;
