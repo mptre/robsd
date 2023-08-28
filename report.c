@@ -137,12 +137,12 @@ report_cvs_log(struct report_context *r)
 		enum robsd_mode	 mode;
 		const char	*filename;
 	} paths[] = {
-		{ CONFIG_ROBSD,		"cvs-src-up.log" },
-		{ CONFIG_ROBSD,		"cvs-src-ci.log" },
-		{ CONFIG_ROBSD,		"cvs-xenocara-up.log" },
-		{ CONFIG_ROBSD,		"cvs-xenocara-ci.log" },
-		{ CONFIG_ROBSD_PORTS,	"cvs-ports-up.log" },
-		{ CONFIG_ROBSD_PORTS,	"cvs-ports-ci.log" },
+		{ ROBSD,	"cvs-src-up.log" },
+		{ ROBSD,	"cvs-src-ci.log" },
+		{ ROBSD,	"cvs-xenocara-up.log" },
+		{ ROBSD,	"cvs-xenocara-ci.log" },
+		{ ROBSD_PORTS,	"cvs-ports-up.log" },
+		{ ROBSD_PORTS,	"cvs-ports-ci.log" },
 	};
 	size_t npaths = sizeof(paths) / sizeof(paths[0]);
 	size_t i;
@@ -342,7 +342,7 @@ report_status(struct report_context *r, struct arena_scope *s)
 {
 	size_t nsteps;
 
-	if (r->mode == CONFIG_ROBSD_REGRESS)
+	if (r->mode == ROBSD_REGRESS)
 		return regress_report_status(r, s);
 
 	/*
@@ -383,7 +383,7 @@ report_subject(struct report_context *r)
 	hostname = report_hostname(&s);
 	if (hostname == NULL)
 		return 1;
-	if (r->mode == CONFIG_ROBSD_CROSS)
+	if (r->mode == ROBSD_CROSS)
 		status_prefix = cross_report_subject(r, &s);
 	status = report_status(r, &s);
 	buffer_printf(r->out, "Subject: %s: %s:%s%s\n\n",
@@ -599,7 +599,7 @@ report_stats(struct report_context *r)
 	}
 	buffer_free(tags);
 
-	if (r->mode == CONFIG_ROBSD)
+	if (r->mode == ROBSD)
 		error = report_stats_sizes(r);
 
 	return error;
@@ -649,9 +649,9 @@ report_skip_step(struct report_context *r, const struct step *step)
 {
 	const char *name;
 
-	if (r->mode == CONFIG_ROBSD_PORTS)
+	if (r->mode == ROBSD_PORTS)
 		return ports_report_skip_step(r, step);
-	if (r->mode == CONFIG_ROBSD_REGRESS)
+	if (r->mode == ROBSD_REGRESS)
 		return regress_report_skip_step(r, step);
 
 	name = step_get_field(step, "name")->str;
@@ -671,9 +671,9 @@ report_step_log(struct report_context *r, const struct step *step,
 	size_t len;
 	int rv = 0;
 
-	if (r->mode == CONFIG_ROBSD_PORTS)
+	if (r->mode == ROBSD_PORTS)
 		rv = ports_report_step_log(r, step);
-	if (r->mode == CONFIG_ROBSD_REGRESS)
+	if (r->mode == ROBSD_REGRESS)
 		rv = regress_report_step_log(r, step);
 	if (rv < 0)
 		return 1;

@@ -266,19 +266,19 @@ config_alloc(const char *mode, const char *path)
 		err(1, NULL);
 
 	switch (cf->cf_mode) {
-	case CONFIG_ROBSD:
+	case ROBSD:
 		defaultpath = "/etc/robsd.conf";
 		cf->cf_grammar = robsd;
 		break;
-	case CONFIG_ROBSD_CROSS:
+	case ROBSD_CROSS:
 		defaultpath = "/etc/robsd-cross.conf";
 		cf->cf_grammar = robsd_cross;
 		break;
-	case CONFIG_ROBSD_PORTS:
+	case ROBSD_PORTS:
 		defaultpath = "/etc/robsd-ports.conf";
 		cf->cf_grammar = robsd_ports;
 		break;
-	case CONFIG_ROBSD_REGRESS:
+	case ROBSD_REGRESS:
 		defaultpath = "/etc/robsd-regress.conf";
 		cf->cf_grammar = robsd_regress;
 		break;
