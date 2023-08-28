@@ -213,9 +213,9 @@ fi
 
 if testcase "robsd: failure"; then
 	{
-		step_serialize -s 1 -n ok -l ok.log -d 10
-		step_serialize -H -s 2 -n skip -i 1 -d 10
-		step_serialize -H -s 3 -n error -e 1 -l error.log -d 10
+		step_serialize -s 1 -n ok -l ok.log -d 40
+		step_serialize -H -s 2 -n skip -i 1 -d 40
+		step_serialize -H -s 3 -n error -e 1 -l error.log -d 40
 		touch "${_builddir}/error.log"
 	} >"$(step_path "$_builddir")"
 
@@ -223,7 +223,7 @@ if testcase "robsd: failure"; then
 	assert_file - "$TMP1" <<-EOF
 	> stats
 	Status: failed in error
-	Duration: 00:00:20
+	Duration: 00:01:20
 	Build: ${_builddir}
 
 	EOF

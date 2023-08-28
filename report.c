@@ -468,6 +468,7 @@ static void
 report_stats_duration(struct report_context *r, struct arena_scope *s)
 {
 	const struct step *end;
+	const char *str;
 	int64_t delta, duration;
 
 	end = steps_find_by_name(r->steps, "end");
@@ -476,11 +477,11 @@ report_stats_duration(struct report_context *r, struct arena_scope *s)
 		delta = step_get_field(end, "delta")->integer;
 	} else {
 		duration = total_duration(r);
-		delta = duration;
+		delta = 0;
 	}
-	buffer_printf(r->out, "Duration: %s\n",
-	    format_duration_and_delta(duration, delta,
-	    threshold_duration_s, s));
+	str = format_duration_and_delta(duration, delta,
+	    threshold_duration_s, s);
+	buffer_printf(r->out, "Duration: %s\n", str);
 }
 
 static const char *
