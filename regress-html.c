@@ -256,6 +256,17 @@ regress_html_render(struct regress_html *r)
 	return error;
 }
 
+/*
+ * Returns non-zero if the given step name represents a regress suite. The
+ * regress configuration cannot be used here as we might render runs referring
+ * to suites deleted from the configuration by now.
+ */
+static int
+is_regress_step(const char *name)
+{
+	return strchr(name, '/') != NULL;
+}
+
 static int
 parse_invocation(struct regress_html *r, const char *arch,
     const char *directory, const char *date, struct arena_scope *s)
@@ -312,7 +323,7 @@ parse_invocation(struct regress_html *r, const char *arch,
 		enum run_status status;
 
 		name = step_get_field(&steps[i], "name")->str;
-		if (strchr(name, '/') == NULL)
+		if (!is_regress_step(name))
 			continue;
 
 		ri->total++;
