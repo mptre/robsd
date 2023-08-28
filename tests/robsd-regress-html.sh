@@ -309,7 +309,7 @@ fi
 if testcase "patches"; then
 	_buildir="${TSHDIR}/amd64/2022-10-25.1"
 	_time="$_2022_10_25"
-	mkbuilddir -t cvs "$_buildir"
+	mkbuilddir "$_buildir"
 	printf 'src.diff.1\n' >"${_buildir}/src.diff.1"
 	printf 'src.diff.2\n' >"${_buildir}/src.diff.2"
 	{

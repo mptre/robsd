@@ -37,8 +37,11 @@ struct regress_invocation {
 	char		*date;
 	char		*dmesg;
 	char		*comment;
-	char		*patches;
 	int64_t		 time;
+	struct {
+		char	*path;
+		int	 count;
+	} patches;
 	struct {
 		int64_t	seconds;
 		enum duration_delta {
@@ -51,7 +54,6 @@ struct regress_invocation {
 	int		 fail;
 	unsigned int	 flags;
 #define REGRESS_INVOCATION_CVS		0x00000001u
-#define REGRESS_INVOCATION_PATCH	0x00000002u
 };
 
 struct run {
@@ -265,6 +267,7 @@ parse_invocation(struct regress_html *r, const char *arch,
 	int64_t duration, time;
 	size_t i;
 	int error = 0;
+	int rv;
 
 	step_path = arena_printf(s, "%s/step.csv", directory);
 	steps = steps_parse(step_path);
@@ -293,14 +296,14 @@ parse_invocation(struct regress_html *r, const char *arch,
 		error = 1;
 		goto out;
 	}
-	if (invocation_has_tag(directory, "cvs")) {
+	if (invocation_has_tag(directory, "cvs"))
 		ri->flags |= REGRESS_INVOCATION_CVS;
-		if (copy_patches(r, ri, directory, s)) {
-			error = 1;
-			goto out;
-		}
-		ri->flags |= REGRESS_INVOCATION_PATCH;
+	rv = copy_patches(r, ri, directory, s);
+	if (rv == -1) {
+		error = 1;
+		goto out;
 	}
+	ri->patches.count = rv;
 
 	for (i = 0; i < VECTOR_LENGTH(steps); i++) {
 		struct suite *suite;
@@ -415,7 +418,7 @@ create_regress_invocation(struct regress_html *r, const char *arch,
 
 	ri->dmesg = arena_printf(r->arena, "%s/%s/dmesg", arch, date);
 	ri->comment = arena_printf(r->arena, "%s/%s/comment", arch, date);
-	ri->patches = arena_printf(r->arena, "%s/%s/diff", arch, date);
+	ri->patches.path = arena_printf(r->arena, "%s/%s/diff", arch, date);
 
 	return ri;
 }
@@ -464,12 +467,13 @@ copy_patches(struct regress_html *r, struct regress_invocation *ri,
 	const struct invocation_entry *entry;
 	const char *path;
 	int error = 0;
+	int npatches = 0;
 
 	is = invocation_find(directory, "src.diff.*");
 	if (is == NULL)
 		return 0;
 
-	path = arena_printf(s, "%s/%s", r->output, ri->patches);
+	path = arena_printf(s, "%s/%s", r->output, ri->patches.path);
 	if (mkdir(path, 0755) == -1) {
 		warn("mkdir: %s", path);
 		error = 1;
@@ -485,19 +489,22 @@ copy_patches(struct regress_html *r, struct regress_invocation *ri,
 			goto out;
 		}
 		path = arena_printf(s, "%s/%s/%s",
-		    r->output, ri->patches, entry->basename);
+		    r->output, ri->patches.path, entry->basename);
 		error = write_log(path, bf);
 		buffer_free(bf);
 		if (error) {
 			error = 1;
 			goto out;
 		}
+		npatches++;
 	}
+
+	error = 0;
 
 out:
 	invocation_free(is);
 	/* coverity[leaked_storage: FALSE] */
-	return error;
+	return error ? -1 : npatches;
 }
 
 static struct suite *
@@ -772,9 +779,9 @@ render_patches(struct regress_html *r)
 			const struct regress_invocation *ri = &r->invocations[i];
 
 			HTML_NODE_ATTR(h, "th", HTML_ATTR("class", "patch")) {
-				if (ri->flags & REGRESS_INVOCATION_PATCH) {
+				if (ri->patches.count > 0) {
 					HTML_NODE_ATTR(h, "a",
-					    HTML_ATTR("href", ri->patches))
+					    HTML_ATTR("href", ri->patches.path))
 						HTML_TEXT(h, "patches");
 				} else {
 					HTML_TEXT(h, "n/a");
