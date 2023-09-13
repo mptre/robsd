@@ -111,20 +111,20 @@ static int			 grammar_equals(const struct grammar *,
  */
 
 struct config {
-	struct buffer		*cf_scratch;
-	struct lexer		*cf_lx;
-	const struct grammar	*cf_grammar;
-	const char		*cf_path;
+	struct buffer		*scratch;
+	struct lexer		*lx;
+	const struct grammar	*grammar;
+	const char		*path;
 	struct {
 		const char *const	*ptr;
 		size_t			 len;
-	} cf_steps;
-	enum robsd_mode		 cf_mode;
+	} steps;
+	enum robsd_mode		 mode;
 
-	VECTOR(struct variable)	 cf_variables;
+	VECTOR(struct variable)	 variables;
 
 	/* Sentinel used for absent list variables during interpolation. */
-	VECTOR(char *)		 cf_empty_list;
+	VECTOR(char *)		 empty_list;
 };
 
 static int	config_parse1(struct config *);
@@ -320,47 +320,47 @@ config_alloc(const char *mode, const char *path)
 	}
 
 	cf = ecalloc(1, sizeof(*cf));
-	cf->cf_scratch = buffer_alloc(128);
-	if (cf->cf_scratch == NULL)
+	cf->scratch = buffer_alloc(128);
+	if (cf->scratch == NULL)
 		err(1, NULL);
-	cf->cf_path = path;
-	cf->cf_mode = m;
-	if (VECTOR_INIT(cf->cf_variables))
+	cf->path = path;
+	cf->mode = m;
+	if (VECTOR_INIT(cf->variables))
 		err(1, NULL);
-	if (VECTOR_INIT(cf->cf_empty_list))
+	if (VECTOR_INIT(cf->empty_list))
 		err(1, NULL);
 
-	switch (cf->cf_mode) {
+	switch (cf->mode) {
 	case ROBSD:
 		defaultpath = "/etc/robsd.conf";
-		cf->cf_grammar = robsd;
-		cf->cf_steps.ptr = robsd_steps;
-		cf->cf_steps.len = sizeof(robsd_steps) / sizeof(robsd_steps[0]);
+		cf->grammar = robsd;
+		cf->steps.ptr = robsd_steps;
+		cf->steps.len = sizeof(robsd_steps) / sizeof(robsd_steps[0]);
 		break;
 	case ROBSD_CROSS:
 		defaultpath = "/etc/robsd-cross.conf";
-		cf->cf_grammar = robsd_cross;
-		cf->cf_steps.ptr = robsd_cross_steps;
-		cf->cf_steps.len = sizeof(robsd_cross_steps) /
+		cf->grammar = robsd_cross;
+		cf->steps.ptr = robsd_cross_steps;
+		cf->steps.len = sizeof(robsd_cross_steps) /
 		    sizeof(robsd_cross_steps[0]);
 		break;
 	case ROBSD_PORTS:
 		defaultpath = "/etc/robsd-ports.conf";
-		cf->cf_grammar = robsd_ports;
-		cf->cf_steps.ptr = robsd_ports_steps;
-		cf->cf_steps.len = sizeof(robsd_ports_steps) /
+		cf->grammar = robsd_ports;
+		cf->steps.ptr = robsd_ports_steps;
+		cf->steps.len = sizeof(robsd_ports_steps) /
 		    sizeof(robsd_ports_steps[0]);
 		break;
 	case ROBSD_REGRESS:
 		defaultpath = "/etc/robsd-regress.conf";
-		cf->cf_grammar = robsd_regress;
-		cf->cf_steps.ptr = robsd_regress_steps;
-		cf->cf_steps.len = sizeof(robsd_regress_steps) /
+		cf->grammar = robsd_regress;
+		cf->steps.ptr = robsd_regress_steps;
+		cf->steps.len = sizeof(robsd_regress_steps) /
 		    sizeof(robsd_regress_steps[0]);
 		break;
 	}
-	if (cf->cf_path == NULL)
-		cf->cf_path = defaultpath;
+	if (cf->path == NULL)
+		cf->path = defaultpath;
 
 	return cf;
 }
@@ -371,20 +371,20 @@ config_free(struct config *cf)
 	if (cf == NULL)
 		return;
 
-	while (!VECTOR_EMPTY(cf->cf_variables)) {
+	while (!VECTOR_EMPTY(cf->variables)) {
 		struct variable *va;
 
-		va = VECTOR_POP(cf->cf_variables);
+		va = VECTOR_POP(cf->variables);
 		variable_value_clear(&va->va_val);
 		if (va->va_flags & VARIABLE_FLAG_DIRTY)
 			free((void *)va->va_val.ptr);
 		free(va->va_name);
 	}
-	VECTOR_FREE(cf->cf_variables);
+	VECTOR_FREE(cf->variables);
 
-	buffer_free(cf->cf_scratch);
-	lexer_free(cf->cf_lx);
-	VECTOR_FREE(cf->cf_empty_list);
+	buffer_free(cf->scratch);
+	lexer_free(cf->lx);
+	VECTOR_FREE(cf->empty_list);
 	free(cf);
 }
 
@@ -395,15 +395,15 @@ config_parse(struct config *cf)
 	int error;
 
 	parser_context_init(&pc);
-	cf->cf_lx = lexer_alloc(&(struct lexer_arg){
-	    .path = cf->cf_path,
+	cf->lx = lexer_alloc(&(struct lexer_arg){
+	    .path = cf->path,
 	    .callbacks = {
 		.read		= config_lexer_read,
 		.serialize	= token_serialize,
 		.arg		= &pc,
 	    },
 	});
-	if (cf->cf_lx == NULL) {
+	if (cf->lx == NULL) {
 		error = 1;
 		goto out;
 	}
@@ -442,7 +442,7 @@ config_append_string(struct config *cf, const char *name, const char *str)
 {
 	struct variable_value val;
 
-	if (grammar_find(cf->cf_grammar, name))
+	if (grammar_find(cf->grammar, name))
 		return NULL;
 
 	variable_value_init(&val, STRING);
@@ -470,16 +470,16 @@ config_find(struct config *cf, const char *name)
 	size_t i, namelen;
 
 	namelen = strlen(name);
-	for (i = 0; i < VECTOR_LENGTH(cf->cf_variables); i++) {
-		va = &cf->cf_variables[i];
+	for (i = 0; i < VECTOR_LENGTH(cf->variables); i++) {
+		va = &cf->variables[i];
 		if (va->va_namelen == namelen &&
 		    strncmp(va->va_name, name, namelen) == 0)
 			return va;
 	}
 
 	/* Look for default value. */
-	for (i = 0; cf->cf_grammar[i].gr_kw != NULL; i++) {
-		const struct grammar *gr = &cf->cf_grammar[i];
+	for (i = 0; cf->grammar[i].gr_kw != NULL; i++) {
+		const struct grammar *gr = &cf->grammar[i];
 		const void *val;
 
 		if (gr->gr_flags & REQ)
@@ -512,7 +512,7 @@ config_find(struct config *cf, const char *name)
 		}
 
 		case LIST:
-			vadef.va_val.list = cf->cf_empty_list;
+			vadef.va_val.list = cf->empty_list;
 			break;
 		}
 		return &vadef;
@@ -590,7 +590,7 @@ config_interpolate_lookup(const char *name, void *arg)
 enum robsd_mode
 config_get_mode(const struct config *cf)
 {
-	return cf->cf_mode;
+	return cf->mode;
 }
 
 static const char **
@@ -606,16 +606,16 @@ config_regress_get_steps(struct config *cf)
 
 	if (VECTOR_INIT(steps))
 		err(1, NULL);
-	if (VECTOR_RESERVE(steps, cf->cf_steps.len + nregress))
+	if (VECTOR_RESERVE(steps, cf->steps.len + nregress))
 		err(1, NULL);
 
-	for (s = 0; s < cf->cf_steps.len; s++) {
-		if (cf->cf_steps.ptr[s] == NULL)
+	for (s = 0; s < cf->steps.len; s++) {
+		if (cf->steps.ptr[s] == NULL)
 			break;
 
 		if (VECTOR_ALLOC(steps) == NULL)
 			err(1, NULL);
-		steps[i++] = cf->cf_steps.ptr[s];
+		steps[i++] = cf->steps.ptr[s];
 	}
 
 	for (r = 0; r < nregress; r++) {
@@ -624,10 +624,10 @@ config_regress_get_steps(struct config *cf)
 		steps[i++] = regress[r];
 	}
 
-	for (s++; s < cf->cf_steps.len; s++) {
+	for (s++; s < cf->steps.len; s++) {
 		if (VECTOR_ALLOC(steps) == NULL)
 			err(1, NULL);
-		steps[i++] = cf->cf_steps.ptr[s];
+		steps[i++] = cf->steps.ptr[s];
 	}
 
 	return steps;
@@ -643,18 +643,18 @@ config_get_steps(struct config *cf)
 	VECTOR(const char *) steps;
 	size_t i;
 
-	if (cf->cf_mode == ROBSD_REGRESS)
+	if (cf->mode == ROBSD_REGRESS)
 		return config_regress_get_steps(cf);
 
 	if (VECTOR_INIT(steps))
 		err(1, NULL);
-	if (VECTOR_RESERVE(steps, cf->cf_steps.len))
+	if (VECTOR_RESERVE(steps, cf->steps.len))
 		err(1, NULL);
 
-	for (i = 0; i < cf->cf_steps.len; i++) {
+	for (i = 0; i < cf->steps.len; i++) {
 		if (VECTOR_ALLOC(steps) == NULL)
 			err(1, NULL);
-		steps[i] = cf->cf_steps.ptr[i];
+		steps[i] = cf->steps.ptr[i];
 	}
 
 	return steps;
@@ -940,9 +940,9 @@ config_parse1(struct config *cf)
 	int error = 0;
 
 	for (;;) {
-		if (lexer_peek(cf->cf_lx, LEXER_EOF))
+		if (lexer_peek(cf->lx, LEXER_EOF))
 			break;
-		if (!lexer_expect(cf->cf_lx, TOKEN_KEYWORD, &tk)) {
+		if (!lexer_expect(cf->lx, TOKEN_KEYWORD, &tk)) {
 			error = 1;
 			break;
 		}
@@ -958,7 +958,7 @@ config_parse1(struct config *cf)
 	}
 
 out:
-	if (lexer_get_error(cf->cf_lx))
+	if (lexer_get_error(cf->lx))
 		return 1;
 	if (config_validate(cf))
 		return 1;
@@ -972,15 +972,15 @@ config_parse_keyword(struct config *cf, struct token *tk)
 	struct variable_value val;
 	int error = 0;
 
-	gr = grammar_find(cf->cf_grammar, tk->tk_str);
+	gr = grammar_find(cf->grammar, tk->tk_str);
 	if (gr == NULL) {
-		lexer_warnx(cf->cf_lx, tk->tk_lno, "unknown keyword '%s'",
+		lexer_warnx(cf->lx, tk->tk_lno, "unknown keyword '%s'",
 		    tk->tk_str);
 		return -1;
 	}
 
 	if ((gr->gr_flags & REP) == 0 && config_present(cf, tk->tk_str)) {
-		lexer_warnx(cf->cf_lx, tk->tk_lno,
+		lexer_warnx(cf->lx, tk->tk_lno,
 		    "variable '%s' already defined", tk->tk_str);
 		error = 1;
 	}
@@ -1001,12 +1001,12 @@ config_validate(const struct config *cf)
 	int error = 0;
 	int i;
 
-	for (i = 0; cf->cf_grammar[i].gr_kw != NULL; i++) {
-		const struct grammar *gr = &cf->cf_grammar[i];
+	for (i = 0; cf->grammar[i].gr_kw != NULL; i++) {
+		const struct grammar *gr = &cf->grammar[i];
 		const char *str = gr->gr_kw;
 
 		if ((gr->gr_flags & REQ) && !config_present(cf, str)) {
-			log_warnx(cf->cf_path, 0,
+			log_warnx(cf->path, 0,
 			    "mandatory variable '%s' missing", str);
 			error = 1;
 		}
@@ -1020,7 +1020,7 @@ config_parse_boolean(struct config *cf, struct variable_value *val)
 {
 	struct token *tk;
 
-	if (!lexer_expect(cf->cf_lx, TOKEN_BOOLEAN, &tk))
+	if (!lexer_expect(cf->lx, TOKEN_BOOLEAN, &tk))
 		return 1;
 	variable_value_init(val, INTEGER);
 	val->integer = tk->tk_int;
@@ -1032,7 +1032,7 @@ config_parse_string(struct config *cf, struct variable_value *val)
 {
 	struct token *tk;
 
-	if (!lexer_expect(cf->cf_lx, TOKEN_STRING, &tk))
+	if (!lexer_expect(cf->lx, TOKEN_STRING, &tk))
 		return 1;
 	variable_value_init(val, STRING);
 	val->str = tk->tk_str;
@@ -1044,7 +1044,7 @@ config_parse_integer(struct config *cf, struct variable_value *val)
 {
 	struct token *tk;
 
-	if (!lexer_expect(cf->cf_lx, TOKEN_INTEGER, &tk))
+	if (!lexer_expect(cf->lx, TOKEN_INTEGER, &tk))
 		return 1;
 	variable_value_init(val, INTEGER);
 	val->integer = tk->tk_int;
@@ -1059,7 +1059,7 @@ config_parse_glob(struct config *cf, struct variable_value *val)
 	size_t i;
 	int error;
 
-	if (!lexer_expect(cf->cf_lx, TOKEN_STRING, &tk))
+	if (!lexer_expect(cf->lx, TOKEN_STRING, &tk))
 		return 1;
 
 	variable_value_init(val, LIST);
@@ -1069,7 +1069,7 @@ config_parse_glob(struct config *cf, struct variable_value *val)
 		if (error == GLOB_NOMATCH)
 			return 0;
 
-		lexer_warn(cf->cf_lx, tk->tk_lno, "glob: %d", error);
+		lexer_warn(cf->lx, tk->tk_lno, "glob: %d", error);
 		return error;
 	}
 
@@ -1091,22 +1091,22 @@ config_parse_list(struct config *cf, struct variable_value *val)
 {
 	struct token *tk;
 
-	if (!lexer_expect(cf->cf_lx, TOKEN_LBRACE, &tk))
+	if (!lexer_expect(cf->lx, TOKEN_LBRACE, &tk))
 		return 1;
 	variable_value_init(val, LIST);
 	for (;;) {
 		char **dst;
 
-		if (lexer_peek(cf->cf_lx, TOKEN_RBRACE))
+		if (lexer_peek(cf->lx, TOKEN_RBRACE))
 			break;
-		if (!lexer_expect(cf->cf_lx, TOKEN_STRING, &tk))
+		if (!lexer_expect(cf->lx, TOKEN_STRING, &tk))
 			goto err;
 		dst = VECTOR_ALLOC(val->list);
 		if (dst == NULL)
 			err(1, NULL);
 		*dst = estrdup(tk->tk_str);
 	}
-	if (!lexer_expect(cf->cf_lx, TOKEN_RBRACE, &tk))
+	if (!lexer_expect(cf->lx, TOKEN_RBRACE, &tk))
 		goto err;
 
 	return 0;
@@ -1122,12 +1122,12 @@ config_parse_user(struct config *cf, struct variable_value *val)
 	struct token *tk;
 	const char *user;
 
-	if (!lexer_expect(cf->cf_lx, TOKEN_STRING, &tk))
+	if (!lexer_expect(cf->lx, TOKEN_STRING, &tk))
 		return 1;
 	variable_value_init(val, STRING);
 	user = val->str = tk->tk_str;
 	if (getpwnam(user) == NULL) {
-		lexer_warnx(cf->cf_lx, tk->tk_lno, "user '%s' not found",
+		lexer_warnx(cf->lx, tk->tk_lno, "user '%s' not found",
 		    user);
 		return 1;
 	}
@@ -1137,8 +1137,8 @@ config_parse_user(struct config *cf, struct variable_value *val)
 static int
 config_parse_regress(struct config *cf, struct variable_value *val)
 {
-	struct buffer *bf = cf->cf_scratch;
-	struct lexer *lx = cf->cf_lx;
+	struct buffer *bf = cf->scratch;
+	struct lexer *lx = cf->lx;
 	struct token *tk;
 	struct variable *regress;
 	const char *path;
@@ -1247,7 +1247,7 @@ config_parse_directory(struct config *cf, struct variable_value *val)
 	char *path;
 	int error = 0;
 
-	if (!lexer_expect(cf->cf_lx, TOKEN_STRING, &tk))
+	if (!lexer_expect(cf->lx, TOKEN_STRING, &tk))
 		return 1;
 	variable_value_init(val, STRING);
 	dir = val->str = tk->tk_str;
@@ -1263,10 +1263,10 @@ config_parse_directory(struct config *cf, struct variable_value *val)
 	if (path == NULL) {
 		error = 1;
 	} else if (stat(path, &st) == -1) {
-		lexer_warn(cf->cf_lx, tk->tk_lno, "%s", path);
+		lexer_warn(cf->lx, tk->tk_lno, "%s", path);
 		error = 1;
 	} else if (!S_ISDIR(st.st_mode)) {
-		lexer_warnx(cf->cf_lx, tk->tk_lno, "%s: is not a directory",
+		lexer_warnx(cf->lx, tk->tk_lno, "%s: is not a directory",
 		    path);
 		error = 1;
 	}
@@ -1353,7 +1353,7 @@ config_append(struct config *cf, const char *name,
 {
 	struct variable *va;
 
-	va = VECTOR_CALLOC(cf->cf_variables);
+	va = VECTOR_CALLOC(cf->variables);
 	if (va == NULL)
 		err(1, NULL);
 	va->va_flags = flags;
@@ -1368,8 +1368,8 @@ config_present(const struct config *cf, const char *name)
 {
 	size_t i;
 
-	for (i = 0; i < VECTOR_LENGTH(cf->cf_variables); i++) {
-		const struct variable *va = &cf->cf_variables[i];
+	for (i = 0; i < VECTOR_LENGTH(cf->variables); i++) {
+		const struct variable *va = &cf->variables[i];
 
 		if (strcmp(va->va_name, name) == 0)
 			return 1;
