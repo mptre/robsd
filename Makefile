@@ -27,6 +27,7 @@ DEPS_robsd-config=	${SRCS_robsd-config:.c=.d}
 PROG_robsd-config=	robsd-config
 
 SRCS_robsd-exec+=	${COMPATS}
+SRCS_robsd-exec+=	step-exec.c
 SRCS_robsd-exec+=	robsd-exec.c
 OBJS_robsd-exec=	${SRCS_robsd-exec:.c=.o}
 DEPS_robsd-exec=	${SRCS_robsd-exec:.c=.d}
@@ -155,6 +156,8 @@ KNFMT+=	robsd-regress-log.c
 KNFMT+=	robsd-report.c
 KNFMT+=	robsd-stat.c
 KNFMT+=	robsd-step.c
+KNFMT+=	step-exec.c
+KNFMT+=	step-exec.h
 KNFMT+=	step.c
 KNFMT+=	step.h
 KNFMT+=	token.c
@@ -194,6 +197,8 @@ CLANGTIDY+=	robsd-regress-log.c
 CLANGTIDY+=	robsd-report.c
 CLANGTIDY+=	robsd-stat.c
 CLANGTIDY+=	robsd-step.c
+CLANGTIDY+=	step-exec.c
+CLANGTIDY+=	step-exec.h
 CLANGTIDY+=	step.c
 CLANGTIDY+=	step.h
 CLANGTIDY+=	token.c
@@ -221,6 +226,7 @@ CPPCHECK+=	robsd-regress-log.c
 CPPCHECK+=	robsd-report.c
 CPPCHECK+=	robsd-stat.c
 CPPCHECK+=	robsd-step.c
+CPPCHECK+=	step-exec.c
 CPPCHECK+=	step.c
 CPPCHECK+=	token.c
 
