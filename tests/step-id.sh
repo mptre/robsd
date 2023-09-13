@@ -1,5 +1,11 @@
 portable no
 
+setup() {
+	robsd_config - <<-EOF
+	robsddir "${TSHDIR}"
+	EOF
+}
+
 if testcase "basic"; then
 	assert_eq "2" "$(step_id cvs)"
 fi

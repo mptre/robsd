@@ -4,18 +4,20 @@
 #include <limits.h>	/* PATH_MAX */
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
 #include <unistd.h>
 
 #include "libks/buffer.h"
+#include "libks/compiler.h"
 #include "libks/vector.h"
 
+#include "conf.h"
 #include "interpolate.h"
 #include "step.h"
 
 enum step_mode {
 	MODE_READ = 1,
 	MODE_WRITE,
+	MODE_LIST,
 };
 
 struct step_context {
@@ -27,6 +29,7 @@ static void	usage(void) __attribute__((__noreturn__));
 
 static int	steps_read(struct step_context *, int, char **);
 static int	steps_write(struct step_context *, int, char **);
+static int	steps_list(struct step_context *, int, char **);
 
 static int
 parse_id(const char *str, int *id)
@@ -46,7 +49,7 @@ parse_id(const char *str, int *id)
 int
 main(int argc, char *argv[])
 {
-	struct step_context sc;
+	struct step_context sc = {0};
 	enum step_mode mode = 0;
 	int error = 0;
 	int ch;
@@ -54,13 +57,14 @@ main(int argc, char *argv[])
 	if (pledge("stdio rpath wpath cpath unveil", NULL) == -1)
 		err(1, "pledge");
 
-	memset(&sc, 0, sizeof(sc));
-
 	opterr = 0;
-	while ((ch = getopt(argc, argv, "RWf:")) != -1) {
+	while ((ch = getopt(argc, argv, "LRWf:")) != -1) {
 		int dobreak = 0;
 
 		switch (ch) {
+		case 'L':
+			mode = MODE_LIST;
+			break;
 		case 'R':
 			mode = MODE_READ;
 			break;
@@ -80,7 +84,7 @@ main(int argc, char *argv[])
 		argc -= optind - 2;
 		argv += optind - 2;
 	}
-	if (mode == 0 || sc.path == NULL)
+	if (mode == 0)
 		usage();
 
 	switch (mode) {
@@ -98,12 +102,25 @@ main(int argc, char *argv[])
 		if (pledge("stdio rpath wpath cpath", NULL) == -1)
 			err(1, "pledge");
 		break;
+	case MODE_LIST:
+		if (pledge("stdio rpath", NULL) == -1)
+			err(1, "pledge");
+		break;
 	}
 
-	sc.steps = steps_parse(sc.path);
-	if (sc.steps == NULL) {
-		error = 1;
-		goto out;
+	switch (mode) {
+	case MODE_READ:
+	case MODE_WRITE:
+		if (sc.path == NULL)
+			usage();
+		sc.steps = steps_parse(sc.path);
+		if (sc.steps == NULL) {
+			error = 1;
+			goto out;
+		}
+		break;
+	default:
+		break;
 	}
 
 	opterr = 1;
@@ -114,6 +131,9 @@ main(int argc, char *argv[])
 		break;
 	case MODE_WRITE:
 		error = steps_write(&sc, argc, argv);
+		break;
+	case MODE_LIST:
+		error = steps_list(&sc, argc, argv);
 		break;
 	}
 
@@ -127,7 +147,8 @@ usage(void)
 {
 	fprintf(stderr,
 	    "usage: robsd-step -R -f path [-i id] [-n name]\n"
-	    "       robsd-step -W -f path -i id -- key=val ...\n");
+	    "       robsd-step -W -f path -i id -- key=val ...\n"
+	    "       robsd-step -L -m mode\n");
 	exit(1);
 }
 
@@ -279,4 +300,46 @@ out:
 		fclose(fh);
 	buffer_free(bf);
 	return error;
+}
+
+static int
+steps_list(struct step_context *UNUSED(sc), int argc, char **argv)
+{
+	struct config *config;
+	const char *config_path = NULL;
+	const char *mode = NULL;
+	const char **steps;
+	size_t i, nsteps;
+	int ch;
+
+	while ((ch = getopt(argc, argv, "C:m:")) != -1) {
+		switch (ch) {
+		case 'C':
+			config_path = optarg;
+			break;
+		case 'm':
+			mode = optarg;
+			break;
+		default:
+			usage();
+		}
+	}
+	argc -= optind;
+	argv += optind;
+	if (argc != 0 || mode == NULL)
+		usage();
+
+	config = config_alloc(mode, config_path);
+	if (config_parse(config))
+		return 1;
+
+	steps = config_get_steps(config);
+	nsteps = VECTOR_LENGTH(steps);
+	for (i = 0; i < nsteps; i++)
+		printf("%s\n", steps[i]);
+	VECTOR_FREE(steps);
+
+	config_free(config);
+
+	return 0;
 }

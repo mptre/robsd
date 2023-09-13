@@ -24,7 +24,6 @@ target() (
 )
 
 . "${EXECDIR:-/usr/local/libexec/robsd}/util.sh"
-. "${EXECDIR:-/usr/local/libexec/robsd}/util-cross.sh"
 
 setmode "robsd-cross"
 setprogname "robsd-cross"

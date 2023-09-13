@@ -115,6 +115,10 @@ struct config {
 	struct lexer		*cf_lx;
 	const struct grammar	*cf_grammar;
 	const char		*cf_path;
+	struct {
+		const char *const	*ptr;
+		size_t			 len;
+	} cf_steps;
 	enum robsd_mode		 cf_mode;
 
 	VECTOR(struct variable)	 cf_variables;
@@ -193,6 +197,26 @@ static const struct grammar robsd[] = {
 	{ NULL, 0, NULL, 0, { NULL } },
 };
 
+static const char *robsd_steps[] = {
+	"env",
+	"cvs",
+	"patch",
+	"kernel",
+	"reboot",
+	"env",
+	"base",
+	"release",
+	"checkflist",
+	"xbase",
+	"xrelease",
+	"image",
+	"hash",
+	"revert",
+	"distrib",
+	"dmesg",
+	"end",
+};
+
 static const struct grammar robsd_cross[] = {
 	{ "robsddir",	DIRECTORY,	config_parse_directory,	REQ,	{ NULL } },
 	{ "builduser",	STRING,		config_parse_user,	0,	{ "build" } },
@@ -203,6 +227,15 @@ static const struct grammar robsd_cross[] = {
 
 	COMMON_DEFAULTS,
 	{ NULL, 0, NULL, 0, { NULL } },
+};
+
+static const char *robsd_cross_steps[] = {
+	"env",
+	"dirs",
+	"tools",
+	"distrib",
+	"dmesg",
+	"end",
 };
 
 static const struct grammar robsd_ports[] = {
@@ -226,6 +259,19 @@ static const struct grammar robsd_ports[] = {
 	{ NULL, 0, NULL, 0, { NULL } },
 };
 
+static const char *robsd_ports_steps[] = {
+	"env",
+	"cvs",
+	"clean",
+	"proot",
+	"patch",
+	"dpb",
+	"distrib",
+	"revert",
+	"dmesg",
+	"end",
+};
+
 static const struct grammar robsd_regress[] = {
 	{ "robsddir",		DIRECTORY,	config_parse_directory,		REQ,		{ NULL } },
 	{ "hook",		LIST,		config_parse_list,		0,		{ NULL } },
@@ -244,6 +290,21 @@ static const struct grammar robsd_regress[] = {
 
 	COMMON_DEFAULTS,
 	{ NULL, 0, NULL, 0, { NULL } },
+};
+
+static const char *robsd_regress_steps[] = {
+	"env",
+	"pkg-add",
+	"cvs",
+	"patch",
+	"obj",
+	"mount",
+	NULL,		/* ${regress} */
+	"umount",
+	"revert",
+	"pkg-del",
+	"dmesg",
+	"end",
 };
 
 struct config *
@@ -273,18 +334,29 @@ config_alloc(const char *mode, const char *path)
 	case ROBSD:
 		defaultpath = "/etc/robsd.conf";
 		cf->cf_grammar = robsd;
+		cf->cf_steps.ptr = robsd_steps;
+		cf->cf_steps.len = sizeof(robsd_steps) / sizeof(robsd_steps[0]);
 		break;
 	case ROBSD_CROSS:
 		defaultpath = "/etc/robsd-cross.conf";
 		cf->cf_grammar = robsd_cross;
+		cf->cf_steps.ptr = robsd_cross_steps;
+		cf->cf_steps.len = sizeof(robsd_cross_steps) /
+		    sizeof(robsd_cross_steps[0]);
 		break;
 	case ROBSD_PORTS:
 		defaultpath = "/etc/robsd-ports.conf";
 		cf->cf_grammar = robsd_ports;
+		cf->cf_steps.ptr = robsd_ports_steps;
+		cf->cf_steps.len = sizeof(robsd_ports_steps) /
+		    sizeof(robsd_ports_steps[0]);
 		break;
 	case ROBSD_REGRESS:
 		defaultpath = "/etc/robsd-regress.conf";
 		cf->cf_grammar = robsd_regress;
+		cf->cf_steps.ptr = robsd_regress_steps;
+		cf->cf_steps.len = sizeof(robsd_regress_steps) /
+		    sizeof(robsd_regress_steps[0]);
 		break;
 	}
 	if (cf->cf_path == NULL)
@@ -519,6 +591,73 @@ enum robsd_mode
 config_get_mode(const struct config *cf)
 {
 	return cf->cf_mode;
+}
+
+static const char **
+config_regress_get_steps(struct config *cf)
+{
+	VECTOR(const char *) steps;
+	VECTOR(char *) regress;
+	size_t i = 0;
+	size_t nregress, r, s;
+
+	regress = config_find_value(cf, "regress", list);
+	nregress = VECTOR_LENGTH(regress);
+
+	if (VECTOR_INIT(steps))
+		err(1, NULL);
+	if (VECTOR_RESERVE(steps, cf->cf_steps.len + nregress))
+		err(1, NULL);
+
+	for (s = 0; s < cf->cf_steps.len; s++) {
+		if (cf->cf_steps.ptr[s] == NULL)
+			break;
+
+		if (VECTOR_ALLOC(steps) == NULL)
+			err(1, NULL);
+		steps[i++] = cf->cf_steps.ptr[s];
+	}
+
+	for (r = 0; r < nregress; r++) {
+		if (VECTOR_ALLOC(steps) == NULL)
+			err(1, NULL);
+		steps[i++] = regress[r];
+	}
+
+	for (s++; s < cf->cf_steps.len; s++) {
+		if (VECTOR_ALLOC(steps) == NULL)
+			err(1, NULL);
+		steps[i++] = cf->cf_steps.ptr[s];
+	}
+
+	return steps;
+}
+
+/*
+ * Returns a vector including all steps. The caller is responsible for freeing
+ * the vector.
+ */
+const char **
+config_get_steps(struct config *cf)
+{
+	VECTOR(const char *) steps;
+	size_t i;
+
+	if (cf->cf_mode == ROBSD_REGRESS)
+		return config_regress_get_steps(cf);
+
+	if (VECTOR_INIT(steps))
+		err(1, NULL);
+	if (VECTOR_RESERVE(steps, cf->cf_steps.len))
+		err(1, NULL);
+
+	for (i = 0; i < cf->cf_steps.len; i++) {
+		if (VECTOR_ALLOC(steps) == NULL)
+			err(1, NULL);
+		steps[i] = cf->cf_steps.ptr[i];
+	}
+
+	return steps;
 }
 
 const struct variable_value *

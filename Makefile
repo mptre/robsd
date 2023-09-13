@@ -102,14 +102,8 @@ DEPS_robsd-stat=	${SRCS_robsd-stat:.c=.d}
 PROG_robsd-stat=	robsd-stat
 
 SRCS_robsd-step+=	${COMPATS}
-SRCS_robsd-step+=	alloc.c
-SRCS_robsd-step+=	buffer.c
-SRCS_robsd-step+=	interpolate.c
-SRCS_robsd-step+=	lexer.c
-SRCS_robsd-step+=	log.c
+SRCS_robsd-step+=	${SRCS_config}
 SRCS_robsd-step+=	step.c
-SRCS_robsd-step+=	token.c
-SRCS_robsd-step+=	vector.c
 SRCS_robsd-step+=	robsd-step.c
 OBJS_robsd-step=	${SRCS_robsd-step:.c=.o}
 DEPS_robsd-step=	${SRCS_robsd-step:.c=.d}
@@ -266,7 +260,6 @@ SCRIPTS+=	robsd-release.sh
 SCRIPTS+=	robsd-revert.sh
 SCRIPTS+=	robsd-xbase.sh
 SCRIPTS+=	robsd-xrelease.sh
-SCRIPTS+=	util-cross.sh
 SCRIPTS+=	util-ports.sh
 SCRIPTS+=	util-regress.sh
 SCRIPTS+=	util.sh

@@ -254,3 +254,53 @@ if testcase "write: invalid missing fields"; then
 	robsd-step: invalid substitution, unknown variable 'exit'
 	EOF
 fi
+
+if testcase "list: robsd"; then
+	robsd_config - <<-EOF
+	robsddir "$TSHDIR"
+	EOF
+
+	robsd_step -- -L -C "$ROBSDCONF" -m robsd >"$TMP1"
+	if ! [ -s "$TMP1" ]; then
+		fail "expected steps"
+	fi
+fi
+
+if testcase "list: robsd-cross"; then
+	robsd_config -C - <<-EOF
+	robsddir "$TSHDIR"
+	EOF
+
+	robsd_step -- -L -C "$ROBSDCONF" -m robsd-cross >"$TMP1"
+	if ! [ -s "$TMP1" ]; then
+		fail "expected steps"
+	fi
+fi
+
+if testcase "list: robsd-ports"; then
+	robsd_config -P - <<-EOF
+	robsddir "$TSHDIR"
+	ports { "devel/robsd" }
+	EOF
+
+	robsd_step -- -L -C "$ROBSDCONF" -m robsd-ports >"$TMP1"
+	if ! [ -s "$TMP1" ]; then
+		fail "expected steps"
+	fi
+fi
+
+if testcase "list: robsd-regress"; then
+	robsd_config -R - <<-EOF
+	robsddir "$TSHDIR"
+	regress "bin/csh"
+	regress "bin/ksh"
+	EOF
+
+	robsd_step -- -L -C "$ROBSDCONF" -m robsd-regress >"$TMP1"
+	if ! grep -q 'bin/csh' "$TMP1"; then
+		fail - "expected bin/csh" <"$TMP1"
+	fi
+	if ! grep -q 'bin/ksh' "$TMP1"; then
+		fail - "expected bin/ksh" <"$TMP1"
+	fi
+fi

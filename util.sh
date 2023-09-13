@@ -1158,43 +1158,8 @@ step_path() {
 # steps
 #
 # Get the names of all steps in execution order.
-# The last step named end is a sentinel step without a corresponding step
-# script.
 steps() {
-	case "$_MODE" in
-	robsd)
-		cat <<-EOF
-		env
-		cvs
-		patch
-		kernel
-		reboot
-		env
-		base
-		release
-		checkflist
-		xbase
-		xrelease
-		image
-		hash
-		revert
-		distrib
-		dmesg
-		end
-		EOF
-		;;
-	robsd-cross)
-		cross_steps
-		;;
-	robsd-ports)
-		ports_steps
-		;;
-	robsd-regress)
-		regress_steps
-		;;
-	*)
-		;;
-	esac
+	"$ROBSDSTEP" -L -m "$_MODE" ${ROBSDCONF:+"-C${ROBSDCONF}"}
 }
 
 # step_next file

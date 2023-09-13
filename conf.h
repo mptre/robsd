@@ -35,6 +35,7 @@ int		 config_interpolate(struct config *);
 char		*config_interpolate_str(struct config *, const char *);
 char		*config_interpolate_lookup(const char *, void *);
 
-enum robsd_mode	 config_get_mode(const struct config *);
+enum robsd_mode	  config_get_mode(const struct config *);
+const char	**config_get_steps(struct config *);
 
 const struct variable_value *variable_get_value(const struct variable *);

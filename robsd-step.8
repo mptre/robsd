@@ -16,6 +16,9 @@
 .Fl i Ar id
 .Fl -
 .Ar key=val ...
+.Nm robsd-step
+.Fl L
+.Fl m Ar mode
 .Sh DESCRIPTION
 The
 .Nm
@@ -40,6 +43,12 @@ Any existing occurrence of the same step as given by
 .Ar id
 will be replaced.
 .Pp
+In list mode
+.Pq Fl L ,
+all steps for the given
+.Ar mode
+is written to standard output in order of execution.
+.Pp
 The options are as follows:
 .Bl -tag -width Ds
 .It Fl f Ar path
@@ -56,6 +65,9 @@ is negative, the step is selected starting from the last one in
 .Pp
 In write mode, replace any existing step(s) with the same
 .Ar id .
+.It Fl m Ar mode
+In list mode, select the robsd utility.
+Must be either robsd, robsd-cross, robsd-ports or robsd-regress.
 .It Fl n Ar name
 In read mode, select the step with
 .Ar name

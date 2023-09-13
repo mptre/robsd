@@ -72,23 +72,3 @@ regress_step_after() {
 	fi
 	return "$_exit"
 }
-
-# regress_steps
-#
-# Get the step names in order of execution.
-regress_steps() {
-	xargs printf '%s\n' <<-EOF
-	env
-	pkg-add
-	cvs
-	patch
-	obj
-	mount
-	$(config_value regress)
-	umount
-	revert
-	pkg-del
-	dmesg
-	end
-	EOF
-}
