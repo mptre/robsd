@@ -12,16 +12,24 @@
   (b6a4726)
   (Anton Lindqvist)
 
-- Add robsd-report utility used to generate report.
+- Add robsd-report utility used to generate reports.
   Significantly reduces the time taken to generate the report, especially for
   robsd-regress.
   (28d5c04)
+  (Anton Lindqvist)
+
+- robsd-config: support egress interface inet6 during interpolation.
+  (d3875a8)
   (Anton Lindqvist)
 
 ## Bug fixes
 
 - robsd-regress-log: stop abusing the scratch buffer as the output buffer.
   (67c138b)
+  (Anton Lindqvist)
+
+- robsd-regress-html: always check for patches.
+  (e683a4a)
   (Anton Lindqvist)
 
 # 17.8.1 - 2023-07-17
