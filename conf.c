@@ -22,11 +22,11 @@
 #include "libks/vector.h"
 
 #include "alloc.h"
+#include "if.h"
 #include "interpolate.h"
 #include "lexer.h"
 #include "log.h"
 #include "token.h"
-#include "util.h"
 
 enum token_type {
 	/* sentinels */
@@ -1177,7 +1177,7 @@ config_default_inet(struct config *cf)
 	struct variable_value val;
 	char *inet;
 
-	inet = ifgrinet("egress");
+	inet = if_group_inet("egress");
 	if (inet == NULL)
 		return NULL;
 	variable_value_init(&val, STRING);

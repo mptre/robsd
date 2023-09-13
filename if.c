@@ -1,4 +1,4 @@
-#include "util.h"
+#include "if.h"
 
 #include "config.h"
 
@@ -24,7 +24,7 @@
  * Get the first IPv4 address associated with the given interface group.
  */
 char *
-ifgrinet(const char *group)
+if_group_inet(const char *group)
 {
 	struct ifgroupreq ifgr;
 	struct ifaddrs *ifap = NULL;
@@ -87,7 +87,7 @@ out:
 #else
 
 char *
-ifgrinet(const char *group)
+if_group_inet(const char *group)
 {
 	return estrdup(group);
 }
