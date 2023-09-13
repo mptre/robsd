@@ -97,7 +97,7 @@ struct grammar {
 
 	union {
 		const void	*ptr;
-		struct variable	*(*fun)(struct config *);
+		struct variable	*(*fun)(struct config *, const char *);
 	} gr_default;
 };
 
@@ -138,9 +138,10 @@ static int	config_parse_regress_env(struct config *,
 static int	config_parse_directory(struct config *,
     struct variable_value *);
 
-static struct variable	*config_default_build_dir(struct config *);
-static struct variable	*config_default_inet4(struct config *);
-static struct variable	*config_default_inet6(struct config *);
+static struct variable	*config_default_build_dir(struct config *,
+    const char *);
+static struct variable	*config_default_inet4(struct config *, const char *);
+static struct variable	*config_default_inet6(struct config *, const char *);
 
 static struct variable	*config_append(struct config *, const char *,
     const struct variable_value *, unsigned int);
@@ -393,12 +394,12 @@ struct variable *
 config_find(struct config *cf, const char *name)
 {
 	static struct variable vadef;
+	struct variable *va;
 	size_t i, namelen;
 
 	namelen = strlen(name);
 	for (i = 0; i < VECTOR_LENGTH(cf->cf_variables); i++) {
-		struct variable *va = &cf->cf_variables[i];
-
+		va = &cf->cf_variables[i];
 		if (va->va_namelen == namelen &&
 		    strncmp(va->va_name, name, namelen) == 0)
 			return va;
@@ -415,8 +416,14 @@ config_find(struct config *cf, const char *name)
 		if (!grammar_equals(gr, name, namelen))
 			continue;
 
-		if (gr->gr_flags & FUN)
-			return gr->gr_default.fun(cf);
+		if (gr->gr_flags & FUN) {
+			char *fname;
+
+			fname = estrndup(name, namelen);
+			va = gr->gr_default.fun(cf, fname);
+			free(fname);
+			return va;
+		}
 
 		memset(&vadef, 0, sizeof(vadef));
 		vadef.va_val.type = gr->gr_type;
@@ -1129,7 +1136,7 @@ config_parse_directory(struct config *cf, struct variable_value *val)
 }
 
 static struct variable *
-config_default_build_dir(struct config *cf)
+config_default_build_dir(struct config *cf, const char *name)
 {
 	struct buffer *bf = NULL;
 	struct variable *va = NULL;
@@ -1163,7 +1170,7 @@ config_default_build_dir(struct config *cf)
 		goto out;
 	}
 	*nl = '\0';
-	va = config_append_string(cf, "builddir", buffer_get_ptr(bf));
+	va = config_append_string(cf, name, buffer_get_ptr(bf));
 
 out:
 	if (fd != -1)
@@ -1174,7 +1181,7 @@ out:
 }
 
 static struct variable *
-config_default_inet4(struct config *cf)
+config_default_inet4(struct config *cf, const char *name)
 {
 	struct variable_value val;
 	char *addr;
@@ -1184,11 +1191,11 @@ config_default_inet4(struct config *cf)
 		addr = estrdup("");
 	variable_value_init(&val, STRING);
 	val.str = addr;
-	return config_append(cf, "inet", &val, VARIABLE_FLAG_DIRTY);
+	return config_append(cf, name, &val, VARIABLE_FLAG_DIRTY);
 }
 
 static struct variable *
-config_default_inet6(struct config *cf)
+config_default_inet6(struct config *cf, const char *name)
 {
 	struct variable_value val;
 	char *addr;
@@ -1198,7 +1205,7 @@ config_default_inet6(struct config *cf)
 		addr = estrdup("");
 	variable_value_init(&val, STRING);
 	val.str = addr;
-	return config_append(cf, "inet6", &val, VARIABLE_FLAG_DIRTY);
+	return config_append(cf, name, &val, VARIABLE_FLAG_DIRTY);
 }
 
 static struct variable *
