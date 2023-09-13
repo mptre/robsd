@@ -1,1 +1,1 @@
-char	*if_group_inet(const char *);
+char	*if_group_addr(const char *, int);

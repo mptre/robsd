@@ -21,10 +21,11 @@
 #include <unistd.h>
 
 /*
- * Get the first IPv4 address associated with the given interface group.
+ * Get the first address associated with the given interface group and address
+ * family.
  */
 char *
-if_group_inet(const char *group)
+if_group_addr(const char *group, int family)
 {
 	struct ifgroupreq ifgr;
 	struct ifaddrs *ifap = NULL;
@@ -32,7 +33,15 @@ if_group_inet(const char *group)
 	const char *iface;
 	char *inet = NULL;
 	size_t inetsiz = 16;
+	sa_family_t sa_family = AF_UNSPEC;
 	int sock;
+
+	if (family == 4)
+		sa_family = AF_INET;
+	else if (family == 6)
+		sa_family = AF_INET6;
+	else
+		return NULL;
 
 	sock = socket(AF_INET, SOCK_DGRAM | SOCK_CLOEXEC, 0);
 	if (sock == -1) {
@@ -65,7 +74,7 @@ if_group_inet(const char *group)
 		const struct sockaddr_in *sin;
 
 		if (ifa->ifa_addr == NULL ||
-		    ifa->ifa_addr->sa_family != AF_INET ||
+		    ifa->ifa_addr->sa_family != sa_family ||
 		    strcmp(ifa->ifa_name, iface) != 0)
 			continue;
 
@@ -86,8 +95,10 @@ out:
 
 #else
 
+#include "libks/compiler.h"
+
 char *
-if_group_inet(const char *group)
+if_group_addr(const char *group, int UNUSED(family))
 {
 	return estrdup(group);
 }

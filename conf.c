@@ -1177,7 +1177,7 @@ config_default_inet(struct config *cf)
 	struct variable_value val;
 	char *inet;
 
-	inet = if_group_inet("egress");
+	inet = if_group_addr("egress", 4);
 	if (inet == NULL)
 		return NULL;
 	variable_value_init(&val, STRING);
