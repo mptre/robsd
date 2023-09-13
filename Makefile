@@ -318,6 +318,7 @@ SHLINT+=	tests/regress-failed.sh
 SHLINT+=	tests/robsd-config.sh
 SHLINT+=	tests/robsd-cross.sh
 SHLINT+=	tests/robsd-crossenv.sh
+SHLINT+=	tests/robsd-exec.sh
 SHLINT+=	tests/robsd-hash.sh
 SHLINT+=	tests/robsd-hook.sh
 SHLINT+=	tests/robsd-ls.sh

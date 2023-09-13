@@ -15,6 +15,7 @@ TESTS+=	regress-failed.sh
 TESTS+=	robsd-config.sh
 TESTS+=	robsd-cross.sh
 TESTS+=	robsd-crossenv.sh
+TESTS+=	robsd-exec.sh
 TESTS+=	robsd-hash.sh
 TESTS+=	robsd-hook.sh
 TESTS+=	robsd-ls.sh
