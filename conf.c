@@ -101,7 +101,7 @@ struct grammar {
 	} gr_default;
 };
 
-static const struct grammar	*grammar_find(const struct grammar *,
+static const struct grammar	*grammar_find(const struct grammar *, size_t,
     const char *);
 static int			 grammar_equals(const struct grammar *,
     const char *, size_t);
@@ -113,18 +113,22 @@ static int			 grammar_equals(const struct grammar *,
 struct config {
 	struct buffer		*scratch;
 	struct lexer		*lx;
-	const struct grammar	*grammar;
 	const char		*path;
+	struct {
+		const struct grammar	*ptr;
+		size_t			 len;
+	} grammar;
 	struct {
 		const char *const	*ptr;
 		size_t			 len;
 	} steps;
-	enum robsd_mode		 mode;
 
 	VECTOR(struct variable)	 variables;
 
 	/* Sentinel used for absent list variables during interpolation. */
 	VECTOR(char *)		 empty_list;
+
+	enum robsd_mode		 mode;
 };
 
 static int	config_parse1(struct config *);
@@ -194,7 +198,6 @@ static const struct grammar robsd[] = {
 	{ "x11-srcdir",		DIRECTORY,	config_parse_directory,	0,	{ "/usr/xenocara" } },
 
 	COMMON_DEFAULTS,
-	{ NULL, 0, NULL, 0, { NULL } },
 };
 
 static const char *robsd_steps[] = {
@@ -226,7 +229,6 @@ static const struct grammar robsd_cross[] = {
 	{ "bsd-srcdir",	DIRECTORY,	config_parse_directory,	0,	{ "/usr/src" } },
 
 	COMMON_DEFAULTS,
-	{ NULL, 0, NULL, 0, { NULL } },
 };
 
 static const char *robsd_cross_steps[] = {
@@ -256,7 +258,6 @@ static const struct grammar robsd_ports[] = {
 	{ "ports-user",		STRING,		config_parse_user,	REQ,	{ NULL } },
 
 	COMMON_DEFAULTS,
-	{ NULL, 0, NULL, 0, { NULL } },
 };
 
 static const char *robsd_ports_steps[] = {
@@ -289,7 +290,6 @@ static const struct grammar robsd_regress[] = {
 	{ "regress-*-target",	STRING,		NULL,				PAT,		{ "regress" } },
 
 	COMMON_DEFAULTS,
-	{ NULL, 0, NULL, 0, { NULL } },
 };
 
 static const char *robsd_regress_steps[] = {
@@ -333,27 +333,32 @@ config_alloc(const char *mode, const char *path)
 	switch (cf->mode) {
 	case ROBSD:
 		defaultpath = "/etc/robsd.conf";
-		cf->grammar = robsd;
+		cf->grammar.ptr = robsd;
+		cf->grammar.len = sizeof(robsd) / sizeof(robsd[0]);
 		cf->steps.ptr = robsd_steps;
 		cf->steps.len = sizeof(robsd_steps) / sizeof(robsd_steps[0]);
 		break;
 	case ROBSD_CROSS:
 		defaultpath = "/etc/robsd-cross.conf";
-		cf->grammar = robsd_cross;
+		cf->grammar.ptr = robsd_cross;
+		cf->grammar.len = sizeof(robsd_cross) / sizeof(robsd_cross[0]);
 		cf->steps.ptr = robsd_cross_steps;
 		cf->steps.len = sizeof(robsd_cross_steps) /
 		    sizeof(robsd_cross_steps[0]);
 		break;
 	case ROBSD_PORTS:
 		defaultpath = "/etc/robsd-ports.conf";
-		cf->grammar = robsd_ports;
+		cf->grammar.ptr = robsd_ports;
+		cf->grammar.len = sizeof(robsd_ports) / sizeof(robsd_ports[0]);
 		cf->steps.ptr = robsd_ports_steps;
 		cf->steps.len = sizeof(robsd_ports_steps) /
 		    sizeof(robsd_ports_steps[0]);
 		break;
 	case ROBSD_REGRESS:
 		defaultpath = "/etc/robsd-regress.conf";
-		cf->grammar = robsd_regress;
+		cf->grammar.ptr = robsd_regress;
+		cf->grammar.len = sizeof(robsd_regress) /
+		    sizeof(robsd_regress[0]);
 		cf->steps.ptr = robsd_regress_steps;
 		cf->steps.len = sizeof(robsd_regress_steps) /
 		    sizeof(robsd_regress_steps[0]);
@@ -442,7 +447,7 @@ config_append_string(struct config *cf, const char *name, const char *str)
 {
 	struct variable_value val;
 
-	if (grammar_find(cf->grammar, name))
+	if (grammar_find(cf->grammar.ptr, cf->grammar.len, name))
 		return NULL;
 
 	variable_value_init(&val, STRING);
@@ -478,8 +483,8 @@ config_find(struct config *cf, const char *name)
 	}
 
 	/* Look for default value. */
-	for (i = 0; cf->grammar[i].gr_kw != NULL; i++) {
-		const struct grammar *gr = &cf->grammar[i];
+	for (i = 0; i < cf->grammar.len; i++) {
+		const struct grammar *gr = &cf->grammar.ptr[i];
 		const void *val;
 
 		if (gr->gr_flags & REQ)
@@ -900,11 +905,12 @@ variable_value_concat(struct variable_value *dst, struct variable_value *src)
 }
 
 static const struct grammar *
-grammar_find(const struct grammar *grammar, const char *name)
+grammar_find(const struct grammar *grammar, size_t grammar_len,
+    const char *name)
 {
-	int i;
+	size_t i;
 
-	for (i = 0; grammar[i].gr_kw != NULL; i++) {
+	for (i = 0; i < grammar_len; i++) {
 		const struct grammar *gr = &grammar[i];
 
 		if (gr->gr_fn != NULL && strcmp(gr->gr_kw, name) == 0)
@@ -972,7 +978,7 @@ config_parse_keyword(struct config *cf, struct token *tk)
 	struct variable_value val;
 	int error = 0;
 
-	gr = grammar_find(cf->grammar, tk->tk_str);
+	gr = grammar_find(cf->grammar.ptr, cf->grammar.len, tk->tk_str);
 	if (gr == NULL) {
 		lexer_warnx(cf->lx, tk->tk_lno, "unknown keyword '%s'",
 		    tk->tk_str);
@@ -998,11 +1004,11 @@ config_parse_keyword(struct config *cf, struct token *tk)
 static int
 config_validate(const struct config *cf)
 {
+	size_t i;
 	int error = 0;
-	int i;
 
-	for (i = 0; cf->grammar[i].gr_kw != NULL; i++) {
-		const struct grammar *gr = &cf->grammar[i];
+	for (i = 0; i < cf->grammar.len; i++) {
+		const struct grammar *gr = &cf->grammar.ptr[i];
 		const char *str = gr->gr_kw;
 
 		if ((gr->gr_flags & REQ) && !config_present(cf, str)) {
