@@ -139,7 +139,8 @@ static int	config_parse_directory(struct config *,
     struct variable_value *);
 
 static struct variable	*config_default_build_dir(struct config *);
-static struct variable	*config_default_inet(struct config *);
+static struct variable	*config_default_inet4(struct config *);
+static struct variable	*config_default_inet6(struct config *);
 
 static struct variable	*config_append(struct config *, const char *,
     const struct variable_value *, unsigned int);
@@ -158,7 +159,8 @@ static const void *novalue;
 #define COMMON_DEFAULTS							\
 	{ "arch",	STRING,	NULL,	0,	{ MACHINE_ARCH } },	\
 	{ "builddir",	STRING,	NULL,	FUN,	{ .fun = config_default_build_dir } },\
-	{ "inet",	STRING,	NULL,	FUN,	{ .fun = config_default_inet } },\
+	{ "inet",	STRING,	NULL,	FUN,	{ .fun = config_default_inet4 } },\
+	{ "inet6",	STRING,	NULL,	FUN,	{ .fun = config_default_inet6 } },\
 	{ "keep-dir",	STRING,	NULL,	0,	{ "${robsddir}/attic" } },\
 	{ "machine",	STRING,	NULL,	0,	{ MACHINE } }
 
@@ -1172,17 +1174,31 @@ out:
 }
 
 static struct variable *
-config_default_inet(struct config *cf)
+config_default_inet4(struct config *cf)
 {
 	struct variable_value val;
-	char *inet;
+	char *addr;
 
-	inet = if_group_addr("egress", 4);
-	if (inet == NULL)
-		return NULL;
+	addr = if_group_addr("egress", 4);
+	if (addr == NULL)
+		addr = estrdup("");
 	variable_value_init(&val, STRING);
-	val.str = inet;
+	val.str = addr;
 	return config_append(cf, "inet", &val, VARIABLE_FLAG_DIRTY);
+}
+
+static struct variable *
+config_default_inet6(struct config *cf)
+{
+	struct variable_value val;
+	char *addr;
+
+	addr = if_group_addr("egress", 6);
+	if (addr == NULL)
+		addr = estrdup("");
+	variable_value_init(&val, STRING);
+	val.str = addr;
+	return config_append(cf, "inet6", &val, VARIABLE_FLAG_DIRTY);
 }
 
 static struct variable *

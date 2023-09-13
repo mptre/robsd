@@ -20,6 +20,18 @@
 #include <string.h>
 #include <unistd.h>
 
+static const void *
+socket_addr(const struct sockaddr *sa, sa_family_t family)
+{
+	switch (family) {
+	case AF_INET:
+		return &((const struct sockaddr_in *)sa)->sin_addr;
+	case AF_INET6:
+		return &((const struct sockaddr_in6 *)sa)->sin6_addr;
+	}
+	return NULL;
+}
+
 /*
  * Get the first address associated with the given interface group and address
  * family.
@@ -32,7 +44,7 @@ if_group_addr(const char *group, int family)
 	struct ifaddrs *ifa;
 	const char *iface;
 	char *inet = NULL;
-	size_t inetsiz = 16;
+	size_t inetsiz = 64;
 	sa_family_t sa_family = AF_UNSPEC;
 	int sock;
 
@@ -71,16 +83,17 @@ if_group_addr(const char *group, int family)
 		goto out;
 	}
 	for (ifa = ifap; ifa != NULL; ifa = ifa->ifa_next) {
-		const struct sockaddr_in *sin;
+		const struct sockaddr *sa;
 
 		if (ifa->ifa_addr == NULL ||
 		    ifa->ifa_addr->sa_family != sa_family ||
 		    strcmp(ifa->ifa_name, iface) != 0)
 			continue;
 
-		sin = (struct sockaddr_in *)ifa->ifa_addr;
+		sa = ifa->ifa_addr;
 		inet = ecalloc(1, inetsiz);
-		if (inet_ntop(AF_INET, &sin->sin_addr, inet, inetsiz) == NULL) {
+		if (inet_ntop(sa_family, socket_addr(sa, sa_family),
+		    inet, inetsiz) == NULL) {
 			warn("inet_ntop");
 			goto out;
 		}
