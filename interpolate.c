@@ -10,7 +10,7 @@
 #include "libks/buffer.h"
 
 #include "alloc.h"
-#include "util.h"
+#include "log.h"
 
 struct interpolate_context {
 	const struct interpolate_arg	*ic_arg;

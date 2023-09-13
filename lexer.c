@@ -12,8 +12,8 @@
 #include "libks/compiler.h"
 
 #include "alloc.h"
+#include "log.h"
 #include "token.h"
-#include "util.h"
 
 static const char	*lexer_serialize(const struct lexer *,
     const struct token *);
@@ -200,7 +200,7 @@ lexer_warn(struct lexer *lx, int lno, const char *fmt, ...)
 	lx->lx_err++;
 
 	va_start(ap, fmt);
-	logv(warn, lx->lx_arg.path, lno, fmt, ap);
+	logv(LOG_WARN, lx->lx_arg.path, lno, fmt, ap);
 	va_end(ap);
 }
 
@@ -212,7 +212,7 @@ lexer_warnx(struct lexer *lx, int lno, const char *fmt, ...)
 	lx->lx_err++;
 
 	va_start(ap, fmt);
-	logv(warnx, lx->lx_arg.path, lno, fmt, ap);
+	logv(LOG_WARNX, lx->lx_arg.path, lno, fmt, ap);
 	va_end(ap);
 }
 

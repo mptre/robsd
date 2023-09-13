@@ -24,6 +24,7 @@
 #include "alloc.h"
 #include "interpolate.h"
 #include "lexer.h"
+#include "log.h"
 #include "token.h"
 #include "util.h"
 

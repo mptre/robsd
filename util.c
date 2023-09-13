@@ -2,39 +2,7 @@
 
 #include "config.h"
 
-#include <err.h>
-#include <stdarg.h>
-#include <stdio.h>
-
 #include "alloc.h"
-
-void
-log_warnx(const char *path, int lno, const char *fmt, ...)
-{
-	va_list ap;
-
-	va_start(ap, fmt);
-	logv(warnx, path, lno, fmt, ap);
-	va_end(ap);
-}
-
-void
-logv(void (*pr)(const char *, ...), const char *path, int lno, const char *fmt,
-    va_list ap)
-{
-	char msg[512], line[16];
-
-	if (lno == 0)
-		line[0] = '\0';
-	else
-		(void)snprintf(line, sizeof(line), "%d:", lno);
-
-	(void)vsnprintf(msg, sizeof(msg), fmt, ap);
-	(pr)("%s%s%s%s%s",
-	    path ? path : "", path ? ":" : "",
-	    line, path ? " " : "",
-	    msg);
-}
 
 #ifdef __OpenBSD__
 
@@ -47,6 +15,7 @@ logv(void (*pr)(const char *, ...), const char *path, int lno, const char *fmt,
 #include <netinet/in.h>
 #include <ifaddrs.h>
 
+#include <err.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
