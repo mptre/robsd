@@ -109,7 +109,7 @@ static void	render_pass_rates(struct regress_html *, struct arena_scope *);
 static void	render_dates(struct regress_html *);
 static void	render_durations(struct regress_html *, struct arena_scope *);
 static void	render_changelog(struct regress_html *);
-static void	render_patches(struct regress_html *);
+static void	render_patches(struct regress_html *, struct arena_scope *);
 static void	render_arches(struct regress_html *);
 static void	render_suite(struct regress_html *,
     struct suite *, struct arena_scope *);
@@ -236,7 +236,7 @@ regress_html_render(struct regress_html *r)
 			render_dates(r);
 			render_durations(r, &s);
 			render_changelog(r);
-			render_patches(r);
+			render_patches(r, &s);
 			render_arches(r);
 		}
 
@@ -777,7 +777,7 @@ render_changelog(struct regress_html *r)
 }
 
 static void
-render_patches(struct regress_html *r)
+render_patches(struct regress_html *r, struct arena_scope *s)
 {
 	struct html *h = r->html;
 
@@ -791,9 +791,13 @@ render_patches(struct regress_html *r)
 
 			HTML_NODE_ATTR(h, "th", HTML_ATTR("class", "patch")) {
 				if (ri->patches.count > 0) {
+					const char *text;
+
+					text = arena_printf(s, "patches (%d)",
+					    ri->patches.count);
 					HTML_NODE_ATTR(h, "a",
 					    HTML_ATTR("href", ri->patches.path))
-						HTML_TEXT(h, "patches");
+						HTML_TEXT(h, text);
 				} else {
 					HTML_TEXT(h, "n/a");
 				}

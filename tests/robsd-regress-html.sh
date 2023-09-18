@@ -334,6 +334,7 @@ if testcase "patches"; then
 	xpath '//th[@class="patch"]/a/text()' "${TSHDIR}/html/index.html" >"$TMP1"
 	assert_file - "$TMP1" <<-EOF
 	patches
+	(2)
 	EOF
 
 	xpath '//th[@class="patch"]/text()' "${TSHDIR}/html/index.html" >"$TMP1"
