@@ -22,6 +22,10 @@
   (d3875a8)
   (Anton Lindqvist)
 
+- robsd-regress-html: render number of patches.
+  (c162fcc)
+  (Anton Lindqvist)
+
 ## Bug fixes
 
 - robsd-regress-log: stop abusing the scratch buffer as the output buffer.
@@ -30,6 +34,10 @@
 
 - robsd-regress-html: always check for patches.
   (e683a4a)
+  (Anton Lindqvist)
+
+- Only add a path comment to diffs if not already present.
+  (4d7f127)
   (Anton Lindqvist)
 
 # 17.8.1 - 2023-07-17
