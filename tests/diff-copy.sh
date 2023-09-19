@@ -37,3 +37,10 @@ if testcase "comment"; then
 
 	EOF
 fi
+
+if testcase "comment already present"; then
+	printf '# src.diff.1\n\n' >"${TSHDIR}/src.diff.1"
+	diff_copy -d /var/empty "${TSHDIR}/dst.diff" \
+		"${TSHDIR}/src.diff.1" >/dev/null
+	assert_file "${TSHDIR}/src.diff.1" "${TSHDIR}/dst.diff.1"
+fi

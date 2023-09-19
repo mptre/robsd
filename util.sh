@@ -416,7 +416,12 @@ diff_copy() {
 		_r="$(diff_root -d "$_root" "$_src")"
 		info "using diff ${_src} rooted in ${_r}"
 
-		{ printf '# %s\n\n' "$_src"; cat "$_src"; } >"$_dst"
+		{
+			if ! head -1 "$_src" | grep -q '^#'; then
+				printf '# %s\n\n' "$_src"
+			fi
+			cat "$_src"
+		} >"$_dst"
 		chmod 644 "$_dst"
 
 		_i=$((_i + 1))
