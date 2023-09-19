@@ -23,6 +23,14 @@
 #include "regress-log.h"
 #include "step.h"
 
+#define FOR_RUN_STATUSES(OP)					\
+	/* status  failure */					\
+	OP(PASS,   0)						\
+	OP(FAIL,   1)						\
+	OP(XFAIL,  0)						\
+	OP(XPASS,  1)						\
+	OP(SKIP,   0)
+
 struct regress_html {
 	VECTOR(struct regress_invocation)	 invocations;
 	MAP(const char, *, struct suite)	 suites;
@@ -56,17 +64,17 @@ struct regress_invocation {
 #define REGRESS_INVOCATION_CVS		0x00000001u
 };
 
+#define OP(s, ...) s,
+enum run_status {
+	FOR_RUN_STATUSES(OP)
+};
+#undef OP
+
 struct run {
-	char	*log;
-	int64_t	 time;
-	int64_t	 exit;
-	enum run_status {
-		PASS,
-		FAIL,
-		XFAIL,
-		XPASS,
-		SKIP,
-	} status;
+	char		*log;
+	int64_t		 time;
+	int64_t		 exit;
+	enum run_status	 status;
 };
 
 struct suite {
@@ -902,13 +910,9 @@ static int
 is_run_status_failure(enum run_status status)
 {
 	switch (status) {
-	case FAIL:
-	case XPASS:
-		return 1;
-	case PASS:
-	case XFAIL:
-	case SKIP:
-		break;
+#define OP(s, failure) case s: return failure;
+	FOR_RUN_STATUSES(OP)
+#undef OP
 	}
 	return 0;
 }
@@ -917,16 +921,9 @@ static const char *
 run_status_str(enum run_status status)
 {
 	switch (status) {
-	case PASS:
-		return "PASS";
-	case FAIL:
-		return "FAIL";
-	case XFAIL:
-		return "XFAIL";
-	case XPASS:
-		return "XPASS";
-	case SKIP:
-		return "SKIP";
+#define OP(s, ...) case s: return #s;
+	FOR_RUN_STATUSES(OP)
+#undef OP
 	}
 	return "N/A";
 }
