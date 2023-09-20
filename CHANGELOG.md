@@ -40,6 +40,10 @@
   (4d7f127)
   (Anton Lindqvist)
 
+- robsd-report: cope with nul characters in reports.
+  (e3a657e)
+  (Anton Lindqvist)
+
 # 17.8.1 - 2023-07-17
 
 ## Bug fixes
