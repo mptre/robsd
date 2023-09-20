@@ -4,6 +4,7 @@
 
 #include <sys/stat.h>
 
+#include <ctype.h>
 #include <err.h>
 #include <errno.h>
 #include <fnmatch.h>
@@ -758,6 +759,37 @@ report_steps(struct report_context *r)
 	return 0;
 }
 
+static int
+report_sanitize(struct report_context *r)
+{
+	struct buffer *bf;
+	const char *str;
+	size_t i, len;
+
+	len = buffer_get_len(r->out);
+	str = buffer_get_ptr(r->out);
+	bf = buffer_alloc(len);
+	if (bf == NULL)
+		err(1, NULL);
+
+	for (i = 0; i < len; i++) {
+		char c = str[i];
+
+		switch (str[i]) {
+		case '\0':
+			buffer_printf(bf, "\\x%02x", (unsigned char)c);
+			break;
+		default:
+			buffer_putc(bf, c);
+		}
+	}
+
+	buffer_reset(r->out);
+	buffer_puts(r->out, buffer_get_ptr(bf), buffer_get_len(bf));
+	buffer_free(bf);
+	return 0;
+}
+
 static void
 report_context_free(struct report_context *r)
 {
@@ -802,7 +834,8 @@ report_generate(struct config *config, const char *builddir,
 	error = report_subject(&r) ||
 	    report_comment(&r) ||
 	    report_stats(&r) ||
-	    report_steps(&r);
+	    report_steps(&r) ||
+	    report_sanitize(&r);
 
 out:
 	report_context_free(&r);

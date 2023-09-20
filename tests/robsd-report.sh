@@ -501,6 +501,20 @@ if testcase "step log empty"; then
 	EOF
 fi
 
+if testcase "comment nul character"; then
+	{
+		step_serialize -s 1 -n ok -l ok.log
+	} >"$(step_path "$_builddir")"
+	printf 'comment \000 comment\n\n' >"${_builddir}/comment"
+
+	robsd_report -m robsd -- "$_builddir" | sed -n -e '/^> comment/,/^$/p' >"$TMP1"
+	assert_file - "$TMP1" <<-EOF
+	> comment
+	comment \x00 comment
+
+	EOF
+fi
+
 if testcase "error: missing mode"; then
 	if ${EXEC:-} "$ROBSDREPORT" >"$TMP1" 2>&1; then
 		fail - "expected exit non-zero" <"$TMP1"
