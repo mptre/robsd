@@ -330,6 +330,8 @@ steps_list(struct step_context *UNUSED(sc), int argc, char **argv)
 		usage();
 
 	config = config_alloc(mode, config_path);
+	if (config == NULL)
+		return 1;
 	if (config_parse(config))
 		return 1;
 
