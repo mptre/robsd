@@ -778,6 +778,9 @@ report_sanitize(struct report_context *r)
 		case '\0':
 			buffer_printf(bf, "\\x%02x", (unsigned char)c);
 			break;
+		case '\r':
+			buffer_printf(bf, "\\r");
+			break;
 		default:
 			buffer_putc(bf, c);
 		}

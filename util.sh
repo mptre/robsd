@@ -786,14 +786,12 @@ purge() {
 	done
 }
 
-# report -r robsd-dir
+# report -b build-dir
 #
 # Create and save report.
 report() {
 	local _builddir
 	local _report
-	local _tmp
-	local _tmpdir
 	local _steps
 
 	while [ $# -gt 0 ]; do
@@ -807,19 +805,12 @@ report() {
 
 	_report="${_builddir}/report"
 	_steps="$(step_path "$_builddir")"
-	_tmpdir="${_builddir}/tmp"
-	_tmp="${_tmpdir}/report"
 
 	# The steps file could be empty when a build fails to start due to
 	# another already running build.
 	[ -s "$_steps" ] || return 1
 
-	"$ROBSDREPORT" -m "$_MODE" ${ROBSDCONF:+-C ${ROBSDCONF}} "$_builddir" >"$_tmp"
-	# smtpd(8) rejects messages with carriage return not followed by a
-	# newline. Play it safe and let vis(1) encode potential carriage
-	# returns.
-	vis "$_tmp" >"$_report"
-	rm "$_tmp"
+	"$ROBSDREPORT" -m "$_MODE" ${ROBSDCONF:+-C ${ROBSDCONF}} "$_builddir" >"$_report"
 }
 
 # robsd -b build-dir -s step-id
