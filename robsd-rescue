@@ -28,7 +28,7 @@ BUILDDIR="$(prev_release | head -1)"
 if [ -z "$BUILDDIR" ]; then
 	fatal "release directory not found"
 else
-	info "using release directory ${BUILDDIR}"
+	info "using build directory ${BUILDDIR}"
 fi
 
 lock_acquire "$ROBSDDIR" "$BUILDDIR"

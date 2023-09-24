@@ -33,7 +33,7 @@ if testcase "basic"; then
 	fi
 
 	assert_file - "$TMP1" <<-EOF
-	robsd-rescue: using release directory ${ROBSDDIR}/2020-09-02.1
+	robsd-rescue: using build directory ${ROBSDDIR}/2020-09-02.1
 	robsd-rescue: reverting diff ${ROBSDDIR}/2020-09-02.1/src.diff.1
 	robsd-rescue: released lock
 	EOF
@@ -45,7 +45,7 @@ if testcase "patch already reverted"; then
 	fi
 
 	assert_file - "$TMP1" <<-EOF
-	robsd-rescue: using release directory ${ROBSDDIR}/2020-09-02.1
+	robsd-rescue: using build directory ${ROBSDDIR}/2020-09-02.1
 	robsd-rescue: diff already reverted ${ROBSDDIR}/2020-09-02.1/src.diff.1
 	robsd-rescue: released lock
 	EOF
@@ -59,7 +59,7 @@ if testcase "patch step absent"; then
 	fi
 
 	assert_file - "$TMP1" <<-EOF
-	robsd-rescue: using release directory ${ROBSDDIR}/2020-09-02.1
+	robsd-rescue: using build directory ${ROBSDDIR}/2020-09-02.1
 	robsd-rescue: step patch not found, cannot revert diff(s)
 	robsd-rescue: released lock
 	EOF
