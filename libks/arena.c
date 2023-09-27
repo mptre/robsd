@@ -41,8 +41,6 @@
 #  define POISON_SIZE 0
 #endif
 
-#include "arithmetic.h"
-
 struct arena_frame {
 	char			*ptr;
 	size_t			 size;
@@ -112,11 +110,12 @@ arena_push(struct arena *a, struct arena_frame *frame, size_t size)
 	size_t maxalign = sizeof(void *);
 	uint64_t newlen;
 
-	if (u64_add_overflow(frame->len, size, &newlen)) {
+	if (size > INT64_MAX - frame->len) {
 		a->stats.overflow |= 1;
 		errno = EOVERFLOW;
 		return NULL;
 	}
+	newlen = frame->len + size;
 	if (newlen > frame->size) {
 		errno = ENOMEM;
 		return NULL;
@@ -126,8 +125,11 @@ arena_push(struct arena *a, struct arena_frame *frame, size_t size)
 	ptr = &frame->ptr[frame->len];
 	newlen = (newlen + maxalign - 1) & ~(maxalign - 1);
 	if (a->poison_size > 0) {
-		/* Insufficient space for poison bytes is not fatal. */
-		(void)u64_add_overflow(a->poison_size, newlen, &newlen);
+		if (a->poison_size > INT64_MAX - newlen) {
+			/* Insufficient space for poison bytes is not fatal. */
+		} else {
+			newlen += a->poison_size;
+		}
 	}
 	frame->len = newlen > frame->size ? frame->size : newlen;
 	return ptr;
@@ -233,16 +235,18 @@ arena_malloc(struct arena_scope *s, size_t size)
 	if (ptr != NULL)
 		return ptr;
 
-	if (u64_add_overflow(size, sizeof(*frame), &total_size)) {
+	if (sizeof(*frame) > INT64_MAX - size) {
 		a->stats.overflow |= 2;
 		errno = EOVERFLOW;
 		if (is_fatal(a))
 			err(1, "%s", __func__);
 		return NULL;
 	}
+	total_size = size + sizeof(*frame);
+
 	frame_size = a->frame_size;
 	while (frame_size < total_size) {
-		if (frame_size > UINT64_MAX / frame_size) {
+		if (frame_size > INT64_MAX / frame_size) {
 			a->stats.overflow |= 4;
 			errno = EOVERFLOW;
 			if (is_fatal(a))
@@ -295,12 +299,13 @@ arena_calloc(struct arena_scope *s, size_t nmemb, size_t size)
 	void *ptr;
 	uint64_t total_size;
 
-	if (u64_add_overflow(nmemb, size, &total_size)) {
+	if (nmemb > INT64_MAX / size) {
 		errno = EOVERFLOW;
 		if (is_fatal(a))
 			err(1, "%s", __func__);
 		return NULL;
 	}
+	total_size = nmemb * size;
 
 	ptr = arena_malloc(s, total_size);
 	if (ptr == NULL)
@@ -354,12 +359,13 @@ arena_strndup(struct arena_scope *s, const char *src, size_t len)
 	char *dst;
 	uint64_t total_size;
 
-	if (u64_add_overflow(len, 1, &total_size)) {
+	if (len > INT64_MAX - 1) {
 		errno = EOVERFLOW;
 		if (is_fatal(a))
 			err(1, "%s", __func__);
 		return NULL;
 	}
+	total_size = len + 1;
 
 	dst = arena_malloc(s, total_size);
 	if (dst == NULL)

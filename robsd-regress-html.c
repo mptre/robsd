@@ -41,7 +41,7 @@ main(int argc, char *argv[])
 	if (arena_init(arena, ARENA_FATAL))
 		err(1, "arena_init");
 
-	SCOPE s = arena_scope(arena);
+	ARENA_SCOPE s = arena_scope(arena);
 	rh = regress_html_alloc(output, &s);
 
 	for (; argc > 0; argc--, argv++) {

@@ -20,7 +20,7 @@
 
 typedef char ARENA;
 
-#define SCOPE __attribute__((cleanup(arena_leave))) struct arena_scope
+#define ARENA_SCOPE __attribute__((cleanup(arena_leave))) struct arena_scope
 
 struct arena_scope {
 	struct arena		*arena;
@@ -56,8 +56,10 @@ void	arena_leave(struct arena_scope *);
 
 struct arena_scope  arena_scope(ARENA *);
 
-void	*arena_malloc(struct arena_scope *, size_t);
-void	*arena_calloc(struct arena_scope *, size_t, size_t);
+void	*arena_malloc(struct arena_scope *, size_t)
+	__attribute__((malloc, alloc_size(2)));
+void	*arena_calloc(struct arena_scope *, size_t, size_t)
+	__attribute__((malloc, alloc_size(2, 3)));
 
 char	*arena_printf(struct arena_scope *, const char *, ...)
 	__attribute__((__format__(printf, 2, 3)));

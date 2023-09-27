@@ -137,7 +137,7 @@ step_get_log_path(struct report_context *r, const struct step *step,
 static int
 report_cvs_log(struct report_context *r)
 {
-	SCOPE s = arena_scope(r->arena);
+	ARENA_SCOPE s = arena_scope(r->arena);
 	struct {
 		enum robsd_mode	 mode;
 		const char	*filename;
@@ -218,7 +218,7 @@ ports_report_skip_step(struct report_context *UNUSED(r),
 static int
 ports_report_step_log(struct report_context *r, const struct step *step)
 {
-	SCOPE s = arena_scope(r->arena);
+	ARENA_SCOPE s = arena_scope(r->arena);
 	const char *name;
 
 	name = step_get_field(step, "name")->str;
@@ -245,7 +245,7 @@ is_regress_step(struct report_context *r, const char *name)
 static int
 is_regress_quiet(struct report_context *r, const char *name)
 {
-	SCOPE s = arena_scope(r->arena);
+	ARENA_SCOPE s = arena_scope(r->arena);
 	const char *quiet;
 
 	quiet = arena_printf(&s, "regress-%s-quiet", name);
@@ -272,7 +272,7 @@ regress_suites(struct report_context *r)
 static int
 regress_report_skip_step(struct report_context *r, const struct step *step)
 {
-	SCOPE s = arena_scope(r->arena);
+	ARENA_SCOPE s = arena_scope(r->arena);
 	const char *log_path, *name;
 
 	name = step_get_field(step, "name")->str;
@@ -307,7 +307,7 @@ regress_report_status(struct report_context *r, struct arena_scope *s)
 static int
 regress_report_step_log(struct report_context *r, const struct step *step)
 {
-	SCOPE s = arena_scope(r->arena);
+	ARENA_SCOPE s = arena_scope(r->arena);
 	struct buffer *bf;
 	const char *log_path, *name;
 	unsigned int regress_log_flags;
@@ -392,7 +392,7 @@ report_status(struct report_context *r, struct arena_scope *s)
 static int
 report_subject(struct report_context *r)
 {
-	SCOPE s = arena_scope(r->arena);
+	ARENA_SCOPE s = arena_scope(r->arena);
 	const char *status_prefix = " ";
 	const char *hostname, *mode, *status;
 
@@ -461,7 +461,7 @@ format_duration_and_delta(int64_t duration, int64_t delta,
 static int
 report_comment(struct report_context *r)
 {
-	SCOPE s = arena_scope(r->arena);
+	ARENA_SCOPE s = arena_scope(r->arena);
 	struct buffer *bf;
 	const char *path;
 
@@ -527,7 +527,7 @@ size_cmp(const char *const *a, const char *const *b)
 static int
 report_stats_sizes(struct report_context *r)
 {
-	SCOPE s = arena_scope(r->arena);
+	ARENA_SCOPE s = arena_scope(r->arena);
 	VECTOR(const char *) sizes;
 	const struct invocation_entry *entry;
 	struct invocation_state *is;
@@ -598,7 +598,7 @@ out:
 static int
 report_stats(struct report_context *r)
 {
-	SCOPE s = arena_scope(r->arena);
+	ARENA_SCOPE s = arena_scope(r->arena);
 	struct buffer *tags;
 	const char *tags_path;
 	int error = 0;
@@ -629,7 +629,7 @@ report_stats(struct report_context *r)
 static int
 is_log_empty(struct report_context *r, const struct step *step)
 {
-	SCOPE s = arena_scope(r->arena);
+	ARENA_SCOPE s = arena_scope(r->arena);
 	struct buffer *bf;
 	const char *buf, *path;
 	size_t buflen;
@@ -725,7 +725,7 @@ report_steps(struct report_context *r)
 
 	nsteps = VECTOR_LENGTH(r->steps);
 	for (i = 0; i < nsteps; i++) {
-		SCOPE s = arena_scope(r->arena);
+		ARENA_SCOPE s = arena_scope(r->arena);
 		const struct step *step = &r->steps[i];
 		const char *duration;
 
@@ -803,7 +803,7 @@ report_generate(struct config *config, const char *builddir,
     struct buffer *out)
 {
 	ARENA arena[512 * 1024];
-	SCOPE s = {0};
+	ARENA_SCOPE s = {0};
 	struct report_context r = {0};
 	struct step *steps = NULL;
 	const char *steps_path;

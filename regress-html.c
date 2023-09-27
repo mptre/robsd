@@ -188,7 +188,7 @@ regress_html_parse(struct regress_html *r, const char *arch,
 		goto out;
 	}
 	while ((entry = invocation_walk(is)) != NULL) {
-		SCOPE s = arena_scope(arena);
+		ARENA_SCOPE s = arena_scope(arena);
 
 		if (parse_invocation(r, arch,
 		    entry->path, entry->basename, &s)) {
@@ -236,7 +236,7 @@ regress_html_render(struct regress_html *r)
 
 	suites = sort_suites(r);
 	HTML_NODE(html, "table") {
-		SCOPE s = arena_scope(arena);
+		ARENA_SCOPE s = arena_scope(arena);
 		size_t i;
 
 		HTML_NODE(html, "thead") {
@@ -255,7 +255,7 @@ regress_html_render(struct regress_html *r)
 	}
 	VECTOR_FREE(suites);
 
-	SCOPE s = arena_scope(arena);
+	ARENA_SCOPE s = arena_scope(arena);
 	path = arena_printf(&s, "%s/index.html", r->output);
 	/* coverity[leaked_storage: FALSE] */
 	error = html_write(r->html, path);
