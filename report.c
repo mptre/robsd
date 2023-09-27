@@ -802,7 +802,7 @@ int
 report_generate(struct config *config, const char *builddir,
     struct buffer *out)
 {
-	ARENA arena[512 * 1024];
+	ARENA arena[256 * 1024];
 	ARENA_SCOPE s = {0};
 	struct report_context r = {0};
 	struct step *steps = NULL;

@@ -171,7 +171,7 @@ int
 regress_html_parse(struct regress_html *r, const char *arch,
     const char *robsddir)
 {
-	ARENA arena[512 * 1024];
+	ARENA arena[256 * 1024];
 	const char *keepdir;
 	struct invocation_state *is;
 	const struct invocation_entry *entry;
@@ -215,7 +215,7 @@ out:
 int
 regress_html_render(struct regress_html *r)
 {
-	ARENA arena[512 * 1024];
+	ARENA arena[256 * 1024];
 	struct suite **suites;
 	struct html *html = r->html;
 	const char *path;
