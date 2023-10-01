@@ -15,15 +15,20 @@
  */
 
 #include <stddef.h>	/* size_t */
+#include <stdint.h>
 
 #define ARENA_FATAL		0x00000001u
+
+struct arena {
+	uint8_t	u8;
+};
 
 typedef char ARENA;
 
 #define ARENA_SCOPE __attribute__((cleanup(arena_leave))) struct arena_scope
 
 struct arena_scope {
-	struct arena		*arena;
+	struct arena_impl	*arena;
 	struct arena_frame	*frame;
 	size_t			 frame_len;
 };
@@ -48,23 +53,23 @@ struct arena_stats {
 };
 
 #define arena_init(a, flags) arena_init_impl((a), sizeof(a), (flags))
-int	arena_init_impl(ARENA *, size_t, unsigned int);
+int	arena_init_impl(struct arena *, size_t, unsigned int);
 
-void	arena_free(ARENA *);
+void	arena_free(struct arena *);
 
 void	arena_leave(struct arena_scope *);
 
-struct arena_scope  arena_scope(ARENA *);
+struct arena_scope  arena_scope(struct arena *);
 
 void	*arena_malloc(struct arena_scope *, size_t)
 	__attribute__((malloc, alloc_size(2)));
 void	*arena_calloc(struct arena_scope *, size_t, size_t)
 	__attribute__((malloc, alloc_size(2, 3)));
 
-char	*arena_printf(struct arena_scope *, const char *, ...)
+char	*arena_sprintf(struct arena_scope *, const char *, ...)
 	__attribute__((__format__(printf, 2, 3)));
 
 char	*arena_strdup(struct arena_scope *, const char *);
 char	*arena_strndup(struct arena_scope *, const char *, size_t);
 
-struct arena_stats	*arena_stats(ARENA *);
+struct arena_stats	*arena_stats(struct arena *);

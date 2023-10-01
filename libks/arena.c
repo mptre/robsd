@@ -48,7 +48,7 @@ struct arena_frame {
 	struct arena_frame	*next;
 };
 
-struct arena {
+struct arena_impl {
 	struct arena_frame	*frame;
 	/* Initial heap frame size, multiple of page size. */
 	size_t			 frame_size;
@@ -92,19 +92,19 @@ frame_unpoison(struct arena_frame *frame __attribute__((unused)),
 }
 
 static int
-is_fatal(const struct arena *a)
+is_fatal(const struct arena_impl *a)
 {
 	return !!(a->flags & ARENA_FATAL);
 }
 
 static int
-is_stack_frame(const struct arena *a)
+is_stack_frame(const struct arena_impl *a)
 {
 	return (const struct arena_frame *)&a[1] == a->frame;
 }
 
 static void *
-arena_push(struct arena *a, struct arena_frame *frame, size_t size)
+arena_push(struct arena_impl *a, struct arena_frame *frame, size_t size)
 {
 	void *ptr;
 	size_t maxalign = sizeof(void *);
@@ -136,9 +136,9 @@ arena_push(struct arena *a, struct arena_frame *frame, size_t size)
 }
 
 int
-arena_init_impl(ARENA *aa, size_t stack_size, unsigned int flags)
+arena_init_impl(struct arena *aa, size_t stack_size, unsigned int flags)
 {
-	struct arena *a = (struct arena *)aa;
+	struct arena_impl *a = (struct arena_impl *)aa;
 	struct arena_frame *frame = (struct arena_frame *)&a[1];
 	long page_size;
 
@@ -154,7 +154,7 @@ arena_init_impl(ARENA *aa, size_t stack_size, unsigned int flags)
 	/* Place the first frame on the stack and account for it. */
 	memset(a, 0, sizeof(*a));
 	a->frame = frame;
-	frame->ptr = aa;
+	frame->ptr = (char *)a;
 	frame->size = stack_size;
 	frame->len = 0;
 	frame->next = NULL;
@@ -175,9 +175,9 @@ arena_init_impl(ARENA *aa, size_t stack_size, unsigned int flags)
 }
 
 void
-arena_free(ARENA *aa)
+arena_free(struct arena *aa)
 {
-	struct arena *a = (struct arena *)aa;
+	struct arena_impl *a = (struct arena_impl *)aa;
 
 	arena_leave(&(struct arena_scope){
 	    .arena	= a,
@@ -192,16 +192,16 @@ arena_free(ARENA *aa)
 void
 arena_leave(struct arena_scope *s)
 {
-	struct arena *a = s->arena;
+	struct arena_impl *a = s->arena;
 
-	if (s->arena == NULL || a->frame == NULL)
+	/* Do nothing if arena_free() already has been called. */
+	if (a->frame == NULL)
 		return;
 
 	while (a->frame != s->frame && !is_stack_frame(a)) {
 		struct arena_frame *frame = a->frame;
 
 		a->stats.heap.now -= frame->size;
-		a->stats.heap.total -= frame->size;
 		a->stats.frames.now--;
 
 		a->frame = frame->next;
@@ -212,9 +212,9 @@ arena_leave(struct arena_scope *s)
 }
 
 struct arena_scope
-arena_scope(ARENA *aa)
+arena_scope(struct arena *aa)
 {
-	struct arena *a = (struct arena *)aa;
+	struct arena_impl *a = (struct arena_impl *)aa;
 
 	return (struct arena_scope){
 	    .arena	= a,
@@ -226,7 +226,7 @@ arena_scope(ARENA *aa)
 void *
 arena_malloc(struct arena_scope *s, size_t size)
 {
-	struct arena *a = s->arena;
+	struct arena_impl *a = s->arena;
 	struct arena_frame *frame;
 	void *ptr;
 	uint64_t frame_size, total_size;
@@ -295,7 +295,7 @@ arena_malloc(struct arena_scope *s, size_t size)
 void *
 arena_calloc(struct arena_scope *s, size_t nmemb, size_t size)
 {
-	struct arena *a = s->arena;
+	struct arena_impl *a = s->arena;
 	void *ptr;
 	uint64_t total_size;
 
@@ -315,11 +315,11 @@ arena_calloc(struct arena_scope *s, size_t nmemb, size_t size)
 }
 
 char *
-arena_printf(struct arena_scope *s, const char *fmt, ...)
+arena_sprintf(struct arena_scope *s, const char *fmt, ...)
 {
 	struct arena_scope rollback;
 	va_list ap, cp;
-	struct arena *a = s->arena;
+	struct arena_impl *a = s->arena;
 	char *str = NULL;
 	size_t len;
 	int n;
@@ -333,7 +333,7 @@ arena_printf(struct arena_scope *s, const char *fmt, ...)
 		goto out;
 
 	len = (size_t)n + 1;
-	rollback = arena_scope((ARENA *)a);
+	rollback = arena_scope((struct arena *)a);
 	str = arena_malloc(s, len);
 	n = vsnprintf(str, len, fmt, ap);
 	if (n < 0 || (size_t)n >= len) {
@@ -355,7 +355,7 @@ arena_strdup(struct arena_scope *s, const char *src)
 char *
 arena_strndup(struct arena_scope *s, const char *src, size_t len)
 {
-	struct arena *a = s->arena;
+	struct arena_impl *a = s->arena;
 	char *dst;
 	uint64_t total_size;
 
@@ -376,9 +376,9 @@ arena_strndup(struct arena_scope *s, const char *src, size_t len)
 }
 
 struct arena_stats *
-arena_stats(ARENA *aa)
+arena_stats(struct arena *aa)
 {
-	struct arena *a = (struct arena *)aa;
+	struct arena_impl *a = (struct arena_impl *)aa;
 
 	return &a->stats;
 }

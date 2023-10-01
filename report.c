@@ -25,7 +25,7 @@
 #include "step.h"
 
 struct report_context {
-	ARENA		*arena;
+	struct arena	*arena;
 	const char	*builddir;
 	const char	*prev_builddir;
 	struct config	*config;
@@ -131,7 +131,7 @@ step_get_log_path(struct report_context *r, const struct step *step,
 	log = step_get_field(step, "log")->str;
 	if (log[0] == '\0')
 		return NULL;
-	return arena_printf(s, "%s/%s", r->builddir, log);
+	return arena_sprintf(s, "%s/%s", r->builddir, log);
 }
 
 static int
@@ -162,7 +162,7 @@ report_cvs_log(struct report_context *r)
 		if (paths[i].mode != r->mode)
 			continue;
 
-		path = arena_printf(&s, "%s/tmp/%s",
+		path = arena_sprintf(&s, "%s/tmp/%s",
 		    r->builddir, paths[i].filename);
 		if (stat(path, &st) == 0 && st.st_size == 0)
 			continue;
@@ -182,7 +182,7 @@ cross_report_subject(struct report_context *r, struct arena_scope *s)
 	const char *subject, *target_path;
 	char *machine, *p, *target;
 
-	target_path = arena_printf(s, "%s/target", r->builddir);
+	target_path = arena_sprintf(s, "%s/target", r->builddir);
 	bf = buffer_read(target_path);
 	if (bf == NULL) {
 		warn("%s", target_path);
@@ -193,7 +193,7 @@ cross_report_subject(struct report_context *r, struct arena_scope *s)
 	if (p != NULL)
 		*p = '\0';
 	machine = config_interpolate_str(r->config, "${machine}");
-	subject = arena_printf(s, " %s.%s: ",
+	subject = arena_sprintf(s, " %s.%s: ",
 	    machine != NULL ? machine : "", target);
 	free(machine);
 	free(target);
@@ -227,7 +227,7 @@ ports_report_step_log(struct report_context *r, const struct step *step)
 	if (strcmp(name, "dpb") == 0) {
 		const char *path;
 
-		path = arena_printf(&s, "%s/tmp/packages.diff", r->builddir);
+		path = arena_sprintf(&s, "%s/tmp/packages.diff", r->builddir);
 		if (step_get_field(step, "exit")->integer == 0) {
 			buffer_putc(r->out, '\n');
 			return format_file(r, path) ? -1 : 1;
@@ -248,7 +248,7 @@ is_regress_quiet(struct report_context *r, const char *name)
 	ARENA_SCOPE s = arena_scope(r->arena);
 	const char *quiet;
 
-	quiet = arena_printf(&s, "regress-%s-quiet", name);
+	quiet = arena_sprintf(&s, "regress-%s-quiet", name);
 	return config_find(r->config, quiet) != NULL;
 }
 
@@ -298,7 +298,7 @@ regress_report_status(struct report_context *r, struct arena_scope *s)
 			nfailures++;
 	}
 	if (nfailures > 0) {
-		return arena_printf(s, "%d failure%s",
+		return arena_sprintf(s, "%d failure%s",
 		    nfailures, nfailures > 1 ? "s" : "");
 	}
 	return "ok";
@@ -383,7 +383,7 @@ report_status(struct report_context *r, struct arena_scope *s)
 			break;
 
 		name = step_get_field(step, "name")->str;
-		return arena_printf(s, "failed in %s", name);
+		return arena_sprintf(s, "failed in %s", name);
 	}
 
 	return "ok";
@@ -435,7 +435,7 @@ format_duration(int64_t duration, struct arena_scope *s)
 	minutes = duration / 60;
 	duration %= 60;
 	seconds = duration;
-	return arena_printf(s, "%02d:%02d:%02d",
+	return arena_sprintf(s, "%02d:%02d:%02d",
 	    (int)hours, (int)minutes, (int)seconds);
 }
 
@@ -452,7 +452,7 @@ format_duration_and_delta(int64_t duration, int64_t delta,
 	if (delta_abs <= delta_threshold)
 		return format_duration(duration, s);
 
-	return arena_printf(s, "%s (%c%s)",
+	return arena_sprintf(s, "%s (%c%s)",
 	    format_duration(duration, s),
 	    delta < 0 ? '-' : '+',
 	    format_duration(delta_abs, s));
@@ -465,7 +465,7 @@ report_comment(struct report_context *r)
 	struct buffer *bf;
 	const char *path;
 
-	path = arena_printf(&s, "%s/comment", r->builddir);
+	path = arena_sprintf(&s, "%s/comment", r->builddir);
 	bf = buffer_read(path);
 	if (bf == NULL) {
 		if (errno == ENOENT)
@@ -515,7 +515,7 @@ format_size(size_t size, struct arena_scope *s)
 		div = 1024;
 		prefix = "K";
 	}
-	return arena_printf(s, "%.01f%s", size / div, prefix);
+	return arena_sprintf(s, "%.01f%s", size / div, prefix);
 }
 
 static int
@@ -540,7 +540,7 @@ report_stats_sizes(struct report_context *r)
 	if (VECTOR_INIT(sizes))
 		err(1, NULL);
 
-	directory = arena_printf(&s, "%s/rel", r->builddir);
+	directory = arena_sprintf(&s, "%s/rel", r->builddir);
 	is = invocation_find(directory, "*");
 	if (is == NULL)
 		goto out;
@@ -554,7 +554,7 @@ report_stats_sizes(struct report_context *r)
 		if (fnmatch("*.diff.[[:digit:]]*", entry->basename, 0) == 0)
 			continue;
 
-		prev_path = arena_printf(&s, "%s/rel/%s",
+		prev_path = arena_sprintf(&s, "%s/rel/%s",
 		    r->prev_builddir, entry->basename);
 		if (stat(prev_path, &prev_st) == -1) {
 			warn("stat: %s", prev_path);
@@ -576,7 +576,7 @@ report_stats_sizes(struct report_context *r)
 			continue;
 		}
 
-		str = arena_printf(&s, "Size: %s %s (%c%s)",
+		str = arena_sprintf(&s, "Size: %s %s (%c%s)",
 		    entry->basename, format_size(size, &s),
 		    delta < 0 ? '-' : '+', format_size(delta_abs, &s));
 		dst = VECTOR_ALLOC(sizes);
@@ -608,7 +608,7 @@ report_stats(struct report_context *r)
 	report_stats_duration(r, &s);
 	buffer_printf(r->out, "Build: %s\n", r->builddir);
 
-	tags_path = arena_printf(&s, "%s/tags", r->builddir);
+	tags_path = arena_sprintf(&s, "%s/tags", r->builddir);
 	tags = buffer_read(tags_path);
 	if (tags != NULL) {
 		buffer_printf(r->out, "Tags: ");
@@ -635,7 +635,7 @@ is_log_empty(struct report_context *r, const struct step *step)
 	size_t buflen;
 	int empty = 1;
 
-	path = arena_printf(&s, "%s/%s",
+	path = arena_sprintf(&s, "%s/%s",
 	    r->builddir, step_get_field(step, "log")->str);
 	bf = buffer_read(path);
 	if (bf == NULL)
@@ -802,7 +802,7 @@ int
 report_generate(struct config *config, const char *builddir,
     struct buffer *out)
 {
-	ARENA arena[256 * 1024];
+	struct arena arena[256 * 1024];
 	ARENA_SCOPE s = {0};
 	struct report_context r = {0};
 	struct step *steps = NULL;
@@ -816,7 +816,7 @@ report_generate(struct config *config, const char *builddir,
 	}
 	s = arena_scope(arena);
 
-	steps_path = arena_printf(&s, "%s/step.csv", builddir);
+	steps_path = arena_sprintf(&s, "%s/step.csv", builddir);
 	steps = steps_parse(steps_path);
 	if (steps == NULL)
 		goto out;

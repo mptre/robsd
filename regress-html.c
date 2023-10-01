@@ -171,7 +171,7 @@ int
 regress_html_parse(struct regress_html *r, const char *arch,
     const char *robsddir)
 {
-	ARENA arena[256 * 1024];
+	struct arena arena[256 * 1024];
 	const char *keepdir;
 	struct invocation_state *is;
 	const struct invocation_entry *entry;
@@ -181,7 +181,7 @@ regress_html_parse(struct regress_html *r, const char *arch,
 	if (arena_init(arena, ARENA_FATAL))
 		err(1, "arena_init");
 
-	keepdir = arena_printf(r->arena, "%s/attic", robsddir);
+	keepdir = arena_sprintf(r->arena, "%s/attic", robsddir);
 	is = invocation_alloc(robsddir, keepdir, INVOCATION_SORT_ASC);
 	if (is == NULL) {
 		error = 1;
@@ -215,7 +215,7 @@ out:
 int
 regress_html_render(struct regress_html *r)
 {
-	ARENA arena[256 * 1024];
+	struct arena arena[256 * 1024];
 	struct suite **suites;
 	struct html *html = r->html;
 	const char *path;
@@ -256,7 +256,7 @@ regress_html_render(struct regress_html *r)
 	VECTOR_FREE(suites);
 
 	ARENA_SCOPE s = arena_scope(arena);
-	path = arena_printf(&s, "%s/index.html", r->output);
+	path = arena_sprintf(&s, "%s/index.html", r->output);
 	/* coverity[leaked_storage: FALSE] */
 	error = html_write(r->html, path);
 
@@ -288,7 +288,7 @@ parse_invocation(struct regress_html *r, const char *arch,
 	int error = 0;
 	int rv;
 
-	step_path = arena_printf(s, "%s/step.csv", directory);
+	step_path = arena_sprintf(s, "%s/step.csv", directory);
 	steps = steps_parse(step_path);
 	if (steps == NULL)
 		return 1;
@@ -340,12 +340,12 @@ parse_invocation(struct regress_html *r, const char *arch,
 		run = VECTOR_CALLOC(suite->runs);
 		if (run == NULL)
 			err(1, NULL);
-		run->log = arena_printf(r->arena, "%s/%s/%s",
+		run->log = arena_sprintf(r->arena, "%s/%s/%s",
 		    arch, ri->date, step_get_field(&steps[i], "log")->str);
 		run->time = time;
 		run->exit = step_get_field(&steps[i], "exit")->integer;
 
-		log_path = arena_printf(s, "%s/%s",
+		log_path = arena_sprintf(s, "%s/%s",
 		    directory, step_get_field(&steps[i], "log")->str);
 		if (parse_run_log(r, run, log_path, run->log, &status, s)) {
 			error = 1;
@@ -415,13 +415,13 @@ create_regress_invocation(struct regress_html *r, const char *arch,
 	 * Create architecture output directory, could already have been created
 	 * while handling a previous invocation.
 	 */
-	path = arena_printf(s, "%s/%s", r->output, arch);
+	path = arena_sprintf(s, "%s/%s", r->output, arch);
 	if (mkdir(path, 0755) == -1 && errno != EEXIST) {
 		warn("mkdir: %s", path);
 		return NULL;
 	}
 	/* Create invocation output directory. */
-	path = arena_printf(s, "%s/%s/%s", r->output, arch, date);
+	path = arena_sprintf(s, "%s/%s/%s", r->output, arch, date);
 	if (mkdir(path, 0755) == -1) {
 		warn("mkdir: %s", path);
 		return NULL;
@@ -435,9 +435,9 @@ create_regress_invocation(struct regress_html *r, const char *arch,
 	ri->time = time;
 	ri->duration.seconds = duration;
 
-	ri->dmesg = arena_printf(r->arena, "%s/%s/dmesg", arch, date);
-	ri->comment = arena_printf(r->arena, "%s/%s/comment", arch, date);
-	ri->patches.path = arena_printf(r->arena, "%s/%s/diff", arch, date);
+	ri->dmesg = arena_sprintf(r->arena, "%s/%s/dmesg", arch, date);
+	ri->comment = arena_sprintf(r->arena, "%s/%s/comment", arch, date);
+	ri->patches.path = arena_sprintf(r->arena, "%s/%s/diff", arch, date);
 
 	return ri;
 }
@@ -450,7 +450,7 @@ copy_files(struct regress_html *r, const struct regress_invocation *ri,
 	const char *path;
 	int error = 0;
 
-	path = arena_printf(s, "%s/dmesg", directory);
+	path = arena_sprintf(s, "%s/dmesg", directory);
 	bf = buffer_read(path);
 	if (bf == NULL) {
 		warn("%s", path);
@@ -462,7 +462,7 @@ copy_files(struct regress_html *r, const struct regress_invocation *ri,
 	}
 	buffer_free(bf);
 
-	path = arena_printf(s, "%s/comment", directory);
+	path = arena_sprintf(s, "%s/comment", directory);
 	bf = buffer_read(path);
 	if (bf == NULL) {
 		warn("%s", path);
@@ -492,7 +492,7 @@ copy_patches(struct regress_html *r, struct regress_invocation *ri,
 	if (is == NULL)
 		return 0;
 
-	path = arena_printf(s, "%s/%s", r->output, ri->patches.path);
+	path = arena_sprintf(s, "%s/%s", r->output, ri->patches.path);
 	if (mkdir(path, 0755) == -1) {
 		warn("mkdir: %s", path);
 		error = 1;
@@ -507,7 +507,7 @@ copy_patches(struct regress_html *r, struct regress_invocation *ri,
 			error = 1;
 			goto out;
 		}
-		path = arena_printf(s, "%s/%s/%s",
+		path = arena_sprintf(s, "%s/%s/%s",
 		    r->output, ri->patches.path, entry->basename);
 		error = write_log(path, bf);
 		buffer_free(bf);
@@ -608,7 +608,7 @@ render_duration(const struct regress_invocation *ri, struct arena_scope *s)
 
 	hours = ri->duration.seconds / 3600;
 	minutes = (ri->duration.seconds % 3600) / 60;
-	return arena_printf(s, "%dh%dm<span>%s</span>",
+	return arena_sprintf(s, "%dh%dm<span>%s</span>",
 	    (int)hours, (int)minutes, arrows[ri->duration.delta]);
 }
 
@@ -619,7 +619,7 @@ render_rate(const struct regress_invocation *ri, struct arena_scope *s)
 
 	if (ri->total > 0)
 		rate = 1 - (ri->fail / (float)ri->total);
-	return arena_printf(s, "%d%%", (int)(rate * 100));
+	return arena_sprintf(s, "%d%%", (int)(rate * 100));
 }
 
 static int
@@ -662,7 +662,7 @@ copy_log(struct regress_html *r, const char *basename,
 {
 	const char *path;
 
-	path = arena_printf(s, "%s/%s", r->output, basename);
+	path = arena_sprintf(s, "%s/%s", r->output, basename);
 	return write_log(path, bf);
 }
 
@@ -801,7 +801,7 @@ render_patches(struct regress_html *r, struct arena_scope *s)
 				if (ri->patches.count > 0) {
 					const char *text;
 
-					text = arena_printf(s, "patches (%d)",
+					text = arena_sprintf(s, "patches (%d)",
 					    ri->patches.count);
 					HTML_NODE_ATTR(h, "a",
 					    HTML_ATTR("href", ri->patches.path))
@@ -889,7 +889,7 @@ render_run(struct regress_html *r, const struct run *run)
 static const char *
 cvsweb_url(const char *path, struct arena_scope *s)
 {
-	return arena_printf(s,
+	return arena_sprintf(s,
 	    "https://cvsweb.openbsd.org/cgi-bin/cvsweb/src/regress/%s", path);
 }
 

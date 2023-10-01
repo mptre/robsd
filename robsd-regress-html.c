@@ -15,7 +15,7 @@ static void	usage(void) __attribute__((__noreturn__));
 int
 main(int argc, char *argv[])
 {
-	ARENA arena[256 * 1024];
+	struct arena arena[256 * 1024];
 	struct regress_html *rh;
 	const char *output = NULL;
 	int error = 0;
