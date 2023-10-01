@@ -213,16 +213,11 @@ out:
 }
 
 int
-regress_html_render(struct regress_html *r)
+regress_html_render(struct regress_html *r, struct arena *arena)
 {
-	struct arena arena[256 * 1024];
 	struct suite **suites;
 	struct html *html = r->html;
 	const char *path;
-	int error;
-
-	if (arena_init(arena, ARENA_FATAL))
-		err(1, "arena_init");
 
 	VECTOR_SORT(r->invocations, regress_invocation_cmp);
 
@@ -258,10 +253,7 @@ regress_html_render(struct regress_html *r)
 	ARENA_SCOPE s = arena_scope(arena);
 	path = arena_sprintf(&s, "%s/index.html", r->output);
 	/* coverity[leaked_storage: FALSE] */
-	error = html_write(r->html, path);
-
-	arena_free(arena);
-	return error;
+	return html_write(r->html, path);
 }
 
 /*

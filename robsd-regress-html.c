@@ -59,7 +59,7 @@ main(int argc, char *argv[])
 		if (error)
 			goto out;
 	}
-	error = regress_html_render(rh);
+	error = regress_html_render(rh, arena);
 
 out:
 	regress_html_free(rh);
