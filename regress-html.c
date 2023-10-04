@@ -384,8 +384,6 @@ parse_run_log(struct regress_html *r, const struct run *run,
 	    REGRESS_LOG_FAILED | REGRESS_LOG_SKIPPED | REGRESS_LOG_XFAILED |
 	    REGRESS_LOG_XPASSED) > 0) {
 		error = copy_log(r, dst_path, bf, s);
-	} else if (regress_log_parse(src_path, bf, REGRESS_LOG_ERROR) > 0) {
-		error = copy_log(r, dst_path, bf, s);
 	} else if (regress_log_trim(src_path, bf) > 0) {
 		error = copy_log(r, dst_path, bf, s);
 	} else {

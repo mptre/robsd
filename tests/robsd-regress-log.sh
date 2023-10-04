@@ -162,38 +162,6 @@ if testcase "failed and skipped"; then
 	EOF
 fi
 
-if testcase "error"; then
-	cat <<-EOF >"$TMP1"
-	===> aeswrap
-	cc   -o aes_wrap aes_wrap.o -lcrypto
-	==== run-regress-aes_wrap ====
-	./aes_wrap
-
-	===> asn1
-	cc -O2 -pipe  -Wall -Wundef -Werror -c asn1basic.c
-	asn1basic.c:519:7: error: implicit declaration of function 'ASN1_INTEGER_set_uint64' is invalid in C99
-		if (!ASN1_INTEGER_set_uint64(aint, 0)) {
-		     ^
-	4 errors generated.
-	*** Error 1 in asn1 (<sys.mk>:87 'asn1basic.o')
-	*** Error 2 in /home/src/regress/lib/libcrypto (<bsd.subdir.mk>:48 'all': @for entry in aead...)
-	+ _err=2
-	+ exit 2
-	robsd-regress-exec: process group exited 2
-	EOF
-
-	robsd_regress_log - -- -E "$TMP1" <<-EOF
-	===> asn1
-	cc -O2 -pipe  -Wall -Wundef -Werror -c asn1basic.c
-	asn1basic.c:519:7: error: implicit declaration of function 'ASN1_INTEGER_set_uint64' is invalid in C99
-		if (!ASN1_INTEGER_set_uint64(aint, 0)) {
-		     ^
-	4 errors generated.
-	*** Error 1 in asn1 (<sys.mk>:87 'asn1basic.o')
-	*** Error 2 in /home/src/regress/lib/libcrypto (<bsd.subdir.mk>:48 'all': @for entry in aead...)
-	EOF
-fi
-
 if testcase "expected fail"; then
 	cat <<-EOF >"$TMP1"
 	===> subdir

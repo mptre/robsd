@@ -655,7 +655,6 @@ if testcase "invalid: missing log"; then
 	robsd-regress-html: open: ${TSHDIR}/amd64/2022-10-25.1/nein.log: No such file or directory
 	robsd-regress-html: open: ${TSHDIR}/amd64/2022-10-25.1/nein.log: No such file or directory
 	robsd-regress-html: open: ${TSHDIR}/amd64/2022-10-25.1/nein.log: No such file or directory
-	robsd-regress-html: open: ${TSHDIR}/amd64/2022-10-25.1/nein.log: No such file or directory
 	robsd-regress-html: ${TSHDIR}/amd64/2022-10-25.1/nein.log: failed to parse log
 	EOF
 fi

@@ -319,8 +319,7 @@ regress_report_step_log(struct report_context *r, const struct step *step)
 
 	name = step_get_field(step, "name")->str;
 	log_path = step_get_log_path(r, step, &s);
-	regress_log_flags = REGRESS_LOG_ERROR | REGRESS_LOG_FAILED |
-	    REGRESS_LOG_XPASSED;
+	regress_log_flags = REGRESS_LOG_FAILED | REGRESS_LOG_XPASSED;
 	if (!is_regress_quiet(r, name))
 		regress_log_flags |= REGRESS_LOG_SKIPPED | REGRESS_LOG_XFAILED;
 	rv = regress_log_parse(log_path, bf, regress_log_flags);

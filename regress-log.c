@@ -24,7 +24,6 @@ static int	reader_open(struct reader *, const char *);
 static ssize_t	reader_getline(struct reader *, const char **);
 static void	reader_close(struct reader *);
 
-static int	iserror(const char *);
 static int	ismarker(const char *);
 static int	ismarker_regress(const char *);
 static int	ismarker_subdir(const char *);
@@ -61,7 +60,6 @@ regress_log_parse_impl(const char *path, struct buffer *scratch,
     struct buffer *out, unsigned int flags)
 {
 	struct reader rd;
-	size_t errorlen = 0;
 	int error = 0;
 	int nfound = 0;
 	int xtrace = 1;
@@ -90,9 +88,6 @@ regress_log_parse_impl(const char *path, struct buffer *scratch,
 			buffer_reset(scratch);
 		buffer_puts(scratch, line, (size_t)n);
 
-		if ((flags & REGRESS_LOG_ERROR) && iserror(line))
-			errorlen = buffer_get_len(scratch);
-
 		if (((flags & REGRESS_LOG_SKIPPED) && isskipped(line)) ||
 		    ((flags & REGRESS_LOG_FAILED) && isfailed(line)) ||
 		    ((flags & REGRESS_LOG_XFAILED) && isxfailed(line)) ||
@@ -100,7 +95,6 @@ regress_log_parse_impl(const char *path, struct buffer *scratch,
 			int first = nfound == 0;
 
 			nfound++;
-			errorlen = 0;
 			if (flags & REGRESS_LOG_PEEK)
 				break;
 
@@ -110,14 +104,6 @@ regress_log_parse_impl(const char *path, struct buffer *scratch,
 			buffer_printf(out, "%s", buffer_get_ptr(scratch));
 			buffer_reset(scratch);
 		}
-	}
-	if ((flags & REGRESS_LOG_ERROR) && nfound == 0 && !error &&
-	    errorlen > 0) {
-		if ((flags & REGRESS_LOG_PEEK) == 0) {
-			buffer_printf(out, "%.*s",
-			    (int)errorlen, buffer_get_ptr(scratch));
-		}
-		nfound++;
 	}
 	reader_close(&rd);
 
@@ -227,14 +213,6 @@ reader_close(struct reader *rd)
 {
 	free(rd->line);
 	fclose(rd->fh);
-}
-
-static int
-iserror(const char *str)
-{
-	static const char needle[] = "*** Error ";
-
-	return strncmp(str, needle, sizeof(needle) - 1) == 0;
 }
 
 static int
