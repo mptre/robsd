@@ -6,6 +6,10 @@
   (6ceeed8)
   (Anton Lindqvist)
 
+- robsd-regress-log: remove broken error log fallback detection logic.
+  (eba9e19)
+  (Anton Lindqvist)
+
 ## News
 
 - robsd: only include failing steps and cvs step in report.
