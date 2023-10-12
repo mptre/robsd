@@ -52,6 +52,7 @@ SRCS_robsd-regress-html+=	${COMPATS}
 SRCS_robsd-regress-html+=	alloc.c
 SRCS_robsd-regress-html+=	arithmetic.c
 SRCS_robsd-regress-html+=	arena.c
+SRCS_robsd-regress-html+=	arena-buffer.c
 SRCS_robsd-regress-html+=	buffer.c
 SRCS_robsd-regress-html+=	consistency.c
 SRCS_robsd-regress-html+=	html.c
