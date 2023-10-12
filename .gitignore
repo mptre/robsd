@@ -1,3 +1,13 @@
 config.h
 config.log
 config.mk
+robsd-config
+robsd-exec
+robsd-hook
+robsd-ls
+robsd-regress-html
+robsd-regress-log
+robsd-report
+robsd-stat
+robsd-step
+robsd-wait
