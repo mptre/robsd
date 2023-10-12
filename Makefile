@@ -83,6 +83,7 @@ PROG_robsd-regress-log=		robsd-regress-log
 SRCS_robsd-report+=	${COMPATS}
 SRCS_robsd-report+=	${SRCS_config}
 SRCS_robsd-report+=	arena.c
+SRCS_robsd-report+=	arena-buffer.c
 SRCS_robsd-report+=	consistency.c
 SRCS_robsd-report+=	invocation.c
 SRCS_robsd-report+=	map.c
