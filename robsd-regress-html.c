@@ -15,7 +15,7 @@ static void	usage(void) __attribute__((__noreturn__));
 int
 main(int argc, char *argv[])
 {
-	struct arena arena[256 * 1024];
+	struct arena *arena;
 	struct regress_html *rh;
 	const char *output = NULL;
 	int error = 0;
@@ -38,10 +38,8 @@ main(int argc, char *argv[])
 	if (pledge("stdio rpath wpath cpath", NULL) == -1)
 		err(1, "pledge");
 
-	if (arena_init(arena, ARENA_FATAL))
-		err(1, "arena_init");
-
-	ARENA_SCOPE s = arena_scope(arena);
+	arena = arena_alloc(ARENA_FATAL);
+	arena_scope(arena, s);
 	rh = regress_html_alloc(output, &s);
 
 	for (; argc > 0; argc--, argv++) {

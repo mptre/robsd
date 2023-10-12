@@ -48,20 +48,26 @@ struct arena_frame {
 	struct arena_frame	*next;
 };
 
-struct arena_impl {
+struct arena {
 	struct arena_frame	*frame;
 	/* Initial heap frame size, multiple of page size. */
 	size_t			 frame_size;
-	/*
-	 * Number of bytes in stack frame occupied by the arena and stack frame
-	 * itself.
-	 */
-	size_t			 stack_frame_size;
 	/* Number of ASAN poison bytes between allocations. */
 	size_t			 poison_size;
-	unsigned long		 flags;
+	struct {
+		unsigned int	fatal:1,
+				dying:1;
+	} flags;
+	int			 refs;
 	struct arena_stats	 stats;
 };
+
+union address {
+	char		*s8;
+	uint64_t	 u64;
+};
+
+static const size_t maxalign = sizeof(void *);
 
 static void
 frame_poison(struct arena_frame *frame __attribute__((unused)))
@@ -91,23 +97,38 @@ frame_unpoison(struct arena_frame *frame __attribute__((unused)),
 	ASAN_UNPOISON_MEMORY_REGION(&frame->ptr[frame->len], size);
 }
 
-static int
-is_fatal(const struct arena_impl *a)
+static union address
+align_address(const struct arena *a, union address addr)
 {
-	return !!(a->flags & ARENA_FATAL);
+	addr.u64 = (addr.u64 + maxalign - 1) & ~(maxalign - 1);
+	if (a->poison_size > 0) {
+		if (a->poison_size > INT64_MAX - addr.u64) {
+			/* Insufficient space for poison bytes is not fatal. */
+		} else {
+			addr.u64 += a->poison_size;
+		}
+	}
+	return addr;
 }
 
-static int
-is_stack_frame(const struct arena_impl *a)
+static void
+arena_ref(struct arena *a)
 {
-	return (const struct arena_frame *)&a[1] == a->frame;
+	a->refs++;
+}
+
+static void
+arena_rele(struct arena *a)
+{
+	if (--a->refs > 0)
+		return;
+	free(a);
 }
 
 static void *
-arena_push(struct arena_impl *a, struct arena_frame *frame, size_t size)
+arena_push(struct arena *a, struct arena_frame *frame, size_t size)
 {
 	void *ptr;
-	size_t maxalign = sizeof(void *);
 	uint64_t newlen;
 
 	if (size > INT64_MAX - frame->len) {
@@ -123,99 +144,120 @@ arena_push(struct arena_impl *a, struct arena_frame *frame, size_t size)
 
 	frame_unpoison(frame, size);
 	ptr = &frame->ptr[frame->len];
-	newlen = (newlen + maxalign - 1) & ~(maxalign - 1);
-	if (a->poison_size > 0) {
-		if (a->poison_size > INT64_MAX - newlen) {
-			/* Insufficient space for poison bytes is not fatal. */
-		} else {
-			newlen += a->poison_size;
-		}
-	}
+	newlen = align_address(a, (union address){.u64 = newlen}).u64;
+	/*
+	 * Discard alignment if the frame is exhausted, the next allocation will
+	 * require a new frame anyway.
+	 */
 	frame->len = newlen > frame->size ? frame->size : newlen;
 	return ptr;
 }
 
-int
-arena_init_impl(struct arena *aa, size_t stack_size, unsigned int flags)
+static int
+arena_frame_alloc(struct arena *a, size_t frame_size)
 {
-	struct arena_impl *a = (struct arena_impl *)aa;
-	struct arena_frame *frame = (struct arena_frame *)&a[1];
-	long page_size;
+	struct arena_frame *frame;
 
-	if (stack_size < sizeof(*a) + sizeof(*frame)) {
-		errno = EINVAL;
-		return 1;
-	}
-
-	page_size = sysconf(_SC_PAGESIZE);
-	if (page_size == -1)
-		return 1;
-
-	/* Place the first frame on the stack and account for it. */
-	memset(a, 0, sizeof(*a));
-	a->frame = frame;
-	frame->ptr = (char *)a;
-	frame->size = stack_size;
+	frame = malloc(frame_size);
+	if (frame == NULL)
+		return 0;
+	frame->ptr = (char *)frame;
+	frame->size = frame_size;
 	frame->len = 0;
 	frame->next = NULL;
-	if (arena_push(a, a->frame, sizeof(*frame)) == NULL)
-		return 1;
-
-	/* Place the arena on the stack and account for it. */
-	if (arena_push(a, a->frame, sizeof(*a)) == NULL)
-		return 1;
-	a->frame_size = 16 * (size_t)page_size;
-	a->stack_frame_size = a->frame->len;
-	a->poison_size = POISON_SIZE;
-	a->flags = flags;
-
+	if (arena_push(a, frame, sizeof(*frame)) == NULL) {
+		free(frame);
+		errno = ENOMEM;
+		return 0;
+	}
+	frame->next = a->frame;
+	a->frame = frame;
 	frame_poison(a->frame);
 
-	return 0;
+	a->stats.bytes.now += frame_size;
+	a->stats.bytes.total += frame_size;
+	a->stats.frames.now++;
+	a->stats.frames.total++;
+
+	return 1;
+}
+
+struct arena *
+arena_alloc(unsigned int flags)
+{
+	struct arena *a;
+	long page_size;
+
+	page_size = sysconf(_SC_PAGESIZE);
+	if (page_size == -1) {
+		if (flags & ARENA_FATAL)
+			err(1, "sysconf");
+		return NULL;
+	}
+
+	a = calloc(1, sizeof(*a));
+	if (a == NULL) {
+		if (flags & ARENA_FATAL)
+			err(1, "%s", __func__);
+		return NULL;
+	}
+	a->frame_size = 16 * (size_t)page_size;
+	a->poison_size = POISON_SIZE;
+	a->flags.fatal = (flags & ARENA_FATAL) ? 1u : 0;
+	arena_ref(a);
+	if (!arena_frame_alloc(a, a->frame_size)) {
+		arena_free(a);
+		if (flags & ARENA_FATAL)
+			err(1, "%s", __func__);
+		return NULL;
+	}
+
+	return a;
 }
 
 void
-arena_free(struct arena *aa)
+arena_free(struct arena *a)
 {
-	struct arena_impl *a = (struct arena_impl *)aa;
-
-	arena_leave(&(struct arena_scope){
-	    .arena	= a,
-	    .frame	= (struct arena_frame *)&a[1],
-	    .frame_len	= a->stack_frame_size,
-	});
-	frame_unpoison(a->frame, a->frame->size - a->frame->len);
+	arena_ref(a);
+	arena_scope_leave(&(struct arena_scope){.arena = a});
 	/* Signal to any scope(s) still alive that the arena is gone. */
-	a->frame = NULL;
+	a->flags.dying = 1;
+	arena_rele(a);
 }
 
 void
-arena_leave(struct arena_scope *s)
+arena_scope_leave(struct arena_scope *s)
 {
-	struct arena_impl *a = s->arena;
+	struct arena *a = s->arena;
 
 	/* Do nothing if arena_free() already has been called. */
-	if (a->frame == NULL)
+	if (a->flags.dying) {
+		arena_rele(a);
 		return;
+	}
 
-	while (a->frame != s->frame && !is_stack_frame(a)) {
+	while (a->frame != NULL && a->frame != s->frame) {
 		struct arena_frame *frame = a->frame;
 
-		a->stats.heap.now -= frame->size;
+		a->stats.bytes.now -= frame->size;
 		a->stats.frames.now--;
 
 		a->frame = frame->next;
 		free(frame);
 	}
-	a->frame->len = s->frame_len <= a->frame->len ? s->frame_len : 0;
-	frame_poison(a->frame);
+	if (a->frame != NULL) {
+		a->frame->len = s->frame_len <= a->frame->len ?
+		    s->frame_len : 0;
+		frame_poison(a->frame);
+	}
+
+	arena_rele(a);
 }
 
 struct arena_scope
-arena_scope(struct arena *aa)
+arena_scope_enter(struct arena *a)
 {
-	struct arena_impl *a = (struct arena_impl *)aa;
-
+	arena_ref(a);
 	return (struct arena_scope){
 	    .arena	= a,
 	    .frame	= a->frame,
@@ -226,7 +268,7 @@ arena_scope(struct arena *aa)
 void *
 arena_malloc(struct arena_scope *s, size_t size)
 {
-	struct arena_impl *a = s->arena;
+	struct arena *a = s->arena;
 	struct arena_frame *frame;
 	void *ptr;
 	uint64_t frame_size, total_size;
@@ -238,7 +280,7 @@ arena_malloc(struct arena_scope *s, size_t size)
 	if (sizeof(*frame) > INT64_MAX - size) {
 		a->stats.overflow |= 2;
 		errno = EOVERFLOW;
-		if (is_fatal(a))
+		if (a->flags.fatal)
 			err(1, "%s", __func__);
 		return NULL;
 	}
@@ -249,43 +291,23 @@ arena_malloc(struct arena_scope *s, size_t size)
 		if (frame_size > INT64_MAX / frame_size) {
 			a->stats.overflow |= 4;
 			errno = EOVERFLOW;
-			if (is_fatal(a))
+			if (a->flags.fatal)
 				err(1, "%s", __func__);
 			return NULL;
 		}
 		frame_size <<= 1;
 	}
 
-	frame = malloc(frame_size);
-	if (frame == NULL) {
-		if (is_fatal(a))
+	if (!arena_frame_alloc(a, frame_size)) {
+		if (a->flags.fatal)
 			err(1, "%s", __func__);
 		return NULL;
 	}
-	frame->ptr = (char *)frame;
-	frame->size = frame_size;
-	frame->len = 0;
-	frame->next = NULL;
-	if (arena_push(a, frame, sizeof(*frame)) == NULL) {
-		free(frame);
-		errno = ENOMEM;
-		if (is_fatal(a))
-			err(1, "%s", __func__);
-		return NULL;
-	}
-	frame->next = a->frame;
-	a->frame = frame;
-	frame_poison(a->frame);
-
-	a->stats.heap.now += frame_size;
-	a->stats.heap.total += frame_size;
-	a->stats.frames.now++;
-	a->stats.frames.total++;
 
 	ptr = arena_push(a, a->frame, size);
 	if (ptr == NULL) {
 		errno = ENOMEM;
-		if (is_fatal(a))
+		if (a->flags.fatal)
 			err(1, "%s", __func__);
 		return NULL;
 	}
@@ -295,13 +317,13 @@ arena_malloc(struct arena_scope *s, size_t size)
 void *
 arena_calloc(struct arena_scope *s, size_t nmemb, size_t size)
 {
-	struct arena_impl *a = s->arena;
+	struct arena *a = s->arena;
 	void *ptr;
 	uint64_t total_size;
 
 	if (nmemb > INT64_MAX / size) {
 		errno = EOVERFLOW;
-		if (is_fatal(a))
+		if (a->flags.fatal)
 			err(1, "%s", __func__);
 		return NULL;
 	}
@@ -314,12 +336,74 @@ arena_calloc(struct arena_scope *s, size_t nmemb, size_t size)
 	return ptr;
 }
 
+static int
+arena_realloc_fast(struct arena_scope *s, char *ptr, size_t old_size,
+    size_t new_size)
+{
+	struct arena_frame frame;
+	struct arena *a = s->arena;
+	union address old_addr;
+
+	/* Always allow existing allocations to shrink. */
+	if (new_size <= old_size) {
+		arena_poison(&ptr[new_size], old_size - new_size);
+		return 1;
+	}
+
+	/* Check if this is the last allocated object. */
+	old_addr.s8 = ptr;
+	old_addr.u64 += old_size;
+	old_addr = align_address(a, old_addr);
+	if (old_addr.s8 != &a->frame->ptr[a->frame->len])
+		return 0;
+
+	/* Check if the new size still fits within the current frame. */
+	frame = *a->frame;
+	frame.len = (size_t)(ptr - frame.ptr);
+	if (arena_push(a, &frame, new_size) == NULL)
+		return 0;
+
+	*a->frame = frame;
+	return 1;
+}
+
+void *
+arena_realloc(struct arena_scope *s, void *ptr, size_t old_size,
+    size_t new_size)
+{
+	struct arena *a = s->arena;
+	void *new_ptr;
+	union address old_addr;
+
+	old_addr.s8 = ptr;
+	if ((old_addr.u64 & (maxalign - 1)) != 0) {
+		errno = EFAULT;
+		return NULL;
+	}
+
+	a->stats.realloc.total++;
+
+	/* Fast path while reallocating last allocated object. */
+	if (ptr != NULL && arena_realloc_fast(s, ptr, old_size, new_size)) {
+		a->stats.realloc.fast++;
+		return ptr;
+	}
+
+	new_ptr = arena_malloc(s, new_size);
+	if (new_ptr == NULL)
+		return NULL;
+	if (ptr != NULL)
+		memcpy(new_ptr, ptr, old_size);
+	a->stats.realloc.spill += old_size;
+	return new_ptr;
+}
+
 char *
 arena_sprintf(struct arena_scope *s, const char *fmt, ...)
 {
 	struct arena_scope rollback;
 	va_list ap, cp;
-	struct arena_impl *a = s->arena;
+	struct arena *a = s->arena;
 	char *str = NULL;
 	size_t len;
 	int n;
@@ -333,12 +417,14 @@ arena_sprintf(struct arena_scope *s, const char *fmt, ...)
 		goto out;
 
 	len = (size_t)n + 1;
-	rollback = arena_scope((struct arena *)a);
+	rollback = arena_scope_enter(a);
 	str = arena_malloc(s, len);
 	n = vsnprintf(str, len, fmt, ap);
 	if (n < 0 || (size_t)n >= len) {
-		arena_leave(&rollback);
+		arena_scope_leave(&rollback);
 		str = NULL;
+	} else {
+		arena_rele(a);
 	}
 
 out:
@@ -355,13 +441,13 @@ arena_strdup(struct arena_scope *s, const char *src)
 char *
 arena_strndup(struct arena_scope *s, const char *src, size_t len)
 {
-	struct arena_impl *a = s->arena;
+	struct arena *a = s->arena;
 	char *dst;
 	uint64_t total_size;
 
 	if (len > INT64_MAX - 1) {
 		errno = EOVERFLOW;
-		if (is_fatal(a))
+		if (a->flags.fatal)
 			err(1, "%s", __func__);
 		return NULL;
 	}
@@ -376,9 +462,14 @@ arena_strndup(struct arena_scope *s, const char *src, size_t len)
 }
 
 struct arena_stats *
-arena_stats(struct arena *aa)
+arena_stats(struct arena *a)
 {
-	struct arena_impl *a = (struct arena_impl *)aa;
-
 	return &a->stats;
+}
+
+void
+arena_poison(void *ptr __attribute__((unused)),
+    size_t size __attribute__((unused)))
+{
+	ASAN_POISON_MEMORY_REGION(ptr, size);
 }

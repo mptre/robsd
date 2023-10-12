@@ -15,20 +15,15 @@
  */
 
 #include <stddef.h>	/* size_t */
-#include <stdint.h>
 
 #define ARENA_FATAL		0x00000001u
 
-struct arena {
-	uint8_t	u8;
-};
-
-typedef char ARENA;
-
-#define ARENA_SCOPE __attribute__((cleanup(arena_leave))) struct arena_scope
+#define arena_scope(arena, varname) \
+	__attribute__((cleanup(arena_scope_leave))) \
+	struct arena_scope varname = arena_scope_enter((arena))
 
 struct arena_scope {
-	struct arena_impl	*arena;
+	struct arena		*arena;
 	struct arena_frame	*frame;
 	size_t			 frame_len;
 };
@@ -39,7 +34,7 @@ struct arena_stats {
 		unsigned long	now;
 		/* Total amount of allocated bytes. */
 		unsigned long	total;
-	} heap;
+	} bytes;
 
 	struct {
 		/* Effective amount of allocated frames. */
@@ -48,23 +43,31 @@ struct arena_stats {
 		unsigned long	total;
 	} frames;
 
+	struct {
+		/* Number of fast reallocations. */
+		unsigned long	fast;
+		/* Number of reallocations. */
+		unsigned long	total;
+		/* Number of bytes spilled while moving allocations. */
+		unsigned long	spill;
+	} realloc;
+
 	/* Overflow scenario(s) hit during frame size calculation. */
 	unsigned long	overflow;
 };
 
-#define arena_init(a, flags) arena_init_impl((a), sizeof(a), (flags))
-int	arena_init_impl(struct arena *, size_t, unsigned int);
+struct arena	*arena_alloc(unsigned int);
+void		 arena_free(struct arena *);
 
-void	arena_free(struct arena *);
-
-void	arena_leave(struct arena_scope *);
-
-struct arena_scope  arena_scope(struct arena *);
+struct arena_scope	arena_scope_enter(struct arena *);
+void			arena_scope_leave(struct arena_scope *);
 
 void	*arena_malloc(struct arena_scope *, size_t)
 	__attribute__((malloc, alloc_size(2)));
 void	*arena_calloc(struct arena_scope *, size_t, size_t)
 	__attribute__((malloc, alloc_size(2, 3)));
+void	*arena_realloc(struct arena_scope *, void *, size_t, size_t)
+	__attribute__((malloc, alloc_size(4)));
 
 char	*arena_sprintf(struct arena_scope *, const char *, ...)
 	__attribute__((__format__(printf, 2, 3)));
@@ -73,3 +76,5 @@ char	*arena_strdup(struct arena_scope *, const char *);
 char	*arena_strndup(struct arena_scope *, const char *, size_t);
 
 struct arena_stats	*arena_stats(struct arena *);
+
+void    arena_poison(void *, size_t);
