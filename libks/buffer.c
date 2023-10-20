@@ -33,7 +33,6 @@ struct buffer {
 };
 
 static int	buffer_reserve(struct buffer *, size_t);
-static int	buffer_read_fd_impl(struct buffer *, int);
 
 static void	*callback_alloc(size_t, void *);
 static void	*callback_realloc(void *, size_t, size_t, void *);
@@ -109,7 +108,7 @@ buffer_read_fd(int fd)
 	return bf;
 }
 
-static int
+int
 buffer_read_fd_impl(struct buffer *bf, int fd)
 {
 	for (;;) {

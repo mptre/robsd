@@ -72,13 +72,6 @@ static const size_t maxalign = sizeof(void *);
 static void
 frame_poison(struct arena_frame *frame __attribute__((unused)))
 {
-#if 0
-	// XXX
-	fprintf(stderr, "[P] %10zu [%p, %p)\n",
-	    frame->size - frame->len,
-	    (void *)&frame->ptr[frame->len],
-	    (void *)&frame->ptr[frame->size]);
-#endif
 	ASAN_POISON_MEMORY_REGION(&frame->ptr[frame->len],
 	    frame->size - frame->len);
 }
@@ -87,13 +80,6 @@ static void
 frame_unpoison(struct arena_frame *frame __attribute__((unused)),
     size_t size __attribute__((unused)))
 {
-#if 0
-	// XXX
-	fprintf(stderr, "[U] %10zu [%p, %p)\n",
-	    size,
-	    (void *)&frame->ptr[frame->len],
-	    (void *)&frame->ptr[frame->len + size]);
-#endif
 	ASAN_UNPOISON_MEMORY_REGION(&frame->ptr[frame->len], size);
 }
 
@@ -167,7 +153,6 @@ arena_frame_alloc(struct arena *a, size_t frame_size)
 	frame->next = NULL;
 	if (arena_push(a, frame, sizeof(*frame)) == NULL) {
 		free(frame);
-		errno = ENOMEM;
 		return 0;
 	}
 	frame->next = a->frame;
@@ -306,7 +291,6 @@ arena_malloc(struct arena_scope *s, size_t size)
 
 	ptr = arena_push(a, a->frame, size);
 	if (ptr == NULL) {
-		errno = ENOMEM;
 		if (a->flags.fatal)
 			err(1, "%s", __func__);
 		return NULL;

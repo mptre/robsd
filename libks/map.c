@@ -21,7 +21,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "arithmetic.h"
+#include "libks/arithmetic.h"
 
 #if defined(__clang__) || !defined(__GNUC__) || __GNUC__ >= 7
 #define HAVE_IMPLICIT_FALLTHROUGH 1

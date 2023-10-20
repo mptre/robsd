@@ -47,6 +47,19 @@ arena_buffer_read(struct arena_scope *s, const char *path)
 	return bf;
 }
 
+struct buffer *
+arena_buffer_read_fd(struct arena_scope *s, int fd)
+{
+	struct buffer *bf;
+
+	bf = arena_buffer_alloc(s, 1 << 13);
+	if (buffer_read_fd_impl(bf, fd)) {
+		buffer_free(bf);
+		return NULL;
+	}
+	return bf;
+}
+
 static void *
 callback_alloc(size_t size, void *arg)
 {
