@@ -62,13 +62,6 @@ enum token_type {
 	TOKEN_STRING,
 };
 
-struct parser_context {
-	struct buffer	*pc_bf;
-};
-
-static void	parser_context_init(struct parser_context *);
-static void	parser_context_reset(struct parser_context *);
-
 static struct token	*config_lexer_read(struct lexer *, void *);
 static const char	*token_serialize(const struct token *);
 
@@ -425,16 +418,18 @@ config_free(struct config *cf)
 int
 config_parse(struct config *cf)
 {
-	struct parser_context pc;
+	struct buffer *bf;
 	int error;
 
-	parser_context_init(&pc);
+	arena_scope(cf->scratch, s);
+
+	bf = arena_buffer_alloc(&s, 1 << 10);
 	cf->lx = lexer_alloc(&(struct lexer_arg){
 	    .path = cf->path,
 	    .callbacks = {
 		.read		= config_lexer_read,
 		.serialize	= token_serialize,
-		.arg		= &pc,
+		.arg		= bf,
 	    },
 	});
 	if (cf->lx == NULL) {
@@ -444,7 +439,6 @@ config_parse(struct config *cf)
 	error = config_parse1(cf);
 
 out:
-	parser_context_reset(&pc);
 	return error;
 }
 
@@ -760,26 +754,11 @@ variable_get_value(const struct variable *va)
 	return &va->va_val;
 }
 
-static void
-parser_context_init(struct parser_context *pc)
-{
-	pc->pc_bf = buffer_alloc(512);
-	if (pc->pc_bf == NULL)
-		err(1, NULL);
-}
-
-static void
-parser_context_reset(struct parser_context *pc)
-{
-	buffer_free(pc->pc_bf);
-}
-
 static struct token *
 config_lexer_read(struct lexer *lx, void *arg)
 {
 	struct lexer_state s;
-	struct parser_context *pc = (struct parser_context *)arg;
-	struct buffer *bf = pc->pc_bf;
+	struct buffer *bf = (struct buffer *)arg;
 	struct token *tk;
 	char ch;
 
