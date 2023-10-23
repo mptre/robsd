@@ -26,13 +26,13 @@
 #include "step.h"
 
 struct report_context {
-	struct arena	*scratch;
-	const char	*builddir;
-	const char	*prev_builddir;
-	struct config	*config;
-	struct step	*steps;
-	struct buffer	*out;
-	enum robsd_mode	 mode;
+	struct arena		*scratch;
+	const char		*builddir;
+	const char		*prev_builddir;
+	struct config		*config;
+	struct step_file	*step_file;
+	struct buffer		*out;
+	enum robsd_mode		 mode;
 
 	struct {
 		MAP(const char, *, int) suites;
@@ -293,12 +293,14 @@ regress_report_skip_step(struct report_context *r, const struct step *step)
 static const char *
 regress_report_status(struct report_context *r, struct arena_scope *s)
 {
-	size_t nsteps = VECTOR_LENGTH(r->steps);
-	size_t i;
+	VECTOR(struct step) steps;
+	size_t i, nsteps;
 	int nfailures = 0;
 
+	steps = steps_get(r->step_file);
+	nsteps = VECTOR_LENGTH(steps);
 	for (i = 0; i < nsteps; i++) {
-		if (step_get_field(&r->steps[i], "exit")->integer != 0)
+		if (step_get_field(&steps[i], "exit")->integer != 0)
 			nfailures++;
 	}
 	if (nfailures > 0) {
@@ -363,6 +365,7 @@ report_hostname(struct arena_scope *s)
 static const char *
 report_status(struct report_context *r, struct arena_scope *s)
 {
+	VECTOR(struct step) steps;
 	size_t nsteps;
 
 	if (r->mode == ROBSD_REGRESS)
@@ -372,14 +375,15 @@ report_status(struct report_context *r, struct arena_scope *s)
 	 * All other robsd utilities halts if a step failed, only bother
 	 * checking the last non-skipped step.
 	 */
-	nsteps = VECTOR_LENGTH(r->steps);
+	steps = steps_get(r->step_file);
+	nsteps = VECTOR_LENGTH(steps);
 	for (;;) {
 		const struct step *step;
 		const char *name;
 
 		if (nsteps == 0)
 			break;
-		step = &r->steps[--nsteps];
+		step = &steps[--nsteps];
 		if (step_get_field(step, "skip")->integer == 1)
 			continue;
 		if (step_get_field(step, "exit")->integer == 0)
@@ -415,12 +419,14 @@ report_subject(struct report_context *r)
 static int64_t
 total_duration(struct report_context *r)
 {
+	VECTOR(struct step) steps;
 	int64_t duration = 0;
 	size_t i, nsteps;
 
-	nsteps = VECTOR_LENGTH(r->steps);
+	steps = steps_get(r->step_file);
+	nsteps = VECTOR_LENGTH(steps);
 	for (i = 0; i < nsteps; i++) {
-		const struct step *step = &r->steps[i];
+		const struct step *step = &steps[i];
 
 		if (step_get_field(step, "skip")->integer == 1)
 			continue;
@@ -489,11 +495,13 @@ report_comment(struct report_context *r)
 static void
 report_stats_duration(struct report_context *r, struct arena_scope *s)
 {
+	VECTOR(struct step) steps;
 	const struct step *end;
 	const char *str;
 	int64_t delta, duration;
 
-	end = steps_find_by_name(r->steps, "end");
+	steps = steps_get(r->step_file);
+	end = steps_find_by_name(steps, "end");
 	if (end != NULL) {
 		duration = step_get_field(end, "duration")->integer;
 		delta = step_get_field(end, "delta")->integer;
@@ -725,11 +733,13 @@ report_step_log(struct report_context *r, const struct step *step,
 static int
 report_steps(struct report_context *r)
 {
+	VECTOR(struct step) steps;
 	size_t i, nsteps;
 
-	nsteps = VECTOR_LENGTH(r->steps);
+	steps = steps_get(r->step_file);
+	nsteps = VECTOR_LENGTH(steps);
 	for (i = 0; i < nsteps; i++) {
-		const struct step *step = &r->steps[i];
+		const struct step *step = &steps[i];
 		const char *duration;
 
 		arena_scope(r->scratch, s);
@@ -801,6 +811,7 @@ report_sanitize(struct report_context *r)
 static void
 report_context_free(struct report_context *r)
 {
+	steps_free(r->step_file);
 	MAP_FREE(r->regress.suites);
 }
 
@@ -811,7 +822,6 @@ report_generate(struct config *config, const char *builddir,
 	struct arena *scratch;
 	struct report_context r = {0};
 	struct step_file *step_file = NULL;
-	struct step *steps;
 	const char *steps_path;
 	enum robsd_mode mode;
 	int error = 1;
@@ -824,7 +834,6 @@ report_generate(struct config *config, const char *builddir,
 	step_file = steps_parse(steps_path);
 	if (step_file == NULL)
 		goto out;
-	steps = steps_get(step_file);
 
 	mode = config_get_mode(config);
 	r = (struct report_context){
@@ -832,7 +841,7 @@ report_generate(struct config *config, const char *builddir,
 	    .builddir		= builddir,
 	    .prev_builddir	= previous_builddir(config, builddir, &s),
 	    .config		= config,
-	    .steps		= steps,
+	    .step_file		= step_file,
 	    .out		= out,
 	    .mode		= mode,
 	};
