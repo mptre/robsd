@@ -15,7 +15,7 @@
 #include "libks/map.h"
 #include "libks/vector.h"
 
-struct context {
+struct wait_context {
 	MAP(int,, int)	pids;
 
 	struct {
@@ -26,16 +26,16 @@ struct context {
 
 static void	usage(void) __attribute__((__noreturn__));
 
-static void	context_free(struct context *);
-static void	kqueue_setup(struct context *);
-static int	kqueue_handle_events(struct context *, int);
-static int	parse_pids(struct context *, int, char **);
-static int	pid_count(struct context *);
+static void	context_free(struct wait_context *);
+static void	kqueue_setup(struct wait_context *);
+static int	kqueue_handle_events(struct wait_context *, int);
+static int	parse_pids(struct wait_context *, int, char **);
+static int	pid_count(struct wait_context *);
 
 int
 main(int argc, char *argv[])
 {
-	struct context ctx = {0};
+	struct wait_context ctx = {0};
 	struct map_iterator it = {0};
 	int *pid;
 	int waitall = 0;
@@ -112,7 +112,7 @@ usage(void)
 }
 
 static void
-context_free(struct context *ctx)
+context_free(struct wait_context *ctx)
 {
 	VECTOR_FREE(ctx->kqueue.changes);
 	VECTOR_FREE(ctx->kqueue.events);
@@ -120,7 +120,7 @@ context_free(struct context *ctx)
 }
 
 static void
-kqueue_setup(struct context *ctx)
+kqueue_setup(struct wait_context *ctx)
 {
 	struct map_iterator it = {0};
 	int *pid;
@@ -142,7 +142,7 @@ kqueue_setup(struct context *ctx)
 }
 
 static int
-kqueue_handle_events(struct context *ctx, int nevents)
+kqueue_handle_events(struct wait_context *ctx, int nevents)
 {
 	int error = 0;
 	int i;
@@ -174,7 +174,7 @@ kqueue_handle_events(struct context *ctx, int nevents)
 }
 
 static int
-parse_pids(struct context *ctx, int argc, char **argv)
+parse_pids(struct wait_context *ctx, int argc, char **argv)
 {
 	int error = 0;
 	int i;
@@ -198,7 +198,7 @@ parse_pids(struct context *ctx, int argc, char **argv)
 }
 
 static int
-pid_count(struct context *ctx)
+pid_count(struct wait_context *ctx)
 {
 	struct map_iterator it = {0};
 	int npids = 0;
