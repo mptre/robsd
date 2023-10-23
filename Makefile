@@ -111,6 +111,14 @@ OBJS_robsd-step=	${SRCS_robsd-step:.c=.o}
 DEPS_robsd-step=	${SRCS_robsd-step:.c=.d}
 PROG_robsd-step=	robsd-step
 
+SRCS_robsd-wait+=	${COMPATS}
+SRCS_robsd-wait+=	map.c
+SRCS_robsd-wait+=	vector.c
+SRCS_robsd-wait+=	robsd-wait.c
+OBJS_robsd-wait=	${SRCS_robsd-wait:.c=.o}
+DEPS_robsd-wait=	${SRCS_robsd-wait:.c=.d}
+PROG_robsd-wait=	robsd-wait
+
 SRCS_fuzz-config+=	${COMPATS}
 SRCS_fuzz-config+=	${SRCS_config}
 SRCS_fuzz-config+=	fuzz-config.c
@@ -152,6 +160,7 @@ KNFMT+=	robsd-regress-log.c
 KNFMT+=	robsd-report.c
 KNFMT+=	robsd-stat.c
 KNFMT+=	robsd-step.c
+KNFMT+=	robsd-wait.c
 KNFMT+=	step-exec.c
 KNFMT+=	step-exec.h
 KNFMT+=	step.c
@@ -193,6 +202,7 @@ CLANGTIDY+=	robsd-regress-log.c
 CLANGTIDY+=	robsd-report.c
 CLANGTIDY+=	robsd-stat.c
 CLANGTIDY+=	robsd-step.c
+CLANGTIDY+=	robsd-wait.c
 CLANGTIDY+=	step-exec.c
 CLANGTIDY+=	step-exec.h
 CLANGTIDY+=	step.c
@@ -222,6 +232,7 @@ CPPCHECK+=	robsd-regress-log.c
 CPPCHECK+=	robsd-report.c
 CPPCHECK+=	robsd-stat.c
 CPPCHECK+=	robsd-step.c
+CPPCHECK+=	robsd-wait.c
 CPPCHECK+=	step-exec.c
 CPPCHECK+=	step.c
 CPPCHECK+=	token.c
@@ -332,6 +343,7 @@ SHLINT+=	tests/robsd-regress.sh
 SHLINT+=	tests/robsd-report.sh
 SHLINT+=	tests/robsd-rescue.sh
 SHLINT+=	tests/robsd-step.sh
+SHLINT+=	tests/robsd-wait.sh
 SHLINT+=	tests/robsd.sh
 SHLINT+=	tests/step-eval.sh
 SHLINT+=	tests/step-id.sh
@@ -360,6 +372,7 @@ all: ${PROG_robsd-regress-log}
 all: ${PROG_robsd-report}
 all: ${PROG_robsd-stat}
 all: ${PROG_robsd-step}
+all: ${PROG_robsd-wait}
 
 ${PROG_robsd-config}: ${OBJS_robsd-config}
 	${CC} ${DEBUG} -o ${PROG_robsd-config} ${OBJS_robsd-config} ${LDFLAGS}
@@ -388,6 +401,9 @@ ${PROG_robsd-stat}: ${OBJS_robsd-stat}
 ${PROG_robsd-step}: ${OBJS_robsd-step}
 	${CC} ${DEBUG} -o ${PROG_robsd-step} ${OBJS_robsd-step} ${LDFLAGS}
 
+${PROG_robsd-wait}: ${OBJS_robsd-wait}
+	${CC} ${DEBUG} -o ${PROG_robsd-wait} ${OBJS_robsd-wait} ${LDFLAGS}
+
 clean:
 	rm -f \
 		${DEPS_robsd-config} ${OBJS_robsd-config} ${PROG_robsd-config} \
@@ -399,6 +415,7 @@ clean:
 		${DEPS_robsd-report} ${OBJS_robsd-report} ${PROG_robsd-report} \
 		${DEPS_robsd-stat} ${OBJS_robsd-stat} ${PROG_robsd-stat} \
 		${DEPS_robsd-step} ${OBJS_robsd-step} ${PROG_robsd-step} \
+		${DEPS_robsd-wait} ${OBJS_robsd-wait} ${PROG_robsd-wait} \
 		${DEPS_fuzz-config} ${OBJS_fuzz-config} ${PROG_fuzz-config}
 .PHONY: clean
 
@@ -485,6 +502,8 @@ install: all
 	${INSTALL_MAN} ${.CURDIR}/robsd-regress-log.8 ${DESTDIR}${MANDIR}/man8
 # robsd-report
 	${INSTALL} -m 0555 ${PROG_robsd-report} ${DESTDIR}${LIBEXECDIR}/robsd
+# robsd-wait
+	${INSTALL} -m 0555 ${PROG_robsd-wait} ${DESTDIR}${LIBEXECDIR}/robsd
 .PHONY: install
 
 lint:
@@ -525,6 +544,7 @@ test: all
 		"ROBSDREPORT=${.OBJDIR}/${PROG_robsd-report}" \
 		"ROBSDSTAT=${.OBJDIR}/${PROG_robsd-stat}" \
 		"ROBSDSTEP=${.OBJDIR}/${PROG_robsd-step}" \
+		"ROBSDWAIT=${.OBJDIR}/${PROG_robsd-wait}" \
 		"TESTFLAGS=${TESTFLAGS}"
 .PHONY: test
 
@@ -537,4 +557,5 @@ test: all
 -include ${DEPS_robsd-report}
 -include ${DEPS_robsd-stat}
 -include ${DEPS_robsd-step}
+-include ${DEPS_robsd-wait}
 -include ${DEPS_fuzz-config}

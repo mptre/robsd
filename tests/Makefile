@@ -28,6 +28,7 @@ TESTS+=	robsd-regress.sh
 TESTS+=	robsd-report.sh
 TESTS+=	robsd-rescue.sh
 TESTS+=	robsd-step.sh
+TESTS+=	robsd-wait.sh
 TESTS+=	robsd.sh
 TESTS+=	step-eval.sh
 TESTS+=	step-id.sh
