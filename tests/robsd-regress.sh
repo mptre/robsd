@@ -161,10 +161,8 @@ regress:
 	sleep 3600
 obj:
 EOF
-	_exec="${TSHDIR}/robsd-regress-exec"
-	cp "$ROBSDEXEC" "$_exec"
 
-	if ! PATH="${BINDIR}:${PATH}" ROBSDEXEC="$_exec" sh "$ROBSDREGRESS" \
+	if ! PATH="${BINDIR}:${PATH}" sh "$ROBSDREGRESS" \
 	   >"$TMP1" 2>&1; then
 		fail - "expected exit zero" <"$TMP1"
 	fi
@@ -174,7 +172,7 @@ EOF
 
 	_robsdkill="${TSHDIR}/robsd-regress-kill"
 	cp "$ROBSDKILL" "$_robsdkill"
-	PATH="${BINDIR}:${PATH}" ROBSDEXEC="$_exec" sh "$_robsdkill"
+	PATH="${BINDIR}:${PATH}" sh "$_robsdkill"
 	while pgrep -q -f "${ROBSDREGRESS}$"; do
 		sleep .1
 	done

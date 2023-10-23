@@ -109,6 +109,7 @@ config_load() {
 	: "${EXECDIR:=/usr/local/libexec/robsd}"; export EXECDIR
 	PATH="${PATH}:/usr/X11R6/bin"; export PATH
 	: "${ROBSDCONFIG:=${EXECDIR}/robsd-config}"
+	: "${ROBSDEXEC:=${EXECDIR}/robsd-exec}"
 	: "${ROBSDHOOK:=${EXECDIR}/robsd-hook}"
 	: "${ROBSDLS:=${EXECDIR}/robsd-ls}"
 	: "${ROBSDREPORT:=${EXECDIR}/robsd-report}"
@@ -1070,7 +1071,6 @@ step_exec() (
 	local _exec
 	local _fail
 	local _log
-	local _robsdexec="${ROBSDEXEC:-${EXECDIR}/${_MODE}-exec}"
 	local _step
 	local _trace="yes"
 
@@ -1100,7 +1100,8 @@ step_exec() (
 
 	{
 		if [ "$_MODE" = "robsd-regress" ] && ! [ -e "$_exec" ]; then
-			"$_robsdexec" sh -eu ${_trace:+-x} \
+			"$ROBSDEXEC" -m "$_MODE" ${ROBSDCONF:+"-C${ROBSDCONF}"} \
+				-- sh -eu ${_trace:+-x} \
 				"${EXECDIR}/${_MODE}-exec.sh" "$_step" ||
 				echo "$?" >"$_fail"
 
@@ -1108,7 +1109,9 @@ step_exec() (
 			# log for failures.
 			regress_failed "$_log" && echo 1 >"$_fail"
 		else
-			"$_robsdexec" sh -eu ${_trace:+-x} "$_exec" ||
+			"$ROBSDEXEC" -m "$_MODE" ${ROBSDCONF:+"-C${ROBSDCONF}"} \
+				-- sh -eu ${_trace:+-x} \
+				"$_exec" ||
 				echo "$?" >"$_fail"
 		fi
 	} </dev/null 2>&1 | tee "$_log"

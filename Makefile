@@ -29,6 +29,7 @@ DEPS_robsd-config=	${SRCS_robsd-config:.c=.d}
 PROG_robsd-config=	robsd-config
 
 SRCS_robsd-exec+=	${COMPATS}
+SRCS_robsd-exec+=	${SRCS_config}
 SRCS_robsd-exec+=	step-exec.c
 SRCS_robsd-exec+=	robsd-exec.c
 OBJS_robsd-exec=	${SRCS_robsd-exec:.c=.o}
@@ -479,7 +480,6 @@ install: all
 	${INSTALL_MAN} ${.CURDIR}/robsd-crossenv.8 ${DESTDIR}${MANDIR}/man8
 	ln -f ${DESTDIR}${BINDIR}/robsd-clean ${DESTDIR}${BINDIR}/robsd-cross-clean
 	ln -f ${DESTDIR}${BINDIR}/robsd-kill ${DESTDIR}${BINDIR}/robsd-cross-kill
-	ln -f ${DESTDIR}${LIBEXECDIR}/robsd/robsd-exec ${DESTDIR}${LIBEXECDIR}/robsd/robsd-cross-exec
 # robsd-ports
 	${INSTALL} -m 0555 ${.CURDIR}/robsd-ports ${DESTDIR}${BINDIR}
 	${INSTALL_MAN} ${.CURDIR}/robsd-ports.conf.5 ${DESTDIR}${MANDIR}/man5
@@ -487,14 +487,12 @@ install: all
 	ln -f ${DESTDIR}${BINDIR}/robsd-clean ${DESTDIR}${BINDIR}/robsd-ports-clean
 	ln -f ${DESTDIR}${BINDIR}/robsd-kill ${DESTDIR}${BINDIR}/robsd-ports-kill
 	ln -f ${DESTDIR}${BINDIR}/robsd-rescue ${DESTDIR}${BINDIR}/robsd-ports-rescue
-	ln -f ${DESTDIR}${LIBEXECDIR}/robsd/robsd-exec ${DESTDIR}${LIBEXECDIR}/robsd/robsd-ports-exec
 # robsd-regress
 	${INSTALL} -m 0555 ${.CURDIR}/robsd-regress ${DESTDIR}${BINDIR}
 	${INSTALL_MAN} ${.CURDIR}/robsd-regress.conf.5 ${DESTDIR}${MANDIR}/man5
 	${INSTALL_MAN} ${.CURDIR}/robsd-regress.8 ${DESTDIR}${MANDIR}/man8
 	ln -f ${DESTDIR}${BINDIR}/robsd-clean ${DESTDIR}${BINDIR}/robsd-regress-clean
 	ln -f ${DESTDIR}${BINDIR}/robsd-kill ${DESTDIR}${BINDIR}/robsd-regress-kill
-	ln -f ${DESTDIR}${LIBEXECDIR}/robsd/robsd-exec ${DESTDIR}${LIBEXECDIR}/robsd/robsd-regress-exec
 # robsd-regress-html
 	${INSTALL} -m 0555 ${PROG_robsd-regress-html} ${DESTDIR}${BINDIR}
 	${INSTALL_MAN} ${.CURDIR}/robsd-regress-html.8 ${DESTDIR}${MANDIR}/man8
