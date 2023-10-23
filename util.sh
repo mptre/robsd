@@ -634,7 +634,8 @@ isempty() {
 #
 # Get the number of running jobs
 jobs_count() (
-	set -- "$@"
+	# shellcheck disable=SC2068
+	set -- $@
 	echo "$#"
 )
 
