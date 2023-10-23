@@ -20,7 +20,7 @@ struct variable_value {
 
 	union {
 		const void	 *ptr;
-		char		 *str;
+		const char	 *str;
 		char		**list;
 		int		  integer;
 	};

@@ -485,7 +485,6 @@ config_find(struct config *cf, const char *name)
 	/* Look for default value. */
 	for (i = 0; i < cf->grammar.len; i++) {
 		const struct grammar *gr = &cf->grammar.ptr[i];
-		const void *val;
 
 		if (gr->gr_flags & REQ)
 			continue;
@@ -504,7 +503,6 @@ config_find(struct config *cf, const char *name)
 
 		memset(&vadef, 0, sizeof(vadef));
 		vadef.va_val.type = gr->gr_type;
-		val = gr->gr_default.ptr;
 		switch (vadef.va_val.type) {
 		case INTEGER:
 			vadef.va_val.integer = 0;
@@ -512,7 +510,9 @@ config_find(struct config *cf, const char *name)
 
 		case STRING:
 		case DIRECTORY: {
-			vadef.va_val.str = (char *)(val == NULL ? "" : val);
+			const char *str = gr->gr_default.ptr;
+
+			vadef.va_val.str = (str == NULL ? "" : str);
 			break;
 		}
 
