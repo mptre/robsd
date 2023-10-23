@@ -128,6 +128,7 @@ static int			 grammar_equals(const struct grammar *,
  */
 
 struct config {
+	struct arena_scope	*eternal;
 	struct arena		*scratch;
 	struct lexer		*lx;
 	const char		*path;
@@ -337,7 +338,8 @@ static const char *robsd_regress_steps[] = {
 };
 
 struct config *
-config_alloc(const char *mode, const char *path, struct arena *scratch)
+config_alloc(const char *mode, const char *path, struct arena_scope *eternal,
+    struct arena *scratch)
 {
 	struct config *cf;
 	const char *defaultpath = NULL;
@@ -349,6 +351,7 @@ config_alloc(const char *mode, const char *path, struct arena *scratch)
 	}
 
 	cf = ecalloc(1, sizeof(*cf));
+	cf->eternal = eternal;
 	cf->scratch = scratch;
 	cf->path = path;
 	cf->mode = m;

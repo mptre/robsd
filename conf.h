@@ -32,7 +32,8 @@ struct variable_value {
 	};
 };
 
-struct config	*config_alloc(const char *, const char *, struct arena *);
+struct config	*config_alloc(const char *, const char *, struct arena_scope *,
+    struct arena *);
 void		 config_free(struct config *);
 int		 config_parse(struct config *);
 int		 config_append_var(struct config *, const char *);

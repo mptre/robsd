@@ -22,6 +22,7 @@ enum step_mode {
 
 struct step_context {
 	const char		*path;
+	struct arena_scope	*eternal;
 	struct arena		*scratch;
 	struct step_file	*step_file;
 };
@@ -51,6 +52,7 @@ int
 main(int argc, char *argv[])
 {
 	struct step_context sc = {0};
+	struct arena *arena;
 	enum step_mode mode = 0;
 	int error = 0;
 	int ch;
@@ -88,6 +90,9 @@ main(int argc, char *argv[])
 	if (mode == 0)
 		usage();
 
+	arena = arena_alloc(ARENA_FATAL);
+	arena_scope(arena, eternal);
+	sc.eternal = &eternal;
 	sc.scratch = arena_alloc(ARENA_FATAL);
 
 	switch (mode) {
@@ -145,6 +150,7 @@ main(int argc, char *argv[])
 out:
 	steps_free(sc.step_file);
 	arena_free(sc.scratch);
+	arena_free(arena);
 	return error;
 }
 
@@ -336,7 +342,7 @@ steps_list(struct step_context *sc, int argc, char **argv)
 	if (argc != 0 || mode == NULL)
 		usage();
 
-	config = config_alloc(mode, config_path, sc->scratch);
+	config = config_alloc(mode, config_path, sc->eternal, sc->scratch);
 	if (config == NULL)
 		return 1;
 	if (config_parse(config))

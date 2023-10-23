@@ -20,7 +20,7 @@ main(int argc, char *argv[])
 {
 	VECTOR(const char *) vars;
 	VECTOR(char *) args = NULL;
-	struct arena *scratch;
+	struct arena *arena, *scratch;
 	struct config *config = NULL;
 	const char *mode = NULL;
 	const char *path = NULL;
@@ -64,9 +64,11 @@ main(int argc, char *argv[])
 	if (argc > 0 || mode == NULL)
 		usage();
 
+	arena = arena_alloc(ARENA_FATAL);
+	arena_scope(arena, eternal);
 	scratch = arena_alloc(ARENA_FATAL);
 
-	config = config_alloc(mode, path, scratch);
+	config = config_alloc(mode, path, &eternal, scratch);
 	if (config == NULL) {
 		error = 1;
 		goto out;
@@ -111,6 +113,7 @@ out:
 	VECTOR_FREE(args);
 	config_free(config);
 	arena_free(scratch);
+	arena_free(arena);
 	VECTOR_FREE(vars);
 	return error;
 }
