@@ -54,7 +54,7 @@ enum token_type {
 	TOKEN_PACKAGES,
 	TOKEN_QUIET,
 	TOKEN_ROOT,
-	TOKEN_TARGET,
+	TOKEN_TARGETS,
 
 	/* types */
 	TOKEN_BOOLEAN,
@@ -164,6 +164,8 @@ static struct variable	*config_default_build_dir(struct config *,
 static struct variable	*config_default_exec_dir(struct config *, const char *);
 static struct variable	*config_default_inet4(struct config *, const char *);
 static struct variable	*config_default_inet6(struct config *, const char *);
+static struct variable	*config_default_regress_targets(struct config *,
+    const char *);
 static struct variable	*config_default_rdomain(struct config *, const char *);
 
 static struct variable	*config_append(struct config *, const char *,
@@ -307,7 +309,7 @@ static const struct grammar robsd_regress[] = {
 	{ "regress-env",	LIST,		config_parse_regress_env,	REP,		{ NULL } },
 	{ "regress-user",	STRING,		config_parse_user,		0,		{ "build" } },
 	{ "regress-*-env",	STRING,		NULL,				PAT|EARLY,	{ "${regress-env}" } },
-	{ "regress-*-target",	STRING,		NULL,				PAT,		{ "regress" } },
+	{ "regress-*-targets",	LIST,		NULL,				PAT|FUN,	{ D_FUN(config_default_regress_targets) } },
 	{ "regress-*-parallel",	INTEGER,	NULL,				PAT,		{ D_I32(1) } },
 };
 
@@ -823,8 +825,8 @@ again:
 			return lexer_emit(lx, &s, TOKEN_QUIET);
 		if (strcmp("root", buf) == 0)
 			return lexer_emit(lx, &s, TOKEN_ROOT);
-		if (strcmp("target", buf) == 0)
-			return lexer_emit(lx, &s, TOKEN_TARGET);
+		if (strcmp("targets", buf) == 0)
+			return lexer_emit(lx, &s, TOKEN_TARGETS);
 
 		if (strcmp("yes", buf) == 0) {
 			tk = lexer_emit(lx, &s, TOKEN_BOOLEAN);
@@ -919,8 +921,8 @@ token_serialize(const struct token *tk)
 		return "QUIET";
 	case TOKEN_ROOT:
 		return "ROOT";
-	case TOKEN_TARGET:
-		return "TARGET";
+	case TOKEN_TARGETS:
+		return "TARGETS";
 	case TOKEN_BOOLEAN:
 		return "BOOLEAN";
 	case TOKEN_INTEGER:
@@ -1288,13 +1290,15 @@ config_parse_regress(struct config *cf, struct variable_value *val)
 			variable_value_init(&newval, INTEGER);
 			newval.integer = 1;
 			config_append(cf, name, &newval);
-		} else if (lexer_if(lx, TOKEN_TARGET, &tk)) {
+		} else if (lexer_if(lx, TOKEN_TARGETS, &tk)) {
 			struct variable_value newval;
+			struct variable *targets;
 
-			if (config_parse_string(cf, &newval))
+			if (config_parse_list(cf, &newval))
 				return 1;
-			name = regressname(path, "target", &s);
-			config_append(cf, name, &newval);
+			name = regressname(path, "targets", &s);
+			targets = config_find_or_create_list(cf, name);
+			variable_value_concat(&targets->va_val, &newval);
 		} else {
 			break;
 		}
@@ -1485,6 +1489,20 @@ config_default_inet6(struct config *cf, const char *name)
 		addr = "";
 	variable_value_init(&val, STRING);
 	val.str = addr;
+	return config_append(cf, name, &val);
+}
+
+static struct variable *
+config_default_regress_targets(struct config *cf, const char *name)
+{
+	struct variable_value val;
+	char **dst;
+
+	variable_value_init(&val, LIST);
+	dst = VECTOR_ALLOC(val.list);
+	if (dst == NULL)
+		err(1, NULL);
+	*dst = arena_strdup(cf->eternal, "regress");
 	return config_append(cf, name, &val);
 }
 

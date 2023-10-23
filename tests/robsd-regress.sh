@@ -13,7 +13,7 @@ if testcase "basic"; then
 	regress "test/root" no-parallel root
 	regress "test/env" env { "FOO=1" "BAR=2" }
 	regress "test/pkg" packages { "quirks" "not-installed" }
-	regress "test/target" target "one"
+	regress "test/targets" targets { "one" "two" }
 	regress "test/xpass"
 	EOF
 	mkdir "$ROBSDDIR"
@@ -51,10 +51,14 @@ regress:
 
 obj:
 EOF
-	mkdir -p "${TSHDIR}/regress/test/target"
-	cat <<EOF >"${TSHDIR}/regress/test/target/Makefile"
+	mkdir -p "${TSHDIR}/regress/test/targets"
+	cat <<EOF >"${TSHDIR}/regress/test/targets/Makefile"
 one:
-	echo target >${TSHDIR}/target
+	echo one >${TSHDIR}/targets-one
+	exit 1
+
+two:
+	echo two >${TSHDIR}/targets-two
 
 obj:
 EOF
@@ -99,15 +103,18 @@ EOF
 	pkg_delete not-installed
 	pkg_delete -a
 	EOF
-	assert_file - "${TSHDIR}/target" <<-EOF
-	target
-	EOF
+	echo one | assert_file - "${TSHDIR}/targets-one"
+	echo two | assert_file - "${TSHDIR}/targets-two"
 
 	_builddir="$(find "${ROBSDDIR}" -type d -mindepth 1 -maxdepth 1)"
 	_steps="$(step_path "$_builddir")"
 	step_eval -n test/xpass "$_steps"
 	if [ "$(step_value exit)" -ne 1 ]; then
 		fail "expected test/xpass to exit non-zero"
+	fi
+	step_eval -n test/targets "$_steps"
+	if [ "$(step_value exit)" -eq 0 ]; then
+		fail "expected test/targets to exit non-zero"
 	fi
 
 	rm "${BINDIR}/pkg_add"
