@@ -819,14 +819,10 @@ report() {
 robsd() {
 	local _d0
 	local _d1
-	local _exit
-	local _log
 	local _name
 	local _s
 	local _step
 	local _steps
-	local _t0
-	local _t1
 
 	while [ $# -gt 0 ]; do
 		case "$1" in
@@ -870,33 +866,7 @@ robsd() {
 			return 0
 		fi
 
-		_log="$(log_id -b "$_builddir" -n "$_name" -s "$_s")"
-		_exit=0
-		_t0="$(date '+%s')"
-		step_write -t -l "$_log" -s "$_s" -n "$_name" -e -1 -d -1 "$_steps"
-		step_exec -b "$_builddir" -l "${_builddir}/${_log}" \
-			-s "$_name" || _exit="$?"
-		_t1="$(date '+%s')"
-		_d1="$((_t1 - _t0))"
-		_d0="$(duration_prev "$_name" || :)"
-		if [ -n "$_d0" ]; then
-			_delta="$((_d1 - _d0))"
-		else
-			_delta=0
-		fi
-		step_write -l "$_log" -s "$_s" -n "$_name" -e "$_exit" \
-			-d "$_d1" -a "$_delta" "$_steps"
-		robsd_hook -v "exit=${_exit}" -v "step=${_name}"
-
-		case "$_MODE" in
-		robsd-regress)
-			regress_step_after -b "$_builddir" -e "$_exit" \
-				-n "$_name" || return 1
-			;;
-		*)
-			[ "$_exit" -eq 0 ] || return 1
-			;;
-		esac
+		step_exec_job -b "$_builddir" -s "$_steps" -i "$_s" -n "$_name"
 
 		# Reboot in progress?
 		if [ "$_name" = "reboot" ] &&
@@ -1088,6 +1058,64 @@ step_exec() (
 	rm -f "$_fail"
 	return "$_err"
 )
+
+# step_exec_job -b build-dir -s steps -i step-id -n step-name
+#
+# Execute a single step.
+step_exec_job() {
+	local _builddir
+	local _d0
+	local _d1
+	local _delta
+	local _exit=0
+	local _id
+	local _log
+	local _name
+	local _steps
+	local _t0
+	local _t1
+
+	while [ $# -gt 0 ]; do
+		case "$1" in
+		-b)	shift; _builddir="$1";;
+		-s)	shift; _steps="$1";;
+		-i)	shift; _id="$1";;
+		-n)	shift; _name="$1";;
+		*)	break;;
+		esac
+		shift
+	done
+	: "${_builddir:?}"
+	: "${_id:?}"
+	: "${_name:?}"
+	: "${_steps:?}"
+
+	_log="$(log_id -b "$_builddir" -n "$_name" -s "$_id")"
+	_t0="$(date '+%s')"
+	step_write -t -l "$_log" -s "$_id" -n "$_name" -e -1 -d -1 "$_steps"
+	step_exec -b "$_builddir" -l "${_builddir}/${_log}" -s "$_name" || _exit="$?"
+	_t1="$(date '+%s')"
+	_d1="$((_t1 - _t0))"
+	_d0="$(duration_prev "$_name" || :)"
+	if [ -n "$_d0" ]; then
+		_delta="$((_d1 - _d0))"
+	else
+		_delta=0
+	fi
+	step_write -l "$_log" -s "$_id" -n "$_name" -e "$_exit" -d "$_d1" \
+		-a "$_delta" "$_steps"
+
+	robsd_hook -v "exit=${_exit}" -v "step=${_name}"
+
+	case "$_MODE" in
+	robsd-regress)
+		regress_step_after -b "$_builddir" -e "$_exit" -n "$_name" || return 1
+		;;
+	*)
+		[ "$_exit" -eq 0 ] || return 1
+		;;
+	esac
+}
 
 # step_field step-name
 #
