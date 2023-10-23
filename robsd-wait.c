@@ -35,7 +35,7 @@ static int	pid_count(struct wait_context *);
 int
 main(int argc, char *argv[])
 {
-	struct wait_context ctx = {0};
+	struct wait_context c = {0};
 	struct map_iterator it = {0};
 	int *pid;
 	int waitall = 0;
@@ -57,7 +57,7 @@ main(int argc, char *argv[])
 	if (argc == 0)
 		usage();
 
-	if (parse_pids(&ctx, argc, argv)) {
+	if (parse_pids(&c, argc, argv)) {
 		error = 1;
 		goto out;
 	}
@@ -68,39 +68,39 @@ main(int argc, char *argv[])
 		error = 1;
 		goto out;
 	}
-	kqueue_setup(&ctx);
+	kqueue_setup(&c);
 
-	npids = pid_count(&ctx);
-	nevents = kevent(kq, ctx.kqueue.changes, npids,
-	    ctx.kqueue.events, npids, NULL);
+	npids = pid_count(&c);
+	nevents = kevent(kq, c.kqueue.changes, npids,
+	    c.kqueue.events, npids, NULL);
 	if (nevents == -1) {
 		warn("kevent");
 		error = 1;
 		goto out;
 	}
-	error = kqueue_handle_events(&ctx, nevents);
+	error = kqueue_handle_events(&c, nevents);
 	if (error)
 		goto out;
 
-	while (waitall && pid_count(&ctx) > 0) {
-		nevents = kevent(kq, NULL, 0, ctx.kqueue.events, npids, NULL);
+	while (waitall && pid_count(&c) > 0) {
+		nevents = kevent(kq, NULL, 0, c.kqueue.events, npids, NULL);
 		if (nevents == -1) {
 			warn("kevent");
 			error = 1;
 			goto out;
 		}
-		error = kqueue_handle_events(&ctx, nevents);
+		error = kqueue_handle_events(&c, nevents);
 		if (error)
 			goto out;
 	}
 
-	while ((pid = MAP_ITERATE(ctx.pids, &it)) != NULL)
+	while ((pid = MAP_ITERATE(c.pids, &it)) != NULL)
 		printf("%d\n", *pid);
 
 out:
 	if (kq != -1)
 		close(kq);
-	context_free(&ctx);
+	context_free(&c);
 	return error;
 }
 
@@ -112,55 +112,55 @@ usage(void)
 }
 
 static void
-context_free(struct wait_context *ctx)
+context_free(struct wait_context *c)
 {
-	VECTOR_FREE(ctx->kqueue.changes);
-	VECTOR_FREE(ctx->kqueue.events);
-	MAP_FREE(ctx->pids);
+	VECTOR_FREE(c->kqueue.changes);
+	VECTOR_FREE(c->kqueue.events);
+	MAP_FREE(c->pids);
 }
 
 static void
-kqueue_setup(struct wait_context *ctx)
+kqueue_setup(struct wait_context *c)
 {
 	struct map_iterator it = {0};
 	int *pid;
 	int i = 0;
 	size_t npids;
 
-	npids = (size_t)pid_count(ctx);
-	if (VECTOR_INIT(ctx->kqueue.changes) ||
-	    VECTOR_RESERVE(ctx->kqueue.changes, npids))
+	npids = (size_t)pid_count(c);
+	if (VECTOR_INIT(c->kqueue.changes) ||
+	    VECTOR_RESERVE(c->kqueue.changes, npids))
 		err(1, NULL);
-	if (VECTOR_INIT(ctx->kqueue.events) ||
-	    VECTOR_RESERVE(ctx->kqueue.events, npids))
+	if (VECTOR_INIT(c->kqueue.events) ||
+	    VECTOR_RESERVE(c->kqueue.events, npids))
 		err(1, NULL);
 
-	while ((pid = MAP_ITERATE(ctx->pids, &it)) != NULL) {
-		EV_SET(&ctx->kqueue.changes[i++], *pid, EVFILT_PROC, EV_ADD,
+	while ((pid = MAP_ITERATE(c->pids, &it)) != NULL) {
+		EV_SET(&c->kqueue.changes[i++], *pid, EVFILT_PROC, EV_ADD,
 		    NOTE_EXIT, 0, NULL);
 	}
 }
 
 static int
-kqueue_handle_events(struct wait_context *ctx, int nevents)
+kqueue_handle_events(struct wait_context *c, int nevents)
 {
 	int error = 0;
 	int i;
 
 	for (i = 0; i < nevents; i++) {
-		const struct kevent *kev = &ctx->kqueue.events[i];
+		const struct kevent *kev = &c->kqueue.events[i];
 		int pid;
 
 		pid = kev->ident;
 		if (kev->flags & EV_ERROR) {
 			if (kev->data == ESRCH) { /* process already gone */
-				MAP_REMOVE(ctx->pids, MAP_FIND(ctx->pids, pid));
+				MAP_REMOVE(c->pids, MAP_FIND(c->pids, pid));
 			} else {
 				warnc(kev->data, "kevent");
 				error = 1;
 			}
 		} else if (kev->fflags & NOTE_EXIT) {
-			MAP_REMOVE(ctx->pids, MAP_FIND(ctx->pids, pid));
+			MAP_REMOVE(c->pids, MAP_FIND(c->pids, pid));
 		} else {
 			warnx("unknown kevent: ident %lu, filter %x, "
 			    "flags %x, fflags %x, data %lld",
@@ -174,12 +174,12 @@ kqueue_handle_events(struct wait_context *ctx, int nevents)
 }
 
 static int
-parse_pids(struct wait_context *ctx, int argc, char **argv)
+parse_pids(struct wait_context *c, int argc, char **argv)
 {
 	int error = 0;
 	int i;
 
-	if (MAP_INIT(ctx->pids))
+	if (MAP_INIT(c->pids))
 		err(1, NULL);
 	for (i = 0; i < argc; i++) {
 		const char *errstr;
@@ -187,7 +187,7 @@ parse_pids(struct wait_context *ctx, int argc, char **argv)
 
 		pid = strtonum(argv[i], 1, INT_MAX, &errstr);
 		if (pid > 0) {
-			if (MAP_INSERT_VALUE(ctx->pids, pid, pid) == NULL)
+			if (MAP_INSERT_VALUE(c->pids, pid, pid) == NULL)
 				err(1, NULL);
 		} else {
 			warnx("%s %s", argv[i], errstr);
@@ -198,12 +198,12 @@ parse_pids(struct wait_context *ctx, int argc, char **argv)
 }
 
 static int
-pid_count(struct wait_context *ctx)
+pid_count(struct wait_context *c)
 {
 	struct map_iterator it = {0};
 	int npids = 0;
 
-	while (MAP_ITERATE(ctx->pids, &it) != NULL)
+	while (MAP_ITERATE(c->pids, &it) != NULL)
 		npids++;
 	return npids;
 }
