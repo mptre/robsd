@@ -1449,28 +1449,28 @@ static struct variable *
 config_default_inet4(struct config *cf, const char *name)
 {
 	struct variable_value val;
-	char *addr;
+	const char *addr;
 
-	addr = if_group_addr("egress", 4);
+	addr = if_group_addr("egress", 4, cf->eternal);
 	if (addr == NULL)
-		addr = estrdup("");
+		addr = "";
 	variable_value_init(&val, STRING);
 	val.str = addr;
-	return config_append(cf, name, &val, VARIABLE_FLAG_DIRTY);
+	return config_append(cf, name, &val, 0);
 }
 
 static struct variable *
 config_default_inet6(struct config *cf, const char *name)
 {
 	struct variable_value val;
-	char *addr;
+	const char *addr;
 
-	addr = if_group_addr("egress", 6);
+	addr = if_group_addr("egress", 6, cf->eternal);
 	if (addr == NULL)
-		addr = estrdup("");
+		addr = "";
 	variable_value_init(&val, STRING);
 	val.str = addr;
-	return config_append(cf, name, &val, VARIABLE_FLAG_DIRTY);
+	return config_append(cf, name, &val, 0);
 }
 
 static struct variable *

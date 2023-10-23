@@ -2,7 +2,7 @@
 
 #include "config.h"
 
-#include "alloc.h"
+#include "libks/arena.h"
 
 #ifdef __OpenBSD__
 
@@ -36,8 +36,8 @@ socket_addr(const struct sockaddr *sa, sa_family_t family)
  * Get the first address associated with the given interface group and address
  * family.
  */
-char *
-if_group_addr(const char *group, int family)
+const char *
+if_group_addr(const char *group, int family, struct arena_scope *s)
 {
 	struct ifgroupreq ifgr;
 	struct ifaddrs *ifap = NULL;
@@ -71,7 +71,7 @@ if_group_addr(const char *group, int family)
 		warnx("interface group '%s' is empty", group);
 		goto out;
 	}
-	ifgr.ifgr_groups = ecalloc(1, ifgr.ifgr_len);
+	ifgr.ifgr_groups = arena_calloc(s, 1, ifgr.ifgr_len);
 	if (ioctl(sock, SIOCGIFGMEMB, &ifgr) == -1) {
 		warn("ioctl: SIOCGIFGMEMB");
 		goto out;
@@ -91,7 +91,7 @@ if_group_addr(const char *group, int family)
 			continue;
 
 		sa = ifa->ifa_addr;
-		inet = ecalloc(1, inetsiz);
+		inet = arena_calloc(s, 1, inetsiz);
 		if (inet_ntop(sa_family, socket_addr(sa, sa_family),
 		    inet, inetsiz) == NULL) {
 			warn("inet_ntop");
@@ -110,10 +110,10 @@ out:
 
 #include "libks/compiler.h"
 
-char *
-if_group_addr(const char *group, int UNUSED(family))
+const char *
+if_group_addr(const char *group, int UNUSED(family), struct arena_scope *s)
 {
-	return estrdup(group);
+	return arena_strdup(s, group);
 }
 
 #endif
