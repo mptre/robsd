@@ -350,7 +350,7 @@ config_alloc(const char *mode, const char *path, struct arena_scope *eternal,
 		return NULL;
 	}
 
-	cf = ecalloc(1, sizeof(*cf));
+	cf = arena_calloc(eternal, 1, sizeof(*cf));
 	cf->eternal = eternal;
 	cf->scratch = scratch;
 	cf->path = path;
@@ -420,7 +420,6 @@ config_free(struct config *cf)
 
 	lexer_free(cf->lx);
 	VECTOR_FREE(cf->empty_list);
-	free(cf);
 }
 
 int
