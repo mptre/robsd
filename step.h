@@ -3,6 +3,7 @@
 #include "mode.h"
 
 struct arena;
+struct arena_scope;
 struct buffer;
 
 struct step {
@@ -27,7 +28,8 @@ struct step	*steps_find_by_id(struct step *, int);
 void		 steps_header(struct buffer *);
 
 int			 step_init(struct step *);
-char			*step_interpolate_lookup(const char *, void *);
+const char		*step_interpolate_lookup(const char *,
+    struct arena_scope *, void *);
 int			 step_serialize(const struct step *, struct buffer *,
     struct arena *);
 const union step_value	*step_get_field(const struct step *, const char *);

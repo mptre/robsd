@@ -592,13 +592,12 @@ is_early_variable(const struct config *cf, const char *name)
 	return gr != NULL && (gr->gr_flags & EARLY);
 }
 
-char *
-config_interpolate_lookup(const char *name, void *arg)
+const char *
+config_interpolate_lookup(const char *name, struct arena_scope *s, void *arg)
 {
 	struct config *cf = (struct config *)arg;
 	struct buffer *bf;
 	const struct variable *va;
-	char *str;
 
 	if (cf->interpolate.early && !is_early_variable(cf, name))
 		return NULL;
@@ -607,9 +606,7 @@ config_interpolate_lookup(const char *name, void *arg)
 	if (va == NULL)
 		return NULL;
 
-	bf = buffer_alloc(128);
-	if (bf == NULL)
-		err(1, NULL);
+	bf = arena_buffer_alloc(s, 128);
 	switch (va->va_val.type) {
 	case INTEGER:
 		buffer_printf(bf, "%d", va->va_val.integer);
@@ -631,9 +628,7 @@ config_interpolate_lookup(const char *name, void *arg)
 		break;
 	}
 	}
-	str = buffer_str(bf);
-	buffer_free(bf);
-	return str;
+	return buffer_str(bf);
 }
 
 static char *

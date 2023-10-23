@@ -1,12 +1,12 @@
 struct buffer;
+struct arena_scope;
 
 struct interpolate_arg {
 	/*
 	 * Callback used to resolve a referenced variable into its corresponding
-	 * value. The returned value must be heap allocated. Returning NULL
-	 * indicates that the variable is absent.
+	 * value. Returning NULL indicates that the variable is absent.
 	 */
-	char		*(*lookup)(const char *, void *);
+	const char	*(*lookup)(const char *, struct arena_scope *, void *);
 
 	/* Opaque argument passed to callbacks. */
 	void		*arg;

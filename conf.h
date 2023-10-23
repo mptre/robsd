@@ -1,6 +1,7 @@
 #include "mode.h"
 
 struct arena;
+struct arena_scope;
 
 #define config_find_value(config, name, field) __extension__ ({		\
 	struct variable_value *_val;					\
@@ -38,7 +39,8 @@ int		 config_append_var(struct config *, const char *);
 struct variable	*config_find(struct config *, const char *);
 int		 config_interpolate(struct config *);
 char		*config_interpolate_str(struct config *, const char *);
-char		*config_interpolate_lookup(const char *, void *);
+const char	*config_interpolate_lookup(const char *, struct arena_scope *,
+    void *);
 
 enum robsd_mode	  config_get_mode(const struct config *);
 const char	**config_get_steps(struct config *);

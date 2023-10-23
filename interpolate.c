@@ -118,8 +118,7 @@ interpolate(struct interpolate_context *ic, struct buffer *bf,
 	arena_scope(ic->ic_arg->scratch, s);
 
 	for (;;) {
-		const char *p, *ve, *vs;
-		char *lookup, *name;
+		const char *lookup, *name, *p, *ve, *vs;
 		size_t len;
 
 		p = strchr(str, '$');
@@ -150,7 +149,7 @@ interpolate(struct interpolate_context *ic, struct buffer *bf,
 		}
 
 		name = arena_strndup(&s, vs, len);
-		lookup = ic->ic_arg->lookup(name, ic->ic_arg->arg);
+		lookup = ic->ic_arg->lookup(name, &s, ic->ic_arg->arg);
 		if (lookup == NULL &&
 		    (ic->ic_flags & INTERPOLATE_IGNORE_LOOKUP_ERRORS)) {
 			buffer_puts(bf, p, (size_t)(ve - p + 1));
@@ -164,7 +163,6 @@ interpolate(struct interpolate_context *ic, struct buffer *bf,
 			break;
 		}
 		error = interpolate(ic, bf, lookup);
-		free(lookup);
 		if (error)
 			break;
 

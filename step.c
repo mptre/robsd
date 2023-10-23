@@ -323,26 +323,23 @@ step_init(struct step *st)
 	return 0;
 }
 
-char *
-step_interpolate_lookup(const char *name, void *arg)
+const char *
+step_interpolate_lookup(const char *name, struct arena_scope *s, void *arg)
 {
 	struct buffer *bf;
 	const struct field_definition *fd;
 	const struct step *st = (struct step *)arg;
 	const struct step_field *sf;
-	char *val = NULL;
 
 	fd = field_definition_find_by_name(name);
 	if (fd == NULL)
 		return NULL;
 	sf = &st->st_fields[fd->fd_index];
 
-	bf = buffer_alloc(128);
-	if (bf == NULL)
-		err(1, NULL);
+	bf = arena_buffer_alloc(s, 128);
 	switch (sf->sf_type) {
 	case UNKNOWN:
-		goto out;
+		return NULL;
 	case STRING:
 		buffer_printf(bf, "%s", sf->sf_val.str);
 		break;
@@ -350,10 +347,7 @@ step_interpolate_lookup(const char *name, void *arg)
 		buffer_printf(bf, "%" PRId64, sf->sf_val.integer);
 		break;
 	}
-	val = buffer_release(bf);
-out:
-	buffer_free(bf);
-	return val;
+	return buffer_str(bf);
 }
 
 int
@@ -377,8 +371,9 @@ step_serialize(const struct step *st, struct buffer *out, struct arena *scratch)
 
 	error = interpolate_buffer(template, out,
 	    &(struct interpolate_arg){
-		.lookup	= step_interpolate_lookup,
-		.arg	= (void *)st,
+		.lookup		= step_interpolate_lookup,
+		.arg		= (void *)st,
+		.scratch	= scratch,
 	});
 	return error;
 }
