@@ -133,7 +133,7 @@ hook_to_argv(struct config *config, struct arena *scratch, char ***out)
 	size_t i, nargs;
 	int error = 0;
 
-	hook = config_find_value(config, "hook", list);
+	hook = config_value(config, "hook", list, NULL);
 	if (hook == NULL)
 		return 0;
 	nargs = VECTOR_LENGTH(hook);

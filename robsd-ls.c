@@ -66,7 +66,7 @@ main(int argc, char *argv[])
 		goto out;
 	}
 	if (skip_builddir)
-		builddir = config_find_value(config, "builddir", str);
+		builddir = config_value(config, "builddir", str, NULL);
 
 	robsddir = config_interpolate_str(config, "${robsddir}");
 	if (robsddir == NULL) {

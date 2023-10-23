@@ -252,7 +252,7 @@ is_regress_quiet(struct report_context *r, const char *name)
 	arena_scope(r->scratch, s);
 
 	quiet = arena_sprintf(&s, "regress-%s-quiet", name);
-	return config_find(r->config, quiet) != NULL;
+	return config_value(r->config, quiet, integer, 0) == 1;
 }
 
 static void
@@ -264,7 +264,7 @@ regress_suites(struct report_context *r)
 	if (MAP_INIT(r->regress.suites))
 		err(1, NULL);
 
-	suites = config_find_value(r->config, "regress", list);
+	suites = config_value(r->config, "regress", list, NULL);
 	nsuites = VECTOR_LENGTH(suites);
 	for (i = 0; i < nsuites; i++) {
 		if (MAP_INSERT_VALUE(r->regress.suites, suites[i], 0) == NULL)

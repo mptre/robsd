@@ -174,6 +174,7 @@ static struct variable	*config_append_string(struct config *,
     const char *, const char *);
 static int		 config_present(const struct config *,
     const char *);
+static struct variable	*config_find(struct config *, const char *);
 static struct variable	*config_find_or_create_list(struct config *,
     const char *);
 
@@ -512,7 +513,7 @@ config_find_or_create_list(struct config *cf, const char *name)
 	return config_find(cf, name);
 }
 
-struct variable *
+static struct variable *
 config_find(struct config *cf, const char *name)
 {
 	static struct variable vadef;
@@ -570,6 +571,17 @@ config_find(struct config *cf, const char *name)
 	}
 
 	return NULL;
+}
+
+const struct variable_value *
+config_get_value(struct config *cf, const char *name)
+{
+	const struct variable *va;
+
+	va = config_find(cf, name);
+	if (va == NULL)
+		return NULL;
+	return &va->va_val;
 }
 
 int
@@ -681,7 +693,7 @@ config_regress_get_steps(struct config *cf)
 	size_t i = 0;
 	size_t nregress, r, s;
 
-	regress = config_find_value(cf, "regress", list);
+	regress = config_value(cf, "regress", list, NULL);
 	nregress = VECTOR_LENGTH(regress);
 
 	if (VECTOR_INIT(steps))
@@ -703,14 +715,13 @@ config_regress_get_steps(struct config *cf)
 
 	/* Include parallel ${regress} steps. */
 	for (r = 0; r < nregress; r++) {
-		const struct variable *va;
+		const char *name;
 		int parallel;
 
 		arena_scope(cf->scratch, scratch);
 
-		va = config_find(cf,
-		    regressname(regress[r], "parallel", &scratch));
-		parallel = va != NULL ? variable_get_value(va)->integer : 1;
+		name = regressname(regress[r], "parallel", &scratch);
+		parallel = config_value(cf, name, integer, 1);
 		if (parallel) {
 			if (VECTOR_ALLOC(steps) == NULL)
 				err(1, NULL);
@@ -769,12 +780,6 @@ config_get_steps(struct config *cf)
 	}
 
 	return steps;
-}
-
-const struct variable_value *
-variable_get_value(const struct variable *va)
-{
-	return &va->va_val;
 }
 
 static struct token *
