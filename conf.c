@@ -471,7 +471,8 @@ config_append_var(struct config *cf, const char *str)
 {
 	char *name, *val;
 	size_t namelen;
-	int error = 0;
+
+	arena_scope(cf->scratch, s);
 
 	val = strchr(str, '=');
 	if (val == NULL) {
@@ -479,23 +480,20 @@ config_append_var(struct config *cf, const char *str)
 		return 1;
 	}
 	namelen = (size_t)(val - str);
-	name = estrndup(str, namelen);
-	val++;	/* consume '=' */
-	if (config_append_string(cf, name, val) == NULL) {
+	name = arena_strndup(&s, str, namelen);
+	if (config_find_grammar_for_keyword(cf, name) != NULL) {
 		warnx("variable '%s' cannot be defined", name);
-		error = 1;
+		return 1;
 	}
-	free(name);
-	return error;
+	val++;	/* consume '=' */
+	config_append_string(cf, name, val);
+	return 0;
 }
 
 static struct variable *
 config_append_string(struct config *cf, const char *name, const char *str)
 {
 	struct variable_value val;
-
-	if (config_find_grammar_for_keyword(cf, name))
-		return NULL;
 
 	variable_value_init(&val, STRING);
 	val.str = estrdup(str);
