@@ -634,6 +634,7 @@ isempty() {
 #
 # Get the number of running jobs
 jobs_count() (
+	set -- "$@"
 	echo "$#"
 )
 
@@ -879,23 +880,20 @@ robsd() {
 
 		if step_parallel "$_name"; then
 			# Ensure the job queue is not full.
-			# shellcheck disable=SC2086
-			if [ "$(jobs_count $_jobs)" -eq "$_ncpu" ]; then
-				_jobs="$("$ROBSDWAIT" ${_jobs} | xargs)"
+			if [ "$(jobs_count "$_jobs")" -eq "$_ncpu" ]; then
+				_jobs="$(echo "$_jobs" | xargs "$ROBSDWAIT" | xargs)"
 			fi
 
 			# Execute job in parallel.
 			step_exec_job -b "$_builddir" -s "$_steps" \
 				-i "$_s" -n "$_name" &
 			_jobs="${_jobs}${_jobs:+ }${!}"
-			# shellcheck disable=SC2086
-			info "jobs ${_jobs} ($(jobs_count ${_jobs})/${_ncpu})"
+			info "parallel jobs $(jobs_count "${_jobs}")/${_ncpu}"
 		else
 			# Wait for all running jobs to finish.
 			if [ -n "$_jobs" ]; then
-				info "barrier, jobs ${_jobs}"
-				# shellcheck disable=SC2086
-				"$ROBSDWAIT" -a ${_jobs}
+				info "parallel barrier $(jobs_count "${_jobs}")/${_ncpu}"
+				echo "$_jobs" | xargs "$ROBSDWAIT" -a
 				_jobs=""
 			fi
 
