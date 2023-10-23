@@ -224,8 +224,12 @@ arena_scope_leave(struct arena_scope *s)
 	while (a->frame != NULL && a->frame != s->frame) {
 		struct arena_frame *frame = a->frame;
 
-		a->stats.bytes.now -= frame->size;
-		a->stats.frames.now--;
+		if (frame->size <= a->stats.bytes.now)
+			a->stats.bytes.now -= frame->size;
+		else
+			a->stats.bytes.now = 0;
+		if (a->stats.frames.now > 0)
+			a->stats.frames.now--;
 
 		a->frame = frame->next;
 		free(frame);
