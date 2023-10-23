@@ -7,9 +7,9 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "libks/arena.h"
 #include "libks/buffer.h"
 
-#include "alloc.h"
 #include "log.h"
 
 struct interpolate_context {
@@ -115,6 +115,8 @@ interpolate(struct interpolate_context *ic, struct buffer *bf,
 		return 1;
 	}
 
+	arena_scope(ic->ic_arg->scratch, s);
+
 	for (;;) {
 		const char *p, *ve, *vs;
 		char *lookup, *name;
@@ -147,9 +149,8 @@ interpolate(struct interpolate_context *ic, struct buffer *bf,
 			break;
 		}
 
-		name = estrndup(vs, len);
+		name = arena_strndup(&s, vs, len);
 		lookup = ic->ic_arg->lookup(name, ic->ic_arg->arg);
-		free(name);
 		if (lookup == NULL &&
 		    (ic->ic_flags & INTERPOLATE_IGNORE_LOOKUP_ERRORS)) {
 			buffer_puts(bf, p, (size_t)(ve - p + 1));

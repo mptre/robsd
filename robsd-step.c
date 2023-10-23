@@ -210,8 +210,9 @@ steps_read(struct step_context *sc, int argc, char **argv)
 
 	str = interpolate_file("/dev/stdin",
 	    &(struct interpolate_arg){
-		.lookup	= step_interpolate_lookup,
-		.arg	= st,
+		.lookup		= step_interpolate_lookup,
+		.arg		= st,
+		.scratch	= sc->scratch,
 	});
 	if (str != NULL)
 		printf("%s", str);

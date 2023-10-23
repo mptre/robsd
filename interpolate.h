@@ -11,8 +11,8 @@ struct interpolate_arg {
 	/* Opaque argument passed to callbacks. */
 	void		*arg;
 
+	struct arena	*scratch;
 	int		 lno;
-
 	unsigned int	 flags;
 #define INTERPOLATE_IGNORE_LOOKUP_ERRORS	0x00000001u
 };

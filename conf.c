@@ -561,6 +561,7 @@ config_interpolate(struct config *cf)
 	str = interpolate_file("/dev/stdin", &(struct interpolate_arg){
 	    .lookup	= config_interpolate_lookup,
 	    .arg	= cf,
+	    .scratch	= cf->scratch,
 	});
 	if (str == NULL)
 		return 1;
@@ -575,6 +576,7 @@ config_interpolate_str(struct config *cf, const char *str)
 	return interpolate_str(str, &(struct interpolate_arg){
 	    .lookup	= config_interpolate_lookup,
 	    .arg	= cf,
+	    .scratch	= cf->scratch,
 	});
 }
 
@@ -643,6 +645,7 @@ config_interpolate_early(struct config *cf, const char *template)
 	str = interpolate_str(template, &(struct interpolate_arg){
 	    .lookup	= config_interpolate_lookup,
 	    .arg	= cf,
+	    .scratch	= cf->scratch,
 	    .flags	= INTERPOLATE_IGNORE_LOOKUP_ERRORS,
 	});
 	cf->interpolate.early = 0;
@@ -1402,6 +1405,7 @@ config_parse_directory(struct config *cf, struct variable_value *val)
 	path = interpolate_str(dir, &(struct interpolate_arg){
 	    .lookup	= config_interpolate_lookup,
 	    .arg	= cf,
+	    .scratch	= cf->scratch,
 	    .lno	= tk->tk_lno,
 	});
 	if (path == NULL) {
@@ -1428,8 +1432,9 @@ config_default_build_dir(struct config *cf, const char *name)
 
 	path = interpolate_str("${robsddir}/.running",
 	    &(struct interpolate_arg){
-		.lookup	= config_interpolate_lookup,
-		.arg	= cf,
+		.lookup		= config_interpolate_lookup,
+		.arg		= cf,
+		.scratch	= cf->scratch,
 	});
 	if (path == NULL)
 		return NULL;

@@ -13,7 +13,7 @@
 
 static void	usage(void) __attribute__((__noreturn__));
 
-static int	hook_to_argv(struct config *, char ***);
+static int	hook_to_argv(struct config *, struct arena *, char ***);
 
 int
 main(int argc, char *argv[])
@@ -83,7 +83,7 @@ main(int argc, char *argv[])
 		}
 	}
 
-	switch (hook_to_argv(config, &args)) {
+	switch (hook_to_argv(config, scratch, &args)) {
 	case -1:
 		error = 1;
 		goto out;
@@ -123,7 +123,7 @@ usage(void)
 }
 
 static int
-hook_to_argv(struct config *config, char ***out)
+hook_to_argv(struct config *config, struct arena *scratch, char ***out)
 {
 	VECTOR(char *) args;
 	VECTOR(char *) hook;
@@ -150,6 +150,7 @@ hook_to_argv(struct config *config, char ***out)
 		arg = interpolate_str(str, &(struct interpolate_arg){
 		    .lookup	= config_interpolate_lookup,
 		    .arg	= config,
+		    .scratch	= scratch,
 		});
 		if (arg == NULL) {
 			error = 1;
