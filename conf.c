@@ -100,6 +100,8 @@ struct grammar {
 		const void	*ptr;
 		struct variable	*(*fun)(struct config *, const char *);
 		int		 i32;
+#define D_FUN(x)	.fun = (x)
+#define D_I32(x)	.i32 = (x)
 	} gr_default;
 };
 
@@ -169,9 +171,9 @@ static const void *novalue;
 
 #define COMMON_DEFAULTS							\
 	{ "arch",	STRING,	NULL,	0,	{ MACHINE_ARCH } },	\
-	{ "builddir",	STRING,	NULL,	FUN,	{ .fun = config_default_build_dir } },\
-	{ "inet",	STRING,	NULL,	FUN,	{ .fun = config_default_inet4 } },\
-	{ "inet6",	STRING,	NULL,	FUN,	{ .fun = config_default_inet6 } },\
+	{ "builddir",	STRING,	NULL,	FUN,	{ D_FUN(config_default_build_dir) } },\
+	{ "inet",	STRING,	NULL,	FUN,	{ D_FUN(config_default_inet4) } },\
+	{ "inet6",	STRING,	NULL,	FUN,	{ D_FUN(config_default_inet6) } },\
 	{ "keep-dir",	STRING,	NULL,	0,	{ "${robsddir}/attic" } },\
 	{ "machine",	STRING,	NULL,	0,	{ MACHINE } }
 
@@ -290,7 +292,7 @@ static const struct grammar robsd_regress[] = {
 	{ "regress-user",	STRING,		config_parse_user,		0,		{ "build" } },
 	{ "regress-*-env",	STRING,		NULL,				PAT,		{ "${regress-env}" } },
 	{ "regress-*-target",	STRING,		NULL,				PAT,		{ "regress" } },
-	{ "regress-*-parallel",	INTEGER,	NULL,				PAT,		{ .i32 = 1 } },
+	{ "regress-*-parallel",	INTEGER,	NULL,				PAT,		{ D_I32(1) } },
 
 	COMMON_DEFAULTS,
 };
