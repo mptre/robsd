@@ -152,7 +152,6 @@ if testcase "kill"; then
 	robsd_config -R - <<-EOF
 	robsddir "${ROBSDDIR}"
 	regress "test/sleep"
-	regress "test/nein"
 	EOF
 	mkdir "$ROBSDDIR"
 	mkdir -p "${TSHDIR}/regress/test/sleep"
@@ -160,12 +159,6 @@ if testcase "kill"; then
 regress:
 	echo sleep >${TSHDIR}/sleep
 	sleep 3600
-obj:
-EOF
-	mkdir -p "${TSHDIR}/regress/test/nein"
-	cat <<EOF >"${TSHDIR}/regress/test/nein/Makefile"
-regress:
-	echo nein >${TSHDIR}/nein
 obj:
 EOF
 	_exec="${TSHDIR}/robsd-regress-exec"
@@ -187,9 +180,6 @@ EOF
 	done
 
 	echo sleep | assert_file - "${TSHDIR}/sleep"
-	if [ -e "${TSHDIR}/nein" ]; then
-		fail - "expected nein to not be present" <"${TSHDIR}/nein"
-	fi
 	if [ -e "${ROBSDDIR}/.running" ]; then
 		fail "expected lock to not be present"
 	fi

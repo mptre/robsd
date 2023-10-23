@@ -72,3 +72,18 @@ regress_step_after() {
 	fi
 	return "$_exit"
 }
+
+# regress_step_parallel step-name
+#
+# Exits zero if the step can be executed in parallel.
+regress_step_parallel() {
+	local _name
+
+	_name="$1"; : "${_name:?}"
+	# All regress suite steps are expected to contain at leas one slash.
+	if [ "$_name" = "${_name#*/}" ]; then
+		return 1
+	else
+		return 0
+	fi
+}
