@@ -1,3 +1,5 @@
+struct arena_scope;
+
 #define CONCAT_INNER(a, b) a ## b
 #define CONCAT(a, b) CONCAT_INNER(a, b)
 #define NODE() CONCAT(node, __LINE__)
@@ -27,8 +29,7 @@ struct html_attribute {
 	const char	*val;
 };
 
-struct html	*html_alloc(void);
-void		 html_free(struct html *);
+struct html	*html_alloc(struct arena_scope *);
 
 int	html_write(const struct html *, const char *);
 

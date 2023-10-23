@@ -141,7 +141,7 @@ regress_html_alloc(const char *directory, struct arena_scope *eternal,
 	r->output = directory;
 	r->eternal = eternal;
 	r->scratch = scratch;
-	r->html = html_alloc();
+	r->html = html_alloc(eternal);
 	return r;
 }
 
@@ -160,7 +160,6 @@ regress_html_free(struct regress_html *r)
 		MAP_REMOVE(r->suites, suite);
 	}
 	MAP_FREE(r->suites);
-	html_free(r->html);
 }
 
 int

@@ -6,11 +6,10 @@
 #include <err.h>
 #include <stdarg.h>
 #include <stdio.h>
-#include <stdlib.h>
 
+#include "libks/arena-buffer.h"
+#include "libks/arena.h"
 #include "libks/buffer.h"
-
-#include "alloc.h"
 
 struct html {
 	struct buffer	*bf;
@@ -22,24 +21,13 @@ static void	html_indent(struct html *);
 struct html_attribute	html_attr_last;
 
 struct html *
-html_alloc(void)
+html_alloc(struct arena_scope *eternal)
 {
 	struct html *html;
 
-	html = ecalloc(1, sizeof(*html));
-	html->bf = buffer_alloc(1 << 10);
-	if (html->bf == NULL)
-		err(1, NULL);
+	html = arena_calloc(eternal, 1, sizeof(*html));
+	html->bf = arena_buffer_alloc(eternal, 1 << 10);
 	return html;
-}
-
-void
-html_free(struct html *html)
-{
-	if (html == NULL)
-		return;
-	buffer_free(html->bf);
-	free(html);
 }
 
 int
