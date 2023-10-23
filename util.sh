@@ -881,6 +881,7 @@ robsd() {
 		if step_parallel "$_name"; then
 			# Ensure the job queue is not full.
 			if [ "$(jobs_count "$_jobs")" -eq "$_ncpu" ]; then
+				info "parallel wait $(jobs_count "${_jobs}")/${_ncpu}"
 				_jobs="$(echo "$_jobs" | xargs "$ROBSDWAIT" | xargs)"
 			fi
 
