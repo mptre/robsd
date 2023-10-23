@@ -183,8 +183,10 @@ steps_free(struct step_file *sf)
 	}
 	VECTOR_FREE(sf->steps);
 
-	flock(sf->flock, LOCK_UN);
-	close(sf->flock);
+	if (sf->flock != -1) {
+		flock(sf->flock, LOCK_UN);
+		close(sf->flock);
+	}
 
 	free(sf);
 }
