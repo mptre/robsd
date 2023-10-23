@@ -29,6 +29,9 @@ static int	killwaitpg1(int, int, int, int *);
 static void	siginstall(int, void (*)(int), int);
 static void	sighandler(int);
 
+static pid_t	step_fork(struct step_context *, const char *, const char *,
+    pid_t *);
+
 static const char	*resolve_step_script(struct step_context *,
     const char *);
 
@@ -45,7 +48,6 @@ step_exec(const char *step_name, struct config *config, struct arena *scratch,
 	};
 	const char *step_script;
 	pid_t pid;
-	int proc_pipe[2];
 	int error, status;
 
 	step_script = resolve_step_script(&c, step_name);
@@ -54,53 +56,9 @@ step_exec(const char *step_name, struct config *config, struct arena *scratch,
 		return 1;
 	}
 
-	/* NOLINTNEXTLINE(android-cloexec-pipe2) */
-	if (pipe2(proc_pipe, O_NONBLOCK) == -1)
-		err(1, "pipe2");
-
-	pid = fork();
-	if (pid == -1)
-		err(1, "fork");
-	if (pid == 0) {
-		const char *argv[7];
-		int argc = 0;
-
-		argv[argc++] = "sh";
-		argv[argc++] = "-eu";
-		if (c.flags & STEP_EXEC_TRACE)
-			argv[argc++] = "-x";
-		argv[argc++] = step_script;
-		argv[argc++] = step_name;
-		argv[argc++] = NULL;
-
-		close(proc_pipe[0]);
-		if (setsid() == -1)
-			err(1, "setsid");
-
-		/* Unblock common signals. */
-		siginstall(SIGHUP, SIG_DFL, 0);
-		siginstall(SIGINT, SIG_DFL, 0);
-		siginstall(SIGQUIT, SIG_DFL, 0);
-
-		/* Signal to the parent that the process group is present. */
-		close(proc_pipe[1]);
-		execvp(argv[0], (char *const *)argv);
-		err(1, "%s", argv[0]);
-	}
-
-	siginstall(SIGPIPE, SIG_IGN, 0);
-	siginstall(SIGTERM, sighandler, ~SA_RESTART);
-
-	/* Wait for the process group to become present. */
-	close(proc_pipe[1]);
-	if (waiteof(proc_pipe[0], 1000)) {
-		warnx("process group failure");
-		if (waitpid(pid, &status, 0) == -1)
-			return 1;
-		return exitstatus(status);
-	}
-	close(proc_pipe[0]);
-
+	error = step_fork(&c, step_name, step_script, &pid);
+	if (error)
+		return error;
 	if (waitpid(-pid, &status, 0) == -1) {
 		if (gotsig) {
 			warnx("caught signal, kill process group ...");
@@ -213,6 +171,68 @@ static void
 sighandler(int signo)
 {
 	gotsig = signo;
+}
+
+static pid_t
+step_fork(struct step_context *c, const char *step_name,
+    const char *step_script, pid_t *out)
+{
+	int proc_pipe[2];
+	int status;
+	pid_t pid;
+
+	/* NOLINTNEXTLINE(android-cloexec-pipe2) */
+	if (pipe2(proc_pipe, O_NONBLOCK) == -1)
+		err(1, "pipe2");
+
+	pid = fork();
+	if (pid == -1)
+		err(1, "fork");
+	if (pid == 0) {
+		const char *argv[7];
+		int argc = 0;
+
+		argv[argc++] = "sh";
+		argv[argc++] = "-eu";
+		if (c->flags & STEP_EXEC_TRACE)
+			argv[argc++] = "-x";
+		argv[argc++] = step_script;
+		argv[argc++] = step_name;
+		argv[argc++] = NULL;
+
+		close(proc_pipe[0]);
+		if (setsid() == -1)
+			err(1, "setsid");
+
+		/* Unblock common signals. */
+		siginstall(SIGHUP, SIG_DFL, 0);
+		siginstall(SIGINT, SIG_DFL, 0);
+		siginstall(SIGQUIT, SIG_DFL, 0);
+
+		/* Signal to the parent that the process group is present. */
+		close(proc_pipe[1]);
+		execvp(argv[0], (char *const *)argv);
+		err(1, "%s", argv[0]);
+	}
+
+	siginstall(SIGPIPE, SIG_IGN, 0);
+	siginstall(SIGTERM, sighandler, ~SA_RESTART);
+
+	/* Wait for the process group to become present. */
+	close(proc_pipe[1]);
+	if (waiteof(proc_pipe[0], 1000)) {
+		int error;
+
+		warnx("process group failure");
+		if (waitpid(pid, &status, 0) == -1)
+			return 1;
+		error = exitstatus(status);
+		return error ? error : 1;
+	}
+	close(proc_pipe[0]);
+
+	*out = pid;
+	return 0;
 }
 
 static const char *
