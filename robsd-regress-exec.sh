@@ -9,9 +9,9 @@ REGRESSUSER="${regress-user}"
 EOF
 
 _env="REGRESS_FAIL_EARLY=no"
-_env="env ${_env} $(config_value "regress-${1}-env" 2>/dev/null || :)"
+_env="${_env} $(config_value "regress-${1}-env" 2>/dev/null || :)"
 _target="$(config_value "regress-${1}-target")"
-_make="${_env} make -C ${BSDSRCDIR}/regress/${1} ${_target}"
+_make="make -C ${BSDSRCDIR}/regress/${1} ${_env} ${_target}"
 if regress_root "$1"; then
 	$_make
 else
