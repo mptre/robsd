@@ -2,6 +2,8 @@
 
 #include "config.h"
 
+#include <sys/file.h>	/* flock(2) on Linux */
+
 #include <err.h>
 #include <fcntl.h>
 #include <inttypes.h>

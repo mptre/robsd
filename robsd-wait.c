@@ -1,3 +1,5 @@
+#ifdef __OpenBSD__
+
 #include "config.h"
 
 #include <sys/types.h>
@@ -205,3 +207,13 @@ pid_count(struct context *ctx)
 		npids++;
 	return npids;
 }
+
+#else
+
+int
+main(void)
+{
+	return 0;
+}
+
+#endif
