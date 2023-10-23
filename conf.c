@@ -606,8 +606,10 @@ config_get_mode(const struct config *cf)
 static const char **
 config_regress_get_steps(struct config *cf)
 {
+	VECTOR(const char *) regress_no_parallel;
 	VECTOR(const char *) steps;
 	VECTOR(char *) regress;
+	struct buffer *bf;
 	size_t i = 0;
 	size_t nregress, r, s;
 
@@ -617,6 +619,11 @@ config_regress_get_steps(struct config *cf)
 	if (VECTOR_INIT(steps))
 		err(1, NULL);
 	if (VECTOR_RESERVE(steps, cf->steps.len + nregress))
+		err(1, NULL);
+	if (VECTOR_INIT(regress_no_parallel))
+		err(1, NULL);
+	bf = buffer_alloc(128);
+	if (bf == NULL)
 		err(1, NULL);
 
 	for (s = 0; s < cf->steps.len; s++) {
@@ -628,10 +635,30 @@ config_regress_get_steps(struct config *cf)
 		steps[i++] = cf->steps.ptr[s];
 	}
 
+	/* Group by parallel/non-parallel. */
 	for (r = 0; r < nregress; r++) {
+		const struct variable *va;
+		int parallel;
+
+		va = config_find(cf, regressname(bf, regress[r], "parallel"));
+		parallel = va != NULL ? variable_get_value(va)->integer : 1;
+		if (parallel) {
+			if (VECTOR_ALLOC(steps) == NULL)
+				err(1, NULL);
+			steps[i++] = regress[r];
+		} else {
+			const char **dst;
+
+			dst = VECTOR_ALLOC(regress_no_parallel);
+			if (dst == NULL)
+				err(1, NULL);
+			*dst = regress[r];
+		}
+	}
+	for (r = 0; r < VECTOR_LENGTH(regress_no_parallel); r++) {
 		if (VECTOR_ALLOC(steps) == NULL)
 			err(1, NULL);
-		steps[i++] = regress[r];
+		steps[i++] = regress_no_parallel[r];
 	}
 
 	for (s++; s < cf->steps.len; s++) {
@@ -639,6 +666,9 @@ config_regress_get_steps(struct config *cf)
 			err(1, NULL);
 		steps[i++] = cf->steps.ptr[s];
 	}
+
+	buffer_free(bf);
+	VECTOR_FREE(regress_no_parallel);
 
 	return steps;
 }

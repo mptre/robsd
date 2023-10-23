@@ -292,15 +292,17 @@ fi
 if testcase "list: robsd-regress"; then
 	robsd_config -R - <<-EOF
 	robsddir "$TSHDIR"
+	regress "lib/libc/locale" parallel no
+	regress "gnu/usr.bin/perl" parallel no
 	regress "bin/csh"
 	regress "bin/ksh"
 	EOF
 
-	robsd_step -- -L -C "$ROBSDCONF" -m robsd-regress >"$TMP1"
-	if ! grep -q 'bin/csh' "$TMP1"; then
-		fail - "expected bin/csh" <"$TMP1"
-	fi
-	if ! grep -q 'bin/ksh' "$TMP1"; then
-		fail - "expected bin/ksh" <"$TMP1"
-	fi
+	robsd_step -- -L -C "$ROBSDCONF" -m robsd-regress | grep / >"$TMP1"
+	assert_file - "$TMP1" <<-EOF
+	bin/csh
+	bin/ksh
+	lib/libc/locale
+	gnu/usr.bin/perl
+	EOF
 fi
