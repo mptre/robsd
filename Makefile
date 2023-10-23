@@ -112,6 +112,7 @@ DEPS_robsd-step=	${SRCS_robsd-step:.c=.d}
 PROG_robsd-step=	robsd-step
 
 SRCS_robsd-wait+=	${COMPATS}
+SRCS_robsd-wait+=	arithmetic.c
 SRCS_robsd-wait+=	map.c
 SRCS_robsd-wait+=	vector.c
 SRCS_robsd-wait+=	robsd-wait.c
