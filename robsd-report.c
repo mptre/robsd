@@ -16,7 +16,7 @@ static void	usage(void) __attribute__((__noreturn__));
 int
 main(int argc, char *argv[])
 {
-	struct arena *arena, *scratch;
+	struct arena *eternal, *scratch;
 	struct buffer *bf = NULL;
 	struct config *config = NULL;
 	const char *config_path = NULL;
@@ -42,11 +42,11 @@ main(int argc, char *argv[])
 	if (argc != 1 || mode == NULL)
 		usage();
 
-	arena = arena_alloc(ARENA_FATAL);
-	arena_scope(arena, eternal);
+	eternal = arena_alloc(ARENA_FATAL);
+	arena_scope(eternal, eternal_scope);
 	scratch = arena_alloc(ARENA_FATAL);
 
-	config = config_alloc(mode, config_path, &eternal, scratch);
+	config = config_alloc(mode, config_path, &eternal_scope, scratch);
 	if (config == NULL || config_parse(config))
 		goto out;
 
@@ -64,7 +64,7 @@ out:
 	buffer_free(bf);
 	config_free(config);
 	arena_free(scratch);
-	arena_free(arena);
+	arena_free(eternal);
 	return error;
 }
 

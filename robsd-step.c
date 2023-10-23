@@ -53,7 +53,7 @@ int
 main(int argc, char *argv[])
 {
 	struct step_context sc = {0};
-	struct arena *arena;
+	struct arena *eternal;
 	enum step_action action = 0;
 	int error = 0;
 	int ch;
@@ -91,9 +91,9 @@ main(int argc, char *argv[])
 	if (action == 0)
 		usage();
 
-	arena = arena_alloc(ARENA_FATAL);
-	arena_scope(arena, eternal);
-	sc.eternal = &eternal;
+	eternal = arena_alloc(ARENA_FATAL);
+	arena_scope(eternal, eternal_scope);
+	sc.eternal = &eternal_scope;
 	sc.scratch = arena_alloc(ARENA_FATAL);
 
 	switch (action) {
@@ -151,7 +151,7 @@ main(int argc, char *argv[])
 out:
 	steps_free(sc.step_file);
 	arena_free(sc.scratch);
-	arena_free(arena);
+	arena_free(eternal);
 	return error;
 }
 

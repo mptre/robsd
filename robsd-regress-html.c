@@ -15,7 +15,7 @@ static void	usage(void) __attribute__((__noreturn__));
 int
 main(int argc, char *argv[])
 {
-	struct arena *arena, *scratch;
+	struct arena *eternal, *scratch;
 	struct regress_html *rh;
 	const char *output = NULL;
 	int error = 0;
@@ -38,12 +38,12 @@ main(int argc, char *argv[])
 	if (pledge("stdio rpath wpath cpath flock", NULL) == -1)
 		err(1, "pledge");
 
-	arena = arena_alloc(ARENA_FATAL);
-	arena_scope(arena, eternal);
+	eternal = arena_alloc(ARENA_FATAL);
+	arena_scope(eternal, eternal_scope);
 
 	scratch = arena_alloc(ARENA_FATAL);
 
-	rh = regress_html_alloc(output, &eternal, scratch);
+	rh = regress_html_alloc(output, &eternal_scope, scratch);
 
 	for (; argc > 0; argc--, argv++) {
 		const char *arch, *colon, *path;
@@ -67,7 +67,7 @@ main(int argc, char *argv[])
 out:
 	regress_html_free(rh);
 	arena_free(scratch);
-	arena_free(arena);
+	arena_free(eternal);
 	return error;
 }
 

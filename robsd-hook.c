@@ -21,7 +21,7 @@ main(int argc, char *argv[])
 {
 	VECTOR(const char *) vars;
 	VECTOR(char *) args = NULL;
-	struct arena *arena, *scratch;
+	struct arena *eternal, *scratch;
 	struct config *config = NULL;
 	const char *mode = NULL;
 	const char *path = NULL;
@@ -65,11 +65,11 @@ main(int argc, char *argv[])
 	if (argc > 0 || mode == NULL)
 		usage();
 
-	arena = arena_alloc(ARENA_FATAL);
-	arena_scope(arena, eternal);
+	eternal = arena_alloc(ARENA_FATAL);
+	arena_scope(eternal, eternal_scope);
 	scratch = arena_alloc(ARENA_FATAL);
 
-	config = config_alloc(mode, path, &eternal, scratch);
+	config = config_alloc(mode, path, &eternal_scope, scratch);
 	if (config == NULL) {
 		error = 1;
 		goto out;
@@ -86,7 +86,7 @@ main(int argc, char *argv[])
 		}
 	}
 
-	switch (hook_to_argv(config, &eternal, scratch, &args)) {
+	switch (hook_to_argv(config, &eternal_scope, scratch, &args)) {
 	case -1:
 		error = 1;
 		goto out;
@@ -114,7 +114,7 @@ out:
 	VECTOR_FREE(args);
 	config_free(config);
 	arena_free(scratch);
-	arena_free(arena);
+	arena_free(eternal);
 	VECTOR_FREE(vars);
 	return error;
 }
