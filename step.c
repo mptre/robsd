@@ -8,6 +8,7 @@
 #include <fcntl.h>
 #include <inttypes.h>
 #include <limits.h>	/* LLONG_MIN, LLONG_MAX */
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
@@ -30,6 +31,7 @@ enum token_type {
 };
 
 struct step_file {
+	const char		*path;
 	int			 flock;
 	struct buffer		*bf;
 	VECTOR(const char *)	 columns;
@@ -38,6 +40,9 @@ struct step_file {
 
 static int	steps_parse_header(struct step_file *, struct lexer *);
 static int	steps_parse_row(struct step_file *, struct lexer *);
+
+static int	step_serialize(const struct step *, struct buffer *,
+    struct arena *);
 
 static struct token	*step_lexer_read(struct lexer *, void *);
 static const char	*token_serialize(const struct token *);
@@ -97,6 +102,7 @@ steps_parse(const char *path)
 	int error = 0;
 
 	sf = ecalloc(1, sizeof(*sf));
+	sf->path = path;
 	sf->bf = buffer_alloc(512);
 	if (sf->bf == NULL)
 		err(1, NULL);
@@ -247,6 +253,49 @@ steps_total_duration(const struct step_file *sf, enum robsd_mode mode)
 	return duration;
 }
 
+int
+steps_write(struct step_file *sf, struct arena *scratch)
+{
+	FILE *fh = NULL;
+	struct buffer *bf;
+	size_t nsteps = VECTOR_LENGTH(sf->steps);
+	size_t i;
+	int error = 0;
+	int n;
+
+	bf = buffer_alloc(1 << 16);
+	if (bf == NULL)
+		err(1, NULL);
+
+	steps_sort(sf->steps);
+	steps_header(bf);
+	for (i = 0; i < nsteps; i++) {
+		if (step_serialize(&sf->steps[i], bf, scratch)) {
+			error = 1;
+			goto out;
+		}
+	}
+
+	fh = fopen(sf->path, "we");
+	if (fh == NULL) {
+		warn("fopen: %s", sf->path);
+		error = 1;
+		goto out;
+	}
+	n = fwrite(buffer_get_ptr(bf), buffer_get_len(bf), 1, fh);
+	if (n < 1) {
+		warn("fwrite: %s", sf->path);
+		error = 1;
+		goto out;
+	}
+
+out:
+	if (fh != NULL)
+		fclose(fh);
+	buffer_free(bf);
+	return error;
+}
+
 void
 steps_sort(struct step *steps)
 {
@@ -352,7 +401,7 @@ step_interpolate_lookup(const char *name, struct arena_scope *s, void *arg)
 	return buffer_str(bf);
 }
 
-int
+static int
 step_serialize(const struct step *st, struct buffer *out, struct arena *scratch)
 {
 	struct buffer *bf;

@@ -6,6 +6,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 
+#include "libks/arena-buffer.h"
 #include "libks/arena.h"
 #include "libks/buffer.h"
 #include "libks/vector.h"
@@ -30,7 +31,7 @@ struct step_context {
 static void	usage(void) __attribute__((__noreturn__));
 
 static int	steps_read(struct step_context *, int, char **);
-static int	steps_write(struct step_context *, int, char **);
+static int	action_write(struct step_context *, int, char **);
 static int	steps_list(struct step_context *, int, char **);
 
 static int
@@ -140,7 +141,7 @@ main(int argc, char *argv[])
 		error = steps_read(&sc, argc, argv);
 		break;
 	case MODE_WRITE:
-		error = steps_write(&sc, argc, argv);
+		error = action_write(&sc, argc, argv);
 		break;
 	case MODE_LIST:
 		error = steps_list(&sc, argc, argv);
@@ -229,16 +230,12 @@ steps_read(struct step_context *sc, int argc, char **argv)
 }
 
 static int
-steps_write(struct step_context *sc, int argc, char **argv)
+action_write(struct step_context *sc, int argc, char **argv)
 {
-	FILE *fh = NULL;
-	struct buffer *bf = NULL;
-	struct step *st, *steps;
-	size_t i;
+	struct step *st;
 	int id = 0;
-	int error = 0;
 	int doheader = 0;
-	int ch, n;
+	int ch;
 
 	while ((ch = getopt(argc, argv, "Hi:")) != -1) {
 		switch (ch) {
@@ -258,61 +255,30 @@ steps_write(struct step_context *sc, int argc, char **argv)
 	if (!doheader && (argc == 0 || id == 0))
 		usage();
 
-	bf = buffer_alloc(4096);
-	if (bf == NULL)
-		err(1, NULL);
-
 	if (doheader) {
+		struct buffer *bf;
+
+		arena_scope(sc->scratch, s);
+
+		bf = arena_buffer_alloc(&s, 1 << 10);
 		steps_header(bf);
 		buffer_putc(bf, '\0');
 		printf("%s", buffer_get_ptr(bf));
-		goto out;
+		return 0;
 	}
 
 	st = steps_find_by_id(steps_get(sc->step_file), id);
 	if (st == NULL) {
 		st = steps_alloc(sc->step_file);
 		if (step_init(st) ||
-		    step_set_field_integer(st, "step", id)) {
-			error = 1;
-			goto out;
-		}
+		    step_set_field_integer(st, "step", id))
+			return 1;
 	}
 	for (; argc > 0; argc--, argv++) {
-		if (step_set_keyval(st, *argv)) {
-			error = 1;
-			goto out;
-		}
+		if (step_set_keyval(st, *argv))
+			return 1;
 	}
-
-	steps_sort(steps_get(sc->step_file));
-	steps_header(bf);
-	steps = steps_get(sc->step_file);
-	for (i = 0; i < VECTOR_LENGTH(steps); i++) {
-		if (step_serialize(&steps[i], bf, sc->scratch)) {
-			error = 1;
-			goto out;
-		}
-	}
-
-	fh = fopen(sc->path, "we");
-	if (fh == NULL) {
-		warn("fopen: %s", sc->path);
-		error = 1;
-		goto out;
-	}
-	n = fwrite(buffer_get_ptr(bf), buffer_get_len(bf), 1, fh);
-	if (n < 1) {
-		warn("fwrite: %s", sc->path);
-		error = 1;
-		goto out;
-	}
-
-out:
-	if (fh != NULL)
-		fclose(fh);
-	buffer_free(bf);
-	return error;
+	return steps_write(sc->step_file, sc->scratch);
 }
 
 static int
