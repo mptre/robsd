@@ -377,6 +377,7 @@ step_serialize(const struct step *st, struct buffer *out, struct arena *scratch)
 		.arg		= (void *)st,
 		.scratch	= scratch,
 	});
+	/* coverity[leaked_storage: FALSE] */
 	return error;
 }
 
