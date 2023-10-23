@@ -429,8 +429,6 @@ config_free(struct config *cf)
 
 		va = VECTOR_POP(cf->variables);
 		variable_value_clear(&va->va_val);
-		if (va->va_flags & VARIABLE_FLAG_DIRTY)
-			free((void *)va->va_val.ptr);
 		free(va->va_name);
 	}
 	VECTOR_FREE(cf->variables);
