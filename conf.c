@@ -73,9 +73,6 @@ struct variable {
 	char			*va_name;
 	size_t			 va_namelen;
 	struct variable_value	 va_val;
-
-	unsigned int		 va_flags;
-#define VARIABLE_FLAG_DIRTY	0x00000001u
 };
 
 static void	variable_value_init(struct variable_value *,
@@ -169,7 +166,7 @@ static struct variable	*config_default_inet6(struct config *, const char *);
 static struct variable	*config_default_rdomain(struct config *, const char *);
 
 static struct variable	*config_append(struct config *, const char *,
-    const struct variable_value *, unsigned int);
+    const struct variable_value *);
 static struct variable	*config_append_string(struct config *,
     const char *, const char *);
 static int		 config_present(const struct config *,
@@ -494,8 +491,8 @@ config_append_string(struct config *cf, const char *name, const char *str)
 	struct variable_value val;
 
 	variable_value_init(&val, STRING);
-	val.str = estrdup(str);
-	return config_append(cf, name, &val, VARIABLE_FLAG_DIRTY);
+	val.str = arena_strdup(cf->eternal, str);
+	return config_append(cf, name, &val);
 }
 
 static struct variable *
@@ -505,7 +502,7 @@ config_find_or_create_list(struct config *cf, const char *name)
 		struct variable_value val;
 
 		variable_value_init(&val, LIST);
-		config_append(cf, name, &val, 0);
+		config_append(cf, name, &val);
 	}
 	return config_find(cf, name);
 }
@@ -979,10 +976,6 @@ variable_value_clear(struct variable_value *val)
 	}
 
 	case STRING:
-		if (val->flags & VARIABLE_FLAG_DIRTY)
-			free((void *)val->str);
-		break;
-
 	case INTEGER:
 	case DIRECTORY:
 		break;
@@ -1105,7 +1098,7 @@ config_parse_keyword(struct config *cf, struct token *tk)
 	assert(gr->gr_fn != NULL);
 	if (gr->gr_fn(cf, &val) == 0) {
 		if (val.ptr != novalue)
-			config_append(cf, tk->tk_str, &val, 0);
+			config_append(cf, tk->tk_str, &val);
 	} else {
 		error = 1;
 	}
@@ -1280,7 +1273,7 @@ config_parse_regress(struct config *cf, struct variable_value *val)
 			name = regressname(path, "parallel", &s);
 			variable_value_init(&newval, INTEGER);
 			newval.integer = 0;
-			config_append(cf, name, &newval, 0);
+			config_append(cf, name, &newval);
 		} else if (lexer_if(lx, TOKEN_OBJ, &tk)) {
 			struct variable_value newval;
 			struct variable *obj;
@@ -1304,21 +1297,21 @@ config_parse_regress(struct config *cf, struct variable_value *val)
 			name = regressname(path, "quiet", &s);
 			variable_value_init(&newval, INTEGER);
 			newval.integer = 1;
-			config_append(cf, name, &newval, 0);
+			config_append(cf, name, &newval);
 		} else if (lexer_if(lx, TOKEN_ROOT, &tk)) {
 			struct variable_value newval;
 
 			name = regressname(path, "root", &s);
 			variable_value_init(&newval, INTEGER);
 			newval.integer = 1;
-			config_append(cf, name, &newval, 0);
+			config_append(cf, name, &newval);
 		} else if (lexer_if(lx, TOKEN_TARGET, &tk)) {
 			struct variable_value newval;
 
 			if (config_parse_string(cf, &newval))
 				return 1;
 			name = regressname(path, "target", &s);
-			config_append(cf, name, &newval, 0);
+			config_append(cf, name, &newval);
 		} else {
 			break;
 		}
@@ -1354,7 +1347,7 @@ config_parse_regress_option_env(struct config *cf, const char *path)
 		err(1, NULL);
 	*dst = estrdup("${regress-env}");
 	variable_value_concat(&defval, &newval);
-	va = config_append(cf, name, &defval, 0);
+	va = config_append(cf, name, &defval);
 
 	/* Do early interpolation to expand rdomain(s). */
 	template = arena_sprintf(&s, "${%s}", name);
@@ -1381,7 +1374,7 @@ config_parse_regress_env(struct config *cf, struct variable_value *val)
 		struct variable_value def;
 
 		variable_value_init(&def, LIST);
-		config_append(cf, "regress-env", &def, 0);
+		config_append(cf, "regress-env", &def);
 	}
 	env = config_find(cf, "regress-env");
 	variable_value_concat(&env->va_val, val);
@@ -1484,7 +1477,7 @@ config_default_inet4(struct config *cf, const char *name)
 		addr = "";
 	variable_value_init(&val, STRING);
 	val.str = addr;
-	return config_append(cf, name, &val, 0);
+	return config_append(cf, name, &val);
 }
 
 static struct variable *
@@ -1498,7 +1491,7 @@ config_default_inet6(struct config *cf, const char *name)
 		addr = "";
 	variable_value_init(&val, STRING);
 	val.str = addr;
-	return config_append(cf, name, &val, 0);
+	return config_append(cf, name, &val);
 }
 
 static struct variable *
@@ -1517,14 +1510,13 @@ config_default_rdomain(struct config *cf, const char *UNUSED(name))
 
 static struct variable *
 config_append(struct config *cf, const char *name,
-    const struct variable_value *val, unsigned int flags)
+    const struct variable_value *val)
 {
 	struct variable *va;
 
 	va = VECTOR_CALLOC(cf->variables);
 	if (va == NULL)
 		err(1, NULL);
-	va->va_flags = flags;
 	va->va_name = estrdup(name);
 	va->va_namelen = strlen(name);
 	va->va_val = *val;
