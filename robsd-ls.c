@@ -23,8 +23,7 @@ main(int argc, char *argv[])
 	const char *builddir = NULL;
 	const char *mode = NULL;
 	const char *path = NULL;
-	char *keepdir = NULL;
-	char *robsddir = NULL;
+	const char *keepdir, *robsddir;
 	int error = 0;
 	int skip_builddir = 0;
 	int ch;
@@ -90,8 +89,6 @@ main(int argc, char *argv[])
 	}
 
 out:
-	free(keepdir);
-	free(robsddir);
 	invocation_free(is);
 	config_free(config);
 	arena_free(scratch);

@@ -7,6 +7,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "libks/arena-buffer.h"
 #include "libks/arena.h"
 #include "libks/buffer.h"
 
@@ -23,7 +24,7 @@ struct interpolate_context {
 static int	interpolate(struct interpolate_context *, struct buffer *,
     const char *);
 
-char *
+const char *
 interpolate_file(const char *path, const struct interpolate_arg *arg)
 {
 	struct interpolate_context ic = {
@@ -45,9 +46,7 @@ interpolate_file(const char *path, const struct interpolate_arg *arg)
 		return NULL;
 	}
 
-	bf = buffer_alloc(1024);
-	if (bf == NULL)
-		err(1, NULL);
+	bf = arena_buffer_alloc(ic.ic_arg->eternal, 1 << 10);
 	for (;;) {
 		ssize_t n;
 
@@ -73,19 +72,15 @@ interpolate_file(const char *path, const struct interpolate_arg *arg)
 	return buf;
 }
 
-char *
+const char *
 interpolate_str(const char *str, const struct interpolate_arg *arg)
 {
 	struct buffer *bf;
-	char *buf = NULL;
 
-	bf = buffer_alloc(1024);
-	if (bf == NULL)
-		err(1, NULL);
-	if (interpolate_buffer(str, bf, arg) == 0)
-		buf = buffer_str(bf);
-	buffer_free(bf);
-	return buf;
+	bf = arena_buffer_alloc(arg->eternal, 1 << 10);
+	if (interpolate_buffer(str, bf, arg))
+		return NULL;
+	return buffer_str(bf);
 }
 
 int

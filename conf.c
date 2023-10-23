@@ -178,7 +178,8 @@ static struct variable	*config_find(struct config *, const char *);
 static struct variable	*config_find_or_create_list(struct config *,
     const char *);
 
-static char	*config_interpolate_early(struct config *, const char *);
+static const char	*config_interpolate_early(struct config *,
+    const char *);
 
 static const char	*regressname(const char *, const char *,
     struct arena_scope *);
@@ -587,26 +588,27 @@ config_get_value(struct config *cf, const char *name)
 int
 config_interpolate(struct config *cf)
 {
-	char *str;
+	const char *str;
 
 	str = interpolate_file("/dev/stdin", &(struct interpolate_arg){
 	    .lookup	= config_interpolate_lookup,
 	    .arg	= cf,
+	    .eternal	= cf->eternal,
 	    .scratch	= cf->scratch,
 	});
 	if (str == NULL)
 		return 1;
 	printf("%s", str);
-	free(str);
 	return 0;
 }
 
-char *
+const char *
 config_interpolate_str(struct config *cf, const char *str)
 {
 	return interpolate_str(str, &(struct interpolate_arg){
 	    .lookup	= config_interpolate_lookup,
 	    .arg	= cf,
+	    .eternal	= cf->eternal,
 	    .scratch	= cf->scratch,
 	});
 }
@@ -662,15 +664,16 @@ config_interpolate_lookup(const char *name, struct arena_scope *s, void *arg)
 	return buffer_str(bf);
 }
 
-static char *
+static const char *
 config_interpolate_early(struct config *cf, const char *template)
 {
-	char *str;
+	const char *str;
 
 	cf->interpolate.early = 1;
 	str = interpolate_str(template, &(struct interpolate_arg){
 	    .lookup	= config_interpolate_lookup,
 	    .arg	= cf,
+	    .eternal	= cf->eternal,
 	    .scratch	= cf->scratch,
 	    .flags	= INTERPOLATE_IGNORE_LOOKUP_ERRORS,
 	});
@@ -1339,9 +1342,8 @@ config_parse_regress_option_env(struct config *cf, const char *path)
 {
 	struct variable_value defval, intval, newval;
 	struct variable *va;
-	const char *name;
+	const char *name, *str, *template;
 	char **dst;
-	char *str, *template;
 
 	if (config_parse_list(cf, &newval))
 		return 1;
@@ -1365,7 +1367,6 @@ config_parse_regress_option_env(struct config *cf, const char *path)
 		return 1;
 	variable_value_init(&intval, STRING);
 	intval.str = str;
-	intval.flags = VARIABLE_FLAG_DIRTY;
 	variable_value_clear(&va->va_val);
 	va->va_val = intval;
 
@@ -1397,8 +1398,7 @@ config_parse_directory(struct config *cf, struct variable_value *val)
 {
 	struct stat st;
 	struct token *tk;
-	const char *dir;
-	char *path;
+	const char *dir, *path;
 	int error = 0;
 
 	if (!lexer_expect(cf->lx, TOKEN_STRING, &tk))
@@ -1412,6 +1412,7 @@ config_parse_directory(struct config *cf, struct variable_value *val)
 	path = interpolate_str(dir, &(struct interpolate_arg){
 	    .lookup	= config_interpolate_lookup,
 	    .arg	= cf,
+	    .eternal	= cf->eternal,
 	    .scratch	= cf->scratch,
 	    .lno	= tk->tk_lno,
 	});
@@ -1425,7 +1426,6 @@ config_parse_directory(struct config *cf, struct variable_value *val)
 		    path);
 		error = 1;
 	}
-	free(path);
 	return error;
 }
 
@@ -1434,13 +1434,15 @@ config_default_build_dir(struct config *cf, const char *name)
 {
 	struct buffer *bf = NULL;
 	struct variable *va = NULL;
-	char *nl, *path;
+	const char *path;
+	char *nl;
 	int fd = -1;
 
 	path = interpolate_str("${robsddir}/.running",
 	    &(struct interpolate_arg){
 		.lookup		= config_interpolate_lookup,
 		.arg		= cf,
+		.eternal	= cf->eternal,
 		.scratch	= cf->scratch,
 	});
 	if (path == NULL)
@@ -1472,7 +1474,6 @@ config_default_build_dir(struct config *cf, const char *name)
 out:
 	if (fd != -1)
 		close(fd);
-	free(path);
 	return va;
 }
 

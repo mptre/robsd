@@ -97,8 +97,7 @@ previous_builddir(struct config *config, const char *builddir,
 	const struct invocation_entry *entry;
 	struct invocation_state *is = NULL;
 	const char *prev_builddir = NULL;
-	char *keepdir = NULL;
-	char *robsddir = NULL;
+	const char *keepdir, *robsddir;
 
 	robsddir = config_interpolate_str(config, "${robsddir}");
 	if (robsddir == NULL)
@@ -118,8 +117,6 @@ previous_builddir(struct config *config, const char *builddir,
 	}
 
 out:
-	free(keepdir);
-	free(robsddir);
 	invocation_free(is);
 	return prev_builddir;
 }
@@ -182,8 +179,8 @@ static const char *
 cross_report_subject(struct report_context *r, struct arena_scope *s)
 {
 	struct buffer *bf;
-	const char *subject, *target_path;
-	char *machine, *p, *target;
+	const char *machine, *subject, *target_path;
+	char *p, *target;
 
 	target_path = arena_sprintf(s, "%s/target", r->builddir);
 	bf = arena_buffer_read(s, target_path);
@@ -198,7 +195,6 @@ cross_report_subject(struct report_context *r, struct arena_scope *s)
 	machine = config_interpolate_str(r->config, "${machine}");
 	subject = arena_sprintf(s, " %s.%s: ",
 	    machine != NULL ? machine : "", target);
-	free(machine);
 	return subject;
 }
 

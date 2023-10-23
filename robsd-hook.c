@@ -13,7 +13,8 @@
 
 static void	usage(void) __attribute__((__noreturn__));
 
-static int	hook_to_argv(struct config *, struct arena *, char ***);
+static int	hook_to_argv(struct config *, struct arena_scope *,
+    struct arena *, char ***);
 
 int
 main(int argc, char *argv[])
@@ -85,7 +86,7 @@ main(int argc, char *argv[])
 		}
 	}
 
-	switch (hook_to_argv(config, scratch, &args)) {
+	switch (hook_to_argv(config, &eternal, scratch, &args)) {
 	case -1:
 		error = 1;
 		goto out;
@@ -126,7 +127,8 @@ usage(void)
 }
 
 static int
-hook_to_argv(struct config *config, struct arena *scratch, char ***out)
+hook_to_argv(struct config *config, struct arena_scope *eternal,
+    struct arena *scratch, char ***out)
 {
 	VECTOR(char *) args;
 	VECTOR(char *) hook;
@@ -146,13 +148,14 @@ hook_to_argv(struct config *config, struct arena *scratch, char ***out)
 		err(1, NULL);
 	args[nargs] = NULL;
 	for (i = 0; i < VECTOR_LENGTH(hook); i++) {
-		const char *str = hook[i];
 		char **dst;
-		char *arg;
+		const char *str = hook[i];
+		const char *arg;
 
 		arg = interpolate_str(str, &(struct interpolate_arg){
 		    .lookup	= config_interpolate_lookup,
 		    .arg	= config,
+		    .eternal	= eternal,
 		    .scratch	= scratch,
 		});
 		if (arg == NULL) {
@@ -162,7 +165,7 @@ hook_to_argv(struct config *config, struct arena *scratch, char ***out)
 		dst = VECTOR_ALLOC(args);
 		if (dst == NULL)
 			err(1, NULL);
-		*dst = arg;
+		*dst = (char *)arg;
 	}
 
 	if (error) {

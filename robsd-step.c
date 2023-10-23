@@ -169,7 +169,7 @@ steps_read(struct step_context *sc, int argc, char **argv)
 {
 	struct step *st, *steps;
 	const char *name = NULL;
-	char *str;
+	const char *str;
 	size_t nsteps;
 	int error = 0;
 	int id = 0;
@@ -218,13 +218,13 @@ steps_read(struct step_context *sc, int argc, char **argv)
 	    &(struct interpolate_arg){
 		.lookup		= step_interpolate_lookup,
 		.arg		= st,
+		.eternal	= sc->eternal,
 		.scratch	= sc->scratch,
 	});
 	if (str != NULL)
 		printf("%s", str);
 	else
 		error = 1;
-	free(str);
 	return error;
 }
 
