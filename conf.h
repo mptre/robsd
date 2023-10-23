@@ -22,9 +22,6 @@ struct variable_value {
 		LIST,
 	} type;
 
-	unsigned int    flags;
-#define VARIABLE_VALUE_DIRTY
-
 	union {
 		const void	 *ptr;
 		const char	 *str;
