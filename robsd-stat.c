@@ -25,6 +25,8 @@ struct robsd_stat {
 	char		rs_directory[PATH_MAX];
 	uint64_t	rs_time;
 	double		rs_loadavg;
+	int		rs_nprocs;
+	int		rs_nthreads;
 	struct {
 		long	c_abs[CPUSTATES];
 		double	c_rel[CPUSTATES];
@@ -38,6 +40,7 @@ static int	stat_cpu(struct robsd_stat *);
 static int	stat_directory(struct robsd_stat *, char **);
 static int	stat_directory1(struct robsd_stat *, const char *);
 static int	stat_loadavg(struct robsd_stat *);
+static int	stat_procs_and_threads(struct robsd_stat *);
 static int	stat_time(struct robsd_stat *);
 
 static void	stat_print(const struct robsd_stat *, FILE *);
@@ -83,7 +86,8 @@ main(int argc, char *argv[])
 
 	if (doheader) {
 		/* Keep in sync with the robsd-stat.8 manual. */
-		fprintf(fh, "time,load,user,sys,spin,intr,idle,directory\n");
+		fprintf(fh, "time,load,user,sys,spin,intr,idle,nprocs,"
+		    "nthreads,directory\n");
 		VECTOR_FREE(users);
 		return 0;
 	}
@@ -99,6 +103,7 @@ main(int argc, char *argv[])
 		if (stat_time(&rs) ||
 		    stat_cpu(&rs) ||
 		    stat_loadavg(&rs) ||
+		    stat_procs_and_threads(&rs) ||
 		    stat_directory(&rs, users)) {
 			error = 1;
 			break;
@@ -282,6 +287,34 @@ stat_loadavg(struct robsd_stat *rs)
 }
 
 static int
+stat_procs_and_threads(struct robsd_stat *rs)
+{
+	int mib[2];
+	int nprocs, nthreads;
+	size_t len;
+
+	mib[0] = CTL_KERN;
+	mib[1] = KERN_NPROCS;
+	len = sizeof(nprocs);
+	if (sysctl(mib, 2, &nprocs, &len, NULL, 0) == -1) {
+		warn("sysctl: kern.nprocs");
+		return 1;
+	}
+	rs->rs_nprocs = nprocs;
+
+	mib[0] = CTL_KERN;
+	mib[1] = KERN_NTHREADS;
+	len = sizeof(nthreads);
+	if (sysctl(mib, 2, &nthreads, &len, NULL, 0) == -1) {
+		warn("sysctl: kern.nthreads");
+		return 1;
+	}
+	rs->rs_nthreads = nthreads;
+
+	return 0;
+}
+
+static int
 stat_time(struct robsd_stat *rs)
 {
 	struct timespec ts;
@@ -298,7 +331,7 @@ stat_time(struct robsd_stat *rs)
 static void
 stat_print(const struct robsd_stat *rs, FILE *fh)
 {
-	fprintf(fh, "%" PRIu64 ",%.2f,%.2f,%.2f,%.2f,%.2f,%.2f,%s\n",
+	fprintf(fh, "%" PRIu64 ",%.2f,%.2f,%.2f,%.2f,%.2f,%.2f,%d,%d,%s\n",
 	    rs->rs_time,
 	    rs->rs_loadavg,
 	    rs->rs_cpu.c_rel[CP_USER],
@@ -306,6 +339,8 @@ stat_print(const struct robsd_stat *rs, FILE *fh)
 	    rs->rs_cpu.c_rel[CP_SPIN],
 	    rs->rs_cpu.c_rel[CP_INTR],
 	    rs->rs_cpu.c_rel[CP_IDLE],
+	    rs->rs_nprocs,
+	    rs->rs_nthreads,
 	    rs->rs_directory);
 	fflush(fh);
 }
