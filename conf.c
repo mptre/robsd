@@ -1327,7 +1327,6 @@ static int
 config_parse_regress_option_env(struct config *cf, const char *path)
 {
 	struct variable_value defval, intval, newval;
-	struct buffer *bf;
 	struct variable *va;
 	const char *name;
 	char **dst;
@@ -1349,12 +1348,8 @@ config_parse_regress_option_env(struct config *cf, const char *path)
 	va = config_append(cf, name, &defval, 0);
 
 	/* Do early interpolation to expand rdomain(s). */
-	bf = buffer_alloc(128);
-	buffer_printf(bf, "${%s}", name);
-	template = buffer_str(bf);
+	template = arena_sprintf(&s, "${%s}", name);
 	str = config_interpolate_early(cf, template);
-	free(template);
-	buffer_free(bf);
 	if (str == NULL)
 		return 1;
 	variable_value_init(&intval, STRING);
