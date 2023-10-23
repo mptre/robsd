@@ -1,5 +1,7 @@
 #include "mode.h"
 
+struct arena;
+
 #define config_find_value(config, name, field) __extension__ ({		\
 	struct variable_value *_val;					\
 	typeof(_val->field) _v = 0;					\
@@ -29,7 +31,7 @@ struct variable_value {
 	};
 };
 
-struct config	*config_alloc(const char *, const char *);
+struct config	*config_alloc(const char *, const char *, struct arena *);
 void		 config_free(struct config *);
 int		 config_parse(struct config *);
 int		 config_append_var(struct config *, const char *);

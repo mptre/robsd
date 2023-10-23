@@ -6,6 +6,8 @@
 #include <string.h>
 #include <unistd.h>
 
+#include "libks/arena.h"
+
 #include "conf.h"
 #include "invocation.h"
 
@@ -14,6 +16,7 @@ static void	usage(void) __attribute__((__noreturn__));
 int
 main(int argc, char *argv[])
 {
+	struct arena *scratch;
 	struct config *config = NULL;
 	struct invocation_state *is = NULL;
 	const struct invocation_entry *entry;
@@ -49,7 +52,9 @@ main(int argc, char *argv[])
 	if (argc > 0 || mode == NULL)
 		usage();
 
-	config = config_alloc(mode, path);
+	scratch = arena_alloc(ARENA_FATAL);
+
+	config = config_alloc(mode, path, scratch);
 	if (config == NULL) {
 		error = 1;
 		goto out;
@@ -87,6 +92,7 @@ out:
 	free(robsddir);
 	invocation_free(is);
 	config_free(config);
+	arena_free(scratch);
 	return error;
 }
 

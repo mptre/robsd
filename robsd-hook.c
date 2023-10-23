@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 
+#include "libks/arena.h"
 #include "libks/vector.h"
 
 #include "conf.h"
@@ -19,6 +20,7 @@ main(int argc, char *argv[])
 {
 	VECTOR(const char *) vars;
 	VECTOR(char *) args = NULL;
+	struct arena *scratch;
 	struct config *config = NULL;
 	const char *mode = NULL;
 	const char *path = NULL;
@@ -62,7 +64,9 @@ main(int argc, char *argv[])
 	if (argc > 0 || mode == NULL)
 		usage();
 
-	config = config_alloc(mode, path);
+	scratch = arena_alloc(ARENA_FATAL);
+
+	config = config_alloc(mode, path, scratch);
 	if (config == NULL) {
 		error = 1;
 		goto out;
@@ -106,6 +110,7 @@ main(int argc, char *argv[])
 out:
 	VECTOR_FREE(args);
 	config_free(config);
+	arena_free(scratch);
 	VECTOR_FREE(vars);
 	return error;
 }

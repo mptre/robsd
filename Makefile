@@ -8,6 +8,7 @@ COMPATS+=	compat-unveil.c
 COMPATS+=	compat-warnc.c
 
 SRCS_config+=	alloc.c
+SRCS_config+=	arena.c
 SRCS_config+=	arithmetic.c
 SRCS_config+=	buffer.c
 SRCS_config+=	conf.c
@@ -82,7 +83,6 @@ PROG_robsd-regress-log=		robsd-regress-log
 
 SRCS_robsd-report+=	${COMPATS}
 SRCS_robsd-report+=	${SRCS_config}
-SRCS_robsd-report+=	arena.c
 SRCS_robsd-report+=	arena-buffer.c
 SRCS_robsd-report+=	consistency.c
 SRCS_robsd-report+=	invocation.c

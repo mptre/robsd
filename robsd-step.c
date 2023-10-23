@@ -6,8 +6,8 @@
 #include <stdlib.h>
 #include <unistd.h>
 
+#include "libks/arena.h"
 #include "libks/buffer.h"
-#include "libks/compiler.h"
 #include "libks/vector.h"
 
 #include "conf.h"
@@ -22,6 +22,7 @@ enum step_mode {
 
 struct step_context {
 	const char		*path;
+	struct arena		*scratch;
 	struct step_file	*step_file;
 };
 
@@ -87,6 +88,8 @@ main(int argc, char *argv[])
 	if (mode == 0)
 		usage();
 
+	sc.scratch = arena_alloc(ARENA_FATAL);
+
 	switch (mode) {
 	case MODE_READ:
 		if (sc.path == NULL)
@@ -141,6 +144,7 @@ main(int argc, char *argv[])
 
 out:
 	steps_free(sc.step_file);
+	arena_free(sc.scratch);
 	return error;
 }
 
@@ -305,7 +309,7 @@ out:
 }
 
 static int
-steps_list(struct step_context *UNUSED(sc), int argc, char **argv)
+steps_list(struct step_context *sc, int argc, char **argv)
 {
 	struct config *config;
 	const char *config_path = NULL;
@@ -331,7 +335,7 @@ steps_list(struct step_context *UNUSED(sc), int argc, char **argv)
 	if (argc != 0 || mode == NULL)
 		usage();
 
-	config = config_alloc(mode, config_path);
+	config = config_alloc(mode, config_path, sc->scratch);
 	if (config == NULL)
 		return 1;
 	if (config_parse(config))
