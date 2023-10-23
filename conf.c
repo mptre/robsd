@@ -679,6 +679,7 @@ config_regress_get_steps(struct config *cf)
 	if (bf == NULL)
 		err(1, NULL);
 
+	/* Include synchronous steps up to ${regress}. */
 	for (s = 0; s < cf->steps.len; s++) {
 		if (cf->steps.ptr[s] == NULL)
 			break;
@@ -688,7 +689,7 @@ config_regress_get_steps(struct config *cf)
 		steps[i++] = cf->steps.ptr[s];
 	}
 
-	/* Group by parallel/non-parallel. */
+	/* Include parallel ${regress} steps. */
 	for (r = 0; r < nregress; r++) {
 		const struct variable *va;
 		int parallel;
@@ -708,12 +709,15 @@ config_regress_get_steps(struct config *cf)
 			*dst = regress[r];
 		}
 	}
+
+	/* Include non-parallel ${regress} steps. */
 	for (r = 0; r < VECTOR_LENGTH(regress_no_parallel); r++) {
 		if (VECTOR_ALLOC(steps) == NULL)
 			err(1, NULL);
 		steps[i++] = regress_no_parallel[r];
 	}
 
+	/* Include remaining synchronous steps. */
 	for (s++; s < cf->steps.len; s++) {
 		if (VECTOR_ALLOC(steps) == NULL)
 			err(1, NULL);
