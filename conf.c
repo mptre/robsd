@@ -971,8 +971,12 @@ variable_value_clear(struct variable_value *val)
 		break;
 	}
 
-	case INTEGER:
 	case STRING:
+		if (val->flags & VARIABLE_FLAG_DIRTY)
+			free((void *)val->str);
+		break;
+
+	case INTEGER:
 	case DIRECTORY:
 		break;
 	}
@@ -1352,6 +1356,7 @@ config_parse_regress_option_env(struct config *cf, const char *path)
 		return 1;
 	variable_value_init(&intval, STRING);
 	intval.str = str;
+	intval.flags = VARIABLE_FLAG_DIRTY;
 	variable_value_clear(&va->va_val);
 	va->va_val = intval;
 
