@@ -874,7 +874,7 @@ robsd() {
 		_exit=0
 		_t0="$(date '+%s')"
 		step_write -t -l "$_log" -s "$_s" -n "$_name" -e -1 -d -1 "$_steps"
-		step_exec -f "${_builddir}/tmp/fail" -l "${_builddir}/${_log}" \
+		step_exec -b "$_builddir" -l "${_builddir}/${_log}" \
 			-s "$_name" || _exit="$?"
 		_t1="$(date '+%s')"
 		_d1="$((_t1 - _t0))"
@@ -1033,11 +1033,12 @@ step_eval() {
 	return "$_err"
 }
 
-# step_exec [-X] -f fail -l log -s step
+# step_exec [-X] -b build-dir -l log -s step
 #
 # Execute the given script and redirect any output to log.
 step_exec() (
-	local _err=0
+	local _builddir
+	local _err
 	local _exec
 	local _fail
 	local _log
@@ -1048,16 +1049,19 @@ step_exec() (
 	while [ $# -gt 0 ]; do
 		case "$1" in
 		-X)	_trace="";;
-		-f)	shift; _fail="$1";;
+		-b)	shift; _builddir="$1";;
 		-l)	shift; _log="$1";;
 		-s)	shift; _step="$1";;
 		*)	break;;
 		esac
 		shift
 	done
-	: "${_fail:?}"
+	: "${_builddir:?}"
 	: "${_log:?}"
 	: "${_step:?}"
+
+	_fail="$(mktemp -p "${_builddir}/tmp" step-exec.XXXXXX)"
+	echo 0 >"$_fail"
 
 	_exec="${EXECDIR}/${_MODE}-${_step}.sh"
 	if ! [ -e "$_exec" ]; then
@@ -1080,10 +1084,8 @@ step_exec() (
 				echo "$?" >"$_fail"
 		fi
 	} </dev/null 2>&1 | tee "$_log"
-	if [ -e "$_fail" ]; then
-		_err="$(<"$_fail")"
-		rm -f "$_fail"
-	fi
+	_err="$(<"$_fail")"
+	rm -f "$_fail"
 	return "$_err"
 )
 
