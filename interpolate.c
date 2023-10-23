@@ -14,11 +14,11 @@
 #include "log.h"
 
 struct interpolate_context {
-	const struct interpolate_arg	*ic_arg;
-	const char			*ic_path;
-	int				 ic_lno;
-	int				 ic_depth;
-	unsigned int			 ic_flags;
+	const struct interpolate_arg	*arg;
+	const char			*path;
+	int				 lno;
+	int				 depth;
+	unsigned int			 flags;
 };
 
 static int	interpolate(struct interpolate_context *, struct buffer *,
@@ -27,11 +27,11 @@ static int	interpolate(struct interpolate_context *, struct buffer *,
 const char *
 interpolate_file(const char *path, const struct interpolate_arg *arg)
 {
-	struct interpolate_context ic = {
-		.ic_arg		= arg,
-		.ic_path	= path,
-		.ic_lno		= arg->lno,
-		.ic_flags	= arg->flags,
+	struct interpolate_context c = {
+		.arg	= arg,
+		.path	= path,
+		.lno	= arg->lno,
+		.flags	= arg->flags,
 	};
 	FILE *fh;
 	struct buffer *bf;
@@ -46,7 +46,7 @@ interpolate_file(const char *path, const struct interpolate_arg *arg)
 		return NULL;
 	}
 
-	bf = arena_buffer_alloc(ic.ic_arg->eternal, 1 << 10);
+	bf = arena_buffer_alloc(c.arg->eternal, 1 << 10);
 	for (;;) {
 		ssize_t n;
 
@@ -58,8 +58,8 @@ interpolate_file(const char *path, const struct interpolate_arg *arg)
 			error = 1;
 			break;
 		}
-		ic.ic_lno++;
-		if (interpolate(&ic, bf, line)) {
+		c.lno++;
+		if (interpolate(&c, bf, line)) {
 			error = 1;
 			break;
 		}
@@ -87,30 +87,30 @@ int
 interpolate_buffer(const char *str, struct buffer *bf,
     const struct interpolate_arg *arg)
 {
-	struct interpolate_context ic = {
-		.ic_arg		= arg,
-		.ic_lno		= arg->lno,
-		.ic_flags	= arg->flags,
+	struct interpolate_context c = {
+		.arg	= arg,
+		.lno	= arg->lno,
+		.flags	= arg->flags,
 	};
 	int error;
 
-	error = interpolate(&ic, bf, str);
+	error = interpolate(&c, bf, str);
 	return error;
 }
 
 static int
-interpolate(struct interpolate_context *ic, struct buffer *bf,
+interpolate(struct interpolate_context *c, struct buffer *bf,
     const char *str)
 {
 	int error = 0;
 
-	if (++ic->ic_depth == 5) {
-		log_warnx(ic->ic_path, ic->ic_lno,
+	if (++c->depth == 5) {
+		log_warnx(c->path, c->lno,
 		    "invalid substitution, recursion too deep");
 		return 1;
 	}
 
-	arena_scope(ic->ic_arg->scratch, s);
+	arena_scope(c->arg->scratch, s);
 
 	for (;;) {
 		const char *lookup, *name, *p, *ve, *vs;
@@ -122,7 +122,7 @@ interpolate(struct interpolate_context *ic, struct buffer *bf,
 		buffer_puts(bf, str, (size_t)(p - str));
 		vs = &p[1];
 		if (*vs != '{') {
-			log_warnx(ic->ic_path, ic->ic_lno,
+			log_warnx(c->path, c->lno,
 			    "invalid substitution, expected '{'");
 			error = 1;
 			break;
@@ -130,41 +130,41 @@ interpolate(struct interpolate_context *ic, struct buffer *bf,
 		vs += 1;
 		ve = strchr(vs, '}');
 		if (ve == NULL) {
-			log_warnx(ic->ic_path, ic->ic_lno,
+			log_warnx(c->path, c->lno,
 			    "invalid substitution, expected '}'");
 			error = 1;
 			break;
 		}
 		len = (size_t)(ve - vs);
 		if (len == 0) {
-			log_warnx(ic->ic_path, ic->ic_lno,
+			log_warnx(c->path, c->lno,
 			    "invalid substitution, empty variable name");
 			error = 1;
 			break;
 		}
 
 		name = arena_strndup(&s, vs, len);
-		lookup = ic->ic_arg->lookup(name, &s, ic->ic_arg->arg);
+		lookup = c->arg->lookup(name, &s, c->arg->arg);
 		if (lookup == NULL &&
-		    (ic->ic_flags & INTERPOLATE_IGNORE_LOOKUP_ERRORS)) {
+		    (c->flags & INTERPOLATE_IGNORE_LOOKUP_ERRORS)) {
 			buffer_puts(bf, p, (size_t)(ve - p + 1));
 			goto next;
 		}
 		if (lookup == NULL) {
-			log_warnx(ic->ic_path, ic->ic_lno,
+			log_warnx(c->path, c->lno,
 			    "invalid substitution, unknown variable '%.*s'",
 			    (int)len, vs);
 			error = 1;
 			break;
 		}
-		error = interpolate(ic, bf, lookup);
+		error = interpolate(c, bf, lookup);
 		if (error)
 			break;
 
 next:
 		str = &ve[1];
 	}
-	ic->ic_depth--;
+	c->depth--;
 	/* Output any remaining tail. */
 	buffer_puts(bf, str, strlen(str));
 	return error;
