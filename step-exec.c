@@ -2,6 +2,7 @@
 
 #include "config.h"
 
+#include <sys/stat.h>
 #include <sys/wait.h>
 
 #include <err.h>
@@ -10,6 +11,17 @@
 #include <signal.h>
 #include <unistd.h>
 
+#include "libks/arena.h"
+
+#include "conf.h"
+#include "mode.h"
+
+struct step_context {
+	struct config		*config;
+	struct arena		*scratch;
+	unsigned int		 flags;
+};
+
 static int	exitstatus(int);
 static int	waiteof(int, int);
 static int	killwaitpg(int, int, int *);
@@ -17,14 +29,30 @@ static int	killwaitpg1(int, int, int, int *);
 static void	siginstall(int, void (*)(int), int);
 static void	sighandler(int);
 
+static const char	*resolve_step_script(struct step_context *,
+    const char *);
+
 static volatile sig_atomic_t	gotsig;
 
 int
-step_exec(char *const *argv)
+step_exec(const char *step_name, struct config *config, struct arena *scratch,
+    unsigned int flags)
 {
+	struct step_context c = {
+		.config		= config,
+		.scratch	= scratch,
+		.flags		= flags,
+	};
+	const char *step_script;
 	pid_t pid;
 	int pip[2];
 	int error, status;
+
+	step_script = resolve_step_script(&c, step_name);
+	if (step_script == NULL) {
+		warnx("%s: step script not found", step_name);
+		return 1;
+	}
 
 	/* NOLINTNEXTLINE(android-cloexec-pipe2) */
 	if (pipe2(pip, O_NONBLOCK) == -1)
@@ -34,6 +62,17 @@ step_exec(char *const *argv)
 	if (pid == -1)
 		err(1, "fork");
 	if (pid == 0) {
+		const char *argv[7];
+		int argc = 0;
+
+		argv[argc++] = "sh";
+		argv[argc++] = "-eu";
+		if (c.flags & STEP_EXEC_TRACE)
+			argv[argc++] = "-x";
+		argv[argc++] = step_script;
+		argv[argc++] = step_name;
+		argv[argc++] = NULL;
+
 		close(pip[0]);
 		if (setsid() == -1)
 			err(1, "setsid");
@@ -45,7 +84,7 @@ step_exec(char *const *argv)
 
 		/* Signal to the parent that the process group is present. */
 		close(pip[1]);
-		execvp(argv[0], &argv[0]);
+		execvp(argv[0], (char *const *)argv);
 		err(1, "%s", argv[0]);
 	}
 
@@ -174,4 +213,40 @@ static void
 sighandler(int signo)
 {
 	gotsig = signo;
+}
+
+static const char *
+resolve_step_script(struct step_context *c, const char *step_name)
+{
+	struct stat st;
+	const char *step_script, *template;
+	enum robsd_mode mode = config_get_mode(c->config);
+
+	arena_scope(c->scratch, s);
+
+	/* Give mode specific step script higher precedence. */
+	template = arena_sprintf(&s, "${exec-dir}/%s-%s.sh",
+	    robsd_mode_str(mode), step_name);
+	step_script = config_interpolate_str(c->config, template);
+	if (step_script == NULL)
+		return NULL;
+	if (stat(step_script, &st) == 0 && S_ISREG(st.st_mode))
+		return step_script;
+
+	/* Fallback to robsd step script. */
+	template = arena_sprintf(&s, "${exec-dir}/robsd-%s.sh", step_name);
+	step_script = config_interpolate_str(c->config, template);
+	if (step_script == NULL)
+		return NULL;
+	if (stat(step_script, &st) == 0 && S_ISREG(st.st_mode))
+		return step_script;
+
+	if (mode == ROBSD_REGRESS) {
+		/* Assume regress test step. */
+		template = arena_sprintf(&s, "${exec-dir}/%s-exec.sh",
+		    robsd_mode_str(mode));
+		return config_interpolate_str(c->config, template);
+	}
+
+	return NULL;
 }

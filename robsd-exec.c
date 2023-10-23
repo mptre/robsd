@@ -19,15 +19,19 @@ main(int argc, char *argv[])
 	struct config *config;
 	const char *config_mode = NULL;
 	const char *config_path = NULL;
+	unsigned int flags = 0;
 	int ch, error;
 
-	while ((ch = getopt(argc, argv, "C:m:")) != -1) {
+	while ((ch = getopt(argc, argv, "C:m:x")) != -1) {
 		switch (ch) {
 		case 'C':
 			config_path = optarg;
 			break;
 		case 'm':
 			config_mode = optarg;
+			break;
+		case 'x':
+			flags |= STEP_EXEC_TRACE;
 			break;
 		default:
 			usage();
@@ -49,12 +53,13 @@ main(int argc, char *argv[])
 		goto out;
 	}
 
-	if (pledge("stdio proc exec", NULL) == -1)
+	if (pledge("stdio rpath proc exec", NULL) == -1)
 		err(1, "pledge");
 
-	error = step_exec(argv);
+	error = step_exec(argv[0], config, scratch, flags);
 
 out:
+	config_free(config);
 	arena_free(scratch);
 	arena_free(eternal);
 	return error;

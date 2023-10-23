@@ -1068,7 +1068,6 @@ step_eval() {
 step_exec() (
 	local _builddir
 	local _err
-	local _exec
 	local _fail
 	local _log
 	local _step
@@ -1091,28 +1090,16 @@ step_exec() (
 	_fail="$(mktemp -p "${_builddir}/tmp" step-exec.XXXXXX)"
 	echo 0 >"$_fail"
 
-	_exec="${EXECDIR}/${_MODE}-${_step}.sh"
-	if ! [ -e "$_exec" ]; then
-		_exec="${EXECDIR}/robsd-${_step}.sh"
-	fi
-
 	[ "$DETACH" -eq 0 ] || exec >/dev/null 2>&1
 
 	{
-		if [ "$_MODE" = "robsd-regress" ] && ! [ -e "$_exec" ]; then
-			"$ROBSDEXEC" -m "$_MODE" ${ROBSDCONF:+"-C${ROBSDCONF}"} \
-				-- sh -eu ${_trace:+-x} \
-				"${EXECDIR}/${_MODE}-exec.sh" "$_step" ||
-				echo "$?" >"$_fail"
+		"$ROBSDEXEC" -m "$_MODE" ${ROBSDCONF:+"-C${ROBSDCONF}"} \
+			${_trace:+-x} "$_step" || echo "$?" >"$_fail"
 
+		if [ "$_MODE" = "robsd-regress" ]; then
 			# Regress tests can fail but still exit zero, check the
 			# log for failures.
 			regress_failed "$_log" && echo 1 >"$_fail"
-		else
-			"$ROBSDEXEC" -m "$_MODE" ${ROBSDCONF:+"-C${ROBSDCONF}"} \
-				-- sh -eu ${_trace:+-x} \
-				"$_exec" ||
-				echo "$?" >"$_fail"
 		fi
 	} </dev/null 2>&1 | tee "$_log"
 	_err="$(<"$_fail")"

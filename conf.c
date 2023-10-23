@@ -13,6 +13,7 @@
 #include <glob.h>
 #include <pwd.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
 
@@ -160,6 +161,7 @@ static int	config_parse_directory(struct config *,
 
 static struct variable	*config_default_build_dir(struct config *,
     const char *);
+static struct variable	*config_default_exec_dir(struct config *, const char *);
 static struct variable	*config_default_inet4(struct config *, const char *);
 static struct variable	*config_default_inet6(struct config *, const char *);
 static struct variable	*config_default_rdomain(struct config *, const char *);
@@ -189,6 +191,7 @@ static const void *novalue;
 static const struct grammar common_grammar[] = {
 	{ "arch",	STRING,	NULL,	0,	{ MACHINE_ARCH } },
 	{ "builddir",	STRING,	NULL,	FUN,	{ D_FUN(config_default_build_dir) } },
+	{ "exec-dir",	STRING,	NULL,	FUN,	{ D_FUN(config_default_exec_dir) } },
 	{ "inet",	STRING,	NULL,	FUN,	{ D_FUN(config_default_inet4) } },
 	{ "inet6",	STRING,	NULL,	FUN,	{ D_FUN(config_default_inet6) } },
 	{ "keep-dir",	STRING,	NULL,	0,	{ "${robsddir}/attic" } },
@@ -1444,6 +1447,17 @@ out:
 	if (fd != -1)
 		close(fd);
 	return va;
+}
+
+static struct variable *
+config_default_exec_dir(struct config *cf, const char *name)
+{
+	const char *execdir;
+
+	execdir = getenv("EXECDIR");
+	if (execdir == NULL || execdir[0] == '\0')
+		execdir = "/usr/local/libexec/robsd";
+	return config_append_string(cf, name, execdir);
 }
 
 static struct variable *
