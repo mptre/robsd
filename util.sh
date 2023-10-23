@@ -383,9 +383,19 @@ diff_apply() (
 #
 # Remove leftovers from cvs and patch in dir.
 diff_clean() {
-	find "$1" -type f \( \
-		-name '*.orig' -o -name '*.rej' -o -name '.#*' \) -print0 |
-	xargs -0r rm
+	local _dir
+	local _path
+
+	_dir="$1"; : "${_dir:?}"
+
+	find "$_dir" -type f \( \
+		-name '*.orig' -o -name '*.rej' -o -name '.#*' \) |
+	while read -r _path; do
+		if ! grep -sq "^/${_path##*/}/" "${_path%/*}/CVS/Entries"; then
+			echo "$_path"
+		fi
+	done |
+	xargs -r rm
 }
 
 # diff_copy -d directory dst [src ...]
