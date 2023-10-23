@@ -41,6 +41,7 @@ enum token_type {
 	TOKEN_ENV,
 	TOKEN_OBJ,
 	TOKEN_PACKAGES,
+	TOKEN_PARALLEL,
 	TOKEN_QUIET,
 	TOKEN_ROOT,
 	TOKEN_TARGET,
@@ -98,6 +99,7 @@ struct grammar {
 	union {
 		const void	*ptr;
 		struct variable	*(*fun)(struct config *, const char *);
+		int		 i32;
 	} gr_default;
 };
 
@@ -288,6 +290,7 @@ static const struct grammar robsd_regress[] = {
 	{ "regress-user",	STRING,		config_parse_user,		0,		{ "build" } },
 	{ "regress-*-env",	STRING,		NULL,				PAT,		{ "${regress-env}" } },
 	{ "regress-*-target",	STRING,		NULL,				PAT,		{ "regress" } },
+	{ "regress-*-parallel",	INTEGER,	NULL,				PAT,		{ .i32 = 1 } },
 
 	COMMON_DEFAULTS,
 };
@@ -505,7 +508,7 @@ config_find(struct config *cf, const char *name)
 		vadef.va_val.type = gr->gr_type;
 		switch (vadef.va_val.type) {
 		case INTEGER:
-			vadef.va_val.integer = 0;
+			vadef.va_val.integer = gr->gr_default.i32;
 			break;
 
 		case STRING:
@@ -736,6 +739,8 @@ again:
 			return lexer_emit(lx, &s, TOKEN_OBJ);
 		if (strcmp("packages", buf) == 0)
 			return lexer_emit(lx, &s, TOKEN_PACKAGES);
+		if (strcmp("parallel", buf) == 0)
+			return lexer_emit(lx, &s, TOKEN_PARALLEL);
 		if (strcmp("quiet", buf) == 0)
 			return lexer_emit(lx, &s, TOKEN_QUIET);
 		if (strcmp("root", buf) == 0)
@@ -830,6 +835,8 @@ token_serialize(const struct token *tk)
 		return "OBJ";
 	case TOKEN_PACKAGES:
 		return "PACKAGES";
+	case TOKEN_PARALLEL:
+		return "PARALLEL";
 	case TOKEN_QUIET:
 		return "QUIET";
 	case TOKEN_ROOT:
@@ -1189,6 +1196,13 @@ config_parse_regress(struct config *cf, struct variable_value *val)
 			packages = config_find_or_create_list(cf,
 			    "regress-packages");
 			variable_value_concat(&packages->va_val, &newval);
+		} else if (lexer_if(lx, TOKEN_PARALLEL, &tk)) {
+			struct variable_value newval;
+
+			if (config_parse_boolean(cf, &newval))
+				return 1;
+			name = regressname(bf, path, "parallel");
+			config_append(cf, name, &newval, 0);
 		} else if (lexer_if(lx, TOKEN_QUIET, &tk)) {
 			struct variable_value newval;
 

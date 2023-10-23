@@ -177,6 +177,22 @@ if testcase "regress packages"; then
 	EOF
 fi
 
+if testcase "regress parallel"; then
+	{
+		default_regress_config
+		echo 'regress "true"'
+		echo 'regress "false" parallel no'
+	} >"$CONFIG"
+	{
+		echo -n "\${regress-true-parallel} "
+		echo -n "\${regress-false-parallel} "
+		echo "\${regress-nein-parallel}"
+	} >"$STDIN"
+	robsd_config -R - <<-EOF
+	1 0 1
+	EOF
+fi
+
 if testcase "regress target"; then
 	{
 		default_regress_config

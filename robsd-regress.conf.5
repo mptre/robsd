@@ -91,6 +91,13 @@ by the regression test.
 All declared packages will respectively be added and deleted by the pkg-add and
 pkg-del steps, see
 .Xr robsd-regress 8 .
+.It Ic parallel yes | no
+Defaults to
+.Ic yes
+implying that the regression test can be executed in parallel.
+Using
+.Ic no
+ensures synchronous execution.
 .It Ic quiet
 Do not report skipped, disabled or expected fail targets for this regression
 test.

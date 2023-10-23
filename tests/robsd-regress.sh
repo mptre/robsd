@@ -10,7 +10,7 @@ if testcase "basic"; then
 	robsddir "${ROBSDDIR}"
 	regress "test/fail"
 	regress "test/hello" obj { "usr.bin/hello" }
-	regress "test/root" root
+	regress "test/root" root parallel no
 	regress "test/env" env { "FOO=1" "BAR=2" }
 	regress "test/pkg" packages { "quirks" "not-installed" }
 	regress "test/target" target "one"
@@ -109,6 +109,38 @@ EOF
 	if [ "$(step_value exit)" -ne 1 ]; then
 		fail "expected test/xpass to exit non-zero"
 	fi
+
+	robsd_log_sanitize "${_builddir}/robsd.log"
+	assert_file - "${_builddir}/robsd.log" <<-EOF
+	robsd-regress: using directory ${_builddir} at step 1
+	robsd-regress: step env
+	robsd-regress: step pkg-add
+	robsd-regress: step cvs
+	robsd-regress: step patch
+	robsd-regress: step obj
+	robsd-regress: step mount
+	robsd-regress: step test/fail
+	robsd-regress: parallel jobs I/N
+	robsd-regress: step test/hello
+	robsd-regress: parallel jobs I/N
+	robsd-regress: step test/root
+	robsd-regress: parallel barrier I/N
+	robsd-regress: step test/env
+	robsd-regress: parallel jobs I/N
+	robsd-regress: step test/pkg
+	robsd-regress: parallel jobs I/N
+	robsd-regress: step test/target
+	robsd-regress: parallel jobs I/N
+	robsd-regress: step test/xpass
+	robsd-regress: parallel jobs I/N
+	robsd-regress: step umount
+	robsd-regress: parallel barrier I/N
+	robsd-regress: step revert
+	robsd-regress: step pkg-del
+	robsd-regress: step dmesg
+	robsd-regress: step end
+	robsd-regress: trap exit 0
+	EOF
 
 	rm "${BINDIR}/pkg_add"
 	rm "${BINDIR}/pkg_delete"
