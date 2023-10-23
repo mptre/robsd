@@ -964,12 +964,6 @@ variable_value_clear(struct variable_value *val)
 {
 	switch (val->type) {
 	case LIST: {
-		while (!VECTOR_EMPTY(val->list)) {
-			char **str;
-
-			str = VECTOR_POP(val->list);
-			free(*str);
-		}
 		VECTOR_FREE(val->list);
 		break;
 	}
@@ -1190,7 +1184,7 @@ config_parse_glob(struct config *cf, struct variable_value *val)
 		dst = VECTOR_ALLOC(val->list);
 		if (dst == NULL)
 			err(1, NULL);
-		*dst = estrdup(g.gl_pathv[i]);
+		*dst = arena_strdup(cf->eternal, g.gl_pathv[i]);
 	}
 
 	globfree(&g);
@@ -1215,7 +1209,7 @@ config_parse_list(struct config *cf, struct variable_value *val)
 		dst = VECTOR_ALLOC(val->list);
 		if (dst == NULL)
 			err(1, NULL);
-		*dst = estrdup(tk->tk_str);
+		*dst = arena_strdup(cf->eternal, tk->tk_str);
 	}
 	if (!lexer_expect(cf->lx, TOKEN_RBRACE, &tk))
 		goto err;
@@ -1320,7 +1314,7 @@ config_parse_regress(struct config *cf, struct variable_value *val)
 	dst = VECTOR_ALLOC(regress->va_val.list);
 	if (dst == NULL)
 		err(1, NULL);
-	*dst = estrdup(path);
+	*dst = arena_strdup(cf->eternal, path);
 	val->ptr = novalue;
 	return 0;
 }
@@ -1344,7 +1338,7 @@ config_parse_regress_option_env(struct config *cf, const char *path)
 	dst = VECTOR_ALLOC(defval.list);
 	if (dst == NULL)
 		err(1, NULL);
-	*dst = estrdup("${regress-env}");
+	*dst = arena_strdup(cf->eternal, "${regress-env}");
 	variable_value_concat(&defval, &newval);
 	va = config_append(cf, name, &defval);
 
