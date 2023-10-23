@@ -45,7 +45,7 @@ step_exec(const char *step_name, struct config *config, struct arena *scratch,
 	};
 	const char *step_script;
 	pid_t pid;
-	int pip[2];
+	int proc_pipe[2];
 	int error, status;
 
 	step_script = resolve_step_script(&c, step_name);
@@ -55,7 +55,7 @@ step_exec(const char *step_name, struct config *config, struct arena *scratch,
 	}
 
 	/* NOLINTNEXTLINE(android-cloexec-pipe2) */
-	if (pipe2(pip, O_NONBLOCK) == -1)
+	if (pipe2(proc_pipe, O_NONBLOCK) == -1)
 		err(1, "pipe2");
 
 	pid = fork();
@@ -73,7 +73,7 @@ step_exec(const char *step_name, struct config *config, struct arena *scratch,
 		argv[argc++] = step_name;
 		argv[argc++] = NULL;
 
-		close(pip[0]);
+		close(proc_pipe[0]);
 		if (setsid() == -1)
 			err(1, "setsid");
 
@@ -83,7 +83,7 @@ step_exec(const char *step_name, struct config *config, struct arena *scratch,
 		siginstall(SIGQUIT, SIG_DFL, 0);
 
 		/* Signal to the parent that the process group is present. */
-		close(pip[1]);
+		close(proc_pipe[1]);
 		execvp(argv[0], (char *const *)argv);
 		err(1, "%s", argv[0]);
 	}
@@ -92,14 +92,14 @@ step_exec(const char *step_name, struct config *config, struct arena *scratch,
 	siginstall(SIGTERM, sighandler, ~SA_RESTART);
 
 	/* Wait for the process group to become present. */
-	close(pip[1]);
-	if (waiteof(pip[0], 1000)) {
+	close(proc_pipe[1]);
+	if (waiteof(proc_pipe[0], 1000)) {
 		warnx("process group failure");
 		if (waitpid(pid, &status, 0) == -1)
 			return 1;
 		return exitstatus(status);
 	}
-	close(pip[0]);
+	close(proc_pipe[0]);
 
 	if (waitpid(-pid, &status, 0) == -1) {
 		if (gotsig) {
