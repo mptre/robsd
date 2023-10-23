@@ -128,11 +128,28 @@ OBJS_fuzz-config=	${SRCS_fuzz-config:.c=.o}
 DEPS_fuzz-config=	${SRCS_fuzz-config:.c=.d}
 PROG_fuzz-config=	fuzz-config
 
+SRCS_fuzz-step+=	${COMPATS}
+SRCS_fuzz-step+=	alloc.c
+SRCS_fuzz-step+=	arena-buffer.c
+SRCS_fuzz-step+=	arena.c
+SRCS_fuzz-step+=	buffer.c
+SRCS_fuzz-step+=	interpolate.c
+SRCS_fuzz-step+=	lexer.c
+SRCS_fuzz-step+=	log.c
+SRCS_fuzz-step+=	token.c
+SRCS_fuzz-step+=	vector.c
+SRCS_fuzz-step+=	step.c
+SRCS_fuzz-step+=	fuzz-step.c
+OBJS_fuzz-step=	${SRCS_fuzz-step:.c=.o}
+DEPS_fuzz-step=	${SRCS_fuzz-step:.c=.d}
+PROG_fuzz-step=	fuzz-step
+
 KNFMT+=	alloc.c
 KNFMT+=	alloc.h
 KNFMT+=	conf.c
 KNFMT+=	conf.h
 KNFMT+=	fuzz-config.c
+KNFMT+=	fuzz-step.c
 KNFMT+=	html.c
 KNFMT+=	html.h
 KNFMT+=	if.c
@@ -175,6 +192,7 @@ CLANGTIDY+=	alloc.h
 CLANGTIDY+=	conf.c
 CLANGTIDY+=	conf.h
 CLANGTIDY+=	fuzz-config.c
+CLANGTIDY+=	fuzz-step.c
 CLANGTIDY+=	html.c
 CLANGTIDY+=	html.h
 CLANGTIDY+=	if.c
@@ -215,6 +233,7 @@ CLANGTIDY+=	token.h
 CPPCHECK+=	alloc.c
 CPPCHECK+=	conf.c
 CPPCHECK+=	fuzz-config.c
+CPPCHECK+=	fuzz-step.c
 CPPCHECK+=	html.c
 CPPCHECK+=	if.c
 CPPCHECK+=	interpolate.c
@@ -418,7 +437,8 @@ clean:
 		${DEPS_robsd-stat} ${OBJS_robsd-stat} ${PROG_robsd-stat} \
 		${DEPS_robsd-step} ${OBJS_robsd-step} ${PROG_robsd-step} \
 		${DEPS_robsd-wait} ${OBJS_robsd-wait} ${PROG_robsd-wait} \
-		${DEPS_fuzz-config} ${OBJS_fuzz-config} ${PROG_fuzz-config}
+		${DEPS_fuzz-config} ${OBJS_fuzz-config} ${PROG_fuzz-config} \
+		${DEPS_fuzz-step} ${OBJS_fuzz-step} ${PROG_fuzz-step}
 .PHONY: clean
 
 cleandir: clean
@@ -435,10 +455,13 @@ format:
 	cd ${.CURDIR} && knfmt -is ${KNFMT}
 .PHONY: format
 
-fuzz: ${PROG_fuzz-config}
+fuzz: ${PROG_fuzz-config} ${PROG_fuzz-step}
 
 ${PROG_fuzz-config}: ${OBJS_fuzz-config}
 	${CC} ${DEBUG} -o ${PROG_fuzz-config} ${OBJS_fuzz-config} ${LDFLAGS}
+
+${PROG_fuzz-step}: ${OBJS_fuzz-step}
+	${CC} ${DEBUG} -o ${PROG_fuzz-step} ${OBJS_fuzz-step} ${LDFLAGS}
 
 install: all
 	mkdir -p ${DESTDIR}${BINDIR}
@@ -558,3 +581,4 @@ test: all
 -include ${DEPS_robsd-step}
 -include ${DEPS_robsd-wait}
 -include ${DEPS_fuzz-config}
+-include ${DEPS_fuzz-step}
