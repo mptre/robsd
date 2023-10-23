@@ -487,7 +487,7 @@ report_stats_duration(struct report_context *r, struct arena_scope *s)
 		duration = step_get_field(end, "duration")->integer;
 		delta = step_get_field(end, "delta")->integer;
 	} else {
-		duration = steps_total_duration(r->step_file);
+		duration = steps_total_duration(r->step_file, r->mode);
 		delta = 0;
 	}
 	str = format_duration_and_delta(duration, delta,

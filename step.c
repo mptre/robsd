@@ -18,6 +18,7 @@
 #include "alloc.h"
 #include "interpolate.h"
 #include "lexer.h"
+#include "mode.h"
 #include "token.h"
 
 enum token_type {
@@ -204,12 +205,30 @@ steps_alloc(struct step_file *sf)
 }
 
 int64_t
-steps_total_duration(const struct step_file *sf)
+steps_total_duration(const struct step_file *sf, enum robsd_mode mode)
 {
 	int64_t duration = 0;
 	size_t i, nsteps;
 
 	nsteps = VECTOR_LENGTH(sf->steps);
+
+	/*
+	 * Since robsd-regress runs steps in parallel, the accumulated step
+	 * duration cannot be used. Instead, favor the wall clock delta between
+	 * the last and first step.
+	 */
+	if (mode == ROBSD_REGRESS) {
+		if (nsteps > 0) {
+			int64_t t0, t1;
+
+			t0 = step_get_field(&sf->steps[0], "time")->integer;
+			t1 = step_get_field(
+			    &sf->steps[nsteps - 1], "time")->integer;
+			duration = t1 - t0;
+		}
+		return duration;
+	}
+
 	for (i = 0; i < nsteps; i++) {
 		const struct step *step = &sf->steps[i];
 

@@ -418,12 +418,18 @@ fi
 
 if testcase "robsd-regress: failure in non-regress step"; then
 	{
-		step_serialize -s 1 -n env -e 1 -l env.log
+		step_serialize -s 1 -n foo
+		step_serialize -H -s 2 -n env -e 1 -l env.log -t $((1666666666 + 30))
 		printf 'env failure\n' >"${_builddir}/env.log"
 	} >"$(step_path "$_builddir")"
 
-	robsd_report -m robsd -- "$_builddir" | sed -n -e '/^> env/,$p' >"$TMP1"
+	robsd_report -m robsd-regress -- "$_builddir" | sed -n -e '/^> stats/,$p' >"$TMP1"
 	assert_file - "$TMP1" <<-EOF
+	> stats
+	Status: 1 failure
+	Duration: 00:00:30
+	Build: ${_builddir}
+
 	> env
 	Exit: 1
 	Duration: 00:00:01
