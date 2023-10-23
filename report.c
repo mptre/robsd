@@ -416,25 +416,6 @@ report_subject(struct report_context *r)
 	return 0;
 }
 
-static int64_t
-total_duration(struct report_context *r)
-{
-	VECTOR(struct step) steps;
-	int64_t duration = 0;
-	size_t i, nsteps;
-
-	steps = steps_get(r->step_file);
-	nsteps = VECTOR_LENGTH(steps);
-	for (i = 0; i < nsteps; i++) {
-		const struct step *step = &steps[i];
-
-		if (step_get_field(step, "skip")->integer == 1)
-			continue;
-		duration += step_get_field(step, "duration")->integer;
-	}
-	return duration;
-}
-
 static const char *
 format_duration(int64_t duration, struct arena_scope *s)
 {
@@ -506,7 +487,7 @@ report_stats_duration(struct report_context *r, struct arena_scope *s)
 		duration = step_get_field(end, "duration")->integer;
 		delta = step_get_field(end, "delta")->integer;
 	} else {
-		duration = total_duration(r);
+		duration = steps_total_duration(r->step_file);
 		delta = 0;
 	}
 	str = format_duration_and_delta(duration, delta,

@@ -15,6 +15,7 @@ struct step_file	*steps_parse(const char *);
 void			 steps_free(struct step_file *);
 struct step		*steps_get(struct step_file *);
 struct step		*steps_alloc(struct step_file *);
+int64_t			 steps_total_duration(const struct step_file *);
 
 void		 steps_sort(struct step *);
 struct step	*steps_find_by_name(struct step *, const char *);

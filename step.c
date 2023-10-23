@@ -203,6 +203,27 @@ steps_alloc(struct step_file *sf)
 	return st;
 }
 
+int64_t
+steps_total_duration(const struct step_file *sf)
+{
+	int64_t duration = 0;
+	size_t i, nsteps;
+
+	nsteps = VECTOR_LENGTH(sf->steps);
+	for (i = 0; i < nsteps; i++) {
+		const struct step *step = &sf->steps[i];
+
+		if (step_get_field(step, "skip")->integer == 1)
+			continue;
+		/* Do not include the previous total duration. */
+		if (strcmp(step_get_field(step, "name")->str, "end") == 0)
+			continue;
+
+		duration += step_get_field(step, "duration")->integer;
+	}
+	return duration;
+}
+
 void
 steps_sort(struct step *steps)
 {
