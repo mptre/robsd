@@ -810,7 +810,8 @@ report_generate(struct config *config, const char *builddir,
 {
 	struct arena *scratch;
 	struct report_context r = {0};
-	struct step *steps = NULL;
+	struct step_file *step_file = NULL;
+	struct step *steps;
 	const char *steps_path;
 	enum robsd_mode mode;
 	int error = 1;
@@ -820,9 +821,10 @@ report_generate(struct config *config, const char *builddir,
 	arena_scope(scratch, s);
 
 	steps_path = arena_sprintf(&s, "%s/step.csv", builddir);
-	steps = steps_parse(steps_path);
-	if (steps == NULL)
+	step_file = steps_parse(steps_path);
+	if (step_file == NULL)
 		goto out;
+	steps = steps_get(step_file);
 
 	mode = config_get_mode(config);
 	r = (struct report_context){
@@ -844,7 +846,6 @@ report_generate(struct config *config, const char *builddir,
 
 out:
 	report_context_free(&r);
-	steps_free(steps);
 	arena_free(scratch);
 	return error;
 }

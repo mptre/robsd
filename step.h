@@ -11,8 +11,11 @@ union step_value {
 	int64_t	 integer;
 };
 
-struct step	*steps_parse(const char *);
-void		 steps_free(struct step *);
+struct step_file	*steps_parse(const char *);
+void			 steps_free(struct step_file *);
+struct step		*steps_get(struct step_file *);
+struct step		*steps_alloc(struct step_file *);
+
 void		 steps_sort(struct step *);
 struct step	*steps_find_by_name(struct step *, const char *);
 struct step	*steps_find_by_id(struct step *, int);

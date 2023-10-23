@@ -22,7 +22,7 @@ enum step_mode {
 
 struct step_context {
 	const char		*path;
-	VECTOR(struct step)	 steps;
+	struct step_file	*step_file;
 };
 
 static void	usage(void) __attribute__((__noreturn__));
@@ -89,6 +89,8 @@ main(int argc, char *argv[])
 
 	switch (mode) {
 	case MODE_READ:
+		if (sc.path == NULL)
+			usage();
 		if (unveil("/dev/stdin", "r") == -1)
 			err(1, "unveil: /dev/stdin");
 		if (unveil(sc.path, "r") == -1)
@@ -97,6 +99,8 @@ main(int argc, char *argv[])
 			err(1, "pledge");
 		break;
 	case MODE_WRITE:
+		if (sc.path == NULL)
+			usage();
 		if (unveil(sc.path, "rwc") == -1)
 			err(1, "unveil: %s", sc.path);
 		if (pledge("stdio rpath wpath cpath", NULL) == -1)
@@ -111,10 +115,8 @@ main(int argc, char *argv[])
 	switch (mode) {
 	case MODE_READ:
 	case MODE_WRITE:
-		if (sc.path == NULL)
-			usage();
-		sc.steps = steps_parse(sc.path);
-		if (sc.steps == NULL) {
+		sc.step_file = steps_parse(sc.path);
+		if (sc.step_file == NULL) {
 			error = 1;
 			goto out;
 		}
@@ -138,7 +140,7 @@ main(int argc, char *argv[])
 	}
 
 out:
-	steps_free(sc.steps);
+	steps_free(sc.step_file);
 	return error;
 }
 
@@ -155,7 +157,7 @@ usage(void)
 static int
 steps_read(struct step_context *sc, int argc, char **argv)
 {
-	struct step *st;
+	struct step *st, *steps;
 	const char *name = NULL;
 	char *str;
 	size_t nsteps;
@@ -185,17 +187,18 @@ steps_read(struct step_context *sc, int argc, char **argv)
 		return 1;
 	}
 
-	nsteps = VECTOR_LENGTH(sc->steps);
+	steps = steps_get(sc->step_file);
+	nsteps = VECTOR_LENGTH(steps);
 	if (name != NULL) {
-		st = steps_find_by_name(sc->steps, name);
+		st = steps_find_by_name(steps, name);
 		if (st == NULL) {
 			warnx("step with name '%s' not found", name);
 			return 1;
 		}
 	} else if (id > 0 && (size_t)id - 1 < nsteps) {
-		st = &sc->steps[id - 1];
+		st = &steps[id - 1];
 	} else if (id < 0 && (size_t)-id <= nsteps) {
-		st = &sc->steps[(int)nsteps + id];
+		st = &steps[(int)nsteps + id];
 	} else {
 		warnx("step with id %d not found", id);
 		return 1;
@@ -219,7 +222,7 @@ steps_write(struct step_context *sc, int argc, char **argv)
 {
 	FILE *fh = NULL;
 	struct buffer *bf = NULL;
-	struct step *st;
+	struct step *st, *steps;
 	size_t i;
 	int id = 0;
 	int error = 0;
@@ -255,11 +258,9 @@ steps_write(struct step_context *sc, int argc, char **argv)
 		goto out;
 	}
 
-	st = steps_find_by_id(sc->steps, id);
+	st = steps_find_by_id(steps_get(sc->step_file), id);
 	if (st == NULL) {
-		st = VECTOR_CALLOC(sc->steps);
-		if (st == NULL)
-			err(1, NULL);
+		st = steps_alloc(sc->step_file);
 		if (step_init(st) ||
 		    step_set_field_integer(st, "step", id)) {
 			error = 1;
@@ -273,10 +274,11 @@ steps_write(struct step_context *sc, int argc, char **argv)
 		}
 	}
 
-	steps_sort(sc->steps);
+	steps_sort(steps_get(sc->step_file));
 	steps_header(bf);
-	for (i = 0; i < VECTOR_LENGTH(sc->steps); i++) {
-		if (step_serialize(&sc->steps[i], bf)) {
+	steps = steps_get(sc->step_file);
+	for (i = 0; i < VECTOR_LENGTH(steps); i++) {
+		if (step_serialize(&steps[i], bf)) {
 			error = 1;
 			goto out;
 		}

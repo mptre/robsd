@@ -258,6 +258,7 @@ static int
 parse_invocation(struct regress_html *r, const char *arch,
     const char *directory, const char *date)
 {
+	struct step_file *step_file;
 	struct step *end, *steps;
 	struct regress_invocation *ri;
 	const char *step_path;
@@ -269,9 +270,10 @@ parse_invocation(struct regress_html *r, const char *arch,
 	arena_scope(r->scratch, s);
 
 	step_path = arena_sprintf(&s, "%s/step.csv", directory);
-	steps = steps_parse(step_path);
-	if (steps == NULL)
+	step_file = steps_parse(step_path);
+	if (step_file == NULL)
 		return 1;
+	steps = steps_get(step_file);
 	if (VECTOR_EMPTY(steps)) {
 		warnx("%s: no steps found", step_path);
 		error = 1;
@@ -339,7 +341,7 @@ parse_invocation(struct regress_html *r, const char *arch,
 	}
 
 out:
-	steps_free(steps);
+	steps_free(step_file);
 	return error;
 }
 

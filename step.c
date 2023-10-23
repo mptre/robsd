@@ -23,17 +23,14 @@ enum token_type {
 	TOKEN_NEWLINE,
 };
 
-struct parser_context {
-	struct buffer		*pc_bf;
-	VECTOR(const char *)	 pc_columns;
-	VECTOR(struct step)	 pc_steps;
+struct step_file {
+	struct buffer		*bf;
+	VECTOR(const char *)	 columns;
+	VECTOR(struct step)	 steps;
 };
 
-static void	parser_context_init(struct parser_context *);
-static void	parser_context_reset(struct parser_context *);
-
-static int	steps_parse_header(struct parser_context *, struct lexer *);
-static int	steps_parse_row(struct parser_context *, struct lexer *);
+static int	steps_parse_header(struct step_file *, struct lexer *);
+static int	steps_parse_row(struct step_file *, struct lexer *);
 
 static struct token	*step_lexer_read(struct lexer *, void *);
 static const char	*token_serialize(const struct token *);
@@ -85,21 +82,28 @@ static const struct field_definition fields[] = {
 };
 static const size_t nfields = sizeof(fields) / sizeof(fields[0]);
 
-struct step *
+struct step_file *
 steps_parse(const char *path)
 {
-	struct parser_context pc;
+	struct step_file *sf;
 	struct lexer *lx;
-	struct step *steps = NULL;
 	int error = 0;
 
-	parser_context_init(&pc);
+	sf = ecalloc(1, sizeof(*sf));
+	sf->bf = buffer_alloc(512);
+	if (sf->bf == NULL)
+		err(1, NULL);
+	if (VECTOR_INIT(sf->columns))
+		err(1, NULL);
+	if (VECTOR_INIT(sf->steps))
+		err(1, NULL);
+
 	lx = lexer_alloc(&(struct lexer_arg){
 	    .path	= path,
 	    .callbacks	= {
 		.read		= step_lexer_read,
 		.serialize	= token_serialize,
-		.arg		= &pc,
+		.arg		= sf,
 	    },
 	});
 	if (lx == NULL) {
@@ -107,7 +111,7 @@ steps_parse(const char *path)
 		goto out;
 	}
 
-	if (steps_parse_header(&pc, lx)) {
+	if (steps_parse_header(sf, lx)) {
 		error = 1;
 		goto out;
 	}
@@ -115,48 +119,69 @@ steps_parse(const char *path)
 	for (;;) {
 		if (lexer_peek(lx, LEXER_EOF))
 			break;
-		error = steps_parse_row(&pc, lx);
+		error = steps_parse_row(sf, lx);
 		if (error)
 			break;
 	}
 
 out:
-	if (error == 0) {
-		steps = pc.pc_steps;
-		pc.pc_steps = NULL;
-	}
 	lexer_free(lx);
-	parser_context_reset(&pc);
-	return steps;
+	if (error) {
+		steps_free(sf);
+		sf = NULL;
+	}
+	return sf;
 }
 
 void
-steps_free(struct step *steps)
+steps_free(struct step_file *sf)
 {
-	if (steps == NULL)
+	if (sf == NULL)
 		return;
 
-	while (!VECTOR_EMPTY(steps)) {
+	buffer_free(sf->bf);
+	VECTOR_FREE(sf->columns);
+
+	while (!VECTOR_EMPTY(sf->steps)) {
 		struct step *st;
 		size_t i;
 
-		st = VECTOR_POP(steps);
+		st = VECTOR_POP(sf->steps);
 		for (i = 0; i < VECTOR_LENGTH(st->st_fields); i++) {
-			struct step_field *sf = &st->st_fields[i];
+			struct step_field *field = &st->st_fields[i];
 
-			switch (sf->sf_type) {
+			switch (field->sf_type) {
 			case UNKNOWN:
 			case INTEGER:
 				break;
 
 			case STRING:
-				free(sf->sf_val.str);
+				free(field->sf_val.str);
 				break;
 			}
 		}
 		VECTOR_FREE(st->st_fields);
 	}
-	VECTOR_FREE(steps);
+	VECTOR_FREE(sf->steps);
+
+	free(sf);
+}
+
+struct step *
+steps_get(struct step_file *step_file)
+{
+	return step_file->steps;
+}
+
+struct step *
+steps_alloc(struct step_file *sf)
+{
+	struct step *st;
+
+	st = VECTOR_CALLOC(sf->steps);
+	if (st == NULL)
+		err(1, NULL);
+	return st;
 }
 
 void
@@ -333,26 +358,6 @@ step_set_keyval(struct step *st, const char *kv)
 	return error;
 }
 
-static void
-parser_context_init(struct parser_context *pc)
-{
-	pc->pc_bf = buffer_alloc(512);
-	if (pc->pc_bf == NULL)
-		err(1, NULL);
-	if (VECTOR_INIT(pc->pc_columns))
-		err(1, NULL);
-	if (VECTOR_INIT(pc->pc_steps))
-		err(1, NULL);
-}
-
-static void
-parser_context_reset(struct parser_context *pc)
-{
-	buffer_free(pc->pc_bf);
-	VECTOR_FREE(pc->pc_columns);
-	steps_free(pc->pc_steps);
-}
-
 static int
 step_field_is_empty(const struct step_field *sf)
 {
@@ -397,7 +402,7 @@ step_field_set(struct step_field *sf, enum step_field_type type,
 }
 
 static int
-steps_parse_header(struct parser_context *pc, struct lexer *lx)
+steps_parse_header(struct step_file *sf, struct lexer *lx)
 {
 	if (lexer_peek(lx, LEXER_EOF))
 		return 0;
@@ -408,7 +413,7 @@ steps_parse_header(struct parser_context *pc, struct lexer *lx)
 
 		if (!lexer_expect(lx, TOKEN_VALUE, &col))
 			return 1;
-		dst = VECTOR_ALLOC(pc->pc_columns);
+		dst = VECTOR_ALLOC(sf->columns);
 		if (dst == NULL)
 			err(1, NULL);
 		*dst = col->tk_str;
@@ -422,13 +427,13 @@ steps_parse_header(struct parser_context *pc, struct lexer *lx)
 }
 
 static int
-steps_parse_row(struct parser_context *pc, struct lexer *lx)
+steps_parse_row(struct step_file *sf, struct lexer *lx)
 {
 	struct step *st;
 	size_t col = 0;
 	int lno = 0;
 
-	st = VECTOR_CALLOC(pc->pc_steps);
+	st = VECTOR_CALLOC(sf->steps);
 	if (st == NULL)
 		err(1, NULL);
 	if (step_init(st))
@@ -446,12 +451,12 @@ steps_parse_row(struct parser_context *pc, struct lexer *lx)
 		if (lno == 0)
 			lno = val->tk_lno;
 
-		if (col >= VECTOR_LENGTH(pc->pc_columns)) {
+		if (col >= VECTOR_LENGTH(sf->columns)) {
 			lexer_warnx(lx, val->tk_lno, "unknown column %zu", col);
 			return 1;
 		}
 
-		key = pc->pc_columns[col];
+		key = sf->columns[col];
 		if (field_definition_find_by_name(key) == NULL) {
 			lexer_warnx(lx, val->tk_lno, "unknown field '%s'", key);
 			return 1;
@@ -472,8 +477,8 @@ static struct token *
 step_lexer_read(struct lexer *lx, void *arg)
 {
 	struct lexer_state s;
-	struct parser_context *pc = (struct parser_context *)arg;
-	struct buffer *bf = pc->pc_bf;
+	struct step_file *sf = (struct step_file *)arg;
+	struct buffer *bf = sf->bf;
 	struct token *tk;
 	char ch;
 
