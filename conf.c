@@ -426,7 +426,6 @@ config_free(struct config *cf)
 
 		va = VECTOR_POP(cf->variables);
 		variable_value_clear(&va->va_val);
-		free(va->va_name);
 	}
 	VECTOR_FREE(cf->variables);
 
@@ -1517,7 +1516,7 @@ config_append(struct config *cf, const char *name,
 	va = VECTOR_CALLOC(cf->variables);
 	if (va == NULL)
 		err(1, NULL);
-	va->va_name = estrdup(name);
+	va->va_name = arena_strdup(cf->eternal, name);
 	va->va_namelen = strlen(name);
 	va->va_val = *val;
 	return va;
