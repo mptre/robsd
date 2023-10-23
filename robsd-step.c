@@ -52,7 +52,7 @@ parse_id(const char *str, int *id)
 int
 main(int argc, char *argv[])
 {
-	struct step_context sc = {0};
+	struct step_context c = {0};
 	struct arena *eternal;
 	enum step_action action = 0;
 	int error = 0;
@@ -76,7 +76,7 @@ main(int argc, char *argv[])
 			action = ACTION_WRITE;
 			break;
 		case 'f':
-			sc.path = optarg;
+			c.path = optarg;
 			break;
 		default:
 			dobreak = 1;
@@ -93,25 +93,25 @@ main(int argc, char *argv[])
 
 	eternal = arena_alloc(ARENA_FATAL);
 	arena_scope(eternal, eternal_scope);
-	sc.eternal = &eternal_scope;
-	sc.scratch = arena_alloc(ARENA_FATAL);
+	c.eternal = &eternal_scope;
+	c.scratch = arena_alloc(ARENA_FATAL);
 
 	switch (action) {
 	case ACTION_READ:
-		if (sc.path == NULL)
+		if (c.path == NULL)
 			usage();
 		if (unveil("/dev/stdin", "r") == -1)
 			err(1, "unveil: /dev/stdin");
-		if (unveil(sc.path, "r") == -1)
-			err(1, "unveil: %s", sc.path);
+		if (unveil(c.path, "r") == -1)
+			err(1, "unveil: %s", c.path);
 		if (pledge("stdio rpath flock", NULL) == -1)
 			err(1, "pledge");
 		break;
 	case ACTION_WRITE:
-		if (sc.path == NULL)
+		if (c.path == NULL)
 			usage();
-		if (unveil(sc.path, "rwc") == -1)
-			err(1, "unveil: %s", sc.path);
+		if (unveil(c.path, "rwc") == -1)
+			err(1, "unveil: %s", c.path);
 		if (pledge("stdio rpath wpath cpath flock", NULL) == -1)
 			err(1, "pledge");
 		break;
@@ -124,8 +124,8 @@ main(int argc, char *argv[])
 	switch (action) {
 	case ACTION_READ:
 	case ACTION_WRITE:
-		sc.step_file = steps_parse(sc.path);
-		if (sc.step_file == NULL) {
+		c.step_file = steps_parse(c.path);
+		if (c.step_file == NULL) {
 			error = 1;
 			goto out;
 		}
@@ -138,19 +138,19 @@ main(int argc, char *argv[])
 	optind = 0;
 	switch (action) {
 	case ACTION_READ:
-		error = steps_read(&sc, argc, argv);
+		error = steps_read(&c, argc, argv);
 		break;
 	case ACTION_WRITE:
-		error = action_write(&sc, argc, argv);
+		error = action_write(&c, argc, argv);
 		break;
 	case ACTION_LIST:
-		error = steps_list(&sc, argc, argv);
+		error = steps_list(&c, argc, argv);
 		break;
 	}
 
 out:
-	steps_free(sc.step_file);
-	arena_free(sc.scratch);
+	steps_free(c.step_file);
+	arena_free(c.scratch);
 	arena_free(eternal);
 	return error;
 }
@@ -166,7 +166,7 @@ usage(void)
 }
 
 static int
-steps_read(struct step_context *sc, int argc, char **argv)
+steps_read(struct step_context *c, int argc, char **argv)
 {
 	struct step *st, *steps;
 	const char *name = NULL;
@@ -198,7 +198,7 @@ steps_read(struct step_context *sc, int argc, char **argv)
 		return 1;
 	}
 
-	steps = steps_get(sc->step_file);
+	steps = steps_get(c->step_file);
 	nsteps = VECTOR_LENGTH(steps);
 	if (name != NULL) {
 		st = steps_find_by_name(steps, name);
@@ -219,8 +219,8 @@ steps_read(struct step_context *sc, int argc, char **argv)
 	    &(struct interpolate_arg){
 		.lookup		= step_interpolate_lookup,
 		.arg		= st,
-		.eternal	= sc->eternal,
-		.scratch	= sc->scratch,
+		.eternal	= c->eternal,
+		.scratch	= c->scratch,
 	});
 	if (str != NULL)
 		printf("%s", str);
@@ -230,7 +230,7 @@ steps_read(struct step_context *sc, int argc, char **argv)
 }
 
 static int
-action_write(struct step_context *sc, int argc, char **argv)
+action_write(struct step_context *c, int argc, char **argv)
 {
 	struct step *st;
 	int id = 0;
@@ -258,7 +258,7 @@ action_write(struct step_context *sc, int argc, char **argv)
 	if (doheader) {
 		struct buffer *bf;
 
-		arena_scope(sc->scratch, s);
+		arena_scope(c->scratch, s);
 
 		bf = arena_buffer_alloc(&s, 1 << 10);
 		steps_header(bf);
@@ -267,9 +267,9 @@ action_write(struct step_context *sc, int argc, char **argv)
 		return 0;
 	}
 
-	st = steps_find_by_id(steps_get(sc->step_file), id);
+	st = steps_find_by_id(steps_get(c->step_file), id);
 	if (st == NULL) {
-		st = steps_alloc(sc->step_file);
+		st = steps_alloc(c->step_file);
 		if (step_init(st) ||
 		    step_set_field_integer(st, "step", id))
 			return 1;
@@ -278,11 +278,11 @@ action_write(struct step_context *sc, int argc, char **argv)
 		if (step_set_keyval(st, *argv))
 			return 1;
 	}
-	return steps_write(sc->step_file, sc->scratch);
+	return steps_write(c->step_file, c->scratch);
 }
 
 static int
-steps_list(struct step_context *sc, int argc, char **argv)
+steps_list(struct step_context *c, int argc, char **argv)
 {
 	struct config *config;
 	const char *config_mode = NULL;
@@ -308,8 +308,7 @@ steps_list(struct step_context *sc, int argc, char **argv)
 	if (argc != 0 || config_mode == NULL)
 		usage();
 
-	config = config_alloc(config_mode, config_path, sc->eternal,
-	    sc->scratch);
+	config = config_alloc(config_mode, config_path, c->eternal, c->scratch);
 	if (config == NULL)
 		return 1;
 	if (config_parse(config))
