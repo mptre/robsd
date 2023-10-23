@@ -17,6 +17,7 @@
 #include <string.h>
 #include <unistd.h>
 
+#include "libks/arena.h"
 #include "libks/arithmetic.h"
 #include "libks/buffer.h"
 #include "libks/compiler.h"
@@ -126,8 +127,7 @@ static int			 grammar_equals(const struct grammar *,
  */
 
 struct config {
-	struct arena		*XXX_scratch;
-	struct buffer		*scratch;
+	struct arena		*scratch;
 	struct lexer		*lx;
 	const char		*path;
 	struct {
@@ -186,8 +186,8 @@ static struct variable	*config_find_or_create_list(struct config *,
 
 static char	*config_interpolate_early(struct config *, const char *);
 
-static const char	*regressname(struct buffer *, const char *,
-    const char *);
+static const char	*regressname(const char *, const char *,
+    struct arena_scope *);
 
 static const void *novalue;
 
@@ -348,10 +348,7 @@ config_alloc(const char *mode, const char *path, struct arena *scratch)
 	}
 
 	cf = ecalloc(1, sizeof(*cf));
-	cf->XXX_scratch = scratch;
-	cf->scratch = buffer_alloc(128);
-	if (cf->scratch == NULL)
-		err(1, NULL);
+	cf->scratch = scratch;
 	cf->path = path;
 	cf->mode = m;
 	if (VECTOR_INIT(cf->variables))
@@ -417,7 +414,6 @@ config_free(struct config *cf)
 	}
 	VECTOR_FREE(cf->variables);
 
-	buffer_free(cf->scratch);
 	lexer_free(cf->lx);
 	VECTOR_FREE(cf->empty_list);
 	free(cf);
@@ -664,7 +660,6 @@ config_regress_get_steps(struct config *cf)
 	VECTOR(const char *) regress_no_parallel;
 	VECTOR(const char *) steps;
 	VECTOR(char *) regress;
-	struct buffer *bf;
 	size_t i = 0;
 	size_t nregress, r, s;
 
@@ -676,9 +671,6 @@ config_regress_get_steps(struct config *cf)
 	if (VECTOR_RESERVE(steps, cf->steps.len + nregress))
 		err(1, NULL);
 	if (VECTOR_INIT(regress_no_parallel))
-		err(1, NULL);
-	bf = buffer_alloc(128);
-	if (bf == NULL)
 		err(1, NULL);
 
 	/* Include synchronous steps up to ${regress}. */
@@ -696,7 +688,10 @@ config_regress_get_steps(struct config *cf)
 		const struct variable *va;
 		int parallel;
 
-		va = config_find(cf, regressname(bf, regress[r], "parallel"));
+		arena_scope(cf->scratch, scratch);
+
+		va = config_find(cf,
+		    regressname(regress[r], "parallel", &scratch));
 		parallel = va != NULL ? variable_get_value(va)->integer : 1;
 		if (parallel) {
 			if (VECTOR_ALLOC(steps) == NULL)
@@ -726,7 +721,6 @@ config_regress_get_steps(struct config *cf)
 		steps[i++] = cf->steps.ptr[s];
 	}
 
-	buffer_free(bf);
 	VECTOR_FREE(regress_no_parallel);
 
 	return steps;
@@ -1252,7 +1246,6 @@ config_parse_user(struct config *cf, struct variable_value *val)
 static int
 config_parse_regress(struct config *cf, struct variable_value *val)
 {
-	struct buffer *bf = cf->scratch;
 	struct lexer *lx = cf->lx;
 	struct token *tk;
 	struct variable *regress;
@@ -1266,13 +1259,15 @@ config_parse_regress(struct config *cf, struct variable_value *val)
 	for (;;) {
 		const char *name;
 
+		arena_scope(cf->scratch, s);
+
 		if (lexer_if(lx, TOKEN_ENV, &tk)) {
 			if (config_parse_regress_option_env(cf, path))
 				return 1;
 		} else if (lexer_if(lx, TOKEN_NO_PARALLEL, &tk)) {
 			struct variable_value newval;
 
-			name = regressname(bf, path, "parallel");
+			name = regressname(path, "parallel", &s);
 			variable_value_init(&newval, INTEGER);
 			newval.integer = 0;
 			config_append(cf, name, &newval, 0);
@@ -1296,14 +1291,14 @@ config_parse_regress(struct config *cf, struct variable_value *val)
 		} else if (lexer_if(lx, TOKEN_QUIET, &tk)) {
 			struct variable_value newval;
 
-			name = regressname(bf, path, "quiet");
+			name = regressname(path, "quiet", &s);
 			variable_value_init(&newval, INTEGER);
 			newval.integer = 1;
 			config_append(cf, name, &newval, 0);
 		} else if (lexer_if(lx, TOKEN_ROOT, &tk)) {
 			struct variable_value newval;
 
-			name = regressname(bf, path, "root");
+			name = regressname(path, "root", &s);
 			variable_value_init(&newval, INTEGER);
 			newval.integer = 1;
 			config_append(cf, name, &newval, 0);
@@ -1312,7 +1307,7 @@ config_parse_regress(struct config *cf, struct variable_value *val)
 
 			if (config_parse_string(cf, &newval))
 				return 1;
-			name = regressname(bf, path, "target");
+			name = regressname(path, "target", &s);
 			config_append(cf, name, &newval, 0);
 		} else {
 			break;
@@ -1341,8 +1336,10 @@ config_parse_regress_option_env(struct config *cf, const char *path)
 	if (config_parse_list(cf, &newval))
 		return 1;
 
+	arena_scope(cf->scratch, s);
+
 	/* Prepend ${regress-env} for default enviroment. */
-	name = regressname(cf->scratch, path, "env");
+	name = regressname(path, "env", &s);
 	variable_value_init(&defval, LIST);
 	dst = VECTOR_ALLOC(defval.list);
 	if (dst == NULL)
@@ -1543,10 +1540,7 @@ config_present(const struct config *cf, const char *name)
 }
 
 static const char *
-regressname(struct buffer *bf, const char *path, const char *suffix)
+regressname(const char *path, const char *suffix, struct arena_scope *s)
 {
-	buffer_reset(bf);
-	buffer_printf(bf, "regress-%s-%s", path, suffix);
-	buffer_putc(bf, '\0');
-	return buffer_get_ptr(bf);
+	return arena_sprintf(s, "regress-%s-%s", path, suffix);
 }
