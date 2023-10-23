@@ -1,5 +1,4 @@
 struct arena;
-struct arena_scope;
 struct config;
 
 #define STEP_EXEC_TRACE		0x00000001u
