@@ -60,6 +60,20 @@ robsd_config() {
 	} >"$ROBSDCONF"
 }
 
+# robsd_log_sanitize path
+#
+# Remove unstable output from robsd.log.
+robsd_log_sanitize() {
+	local _path
+
+	_path="$1"; : "${_path:?}"
+	sed -i \
+		-e '/running as pid/d' \
+		-e '/^\+ /d' \
+		-e 's|parallel \([^ ]*\) .*|parallel \1 I/N|' \
+		"$_path"
+}
+
 # robsd_mock
 #
 # Setup directories and mock out a few utilities need by robsd. Outputs the

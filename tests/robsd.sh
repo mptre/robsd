@@ -81,11 +81,7 @@ if testcase "basic"; then
 
 	echo daily | assert_file - "${_builddir}/tags"
 
-	# Remove unstable output.
-	sed -i \
-		-e '/running as pid/d' \
-		-e '/^\+ /d' \
-		"$TMP1"
+	robsd_log_sanitize "$TMP1"
 	assert_file - "$TMP1" <<-EOF
 	robsd: using directory ${_builddir} at step 1
 	robsd: using diff ${TSHDIR}/src-one.diff rooted in ${TSHDIR}
@@ -146,10 +142,7 @@ if testcase "reboot"; then
 	fi
 	_builddir="$(find "${ROBSDDIR}" -type d -mindepth 1 -maxdepth 1)"
 
-	sed -i \
-		-e '/running as pid/d' \
-		-e '/^\+ /d' \
-		"$TMP1"
+	robsd_log_sanitize "$TMP1"
 	assert_file - "$TMP1" <<-EOF
 	robsd: using directory ${_builddir} at step 1
 	robsd: step env
