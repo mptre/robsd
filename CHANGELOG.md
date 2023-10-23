@@ -10,6 +10,10 @@
   (eba9e19)
   (Anton Lindqvist)
 
+- robsd-regress: run regress tests in parallel.
+  (393bd29)
+  (Anton Lindqvist)
+
 ## News
 
 - robsd: only include failing steps and cvs step in report.
@@ -30,6 +34,10 @@
   (c162fcc)
   (Anton Lindqvist)
 
+- robsd-stat: include nprocs and nthreads.
+  (d4a147e)
+  (Anton Lindqvist)
+
 ## Bug fixes
 
 - robsd-regress-log: stop abusing the scratch buffer as the output buffer.
@@ -46,6 +54,10 @@
 
 - robsd-report: cope with nul characters in reports.
   (e3a657e)
+  (Anton Lindqvist)
+
+- Do not remove files tracked by cvs in revert step.
+  (2b06593)
   (Anton Lindqvist)
 
 # 17.8.1 - 2023-07-17
