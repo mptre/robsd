@@ -119,7 +119,7 @@ static const struct grammar	*config_find_grammar_for_keyword(
 static const struct grammar	*config_find_grammar_for_interpolation(
     const struct config *, const char *);
 static int			 grammar_equals(const struct grammar *,
-    const char *, size_t);
+    const char *);
 
 /*
  * config ----------------------------------------------------------------------
@@ -517,7 +517,7 @@ config_find(struct config *cf, const char *name)
 		if (gr->gr_flags & REQ)
 			continue;
 
-		if (!grammar_equals(gr, name, namelen))
+		if (!grammar_equals(gr, name))
 			continue;
 
 		if (gr->gr_flags & FUN) {
@@ -1013,36 +1013,28 @@ config_find_grammar_for_keyword(const struct config *cf, const char *needle)
 static const struct grammar *
 config_find_grammar_for_interpolation(const struct config *cf, const char *name)
 {
-	size_t i, namelen;
-
-	namelen = strlen(name);
+	size_t i;
 
 	for (i = 0; i < cf->grammar.len; i++) {
 		const struct grammar *gr = &cf->grammar.ptr[i];
 
-		if (grammar_equals(gr, name, namelen))
+		if (grammar_equals(gr, name))
 			return gr;
 	}
 	return NULL;
 }
 
 static int
-grammar_equals(const struct grammar *gr, const char *str, size_t len)
+grammar_equals(const struct grammar *gr, const char *needle)
 {
-	size_t kwlen;
+	size_t kwlen, needlelen;
 
 	kwlen = strlen(gr->gr_kw);
-	if (kwlen == len && strncmp(gr->gr_kw, str, len) == 0)
+	needlelen = strlen(needle);
+	if (kwlen == needlelen && strncmp(gr->gr_kw, needle, needlelen) == 0)
 		return 1;
-	if (gr->gr_flags & PAT) {
-		char *buf;
-		int match;
-
-		buf = estrndup(str, len);
-		match = fnmatch(gr->gr_kw, buf, 0) == 0;
-		free(buf);
-		return match;
-	}
+	if (gr->gr_flags & PAT)
+		return fnmatch(gr->gr_kw, needle, 0) == 0;
 	return 0;
 }
 
