@@ -17,6 +17,7 @@
 #include <string.h>
 #include <unistd.h>
 
+#include "libks/arena-buffer.h"
 #include "libks/arena.h"
 #include "libks/arithmetic.h"
 #include "libks/buffer.h"
@@ -1433,6 +1434,8 @@ config_default_build_dir(struct config *cf, const char *name)
 	if (path == NULL)
 		return NULL;
 
+	arena_scope(cf->scratch, s);
+
 	/*
 	 * The lock file is only expected to be present while robsd is running.
 	 * Therefore do not treat failures as fatal.
@@ -1440,7 +1443,7 @@ config_default_build_dir(struct config *cf, const char *name)
 	fd = open(path, O_RDONLY | O_CLOEXEC);
 	if (fd == -1)
 		goto out;
-	bf = buffer_read_fd(fd);
+	bf = arena_buffer_read_fd(&s, fd);
 	if (bf == NULL) {
 		warn("%s", path);
 		goto out;
@@ -1457,7 +1460,6 @@ config_default_build_dir(struct config *cf, const char *name)
 out:
 	if (fd != -1)
 		close(fd);
-	buffer_free(bf);
 	free(path);
 	return va;
 }
