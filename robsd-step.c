@@ -282,7 +282,7 @@ steps_write(struct step_context *sc, int argc, char **argv)
 	steps_header(bf);
 	steps = steps_get(sc->step_file);
 	for (i = 0; i < VECTOR_LENGTH(steps); i++) {
-		if (step_serialize(&steps[i], bf)) {
+		if (step_serialize(&steps[i], bf, sc->scratch)) {
 			error = 1;
 			goto out;
 		}

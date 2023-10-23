@@ -12,6 +12,8 @@
 #include <string.h>
 #include <unistd.h>
 
+#include "libks/arena-buffer.h"
+#include "libks/arena.h"
 #include "libks/buffer.h"
 #include "libks/vector.h"
 
@@ -355,29 +357,29 @@ out:
 }
 
 int
-step_serialize(const struct step *st, struct buffer *bf)
+step_serialize(const struct step *st, struct buffer *out, struct arena *scratch)
 {
-	struct buffer *fmt;
+	struct buffer *bf;
+	const char *template;
 	size_t i;
 	int error;
 
-	fmt = buffer_alloc(1024);
-	if (fmt == NULL)
-		err(1, NULL);
+	arena_scope(scratch, s);
+
+	bf = arena_buffer_alloc(&s, 1 << 10);
 	for (i = 0; i < nfields; i++) {
 		if (i > 0)
-			buffer_putc(fmt, ',');
-		buffer_printf(fmt, "${%s}", fields[i].fd_name);
+			buffer_putc(bf, ',');
+		buffer_printf(bf, "${%s}", fields[i].fd_name);
 	}
-	buffer_putc(fmt, '\n');
-	buffer_putc(fmt, '\0');
+	buffer_putc(bf, '\n');
+	template = buffer_str(bf);
 
-	error = interpolate_buffer(buffer_get_ptr(fmt), bf,
+	error = interpolate_buffer(template, out,
 	    &(struct interpolate_arg){
 		.lookup	= step_interpolate_lookup,
 		.arg	= (void *)st,
 	});
-	buffer_free(fmt);
 	return error;
 }
 
