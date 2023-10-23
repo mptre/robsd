@@ -510,8 +510,9 @@ static struct variable *
 config_find(struct config *cf, const char *name)
 {
 	static struct variable vadef;
+	const struct grammar *gr;
 	struct variable *va;
-	size_t i, n, namelen;
+	size_t i, namelen;
 
 	namelen = strlen(name);
 	for (i = 0; i < VECTOR_LENGTH(cf->variables); i++) {
@@ -522,48 +523,35 @@ config_find(struct config *cf, const char *name)
 	}
 
 	/* Look for default value. */
-	n = VECTOR_LENGTH(cf->grammar);
-	for (i = 0; i < n; i++) {
-		const struct grammar *gr = cf->grammar[i];
+	gr = config_find_grammar_for_interpolation(cf, name);
+	if (gr == NULL)
+		return NULL;
+	if (gr->gr_flags & REQ)
+		return NULL;
+	if (gr->gr_flags & FUN)
+		return gr->gr_default.fun(cf, name);
 
-		if (gr->gr_flags & REQ)
-			continue;
+	memset(&vadef, 0, sizeof(vadef));
+	vadef.va_val.type = gr->gr_type;
+	switch (vadef.va_val.type) {
+	case INTEGER:
+		vadef.va_val.integer = gr->gr_default.i32;
+		break;
 
-		if (!grammar_equals(gr, name))
-			continue;
+	case STRING:
+	case DIRECTORY: {
+		const char *str = gr->gr_default.ptr;
 
-		if (gr->gr_flags & FUN) {
-			char *fname;
-
-			fname = estrndup(name, namelen);
-			va = gr->gr_default.fun(cf, fname);
-			free(fname);
-			return va;
-		}
-
-		memset(&vadef, 0, sizeof(vadef));
-		vadef.va_val.type = gr->gr_type;
-		switch (vadef.va_val.type) {
-		case INTEGER:
-			vadef.va_val.integer = gr->gr_default.i32;
-			break;
-
-		case STRING:
-		case DIRECTORY: {
-			const char *str = gr->gr_default.ptr;
-
-			vadef.va_val.str = (str == NULL ? "" : str);
-			break;
-		}
-
-		case LIST:
-			vadef.va_val.list = cf->empty_list;
-			break;
-		}
-		return &vadef;
+		vadef.va_val.str = (str == NULL ? "" : str);
+		break;
 	}
 
-	return NULL;
+	case LIST:
+		vadef.va_val.list = cf->empty_list;
+		break;
+	}
+
+	return &vadef;
 }
 
 const struct variable_value *
