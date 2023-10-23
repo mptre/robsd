@@ -17,6 +17,7 @@ struct interpolate_context {
 	const char			*ic_path;
 	int				 ic_lno;
 	int				 ic_depth;
+	unsigned int			 ic_flags;
 };
 
 static int	interpolate(struct interpolate_context *, struct buffer *,
@@ -29,6 +30,7 @@ interpolate_file(const char *path, const struct interpolate_arg *arg)
 		.ic_arg		= arg,
 		.ic_path	= path,
 		.ic_lno		= arg->lno,
+		.ic_flags	= arg->flags,
 	};
 	FILE *fh;
 	struct buffer *bf;
@@ -91,8 +93,9 @@ interpolate_buffer(const char *str, struct buffer *bf,
     const struct interpolate_arg *arg)
 {
 	struct interpolate_context ic = {
-		.ic_arg	= arg,
-		.ic_lno	= arg->lno,
+		.ic_arg		= arg,
+		.ic_lno		= arg->lno,
+		.ic_flags	= arg->flags,
 	};
 	int error;
 
@@ -106,7 +109,7 @@ interpolate(struct interpolate_context *ic, struct buffer *bf,
 {
 	int error = 0;
 
-	if (++ic->ic_depth == 4) {
+	if (++ic->ic_depth == 5) {
 		log_warnx(ic->ic_path, ic->ic_lno,
 		    "invalid substitution, recursion too deep");
 		return 1;
@@ -147,6 +150,11 @@ interpolate(struct interpolate_context *ic, struct buffer *bf,
 		name = estrndup(vs, len);
 		lookup = ic->ic_arg->lookup(name, ic->ic_arg->arg);
 		free(name);
+		if (lookup == NULL &&
+		    (ic->ic_flags & INTERPOLATE_IGNORE_LOOKUP_ERRORS)) {
+			buffer_puts(bf, p, (size_t)(ve - p + 1));
+			goto next;
+		}
 		if (lookup == NULL) {
 			log_warnx(ic->ic_path, ic->ic_lno,
 			    "invalid substitution, unknown variable '%.*s'",
@@ -158,6 +166,8 @@ interpolate(struct interpolate_context *ic, struct buffer *bf,
 		free(lookup);
 		if (error)
 			break;
+
+next:
 		str = &ve[1];
 	}
 	ic->ic_depth--;

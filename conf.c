@@ -19,6 +19,7 @@
 
 #include "libks/arithmetic.h"
 #include "libks/buffer.h"
+#include "libks/compiler.h"
 #include "libks/vector.h"
 
 #include "alloc.h"
@@ -27,6 +28,13 @@
 #include "lexer.h"
 #include "log.h"
 #include "token.h"
+
+/*
+ * Bounds for rdomain, favor something large enough to not conflict with
+ * existing ones.
+ */
+#define RDOMAIN_MIN	11
+#define RDOMAIN_MAX	256
 
 enum token_type {
 	/* sentinels */
@@ -95,6 +103,7 @@ struct grammar {
 #define REP	0x00000002u	/* may be repeated */
 #define PAT	0x00000004u	/* fnmatch(3) keyword fallback */
 #define FUN	0x00000008u	/* default obtain through function call */
+#define EARLY	0x00000010u	/* interpolate early */
 
 	union {
 		const void	*ptr;
@@ -105,8 +114,10 @@ struct grammar {
 	} gr_default;
 };
 
-static const struct grammar	*grammar_find(const struct grammar *, size_t,
-    const char *);
+static const struct grammar	*config_find_grammar_for_keyword(
+    const struct config *, const char *);
+static const struct grammar	*config_find_grammar_for_interpolation(
+    const struct config *, const char *);
 static int			 grammar_equals(const struct grammar *,
     const char *, size_t);
 
@@ -122,10 +133,16 @@ struct config {
 		const struct grammar	*ptr;
 		size_t			 len;
 	} grammar;
+
 	struct {
 		const char *const	*ptr;
 		size_t			 len;
 	} steps;
+
+	struct {
+		int	early;
+		int	rdomain;
+	} interpolate;
 
 	VECTOR(struct variable)	 variables;
 
@@ -145,6 +162,7 @@ static int	config_parse_glob(struct config *, struct variable_value *);
 static int	config_parse_list(struct config *, struct variable_value *);
 static int	config_parse_user(struct config *, struct variable_value *);
 static int	config_parse_regress(struct config *, struct variable_value *);
+static int	config_parse_regress_option_env(struct config *, const char *);
 static int	config_parse_regress_env(struct config *,
     struct variable_value *);
 static int	config_parse_directory(struct config *,
@@ -154,6 +172,7 @@ static struct variable	*config_default_build_dir(struct config *,
     const char *);
 static struct variable	*config_default_inet4(struct config *, const char *);
 static struct variable	*config_default_inet6(struct config *, const char *);
+static struct variable	*config_default_rdomain(struct config *, const char *);
 
 static struct variable	*config_append(struct config *, const char *,
     const struct variable_value *, unsigned int);
@@ -163,6 +182,8 @@ static int		 config_present(const struct config *,
     const char *);
 static struct variable	*config_find_or_create_list(struct config *,
     const char *);
+
+static char	*config_interpolate_early(struct config *, const char *);
 
 static const char	*regressname(struct buffer *, const char *,
     const char *);
@@ -287,10 +308,11 @@ static const struct grammar robsd_regress[] = {
 	{ "bsd-srcdir",		DIRECTORY,	config_parse_directory,		0,		{ "/usr/src" } },
 	{ "cvs-root",		STRING,		config_parse_string,		0,		{ NULL } },
 	{ "cvs-user",		STRING,		config_parse_user,		0,		{ NULL } },
+	{ "rdomain",		INTEGER,	NULL,				FUN|EARLY,	{ D_FUN(config_default_rdomain) } },
 	{ "regress",		LIST,		config_parse_regress,		REQ|REP,	{ NULL } },
 	{ "regress-env",	LIST,		config_parse_regress_env,	REP,		{ NULL } },
 	{ "regress-user",	STRING,		config_parse_user,		0,		{ "build" } },
-	{ "regress-*-env",	STRING,		NULL,				PAT,		{ "${regress-env}" } },
+	{ "regress-*-env",	STRING,		NULL,				PAT|EARLY,	{ "${regress-env}" } },
 	{ "regress-*-target",	STRING,		NULL,				PAT,		{ "regress" } },
 	{ "regress-*-parallel",	INTEGER,	NULL,				PAT,		{ D_I32(1) } },
 
@@ -334,6 +356,7 @@ config_alloc(const char *mode, const char *path)
 		err(1, NULL);
 	if (VECTOR_INIT(cf->empty_list))
 		err(1, NULL);
+	cf->interpolate.rdomain = RDOMAIN_MIN;
 
 	switch (cf->mode) {
 	case ROBSD:
@@ -452,7 +475,7 @@ config_append_string(struct config *cf, const char *name, const char *str)
 {
 	struct variable_value val;
 
-	if (grammar_find(cf->grammar.ptr, cf->grammar.len, name))
+	if (config_find_grammar_for_keyword(cf, name))
 		return NULL;
 
 	variable_value_init(&val, STRING);
@@ -556,6 +579,18 @@ config_interpolate_str(struct config *cf, const char *str)
 	});
 }
 
+/*
+ * Returns non-zero if the given variable must be interpolated early.
+ */
+static int
+is_early_variable(const struct config *cf, const char *name)
+{
+	const struct grammar *gr;
+
+	gr = config_find_grammar_for_interpolation(cf, name);
+	return gr != NULL && (gr->gr_flags & EARLY);
+}
+
 char *
 config_interpolate_lookup(const char *name, void *arg)
 {
@@ -563,6 +598,9 @@ config_interpolate_lookup(const char *name, void *arg)
 	struct buffer *bf;
 	const struct variable *va;
 	char *str;
+
+	if (cf->interpolate.early && !is_early_variable(cf, name))
+		return NULL;
 
 	va = config_find(cf, name);
 	if (va == NULL)
@@ -594,6 +632,21 @@ config_interpolate_lookup(const char *name, void *arg)
 	}
 	str = buffer_str(bf);
 	buffer_free(bf);
+	return str;
+}
+
+static char *
+config_interpolate_early(struct config *cf, const char *template)
+{
+	char *str;
+
+	cf->interpolate.early = 1;
+	str = interpolate_str(template, &(struct interpolate_arg){
+	    .lookup	= config_interpolate_lookup,
+	    .arg	= cf,
+	    .flags	= INTERPOLATE_IGNORE_LOOKUP_ERRORS,
+	});
+	cf->interpolate.early = 0;
 	return str;
 }
 
@@ -944,15 +997,30 @@ variable_value_concat(struct variable_value *dst, struct variable_value *src)
 }
 
 static const struct grammar *
-grammar_find(const struct grammar *grammar, size_t grammar_len,
-    const char *name)
+config_find_grammar_for_keyword(const struct config *cf, const char *needle)
 {
 	size_t i;
 
-	for (i = 0; i < grammar_len; i++) {
-		const struct grammar *gr = &grammar[i];
+	for (i = 0; i < cf->grammar.len; i++) {
+		const struct grammar *gr = &cf->grammar.ptr[i];
 
-		if (gr->gr_fn != NULL && strcmp(gr->gr_kw, name) == 0)
+		if (gr->gr_fn != NULL && strcmp(gr->gr_kw, needle) == 0)
+			return gr;
+	}
+	return NULL;
+}
+
+static const struct grammar *
+config_find_grammar_for_interpolation(const struct config *cf, const char *name)
+{
+	size_t i, namelen;
+
+	namelen = strlen(name);
+
+	for (i = 0; i < cf->grammar.len; i++) {
+		const struct grammar *gr = &cf->grammar.ptr[i];
+
+		if (grammar_equals(gr, name, namelen))
 			return gr;
 	}
 	return NULL;
@@ -1017,7 +1085,7 @@ config_parse_keyword(struct config *cf, struct token *tk)
 	struct variable_value val;
 	int error = 0;
 
-	gr = grammar_find(cf->grammar.ptr, cf->grammar.len, tk->tk_str);
+	gr = config_find_grammar_for_keyword(cf, tk->tk_str);
 	if (gr == NULL) {
 		lexer_warnx(cf->lx, tk->tk_lno, "unknown keyword '%s'",
 		    tk->tk_str);
@@ -1197,20 +1265,8 @@ config_parse_regress(struct config *cf, struct variable_value *val)
 		const char *name;
 
 		if (lexer_if(lx, TOKEN_ENV, &tk)) {
-			struct variable_value defval, newval;
-
-			if (config_parse_list(cf, &newval))
+			if (config_parse_regress_option_env(cf, path))
 				return 1;
-
-			/* Add default enviroment. */
-			name = regressname(bf, path, "env");
-			variable_value_init(&defval, LIST);
-			dst = VECTOR_ALLOC(defval.list);
-			if (dst == NULL)
-				err(1, NULL);
-			*dst = estrdup("${regress-env}");
-			variable_value_concat(&defval, &newval);
-			config_append(cf, name, &defval, 0);
 		} else if (lexer_if(lx, TOKEN_NO_PARALLEL, &tk)) {
 			struct variable_value newval;
 
@@ -1267,6 +1323,46 @@ config_parse_regress(struct config *cf, struct variable_value *val)
 		err(1, NULL);
 	*dst = estrdup(path);
 	val->ptr = novalue;
+	return 0;
+}
+
+static int
+config_parse_regress_option_env(struct config *cf, const char *path)
+{
+	struct variable_value defval, intval, newval;
+	struct buffer *bf;
+	struct variable *va;
+	const char *name;
+	char **dst;
+	char *str, *template;
+
+	if (config_parse_list(cf, &newval))
+		return 1;
+
+	/* Prepend ${regress-env} for default enviroment. */
+	name = regressname(cf->scratch, path, "env");
+	variable_value_init(&defval, LIST);
+	dst = VECTOR_ALLOC(defval.list);
+	if (dst == NULL)
+		err(1, NULL);
+	*dst = estrdup("${regress-env}");
+	variable_value_concat(&defval, &newval);
+	va = config_append(cf, name, &defval, 0);
+
+	/* Do early interpolation to expand rdomain(s). */
+	bf = buffer_alloc(128);
+	buffer_printf(bf, "${%s}", name);
+	template = buffer_str(bf);
+	str = config_interpolate_early(cf, template);
+	free(template);
+	buffer_free(bf);
+	if (str == NULL)
+		return 1;
+	variable_value_init(&intval, STRING);
+	intval.str = str;
+	variable_value_clear(&va->va_val);
+	va->va_val = intval;
+
 	return 0;
 }
 
@@ -1397,6 +1493,20 @@ config_default_inet6(struct config *cf, const char *name)
 	variable_value_init(&val, STRING);
 	val.str = addr;
 	return config_append(cf, name, &val, VARIABLE_FLAG_DIRTY);
+}
+
+static struct variable *
+config_default_rdomain(struct config *cf, const char *UNUSED(name))
+{
+	static struct variable va;
+	int rdomain;
+
+	rdomain = cf->interpolate.rdomain++;
+	if (rdomain == RDOMAIN_MAX)
+		cf->interpolate.rdomain = rdomain = RDOMAIN_MIN;
+	variable_value_init(&va.va_val, INTEGER);
+	va.va_val.integer = rdomain;
+	return &va;
 }
 
 static struct variable *

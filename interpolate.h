@@ -6,12 +6,15 @@ struct interpolate_arg {
 	 * value. The returned value must be heap allocated. Returning NULL
 	 * indicates that the variable is absent.
 	 */
-	char	*(*lookup)(const char *, void *);
+	char		*(*lookup)(const char *, void *);
 
 	/* Opaque argument passed to callbacks. */
-	void	*arg;
+	void		*arg;
 
-	int	 lno;
+	int		 lno;
+
+	unsigned int	 flags;
+#define INTERPOLATE_IGNORE_LOOKUP_ERRORS	0x00000001u
 };
 
 char	*interpolate_file(const char *, const struct interpolate_arg *);

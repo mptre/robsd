@@ -1,3 +1,5 @@
+# shellcheck disable=SC2016
+
 # robsd_config [-CPRe] [-] [-- robsd-config-argument ...]
 robsd_config() {
 	local _err0=0
@@ -220,6 +222,66 @@ if testcase "regress long name"; then
 	robsd_config -R - <<-EOF
 	1
 	EOF
+fi
+
+if testcase "regress rdomain w/o regress-env"; then
+	{
+		default_regress_config
+		printf 'regress "foo" env { "${rdomain} ${rdomain}" }\n'
+		printf 'regress "bar"\n'
+		printf 'regress "baz" env { "${rdomain} ${rdomain}" }\n'
+	} >"$CONFIG"
+	echo "\${regress-foo-env},\${regress-baz-env}" >"$STDIN"
+	robsd_config -R - <<-EOF
+	 11 12, 13 14
+	EOF
+fi
+
+if testcase "regress rdomain w/ regress-env"; then
+	{
+		default_regress_config
+		printf 'regress-env { "FOO=1" }\n'
+		printf 'regress "foo" env { "${rdomain} ${rdomain}" }\n'
+		printf 'regress "bar"\n'
+		printf 'regress "baz" env { "${rdomain} ${rdomain}" }\n'
+	} >"$CONFIG"
+	echo "\${regress-foo-env},\${regress-baz-env}" >"$STDIN"
+	robsd_config -R - <<-EOF
+	FOO=1 11 12,FOO=1 13 14
+	EOF
+fi
+
+if testcase "regress rdomain in regress-env"; then
+	{
+		default_regress_config
+		printf 'regress-env { "${rdomain}" }\n'
+		printf 'regress "foo" env { "${rdomain}" }\n'
+	} >"$CONFIG"
+	echo "\${regress-bin/ls-env},\${regress-bin/ls-env},\${regress-foo-env}" >"$STDIN"
+	robsd_config -R - <<-EOF
+	12,13,14 11
+	EOF
+fi
+
+if testcase "regress rdomain wrap around"; then
+	{
+		default_regress_config
+		printf 'regress-env { "${rdomain}" }\n'
+	} >"$CONFIG"
+	{
+		_i=11
+		while [ "$_i" -lt 256 ]; do
+			printf '${rdomain} '
+			_i=$((_i + 1))
+		done
+	} >"$STDIN"
+	{
+		_i=11
+		while [ "$_i" -lt 256 ]; do
+			printf '%d ' "$_i"
+			_i=$((_i + 1))
+		done
+	} | robsd_config -R -
 fi
 
 if testcase "regress invalid flags"; then
@@ -553,7 +615,6 @@ if testcase "invalid arguments"; then
 fi
 
 if testcase "invalid recursive interpolation"; then
-	# shellcheck disable=SC2016
 	{ default_config; echo 'distrib-host "${distrib-host}"'; } >"$CONFIG"
 	cat <<-'EOF' >"$STDIN"
 	${distrib-host}
