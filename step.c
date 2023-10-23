@@ -3,11 +3,13 @@
 #include "config.h"
 
 #include <err.h>
+#include <fcntl.h>
 #include <inttypes.h>
 #include <limits.h>	/* LLONG_MIN, LLONG_MAX */
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
 
 #include "libks/buffer.h"
 #include "libks/vector.h"
@@ -24,6 +26,7 @@ enum token_type {
 };
 
 struct step_file {
+	int			 flock;
 	struct buffer		*bf;
 	VECTOR(const char *)	 columns;
 	VECTOR(struct step)	 steps;
@@ -86,7 +89,7 @@ struct step_file *
 steps_parse(const char *path)
 {
 	struct step_file *sf;
-	struct lexer *lx;
+	struct lexer *lx = NULL;
 	int error = 0;
 
 	sf = ecalloc(1, sizeof(*sf));
@@ -97,6 +100,18 @@ steps_parse(const char *path)
 		err(1, NULL);
 	if (VECTOR_INIT(sf->steps))
 		err(1, NULL);
+
+	sf->flock = open(path, O_RDONLY | O_CLOEXEC);
+	if (sf->flock == -1) {
+		warn("%s", path);
+		error = 1;
+		goto out;
+	}
+	if (flock(sf->flock, LOCK_EX) == -1) {
+		warn("flock: %s", path);
+		error = 1;
+		goto out;
+	}
 
 	lx = lexer_alloc(&(struct lexer_arg){
 	    .path	= path,
@@ -163,6 +178,9 @@ steps_free(struct step_file *sf)
 		VECTOR_FREE(st->st_fields);
 	}
 	VECTOR_FREE(sf->steps);
+
+	flock(sf->flock, LOCK_UN);
+	close(sf->flock);
 
 	free(sf);
 }

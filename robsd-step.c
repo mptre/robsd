@@ -54,7 +54,7 @@ main(int argc, char *argv[])
 	int error = 0;
 	int ch;
 
-	if (pledge("stdio rpath wpath cpath unveil", NULL) == -1)
+	if (pledge("stdio rpath wpath cpath flock unveil", NULL) == -1)
 		err(1, "pledge");
 
 	opterr = 0;
@@ -95,7 +95,7 @@ main(int argc, char *argv[])
 			err(1, "unveil: /dev/stdin");
 		if (unveil(sc.path, "r") == -1)
 			err(1, "unveil: %s", sc.path);
-		if (pledge("stdio rpath", NULL) == -1)
+		if (pledge("stdio rpath flock", NULL) == -1)
 			err(1, "pledge");
 		break;
 	case MODE_WRITE:
@@ -103,7 +103,7 @@ main(int argc, char *argv[])
 			usage();
 		if (unveil(sc.path, "rwc") == -1)
 			err(1, "unveil: %s", sc.path);
-		if (pledge("stdio rpath wpath cpath", NULL) == -1)
+		if (pledge("stdio rpath wpath cpath flock", NULL) == -1)
 			err(1, "pledge");
 		break;
 	case MODE_LIST:

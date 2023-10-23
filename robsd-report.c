@@ -22,7 +22,7 @@ main(int argc, char *argv[])
 	int error = 1;
 	int ch;
 
-	if (pledge("stdio rpath", NULL) == -1)
+	if (pledge("stdio rpath flock", NULL) == -1)
 		err(1, "pledge");
 
 	while ((ch = getopt(argc, argv, "C:m:")) != -1) {

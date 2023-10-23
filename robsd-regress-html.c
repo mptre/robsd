@@ -35,7 +35,7 @@ main(int argc, char *argv[])
 	if (argc == 0 || output == NULL)
 		usage();
 
-	if (pledge("stdio rpath wpath cpath", NULL) == -1)
+	if (pledge("stdio rpath wpath cpath flock", NULL) == -1)
 		err(1, "pledge");
 
 	arena = arena_alloc(ARENA_FATAL);
