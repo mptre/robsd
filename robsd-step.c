@@ -15,10 +15,10 @@
 #include "interpolate.h"
 #include "step.h"
 
-enum step_mode {
-	MODE_READ = 1,
-	MODE_WRITE,
-	MODE_LIST,
+enum step_action {
+	ACTION_READ = 1,
+	ACTION_WRITE,
+	ACTION_LIST,
 };
 
 struct step_context {
@@ -54,7 +54,7 @@ main(int argc, char *argv[])
 {
 	struct step_context sc = {0};
 	struct arena *arena;
-	enum step_mode mode = 0;
+	enum step_action action = 0;
 	int error = 0;
 	int ch;
 
@@ -67,13 +67,13 @@ main(int argc, char *argv[])
 
 		switch (ch) {
 		case 'L':
-			mode = MODE_LIST;
+			action = ACTION_LIST;
 			break;
 		case 'R':
-			mode = MODE_READ;
+			action = ACTION_READ;
 			break;
 		case 'W':
-			mode = MODE_WRITE;
+			action = ACTION_WRITE;
 			break;
 		case 'f':
 			sc.path = optarg;
@@ -88,7 +88,7 @@ main(int argc, char *argv[])
 		argc -= optind - 2;
 		argv += optind - 2;
 	}
-	if (mode == 0)
+	if (action == 0)
 		usage();
 
 	arena = arena_alloc(ARENA_FATAL);
@@ -96,8 +96,8 @@ main(int argc, char *argv[])
 	sc.eternal = &eternal;
 	sc.scratch = arena_alloc(ARENA_FATAL);
 
-	switch (mode) {
-	case MODE_READ:
+	switch (action) {
+	case ACTION_READ:
 		if (sc.path == NULL)
 			usage();
 		if (unveil("/dev/stdin", "r") == -1)
@@ -107,7 +107,7 @@ main(int argc, char *argv[])
 		if (pledge("stdio rpath flock", NULL) == -1)
 			err(1, "pledge");
 		break;
-	case MODE_WRITE:
+	case ACTION_WRITE:
 		if (sc.path == NULL)
 			usage();
 		if (unveil(sc.path, "rwc") == -1)
@@ -115,15 +115,15 @@ main(int argc, char *argv[])
 		if (pledge("stdio rpath wpath cpath flock", NULL) == -1)
 			err(1, "pledge");
 		break;
-	case MODE_LIST:
+	case ACTION_LIST:
 		if (pledge("stdio rpath", NULL) == -1)
 			err(1, "pledge");
 		break;
 	}
 
-	switch (mode) {
-	case MODE_READ:
-	case MODE_WRITE:
+	switch (action) {
+	case ACTION_READ:
+	case ACTION_WRITE:
 		sc.step_file = steps_parse(sc.path);
 		if (sc.step_file == NULL) {
 			error = 1;
@@ -136,14 +136,14 @@ main(int argc, char *argv[])
 
 	opterr = 1;
 	optind = 0;
-	switch (mode) {
-	case MODE_READ:
+	switch (action) {
+	case ACTION_READ:
 		error = steps_read(&sc, argc, argv);
 		break;
-	case MODE_WRITE:
+	case ACTION_WRITE:
 		error = action_write(&sc, argc, argv);
 		break;
-	case MODE_LIST:
+	case ACTION_LIST:
 		error = steps_list(&sc, argc, argv);
 		break;
 	}
@@ -285,8 +285,8 @@ static int
 steps_list(struct step_context *sc, int argc, char **argv)
 {
 	struct config *config;
+	const char *config_mode = NULL;
 	const char *config_path = NULL;
-	const char *mode = NULL;
 	const char **steps;
 	size_t i, nsteps;
 	int ch;
@@ -297,7 +297,7 @@ steps_list(struct step_context *sc, int argc, char **argv)
 			config_path = optarg;
 			break;
 		case 'm':
-			mode = optarg;
+			config_mode = optarg;
 			break;
 		default:
 			usage();
@@ -305,10 +305,11 @@ steps_list(struct step_context *sc, int argc, char **argv)
 	}
 	argc -= optind;
 	argv += optind;
-	if (argc != 0 || mode == NULL)
+	if (argc != 0 || config_mode == NULL)
 		usage();
 
-	config = config_alloc(mode, config_path, sc->eternal, sc->scratch);
+	config = config_alloc(config_mode, config_path, sc->eternal,
+	    sc->scratch);
 	if (config == NULL)
 		return 1;
 	if (config_parse(config))
