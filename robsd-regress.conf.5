@@ -79,6 +79,8 @@ can be used to influence the execution:
 .Bl -tag -width Ds
 .It Ic env No { Do Ar key=val Dc Ar ... No }
 Add one more many environment variables.
+.It Ic no-parallel
+Execute regression test synchronously.
 .It Ic obj No { Do Ar path Dc ... No }
 Additional path requiring an object directory where path must be relative to
 .Ic bsd-srcdir .
@@ -91,13 +93,6 @@ by the regression test.
 All declared packages will respectively be added and deleted by the pkg-add and
 pkg-del steps, see
 .Xr robsd-regress 8 .
-.It Ic parallel yes | no
-Defaults to
-.Ic yes
-implying that the regression test can be executed in parallel.
-Using
-.Ic no
-ensures synchronous execution.
 .It Ic quiet
 Do not report skipped, disabled or expected fail targets for this regression
 test.

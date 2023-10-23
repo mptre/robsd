@@ -39,9 +39,9 @@ enum token_type {
 	/* keywords */
 	TOKEN_KEYWORD,
 	TOKEN_ENV,
+	TOKEN_NO_PARALLEL,
 	TOKEN_OBJ,
 	TOKEN_PACKAGES,
-	TOKEN_PARALLEL,
 	TOKEN_QUIET,
 	TOKEN_ROOT,
 	TOKEN_TARGET,
@@ -767,12 +767,12 @@ again:
 		buf = buffer_get_ptr(bf);
 		if (strcmp("env", buf) == 0)
 			return lexer_emit(lx, &s, TOKEN_ENV);
+		if (strcmp("no-parallel", buf) == 0)
+			return lexer_emit(lx, &s, TOKEN_NO_PARALLEL);
 		if (strcmp("obj", buf) == 0)
 			return lexer_emit(lx, &s, TOKEN_OBJ);
 		if (strcmp("packages", buf) == 0)
 			return lexer_emit(lx, &s, TOKEN_PACKAGES);
-		if (strcmp("parallel", buf) == 0)
-			return lexer_emit(lx, &s, TOKEN_PARALLEL);
 		if (strcmp("quiet", buf) == 0)
 			return lexer_emit(lx, &s, TOKEN_QUIET);
 		if (strcmp("root", buf) == 0)
@@ -863,12 +863,12 @@ token_serialize(const struct token *tk)
 		return "KEYWORD";
 	case TOKEN_ENV:
 		return "ENV";
+	case TOKEN_NO_PARALLEL:
+		return "NO-PARALLEL";
 	case TOKEN_OBJ:
 		return "OBJ";
 	case TOKEN_PACKAGES:
 		return "PACKAGES";
-	case TOKEN_PARALLEL:
-		return "PARALLEL";
 	case TOKEN_QUIET:
 		return "QUIET";
 	case TOKEN_ROOT:
@@ -1211,6 +1211,13 @@ config_parse_regress(struct config *cf, struct variable_value *val)
 			*dst = estrdup("${regress-env}");
 			variable_value_concat(&defval, &newval);
 			config_append(cf, name, &defval, 0);
+		} else if (lexer_if(lx, TOKEN_NO_PARALLEL, &tk)) {
+			struct variable_value newval;
+
+			name = regressname(bf, path, "parallel");
+			variable_value_init(&newval, INTEGER);
+			newval.integer = 0;
+			config_append(cf, name, &newval, 0);
 		} else if (lexer_if(lx, TOKEN_OBJ, &tk)) {
 			struct variable_value newval;
 			struct variable *obj;
@@ -1228,13 +1235,6 @@ config_parse_regress(struct config *cf, struct variable_value *val)
 			packages = config_find_or_create_list(cf,
 			    "regress-packages");
 			variable_value_concat(&packages->va_val, &newval);
-		} else if (lexer_if(lx, TOKEN_PARALLEL, &tk)) {
-			struct variable_value newval;
-
-			if (config_parse_boolean(cf, &newval))
-				return 1;
-			name = regressname(bf, path, "parallel");
-			config_append(cf, name, &newval, 0);
 		} else if (lexer_if(lx, TOKEN_QUIET, &tk)) {
 			struct variable_value newval;
 

@@ -292,8 +292,8 @@ fi
 if testcase "list: robsd-regress"; then
 	robsd_config -R - <<-EOF
 	robsddir "$TSHDIR"
-	regress "lib/libc/locale" parallel no
-	regress "gnu/usr.bin/perl" parallel no
+	regress "lib/libc/locale" no-parallel
+	regress "gnu/usr.bin/perl" no-parallel
 	regress "bin/csh"
 	regress "bin/ksh"
 	EOF

@@ -10,7 +10,7 @@ if testcase "basic"; then
 	robsddir "${ROBSDDIR}"
 	regress "test/fail"
 	regress "test/hello" obj { "usr.bin/hello" }
-	regress "test/root" root parallel no
+	regress "test/root" no-parallel root
 	regress "test/env" env { "FOO=1" "BAR=2" }
 	regress "test/pkg" packages { "quirks" "not-installed" }
 	regress "test/target" target "one"

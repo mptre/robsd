@@ -181,7 +181,7 @@ if testcase "regress parallel"; then
 	{
 		default_regress_config
 		echo 'regress "true"'
-		echo 'regress "false" parallel no'
+		echo 'regress "false" no-parallel'
 	} >"$CONFIG"
 	{
 		echo -n "\${regress-true-parallel} "
