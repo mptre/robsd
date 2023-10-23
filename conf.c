@@ -510,12 +510,12 @@ config_find(struct config *cf, const char *name)
 {
 	static struct variable vadef;
 	const struct grammar *gr;
-	struct variable *va;
 	size_t i, namelen;
 
 	namelen = strlen(name);
 	for (i = 0; i < VECTOR_LENGTH(cf->variables); i++) {
-		va = &cf->variables[i];
+		struct variable *va = &cf->variables[i];
+
 		if (va->va_namelen == namelen &&
 		    strncmp(va->va_name, name, namelen) == 0)
 			return va;
