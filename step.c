@@ -595,7 +595,7 @@ step_set_field(struct step *st, const char *name, const char *val)
 }
 
 int
-step_set_field_integer(struct step *st, const char *name, int val)
+step_set_field_integer(struct step *st, const char *name, int64_t val)
 {
 	const struct field_definition *fd;
 

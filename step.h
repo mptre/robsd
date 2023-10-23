@@ -28,4 +28,4 @@ int			 step_serialize(const struct step *, struct buffer *);
 const union step_value	*step_get_field(const struct step *, const char *);
 int			 step_set_keyval(struct step *, const char *);
 int			 step_set_field_integer(struct step *, const char *,
-    int);
+    int64_t);
