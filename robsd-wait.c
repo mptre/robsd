@@ -125,14 +125,14 @@ kqueue_setup(struct context *ctx)
 	struct map_iterator it = {0};
 	int *pid;
 	int i = 0;
-	int npids;
+	size_t npids;
 
-	npids = pid_count(ctx);
+	npids = (size_t)pid_count(ctx);
 	if (VECTOR_INIT(ctx->kqueue.changes) ||
-	    VECTOR_RESERVE(ctx->kqueue.changes, (size_t)npids))
+	    VECTOR_RESERVE(ctx->kqueue.changes, npids))
 		err(1, NULL);
 	if (VECTOR_INIT(ctx->kqueue.events) ||
-	    VECTOR_RESERVE(ctx->kqueue.events, (size_t)npids))
+	    VECTOR_RESERVE(ctx->kqueue.events, npids))
 		err(1, NULL);
 
 	while ((pid = MAP_ITERATE(ctx->pids, &it)) != NULL) {
