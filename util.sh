@@ -930,7 +930,10 @@ robsd() {
 		fi
 
 		# Does robsd-kill want us dead?
-		lock_alive "$ROBSDDIR" "$_builddir" || return 1
+		if ! lock_alive "$ROBSDDIR" "$_builddir"; then
+			[ -z "$_jobs" ] || echo "$_jobs" | xargs "$ROBSDWAIT" -a
+			return 1
+		fi
 	done
 }
 
