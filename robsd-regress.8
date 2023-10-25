@@ -49,12 +49,8 @@ read-only if
 is enabled, see
 .Xr robsd-regress.conf 5 .
 .It regress
-Run all configured regression tests in parallel, see
+Run all configured regression tests, by default in parallel; see
 .Xr robsd-regress.conf 5 .
-At most
-.Va kern.ncpuonline
-number of regression tests runs in parallel, see
-.Xr sysctl 2 .
 .It umount
 Inverse of mount step.
 .It revert

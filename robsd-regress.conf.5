@@ -31,6 +31,10 @@ see
 Defaults to keeping everything.
 .It Ic parallel yes | no
 Run all configured regression tests in parallel.
+At most
+.Va kern.ncpuonline
+number of regression tests runs in parallel, see
+.Xr sysctl 2 .
 Defaults to
 .Ic yes .
 .It Ic rdonly yes | no
