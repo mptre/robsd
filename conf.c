@@ -31,6 +31,10 @@
 #include "log.h"
 #include "token.h"
 
+/* Return values for parser routines. */
+#define CONFIG_APPEND	0
+#define CONFIG_NOP	2
+
 /*
  * Bounds for rdomain, favor something large enough to not conflict with
  * existing ones.
@@ -167,6 +171,7 @@ static struct variable	*config_default_inet6(struct config *, const char *);
 static struct variable	*config_default_regress_targets(struct config *,
     const char *);
 static struct variable	*config_default_rdomain(struct config *, const char *);
+static struct variable	*config_default_parallel(struct config *, const char *);
 
 static struct variable	*config_append(struct config *, const char *,
     const struct variable_value *);
@@ -183,8 +188,6 @@ static const char	*config_interpolate_early(struct config *,
 
 static const char	*regressname(const char *, const char *,
     struct arena_scope *);
-
-static const void *novalue;
 
 /*
  * Common configuration shared among all robsd modes. Most of them are only
@@ -298,6 +301,7 @@ static const struct grammar robsd_regress[] = {
 	{ "robsddir",		DIRECTORY,	config_parse_directory,		REQ,		{ NULL } },
 	{ "hook",		LIST,		config_parse_list,		0,		{ NULL } },
 	{ "keep",		INTEGER,	config_parse_integer,		0,		{ NULL } },
+	{ "parallel",		INTEGER,	config_parse_boolean,		0,		{ D_I32(1) } },
 	{ "rdonly",		INTEGER,	config_parse_boolean,		0,		{ NULL } },
 	{ "sudo",		STRING,		config_parse_string,		0,		{ "doas -n" } },
 	{ "bsd-diff",		LIST,		config_parse_glob,		0,		{ NULL } },
@@ -310,7 +314,7 @@ static const struct grammar robsd_regress[] = {
 	{ "regress-user",	STRING,		config_parse_user,		0,		{ "build" } },
 	{ "regress-*-env",	STRING,		NULL,				PAT|EARLY,	{ "${regress-env}" } },
 	{ "regress-*-targets",	LIST,		NULL,				PAT|FUN,	{ D_FUN(config_default_regress_targets) } },
-	{ "regress-*-parallel",	INTEGER,	NULL,				PAT,		{ D_I32(1) } },
+	{ "regress-*-parallel",	INTEGER,	NULL,				PAT|FUN,	{ D_FUN(config_default_parallel) } },
 };
 
 static const char *robsd_regress_steps[] = {
@@ -678,6 +682,8 @@ is_parallel(struct config *cf, const char *step_name)
 
 	arena_scope(cf->scratch, scratch);
 
+	if (!config_value(cf, "parallel", integer, 1))
+		return 0;
 	name = regressname(step_name, "parallel", &scratch);
 	return config_value(cf, name, integer, 1);
 }
@@ -1071,6 +1077,7 @@ config_parse_keyword(struct config *cf, struct token *tk)
 	const struct grammar *gr;
 	struct variable_value val;
 	int error = 0;
+	int rv;
 
 	gr = config_find_grammar_for_keyword(cf, tk->tk_str);
 	if (gr == NULL) {
@@ -1084,10 +1091,11 @@ config_parse_keyword(struct config *cf, struct token *tk)
 		    "variable '%s' already defined", tk->tk_str);
 		error = 1;
 	}
-	assert(gr->gr_fn != NULL);
-	if (gr->gr_fn(cf, &val) == 0) {
-		if (val.ptr != novalue)
-			config_append(cf, tk->tk_str, &val);
+	rv = gr->gr_fn(cf, &val);
+	if (rv == CONFIG_APPEND) {
+		config_append(cf, tk->tk_str, &val);
+	} else if (rv == CONFIG_NOP) {
+		/* Configuration variable already inserted. */
 	} else {
 		error = 1;
 	}
@@ -1236,7 +1244,7 @@ config_parse_user(struct config *cf, struct variable_value *val)
 }
 
 static int
-config_parse_regress(struct config *cf, struct variable_value *val)
+config_parse_regress(struct config *cf, struct variable_value *UNUSED(val))
 {
 	struct lexer *lx = cf->lx;
 	struct token *tk;
@@ -1313,8 +1321,7 @@ config_parse_regress(struct config *cf, struct variable_value *val)
 	if (dst == NULL)
 		err(1, NULL);
 	*dst = arena_strdup(cf->eternal, path);
-	val->ptr = novalue;
-	return 0;
+	return CONFIG_NOP;
 }
 
 static int
@@ -1369,8 +1376,7 @@ config_parse_regress_env(struct config *cf, struct variable_value *val)
 	}
 	env = config_find(cf, "regress-env");
 	variable_value_concat(&env->va_val, val);
-	val->ptr = novalue;
-	return 0;
+	return CONFIG_NOP;
 }
 
 static int
@@ -1522,6 +1528,12 @@ config_default_rdomain(struct config *cf, const char *UNUSED(name))
 	variable_value_init(&va.va_val, INTEGER);
 	va.va_val.integer = rdomain;
 	return &va;
+}
+
+static struct variable *
+config_default_parallel(struct config *cf, const char *UNUSED(name))
+{
+	return config_find(cf, "parallel");
 }
 
 static struct variable *

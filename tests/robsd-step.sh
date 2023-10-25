@@ -306,3 +306,18 @@ if testcase "list: robsd-regress"; then
 	gnu/usr.bin/perl
 	EOF
 fi
+
+if testcase "list: robsd-regress parallel disabled"; then
+	robsd_config -R - <<-EOF
+	robsddir "$TSHDIR"
+	parallel no
+	regress "test/one" no-parallel
+	regress "test/two"
+	EOF
+
+	robsd_step -- -L -C "$ROBSDCONF" -m robsd-regress | grep / >"$TMP1"
+	assert_file - "$TMP1" <<-EOF
+	test/one
+	test/two
+	EOF
+fi

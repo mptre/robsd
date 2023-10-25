@@ -206,6 +206,21 @@ if testcase "regress targets"; then
 	EOF
 fi
 
+if testcase "regress parallel disabled"; then
+	{
+		default_regress_config
+		echo 'parallel no'
+		echo 'regress "false" no-parallel'
+		echo 'regress "true"'
+	} >"$CONFIG"
+	{
+		echo "\${regress-true-parallel} \${regress-false-parallel}"
+	} >"$STDIN"
+	robsd_config -R - <<-EOF
+	0 0
+	EOF
+fi
+
 if testcase "regress interpolation inet"; then
 	default_regress_config >"$CONFIG"
 	echo "\${inet}" >"$STDIN"
