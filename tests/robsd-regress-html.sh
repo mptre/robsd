@@ -699,11 +699,6 @@ if testcase "invalid: missing log"; then
 	} >"$(step_path "$_buildir")"
 
 	robsd_regress_html -e - -- -o "${TSHDIR}/html" "amd64:${TSHDIR}/amd64" <<-EOF
-	robsd-regress-html: open: ${TSHDIR}/amd64/2022-10-25.1/nein.log: No such file or directory
-	robsd-regress-html: open: ${TSHDIR}/amd64/2022-10-25.1/nein.log: No such file or directory
-	robsd-regress-html: open: ${TSHDIR}/amd64/2022-10-25.1/nein.log: No such file or directory
-	robsd-regress-html: open: ${TSHDIR}/amd64/2022-10-25.1/nein.log: No such file or directory
-	robsd-regress-html: open: ${TSHDIR}/amd64/2022-10-25.1/nein.log: No such file or directory
-	robsd-regress-html: ${TSHDIR}/amd64/2022-10-25.1/nein.log: failed to parse log
+	robsd-regress-html: ${TSHDIR}/amd64/2022-10-25.1/nein.log: No such file or directory
 	EOF
 fi

@@ -351,6 +351,11 @@ parse_run_log(struct regress_html *r, const struct run *run,
 	struct buffer *bf;
 	int error, nfail, nskip;
 
+	if (access(src_path, R_OK) == -1) {
+		warn("%s", src_path);
+		return 1;
+	}
+
 	arena_scope(r->scratch, s);
 
 	if (run->exit != 0) {
