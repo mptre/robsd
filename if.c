@@ -8,14 +8,13 @@
 
 #include <sys/types.h>
 #include <sys/ioctl.h>
-
 #include <sys/socket.h>
+
 #include <arpa/inet.h>
+#include <err.h>
+#include <ifaddrs.h>
 #include <net/if.h>
 #include <netinet/in.h>
-#include <ifaddrs.h>
-
-#include <err.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
