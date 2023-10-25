@@ -671,6 +671,17 @@ config_get_mode(const struct config *cf)
 	return cf->mode;
 }
 
+static int
+is_parallel(struct config *cf, const char *step_name)
+{
+	const char *name;
+
+	arena_scope(cf->scratch, scratch);
+
+	name = regressname(step_name, "parallel", &scratch);
+	return config_value(cf, name, integer, 1);
+}
+
 static const char **
 config_regress_get_steps(struct config *cf)
 {
@@ -702,14 +713,7 @@ config_regress_get_steps(struct config *cf)
 
 	/* Include parallel ${regress} steps. */
 	for (r = 0; r < nregress; r++) {
-		const char *name;
-		int parallel;
-
-		arena_scope(cf->scratch, scratch);
-
-		name = regressname(regress[r], "parallel", &scratch);
-		parallel = config_value(cf, name, integer, 1);
-		if (parallel) {
+		if (is_parallel(cf, regress[r])) {
 			if (VECTOR_ALLOC(steps) == NULL)
 				err(1, NULL);
 			steps[i++] = regress[r];
