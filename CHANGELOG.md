@@ -11,6 +11,10 @@
   (Anton Lindqvist)
 
 - robsd-regress: run regress tests in parallel.
+  Parallel execution can globally be disabled using the new
+  `parallel no`
+  configuration or disabled on a per regression test basis using
+  `no-parallel`.
   (393bd29)
   (Anton Lindqvist)
 
