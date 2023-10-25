@@ -92,7 +92,8 @@ regress_log_parse_impl(const char *path, struct buffer *scratch,
 		    ((flags & REGRESS_LOG_FAILED) && isfailed(line)) ||
 		    ((flags & REGRESS_LOG_XFAILED) && isxfailed(line)) ||
 		    ((flags & REGRESS_LOG_XPASSED) && isxpassed(line))) {
-			int first = nfound == 0;
+			int first = nfound == 0 &&
+			    (flags & REGRESS_LOG_NEWLINE) == 0;
 
 			nfound++;
 			if (flags & REGRESS_LOG_PEEK)

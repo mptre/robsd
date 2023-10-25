@@ -349,7 +349,7 @@ parse_run_log(struct regress_html *r, const struct run *run,
     const char *src_path, const char *dst_path, enum run_status *status)
 {
 	struct buffer *bf;
-	int error;
+	int error, nfail, nskip;
 
 	arena_scope(r->scratch, s);
 
@@ -369,9 +369,13 @@ parse_run_log(struct regress_html *r, const struct run *run,
 	}
 
 	bf = arena_buffer_alloc(&s, 1 << 13);
-	if (regress_log_parse(src_path, bf,
-	    REGRESS_LOG_FAILED | REGRESS_LOG_SKIPPED | REGRESS_LOG_XFAILED |
-	    REGRESS_LOG_XPASSED) > 0) {
+	nfail = regress_log_parse(src_path, bf,
+	    REGRESS_LOG_FAILED | REGRESS_LOG_XFAILED | REGRESS_LOG_XPASSED);
+	nskip = regress_log_parse(src_path, bf,
+	    REGRESS_LOG_SKIPPED | (nfail > 0 ? REGRESS_LOG_NEWLINE : 0));
+	if (nfail > 0) {
+		error = copy_log(r, dst_path, bf);
+	} else if (!is_run_status_failure(*status) && nskip > 0) {
 		error = copy_log(r, dst_path, bf);
 	} else if (regress_log_trim(src_path, bf) > 0) {
 		error = copy_log(r, dst_path, bf);

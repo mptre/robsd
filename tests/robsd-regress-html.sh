@@ -546,7 +546,7 @@ if testcase "unknown failure"; then
 
 	robsd_regress_html -- -o "${TSHDIR}/html" "amd64:${TSHDIR}/amd64"
 
-	assert_file "${TSHDIR}/html/amd64/2022-10-25.1/fail.log" - <<-'EOF'
+	assert_file - "${TSHDIR}/html/amd64/2022-10-25.1/fail.log" <<-'EOF'
 	something robsd-regress-log cannot interpret
 	EOF
 fi
@@ -593,6 +593,54 @@ if testcase "unexpected pass"; then
 
 	==== test ====
 	EXPECTED_FAIL
+	EOF
+fi
+
+if testcase "failed and skipped"; then
+	_buildir="${TSHDIR}/amd64/2022-10-25.1"
+	_time="$_2022_10_25"
+	mkbuilddir "$_buildir"
+	{
+		step_serialize -s 1 -n test/fail -l fail.log -t "$_time" -e 1
+		{ step_log FAILED; step_log SKIPPED; } >"${_buildir}/fail.log"
+
+		step_serialize -H -s 2 -n end -t "$((_time + 3600))"
+	} >"$(step_path "$_buildir")"
+
+	robsd_regress_html -- -o "${TSHDIR}/html" "amd64:${TSHDIR}/amd64"
+
+	assert_file - "${TSHDIR}/html/amd64/2022-10-25.1/fail.log" <<-'EOF'
+	==== test ====
+	FAILED
+
+	==== test ====
+	SKIPPED
+	EOF
+fi
+
+if testcase "unknown failed and skipped"; then
+	_buildir="${TSHDIR}/amd64/2022-10-25.1"
+	_time="$_2022_10_25"
+	mkbuilddir "$_buildir"
+	{
+		step_serialize -s 1 -n test/fail -l fail.log -t "$_time" -e 1
+		cat <<-'EOF' >"${_buildir}/fail.log"
+		==== test ====
+		SKIPPED
+
+		error...
+		EOF
+
+		step_serialize -H -s 2 -n end -t "$((_time + 3600))"
+	} >"$(step_path "$_buildir")"
+
+	robsd_regress_html -- -o "${TSHDIR}/html" "amd64:${TSHDIR}/amd64"
+
+	assert_file - "${TSHDIR}/html/amd64/2022-10-25.1/fail.log" <<-'EOF'
+	==== test ====
+	SKIPPED
+
+	error...
 	EOF
 fi
 
@@ -651,6 +699,7 @@ if testcase "invalid: missing log"; then
 	} >"$(step_path "$_buildir")"
 
 	robsd_regress_html -e - -- -o "${TSHDIR}/html" "amd64:${TSHDIR}/amd64" <<-EOF
+	robsd-regress-html: open: ${TSHDIR}/amd64/2022-10-25.1/nein.log: No such file or directory
 	robsd-regress-html: open: ${TSHDIR}/amd64/2022-10-25.1/nein.log: No such file or directory
 	robsd-regress-html: open: ${TSHDIR}/amd64/2022-10-25.1/nein.log: No such file or directory
 	robsd-regress-html: open: ${TSHDIR}/amd64/2022-10-25.1/nein.log: No such file or directory
