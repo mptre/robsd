@@ -64,6 +64,11 @@
   (2b06593)
   (Anton Lindqvist)
 
+- robsd-regress-html: improve detection of failures in non bsd.regress.mk make
+  targets.
+  (8c5c8ed)
+  (Anton Lindqvist)
+
 # 17.8.1 - 2023-07-17
 
 ## Bug fixes
