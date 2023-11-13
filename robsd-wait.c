@@ -36,8 +36,7 @@ int
 main(int argc, char *argv[])
 {
 	struct wait_context c = {0};
-	struct map_iterator it = {0};
-	int *pid;
+	MAP_ITERATOR(c.pids) it = {0};
 	int waitall = 0;
 	int error = 0;
 	int kq = -1;
@@ -94,8 +93,8 @@ main(int argc, char *argv[])
 			goto out;
 	}
 
-	while ((pid = MAP_ITERATE(c.pids, &it)) != NULL)
-		printf("%d\n", *pid);
+	while (MAP_ITERATE(c.pids, &it))
+		printf("%d\n", *it.val);
 
 out:
 	if (kq != -1)
@@ -122,8 +121,7 @@ context_free(struct wait_context *c)
 static void
 kqueue_setup(struct wait_context *c)
 {
-	struct map_iterator it = {0};
-	int *pid;
+	MAP_ITERATOR(c->pids) it = {0};
 	int i = 0;
 	size_t npids;
 
@@ -135,8 +133,8 @@ kqueue_setup(struct wait_context *c)
 	    VECTOR_RESERVE(c->kqueue.events, npids))
 		err(1, NULL);
 
-	while ((pid = MAP_ITERATE(c->pids, &it)) != NULL) {
-		EV_SET(&c->kqueue.changes[i++], *pid, EVFILT_PROC, EV_ADD,
+	while (MAP_ITERATE(c->pids, &it)) {
+		EV_SET(&c->kqueue.changes[i++], *it.val, EVFILT_PROC, EV_ADD,
 		    NOTE_EXIT, 0, NULL);
 	}
 }
@@ -154,13 +152,13 @@ kqueue_handle_events(struct wait_context *c, int nevents)
 		pid = kev->ident;
 		if (kev->flags & EV_ERROR) {
 			if (kev->data == ESRCH) { /* process already gone */
-				MAP_REMOVE(c->pids, MAP_FIND(c->pids, pid));
+				MAP_REMOVE(c->pids, pid);
 			} else {
 				warnc(kev->data, "kevent");
 				error = 1;
 			}
 		} else if (kev->fflags & NOTE_EXIT) {
-			MAP_REMOVE(c->pids, MAP_FIND(c->pids, pid));
+			MAP_REMOVE(c->pids, pid);
 		} else {
 			warnx("unknown kevent: ident %lu, filter %x, "
 			    "flags %x, fflags %x, data %lld",
@@ -200,10 +198,10 @@ parse_pids(struct wait_context *c, int argc, char **argv)
 static int
 pid_count(struct wait_context *c)
 {
-	struct map_iterator it = {0};
+	MAP_ITERATOR(c->pids) it = {0};
 	int npids = 0;
 
-	while (MAP_ITERATE(c->pids, &it) != NULL)
+	while (MAP_ITERATE(c->pids, &it))
 		npids++;
 	return npids;
 }

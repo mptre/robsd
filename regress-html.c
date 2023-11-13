@@ -148,16 +148,17 @@ regress_html_alloc(const char *directory, struct arena_scope *eternal,
 void
 regress_html_free(struct regress_html *r)
 {
-	struct map_iterator it = {0};
-	struct suite *suite;
+	MAP_ITERATOR(r->suites) it = {0};
 
 	if (r == NULL)
 		return;
 
 	VECTOR_FREE(r->invocations);
-	while ((suite = MAP_ITERATE(r->suites, &it)) != NULL) {
+	while (MAP_ITERATE(r->suites, &it)) {
+		struct suite *suite = it.val;
+
 		VECTOR_FREE(suite->runs);
-		MAP_REMOVE(r->suites, suite);
+		MAP_REMOVE(r->suites, it.key);
 	}
 	MAP_FREE(r->suites);
 }
@@ -538,9 +539,8 @@ sort_suites(struct regress_html *r)
 	VECTOR(struct suite *) all;
 	VECTOR(struct suite *) pass;
 	VECTOR(struct suite *) nonregress;
-	struct map_iterator it = {0};
+	MAP_ITERATOR(r->suites) it = {0};
 	struct suite **dst;
-	struct suite *suite;
 	size_t i;
 
 	if (VECTOR_INIT(all))
@@ -550,7 +550,9 @@ sort_suites(struct regress_html *r)
 	if (VECTOR_INIT(nonregress))
 		err(1, NULL);
 
-	while ((suite = MAP_ITERATE(r->suites, &it)) != NULL) {
+	while (MAP_ITERATE(r->suites, &it)) {
+		struct suite *suite = it.val;
+
 		if (suite->fail > 0) {
 			dst = VECTOR_ALLOC(all);
 		} else if (strncmp(suite->name, "../", 3) == 0) {
