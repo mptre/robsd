@@ -680,11 +680,11 @@ is_parallel(struct config *cf, const char *step_name)
 {
 	const char *name;
 
-	arena_scope(cf->scratch, scratch);
+	arena_scope(cf->scratch, s);
 
 	if (!config_value(cf, "parallel", integer, 1))
 		return 0;
-	name = regressname(step_name, "parallel", &scratch);
+	name = regressname(step_name, "parallel", &s);
 	return config_value(cf, name, integer, 1);
 }
 
