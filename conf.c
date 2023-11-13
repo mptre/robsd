@@ -194,13 +194,14 @@ static const char	*regressname(const char *, const char *,
  * accessible during interpolation.
  */
 static const struct grammar common_grammar[] = {
-	{ "arch",	STRING,	NULL,	0,	{ MACHINE_ARCH } },
-	{ "builddir",	STRING,	NULL,	FUN,	{ D_FUN(config_default_build_dir) } },
-	{ "exec-dir",	STRING,	NULL,	FUN,	{ D_FUN(config_default_exec_dir) } },
-	{ "inet",	STRING,	NULL,	FUN,	{ D_FUN(config_default_inet4) } },
-	{ "inet6",	STRING,	NULL,	FUN,	{ D_FUN(config_default_inet6) } },
-	{ "keep-dir",	STRING,	NULL,	0,	{ "${robsddir}/attic" } },
-	{ "machine",	STRING,	NULL,	0,	{ MACHINE } }
+	{ "arch",		STRING,		NULL,			0,	{ MACHINE_ARCH } },
+	{ "builddir",		STRING,		NULL,			FUN,	{ D_FUN(config_default_build_dir) } },
+	{ "exec-dir",		STRING,		NULL,			FUN,	{ D_FUN(config_default_exec_dir) } },
+	{ "inet",		STRING,		NULL,			FUN,	{ D_FUN(config_default_inet4) } },
+	{ "inet6",		STRING,		NULL,			FUN,	{ D_FUN(config_default_inet6) } },
+	{ "keep-dir",		STRING,		NULL,			0,	{ "${robsddir}/attic" } },
+	{ "machine",		STRING,		NULL,			0,	{ MACHINE } },
+	{ "stat-interval",	INTEGER,	config_parse_integer,	0,	{ D_I32(10) } },
 };
 
 static const struct grammar robsd[] = {

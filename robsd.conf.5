@@ -29,6 +29,11 @@ option, see
 Command to invoke after each non-skipped step,
 see
 .Xr robsd-hook 5 .
+.It Ic stat-interval Ar number
+Interval expressed in seconds in which
+.Xr robsd-stat 8
+collects statistics.
+Defaults to 10.
 .It Ic keep Ar number
 Number of releases to keep in
 .Ic robsddir ,

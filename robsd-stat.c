@@ -53,7 +53,7 @@ main(int argc, char *argv[])
 	VECTOR(char *) users;
 	struct robsd_stat rs;
 	FILE *fh = stdout;
-	unsigned int tick_s = 10;
+	unsigned int interval_s = 0;
 	int doheader = 0;
 	int error = 0;
 	int ch;
@@ -61,11 +61,19 @@ main(int argc, char *argv[])
 	if (VECTOR_INIT(users))
 		err(1, NULL);
 
-	while ((ch = getopt(argc, argv, "Hu:")) != -1) {
+	while ((ch = getopt(argc, argv, "Hi:u:")) != -1) {
 		switch (ch) {
 		case 'H':
 			doheader = 1;
 			break;
+		case 'i': {
+			const char *errstr;
+
+			interval_s = strtonum(optarg, 1, INT_MAX, &errstr);
+			if (interval_s == 0)
+				errx(1, "interval %s %s", optarg, errstr);
+			break;
+		}
 		case 'u': {
 			char **dst;
 
@@ -81,7 +89,7 @@ main(int argc, char *argv[])
 	}
 	argc -= optind;
 	argv += optind;
-	if (argc > 0)
+	if (argc > 0 || (!doheader && interval_s == 0))
 		usage();
 
 	if (doheader) {
@@ -110,7 +118,7 @@ main(int argc, char *argv[])
 		}
 
 		stat_print(&rs, fh);
-		usleep(tick_s * 1000 * 1000);
+		usleep(interval_s * 1000 * 1000);
 	}
 
 	VECTOR_FREE(users);
@@ -121,7 +129,7 @@ main(int argc, char *argv[])
 static void
 usage(void)
 {
-	fprintf(stderr, "usage: robsd-stat [-H] [-u user]\n");
+	fprintf(stderr, "usage: robsd-stat [-H] [-u user] -i interval\n");
 	exit(1);
 }
 

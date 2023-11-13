@@ -35,6 +35,7 @@ config_load -v "target=${_target}" <<'EOF'
 ROBSDDIR="${robsddir}"
 KEEP="${keep}"
 SKIP="${skip}"
+STATINTERVAL="${stat-interval}"
 EOF
 
 _comment=""
@@ -95,7 +96,7 @@ if [ "$KEEP" -gt 0 ]; then
 	/usr/local/sbin/robsd-cross-clean "$KEEP"
 fi
 
-"$ROBSDSTAT" -u root -u build >>"${BUILDDIR}/stat.csv" 2>&1 &
+"$ROBSDSTAT" -i "$STATINTERVAL" -u root -u build >>"${BUILDDIR}/stat.csv" 2>&1 &
 _statpid="$!"
 
 if [ "$DETACH" -eq 1 ]; then

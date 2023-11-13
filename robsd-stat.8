@@ -6,6 +6,7 @@
 .Nd statistics collector
 .Sh SYNOPSIS
 .Nm robsd-stat
+.Fl i Ar interval
 .Sh DESCRIPTION
 The
 .Nm
@@ -40,6 +41,14 @@ The number of entries in the kernel thread table.
 .It directory
 Estimate of the current working directory for the corresponding robsd process.
 Could be empty.
+.El
+.Pp
+The options are as follows:
+.Bl -tag -width Ds
+.It Fl i Ar interval
+Collect statistics every
+.Ar interval
+expressed in seconds.
 .El
 .Sh DIAGNOSTICS
 .Ex -std

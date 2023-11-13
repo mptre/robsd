@@ -28,6 +28,7 @@ ROBSDDIR="${robsddir}"
 CHROOT="${chroot}"
 KEEP="${keep}"
 SKIP="${skip}"
+STATINTERVAL="${stat-interval}"
 PORTS="${ports}"
 PORTSDIFF="${ports-diff}"
 PORTSDIR="${ports-dir}"
@@ -105,7 +106,7 @@ if [ "$KEEP" -gt 0 ]; then
 	/usr/local/sbin/robsd-ports-clean "$KEEP"
 fi
 
-"$ROBSDSTAT" -u _pbuild -u _pfetch >>"${BUILDDIR}/stat.csv" 2>&1 &
+"$ROBSDSTAT" -i "$STATINTERVAL" -u _pbuild -u _pfetch >>"${BUILDDIR}/stat.csv" 2>&1 &
 _statpid="$!"
 
 if [ "$DETACH" -eq 1 ]; then
