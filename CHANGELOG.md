@@ -42,6 +42,10 @@
   (d4a147e)
   (Anton Lindqvist)
 
+- robsd-stat: make interval configurable
+  (9c31812)
+  (Anton Lindqvist)
+
 ## Bug fixes
 
 - robsd-regress-log: stop abusing the scratch buffer as the output buffer.
