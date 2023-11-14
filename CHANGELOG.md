@@ -73,6 +73,10 @@
   (8c5c8ed)
   (Anton Lindqvist)
 
+- Fix handling of dates in CVS changelog.
+  (2835936)
+  (Anton Lindqvist)
+
 # 17.8.1 - 2023-07-17
 
 ## Bug fixes
