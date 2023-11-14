@@ -55,7 +55,7 @@ _tmpdir="${BUILDDIR}/tmp"
 	else
 		unpriv "$CVSUSER" "cd ${_d} && exec cvs -qd ${CVSROOT} update -Pd" 2>&1 |
 		tee "$_up" |
-		cvs_log -t "$_tmpdir" -c "$_d" -h "$CVSROOT" -u "$CVSUSER" |
+		cvs_log -t "${_tmpdir}/cvs-${_m}" -c "$_d" -h "$CVSROOT" -u "$CVSUSER" |
 		tee "$_ci"
 	fi
 

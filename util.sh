@@ -248,11 +248,12 @@ cvs_log() {
 	local _path
 	local _prev
 	local _repo
+	local _tmp
 	local _user
 
 	while [ $# -gt 0 ]; do
 		case "$1" in
-		-t)	shift; _tmp="${1}/cvs";;
+		-t)	shift; _tmp="$1";;
 		-c)	shift; _repo="$1";;
 		-h)	shift; _host="$1";;
 		-u)	shift; _user="$1";;
