@@ -23,6 +23,26 @@ su() {
 			============================
 			EOF
 			;;
+		regress/usr.bin/mandoc/char/N/basic.out_ascii)
+			cat <<-EOF
+			Working file: regress/usr.bin/mandoc/char/N/basic.out_ascii
+			----------------------------
+			revision 1.6
+			date: 2023/11/13 20:35:33;  author: schwarze;  commitid: 0LuRz4KlqQVuu9kQ;
+			reduce the man(7) global indentation from 7n to 5n, see man_term.c rev. 1.197
+			============================
+			EOF
+			;;
+		regress/usr.bin/mandoc/tbl/opt/invalid.out_ascii)
+			cat <<-EOF
+			Working file: regress/usr.bin/mandoc/tbl/opt/invalid.out_ascii
+			----------------------------
+			revision 1.4
+			date: 2023/11/13 20:35:36;  author: schwarze;  commitid: 0LuRz4KlqQVuu9kQ;
+			reduce the man(7) global indentation from 7n to 5n, see man_term.c rev. 1.197
+			============================
+			EOF
+			;;
 		sbin/dhclient/clparse.c)
 			cat <<-EOF
 			Working file: ${_file}
@@ -66,10 +86,21 @@ if testcase "basic"; then
 	cat <<-EOF >"$TMP1"
 	P bin/ed/ed.1
 	P bin/ed/ed.c
+	P regress/usr.bin/mandoc/char/N/basic.out_ascii
+	P regress/usr.bin/mandoc/tbl/opt/invalid.out_ascii
 	P sbin/dhclient/clparse.c
 	EOF
 
 	cat <<-EOF >"${TSHDIR}/exp"
+	commit 0LuRz4KlqQVuu9kQ
+	Author: schwarze
+	Date: 2023/11/13 20:35:36
+
+	  reduce the man(7) global indentation from 7n to 5n, see man_term.c rev. 1.197
+
+	  regress/usr.bin/mandoc/char/N/basic.out_ascii
+	  regress/usr.bin/mandoc/tbl/opt/invalid.out_ascii
+
 	commit GsUu9lB5EDnr7xWy
 	Author: anton
 	Date: 2019/07/15 06:00:00

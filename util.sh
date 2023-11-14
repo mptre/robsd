@@ -240,7 +240,7 @@ cvs_date() {
 # date.
 cvs_log() {
 	local _date=""
-	local _id
+	local _cid
 	local _indent="  "
 	local _line
 	local _log
@@ -290,39 +290,39 @@ cvs_log() {
 			;;
 		date:*)
 			_date="$(cvs_field date "$_line")"
-			_id="$(cvs_field commitid "$_line")" || continue
-			if ! [ -d "${_tmp}/${_id}" ]; then
-				mkdir "${_tmp}/${_id}"
-				{
-					echo "commit ${_id}"
-					echo "Author: $(cvs_field author "$_line")"
-					echo "Date: ${_date}"
-					echo
-				} >"${_tmp}/${_id}/message"
-				# Replace trailing newline with space,
-				# simplifies sorting below.
-				echo -n "${_date} " >"${_tmp}/${_id}/date"
+			_cid="$(cvs_field commitid "$_line")" || continue
+			if ! [ -d "${_tmp}/${_cid}" ]; then
+				mkdir "${_tmp}/${_cid}"
+				cvs_field author "$_line" >"${_tmp}/${_cid}/author"
 				_message=1
 			fi
-			echo "${_indent}${_path}" >>"${_tmp}/${_id}/files"
+			echo "$_date" >>"${_tmp}/${_cid}/date"
+			echo "${_indent}${_path}" >>"${_tmp}/${_cid}/files"
 			;;
 		-[-]*|=[=]*)
 			_message=0
 			;;
 		*)
 			if [ "$_message" -eq 1 ]; then
-				echo "${_indent}${_line}" >>"${_tmp}/${_id}/message"
+				echo "${_indent}${_line}" >>"${_tmp}/${_cid}/message"
 			fi
 			;;
 		esac
 	done
 
 	# Sort each commit using the date file.
-	find "$_tmp" \( -type f -name date \) \
-		-exec sh -c 'cat $1; echo $1' _ {} \; |
+	find "$_tmp" -type f -name date |
+	while read -r _p; do
+		_date="$(sort -nr "$_p" | head -1)"
+		echo "${_date} ${_p%/*}"
+	done |
 	sort -nr |
-	sed -e 's/.* //' -e 's,/date,,' |
-	while read -r _path; do
+	while read -r _date _time _path; do
+		echo "commit ${_path##*/}"
+		echo -n "Author: "
+		cat "${_path}/author"
+		echo "Date: ${_date} ${_time}"
+		echo
 		cat "${_path}/message"
 		echo
 		cat "${_path}/files"
