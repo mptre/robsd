@@ -189,30 +189,27 @@ static const char	*config_interpolate_early(struct config *,
 static const char	*regressname(const char *, const char *,
     struct arena_scope *);
 
-/*
- * Common configuration shared among all robsd modes. Most of them are only
- * accessible during interpolation.
- */
+/* Common configuration shared among all robsd modes. */
 static const struct grammar common_grammar[] = {
 	{ "arch",		STRING,		NULL,			0,	{ MACHINE_ARCH } },
 	{ "builddir",		STRING,		NULL,			FUN,	{ D_FUN(config_default_build_dir) } },
 	{ "exec-dir",		STRING,		NULL,			FUN,	{ D_FUN(config_default_exec_dir) } },
+	{ "hook",		LIST,		config_parse_list,	0,	{ NULL } },
 	{ "inet",		STRING,		NULL,			FUN,	{ D_FUN(config_default_inet4) } },
 	{ "inet6",		STRING,		NULL,			FUN,	{ D_FUN(config_default_inet6) } },
+	{ "keep",		INTEGER,	config_parse_integer,	0,	{ NULL } },
 	{ "keep-dir",		STRING,		NULL,			0,	{ "${robsddir}/attic" } },
 	{ "machine",		STRING,		NULL,			0,	{ MACHINE } },
+	{ "robsddir",		DIRECTORY,	config_parse_directory,	REQ,	{ NULL } },
+	{ "skip",		LIST,		config_parse_list,	0,	{ NULL } },
 	{ "stat-interval",	INTEGER,	config_parse_integer,	0,	{ D_I32(10) } },
 };
 
 static const struct grammar robsd[] = {
-	{ "robsddir",		DIRECTORY,	config_parse_directory,	REQ,	{ NULL } },
 	{ "builduser",		STRING,		config_parse_user,	0,	{ "build" } },
 	{ "destdir",		DIRECTORY,	config_parse_directory,	REQ,	{ NULL } },
-	{ "hook",		LIST,		config_parse_list,	0,	{ NULL } },
-	{ "keep",		INTEGER,	config_parse_integer,	0,	{ NULL } },
 	{ "kernel",		STRING,		config_parse_string,	0,	{ "GENERIC.MP" } },
 	{ "reboot",		INTEGER,	config_parse_boolean,	0,	{ NULL } },
-	{ "skip",		LIST,		config_parse_list,	0,	{ NULL } },
 	{ "bsd-diff",		LIST,		config_parse_glob,	0,	{ NULL } },
 	{ "bsd-objdir",		DIRECTORY,	config_parse_directory,	0,	{ "/usr/obj" } },
 	{ "bsd-reldir",		STRING,		NULL,			0,	{ "${builddir}/rel" } },
@@ -250,11 +247,8 @@ static const char *robsd_steps[] = {
 };
 
 static const struct grammar robsd_cross[] = {
-	{ "robsddir",	DIRECTORY,	config_parse_directory,	REQ,	{ NULL } },
 	{ "builduser",	STRING,		config_parse_user,	0,	{ "build" } },
 	{ "crossdir",	STRING,		config_parse_string,	REQ,	{ NULL } },
-	{ "keep",	INTEGER,	config_parse_integer,	0,	{ NULL } },
-	{ "skip",	LIST,		config_parse_list,	0,	{ NULL } },
 	{ "bsd-srcdir",	DIRECTORY,	config_parse_directory,	0,	{ "/usr/src" } },
 };
 
@@ -268,11 +262,7 @@ static const char *robsd_cross_steps[] = {
 };
 
 static const struct grammar robsd_ports[] = {
-	{ "robsddir",		DIRECTORY,	config_parse_directory,	REQ,	{ NULL } },
 	{ "chroot",		STRING,		config_parse_string,	REQ,	{ NULL } },
-	{ "hook",		LIST,		config_parse_list,	0,	{ NULL } },
-	{ "keep",		INTEGER,	config_parse_integer,	0,	{ NULL } },
-	{ "skip",		LIST,		config_parse_list,	0,	{ NULL } },
 	{ "cvs-root",		STRING,		config_parse_string,	0,	{ NULL } },
 	{ "cvs-user",		STRING,		config_parse_user,	0,	{ NULL } },
 	{ "distrib-host",	STRING,		config_parse_string,	0,	{ NULL } },
@@ -299,9 +289,6 @@ static const char *robsd_ports_steps[] = {
 };
 
 static const struct grammar robsd_regress[] = {
-	{ "robsddir",		DIRECTORY,	config_parse_directory,		REQ,		{ NULL } },
-	{ "hook",		LIST,		config_parse_list,		0,		{ NULL } },
-	{ "keep",		INTEGER,	config_parse_integer,		0,		{ NULL } },
 	{ "parallel",		INTEGER,	config_parse_boolean,		0,		{ D_I32(1) } },
 	{ "rdonly",		INTEGER,	config_parse_boolean,		0,		{ NULL } },
 	{ "sudo",		STRING,		config_parse_string,		0,		{ "doas -n" } },

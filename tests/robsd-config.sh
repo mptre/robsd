@@ -496,8 +496,8 @@ fi
 if testcase "invalid missing mandatory"; then
 	robsd_config -e | grep -e mandatory >"$TMP1"
 	assert_file - "$TMP1" <<-EOF
-	robsd-config: ${CONFIG}: mandatory variable 'robsddir' missing
 	robsd-config: ${CONFIG}: mandatory variable 'destdir' missing
+	robsd-config: ${CONFIG}: mandatory variable 'robsddir' missing
 	EOF
 fi
 
