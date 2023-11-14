@@ -298,7 +298,7 @@ static const struct grammar robsd_regress[] = {
 	{ "rdomain",		INTEGER,	NULL,				FUN|EARLY,	{ D_FUN(config_default_rdomain) } },
 	{ "regress",		LIST,		config_parse_regress,		REQ|REP,	{ NULL } },
 	{ "regress-env",	LIST,		config_parse_regress_env,	REP,		{ NULL } },
-	{ "regress-user",	STRING,		config_parse_user,		0,		{ "build" } },
+	{ "regress-user",	STRING,		config_parse_user,		0,		{ "${build-user}" } },
 	{ "regress-*-env",	STRING,		NULL,				PAT|EARLY,	{ "${regress-env}" } },
 	{ "regress-*-targets",	LIST,		NULL,				PAT|FUN,	{ D_FUN(config_default_regress_targets) } },
 	{ "regress-*-parallel",	INTEGER,	NULL,				PAT|FUN,	{ D_FUN(config_default_parallel) } },

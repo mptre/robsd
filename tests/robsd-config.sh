@@ -105,9 +105,13 @@ fi
 
 if testcase "regress"; then
 	default_regress_config >"$CONFIG"
-	echo "REGRESS=\${regress}" >"$STDIN"
+	{
+		echo "REGRESS=\${regress}"
+		echo "USER=\${regress-user}"
+	} >"$STDIN"
 	robsd_config -R - <<-EOF
 	REGRESS=bin/csh bin/ksh bin/ls
+	USER=build
 	EOF
 fi
 
