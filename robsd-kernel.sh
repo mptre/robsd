@@ -1,7 +1,7 @@
 . "${EXECDIR}/util.sh"
 
 config_load <<'EOF'
-BUILDUSER="${builduser}"
+BUILDUSER="${build-user}"
 KERNEL="${kernel}"
 BSDOBJDIR="${bsd-objdir}"; export BSDOBJDIR
 BSDSRCDIR="${bsd-srcdir}"; export BSDSRCDIR

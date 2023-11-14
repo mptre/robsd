@@ -192,6 +192,7 @@ static const char	*regressname(const char *, const char *,
 /* Common configuration shared among all robsd modes. */
 static const struct grammar common_grammar[] = {
 	{ "arch",		STRING,		NULL,			0,	{ MACHINE_ARCH } },
+	{ "build-user",		STRING,		NULL,			0,	{ "build" } },
 	{ "builddir",		STRING,		NULL,			FUN,	{ D_FUN(config_default_build_dir) } },
 	{ "exec-dir",		STRING,		NULL,			FUN,	{ D_FUN(config_default_exec_dir) } },
 	{ "hook",		LIST,		config_parse_list,	0,	{ NULL } },
@@ -206,7 +207,6 @@ static const struct grammar common_grammar[] = {
 };
 
 static const struct grammar robsd[] = {
-	{ "builduser",		STRING,		config_parse_user,	0,	{ "build" } },
 	{ "destdir",		DIRECTORY,	config_parse_directory,	REQ,	{ NULL } },
 	{ "kernel",		STRING,		config_parse_string,	0,	{ "GENERIC.MP" } },
 	{ "reboot",		INTEGER,	config_parse_boolean,	0,	{ NULL } },
@@ -247,7 +247,6 @@ static const char *robsd_steps[] = {
 };
 
 static const struct grammar robsd_cross[] = {
-	{ "builduser",	STRING,		config_parse_user,	0,	{ "build" } },
 	{ "crossdir",	STRING,		config_parse_string,	REQ,	{ NULL } },
 	{ "bsd-srcdir",	DIRECTORY,	config_parse_directory,	0,	{ "/usr/src" } },
 };
