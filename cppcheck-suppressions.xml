@@ -2,13 +2,25 @@
 <suppressions>
   <!-- nofile -->
   <suppress>
+    <id>checkersReport</id>
+  </suppress>
+  <suppress>
     <id>constParameterPointer</id>
+  </suppress>
+  <suppress>
+    <id>constVariablePointer</id>
   </suppress>
   <suppress>
     <id>missingIncludeSystem</id>
   </suppress>
   <suppress>
     <id>redundantContinue</id>
+  </suppress>
+
+  <!-- libks/arithmetic.h -->
+  <suppress>
+    <fileName>libks/arithmetic.h</fileName>
+    <id>unusedFunction</id>
   </suppress>
 
   <!-- robsd-step.c -->
