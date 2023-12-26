@@ -181,7 +181,7 @@ invocation_read(struct invocation_state *s, DIR *dir)
 	char path[PATH_MAX];
 
 	for (;;) {
-		struct dirent *de;
+		const struct dirent *de;
 		struct invocation_entry *entry;
 
 		errno = 0;
