@@ -6,9 +6,9 @@
 
 #include <err.h>
 #include <stdarg.h>
-#include <stdio.h>
 #include <stdlib.h>
 
+#include "libks/buffer.h"
 #include "libks/compiler.h"
 
 #include "alloc.h"
@@ -22,8 +22,13 @@ struct lexer {
 	TAILQ_HEAD(token_list, token)	 lx_tokens;
 	struct token			*lx_tk;
 
+	struct {
+		char	*buf;
+		size_t	 len;
+		size_t	 off;
+	} lx_input;
+
 	struct lexer_arg		 lx_arg;
-	FILE				*lx_fh;
 	int				 lx_lno;
 	int				 lx_err;
 };
@@ -31,18 +36,19 @@ struct lexer {
 struct lexer *
 lexer_alloc(const struct lexer_arg *arg)
 {
-	FILE *fh;
+	struct buffer *bf;
 	struct lexer *lx;
 	int error = 0;
 
-	fh = fopen(arg->path, "re");
-	if (fh == NULL) {
+	bf = buffer_read(arg->path);
+	if (bf == NULL) {
 		warn("%s", arg->path);
 		return NULL;
 	}
 	lx = ecalloc(1, sizeof(*lx));
+	lx->lx_input.len = buffer_get_len(bf);
+	lx->lx_input.buf = buffer_release(bf);
 	lx->lx_arg = *arg;
-	lx->lx_fh = fh;
 	lx->lx_lno = 1;
 	lx->lx_tk = NULL;
 	TAILQ_INIT(&lx->lx_tokens);
@@ -61,8 +67,7 @@ lexer_alloc(const struct lexer_arg *arg)
 	}
 
 out:
-	fclose(lx->lx_fh);
-	lx->lx_fh = NULL;
+	buffer_free(bf);
 	if (error) {
 		lexer_free(lx);
 		return NULL;
@@ -82,8 +87,6 @@ lexer_free(struct lexer *lx)
 		TAILQ_REMOVE(&lx->lx_tokens, tk, tk_entry);
 		token_free(tk);
 	}
-	if (lx->lx_fh != NULL)
-		fclose(lx->lx_fh);
 	free(lx);
 }
 
@@ -100,20 +103,17 @@ lexer_emit(struct lexer *UNUSED(lx), const struct lexer_state *s, int type)
 int
 lexer_getc(struct lexer *lx, char *ch)
 {
-	int rv;
+	char c;
 
-	rv = fgetc(lx->lx_fh);
-	if (rv == EOF) {
-		if (ferror(lx->lx_fh)) {
-			lexer_warn(lx, lx->lx_lno, "fgetc");
-			return 1;
-		}
+	if (lx->lx_input.off == lx->lx_input.len) {
 		*ch = 0;
 		return 0;
 	}
-	if (rv == '\n')
+
+	c = lx->lx_input.buf[lx->lx_input.off++];
+	if (c == '\n')
 		lx->lx_lno++;
-	*ch = rv;
+	*ch = c;
 	return 0;
 }
 
@@ -122,7 +122,8 @@ lexer_ungetc(struct lexer *lx, char ch)
 {
 	if (ch == '\n' && lx->lx_lno > 1)
 		lx->lx_lno--;
-	(void)ungetc(ch, lx->lx_fh);
+	if (lx->lx_input.off > 0)
+		lx->lx_input.off--;
 }
 
 int
