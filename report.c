@@ -468,12 +468,11 @@ report_comment(struct report_context *r)
 	return 0;
 }
 
-static void
+static const char *
 report_stats_duration(struct report_context *r, struct arena_scope *s)
 {
 	VECTOR(struct step) steps;
 	const struct step *end;
-	const char *str;
 	int64_t delta, duration;
 
 	steps = steps_get(r->step_file);
@@ -485,9 +484,8 @@ report_stats_duration(struct report_context *r, struct arena_scope *s)
 		duration = steps_total_duration(r->step_file, r->mode);
 		delta = 0;
 	}
-	str = format_duration_and_delta(duration, delta,
+	return format_duration_and_delta(duration, delta,
 	    threshold_duration_s, s);
-	buffer_printf(r->out, "Duration: %s\n", str);
 }
 
 static const char *
@@ -595,7 +593,7 @@ report_stats(struct report_context *r)
 
 	buffer_printf(r->out, "> stats\n");
 	buffer_printf(r->out, "Status: %s\n", report_status(r, &s));
-	report_stats_duration(r, &s);
+	buffer_printf(r->out, "Duration: %s\n", report_stats_duration(r, &s));
 	buffer_printf(r->out, "Build: %s\n", r->builddir);
 
 	tags_path = arena_sprintf(&s, "%s/tags", r->builddir);
