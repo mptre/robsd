@@ -1,32 +1,49 @@
 #include "config.h"
 
-#include <stddef.h>
-
 #include "libks/arena.h"
+#include "libks/fuzzer.h"
 
 #include "conf.h"
 
-int
-main(int argc, char *argv[])
+struct context {
+	struct arena	*eternal;
+	struct arena	*scratch;
+};
+
+static void *
+init(void)
 {
-	struct arena *eternal, *scratch;
+	static struct context c;
+
+	c.eternal = arena_alloc(ARENA_FATAL);
+	c.scratch = arena_alloc(ARENA_FATAL);
+	return &c;
+}
+FUZZER_INIT(init);
+
+static void
+teardown(void *userdata)
+{
+	struct context *c = userdata;
+
+	arena_free(c->scratch);
+	arena_free(c->eternal);
+}
+FUZZER_TEARDOWN(teardown);
+
+static void
+target(const char *path, void *userdata)
+{
+	struct context *c = userdata;
 	struct config *config = NULL;
 	const char *mode = "robsd";
-	int error;
 
-	if (argc == 2)
-		mode = argv[1];
+	arena_scope(c->eternal, eternal_scope);
 
-	eternal = arena_alloc(ARENA_FATAL);
-	arena_scope(eternal, eternal_scope);
-	scratch = arena_alloc(ARENA_FATAL);
-
-	config = config_alloc(mode, "/dev/stdin", &eternal_scope, scratch);
+	config = config_alloc(mode, path, &eternal_scope, c->scratch);
 	if (config == NULL)
-		return 1;
-	error = config_parse(config);
+		__builtin_trap();
+	config_parse(config);
 	config_free(config);
-	arena_free(scratch);
-	arena_free(eternal);
-	return error;
 }
+FUZZER_TARGET_FILE(target);

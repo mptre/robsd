@@ -123,6 +123,7 @@ PROG_robsd-wait=	robsd-wait
 
 SRCS_fuzz-config+=	${COMPATS}
 SRCS_fuzz-config+=	${SRCS_config}
+SRCS_fuzz-config+=	tmp.c
 SRCS_fuzz-config+=	fuzz-config.c
 OBJS_fuzz-config=	${SRCS_fuzz-config:.c=.o}
 DEPS_fuzz-config=	${SRCS_fuzz-config:.c=.d}
@@ -139,6 +140,7 @@ SRCS_fuzz-step+=	log.c
 SRCS_fuzz-step+=	token.c
 SRCS_fuzz-step+=	vector.c
 SRCS_fuzz-step+=	step.c
+SRCS_fuzz-step+=	tmp.c
 SRCS_fuzz-step+=	fuzz-step.c
 OBJS_fuzz-step=	${SRCS_fuzz-step:.c=.o}
 DEPS_fuzz-step=	${SRCS_fuzz-step:.c=.d}

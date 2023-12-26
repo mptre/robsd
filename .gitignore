@@ -1,6 +1,8 @@
 config.h
 config.log
 config.mk
+fuzz-config
+fuzz-step
 robsd-config
 robsd-exec
 robsd-hook
