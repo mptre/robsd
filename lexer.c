@@ -87,6 +87,7 @@ lexer_free(struct lexer *lx)
 		TAILQ_REMOVE(&lx->lx_tokens, tk, tk_entry);
 		token_free(tk);
 	}
+	free(lx->lx_input.buf);
 	free(lx);
 }
 
