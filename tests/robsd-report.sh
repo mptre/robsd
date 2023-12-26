@@ -439,6 +439,14 @@ if testcase "robsd-regress: failure in non-regress step"; then
 	EOF
 fi
 
+if testcase "robsd-regress: invalid: missing log"; then
+	{
+		step_serialize -s 1 -n test/unstable -e 1
+	} >"$(step_path "$_builddir")"
+
+	robsd_report -m robsd-regress -e -- "$_builddir"
+fi
+
 if testcase "step log one line"; then
 	{
 		step_serialize -s 1 -n error -e 1 -l error.log
