@@ -33,7 +33,6 @@ enum token_type {
 struct step_file {
 	const char		*path;
 	int			 flock;
-	struct buffer		*bf;
 	VECTOR(const char *)	 columns;
 	VECTOR(struct step)	 steps;
 };
@@ -97,15 +96,13 @@ static const size_t nfields = sizeof(fields) / sizeof(fields[0]);
 struct step_file *
 steps_parse(const char *path)
 {
+	struct buffer *bf;
 	struct step_file *sf;
 	struct lexer *lx = NULL;
 	int error = 0;
 
 	sf = ecalloc(1, sizeof(*sf));
 	sf->path = path;
-	sf->bf = buffer_alloc(512);
-	if (sf->bf == NULL)
-		err(1, NULL);
 	if (VECTOR_INIT(sf->columns))
 		err(1, NULL);
 	if (VECTOR_INIT(sf->steps))
@@ -123,14 +120,16 @@ steps_parse(const char *path)
 		goto out;
 	}
 
+	bf = buffer_alloc(512);
 	lx = lexer_alloc(&(struct lexer_arg){
 	    .path	= path,
 	    .callbacks	= {
 		.read		= step_lexer_read,
 		.serialize	= token_serialize,
-		.arg		= sf,
+		.arg		= bf,
 	    },
 	});
+	buffer_free(bf);
 	if (lx == NULL) {
 		error = 1;
 		goto out;
@@ -164,7 +163,6 @@ steps_free(struct step_file *sf)
 	if (sf == NULL)
 		return;
 
-	buffer_free(sf->bf);
 	VECTOR_FREE(sf->columns);
 
 	while (!VECTOR_EMPTY(sf->steps)) {
@@ -584,8 +582,7 @@ static struct token *
 step_lexer_read(struct lexer *lx, void *arg)
 {
 	struct lexer_state s;
-	struct step_file *sf = (struct step_file *)arg;
-	struct buffer *bf = sf->bf;
+	struct buffer *bf = (struct buffer *)arg;
 	struct token *tk;
 	char ch;
 
@@ -613,9 +610,8 @@ step_lexer_read(struct lexer *lx, void *arg)
 			break;
 	}
 	lexer_ungetc(lx, ch);
-	buffer_putc(bf, '\0');
 	tk = lexer_emit(lx, &s, TOKEN_VALUE);
-	tk->tk_str = estrdup(buffer_get_ptr(bf));
+	tk->tk_str = buffer_str(bf);
 	return tk;
 }
 
