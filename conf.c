@@ -979,7 +979,7 @@ variable_value_concat(struct variable_value *dst, struct variable_value *src)
 			err(1, NULL);
 		*str = src->list[i];
 	}
-	VECTOR_FREE(src->list);
+	variable_value_clear(src);
 }
 
 static const struct grammar *
