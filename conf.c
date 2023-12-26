@@ -561,11 +561,11 @@ config_get_value(struct config *cf, const char *name)
 }
 
 int
-config_interpolate(struct config *cf)
+config_interpolate_file(struct config *cf, const char *path)
 {
 	const char *str;
 
-	str = interpolate_file("/dev/stdin", &(struct interpolate_arg){
+	str = interpolate_file(path, &(struct interpolate_arg){
 	    .lookup	= config_interpolate_lookup,
 	    .arg	= cf,
 	    .eternal	= cf->eternal,

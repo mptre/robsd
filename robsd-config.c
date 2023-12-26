@@ -90,7 +90,7 @@ main(int argc, char *argv[])
 	}
 
 	if (dointerpolate)
-		error = config_interpolate(config);
+		error = config_interpolate_file(config, "/dev/stdin");
 
 out:
 	config_free(config);
