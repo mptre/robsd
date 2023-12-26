@@ -439,12 +439,24 @@ if testcase "robsd-regress: failure in non-regress step"; then
 	EOF
 fi
 
-if testcase "robsd-regress: invalid: missing log"; then
+if testcase "robsd-regress: invalid: missing log in non-regress step"; then
 	{
 		step_serialize -s 1 -n test/unstable -e 1
 	} >"$(step_path "$_builddir")"
 
-	robsd_report -m robsd-regress -e -- "$_builddir"
+	robsd_report -m robsd-regress -e - -- "$_builddir" <<-EOF
+	robsd-report: step 'test/unstable' is missing mandatory log field
+	EOF
+fi
+
+if testcase "robsd-regress: invalid: missing log in regress step"; then
+	{
+		step_serialize -s 1 -n test/pass
+	} >"$(step_path "$_builddir")"
+
+	robsd_report -m robsd-regress -e - -- "$_builddir" <<-EOF
+	robsd-report: step 'test/pass' is missing mandatory log field
+	EOF
 fi
 
 if testcase "step log one line"; then
@@ -518,6 +530,7 @@ fi
 if testcase "sanitize"; then
 	{
 		step_serialize -s 1 -n ok -l ok.log
+		: >"${_builddir}/ok.log"
 	} >"$(step_path "$_builddir")"
 	printf 'comment \000\r\ncomment\n\n' >"${_builddir}/comment"
 

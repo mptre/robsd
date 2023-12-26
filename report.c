@@ -279,6 +279,10 @@ regress_report_skip_step(struct report_context *r, const struct step *step)
 		return 1;
 
 	log_path = step_get_log_path(r, step, &s);
+	if (log_path == NULL) {
+		warnx("step '%s' is missing mandatory log field", name);
+		return -1;
+	}
 	if (regress_log_peek(log_path,
 	    REGRESS_LOG_SKIPPED | REGRESS_LOG_XFAILED) > 0)
 		return 0;
@@ -321,8 +325,10 @@ regress_report_step_log(struct report_context *r, const struct step *step)
 
 	name = step_get_field(step, "name")->str;
 	log_path = step_get_log_path(r, step, &s);
-	if (log_path == NULL)
+	if (log_path == NULL) {
+		warnx("step '%s' is missing mandatory log field", name);
 		return -1;
+	}
 	regress_log_flags = REGRESS_LOG_FAILED | REGRESS_LOG_XPASSED;
 	if (!is_regress_quiet(r, name))
 		regress_log_flags |= REGRESS_LOG_SKIPPED | REGRESS_LOG_XFAILED;
@@ -723,9 +729,14 @@ report_steps(struct report_context *r)
 		if (step_get_field(step, "skip")->integer == 1)
 			continue;
 
-		if (step_get_field(step, "exit")->integer == 0 &&
-		    report_skip_step(r, step))
-			continue;
+		if (step_get_field(step, "exit")->integer == 0) {
+			switch (report_skip_step(r, step)) {
+			case 1:
+				continue;
+			case -1:
+				return 1;
+			}
+		}
 
 		buffer_printf(r->out, "\n> %s\n",
 		    step_get_field(step, "name")->str);
