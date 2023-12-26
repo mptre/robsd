@@ -199,17 +199,6 @@ if testcase "regress parallel"; then
 	EOF
 fi
 
-if testcase "regress targets"; then
-	{
-		default_regress_config
-		echo 'regress "test" targets { "one" "two" }'
-	} >"$CONFIG"
-	echo "\${regress-test-targets} \${regress-bin/ksh-targets}" >"$STDIN"
-	robsd_config -R - <<-EOF
-	one two regress
-	EOF
-fi
-
 if testcase "regress parallel disabled"; then
 	{
 		default_regress_config
@@ -222,6 +211,17 @@ if testcase "regress parallel disabled"; then
 	} >"$STDIN"
 	robsd_config -R - <<-EOF
 	0 0
+	EOF
+fi
+
+if testcase "regress targets"; then
+	{
+		default_regress_config
+		echo 'regress "test" targets { "one" "two" }'
+	} >"$CONFIG"
+	echo "\${regress-test-targets} \${regress-bin/ksh-targets}" >"$STDIN"
+	robsd_config -R - <<-EOF
+	one two regress
 	EOF
 fi
 
