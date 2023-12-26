@@ -228,15 +228,14 @@ steps_total_duration(const struct step_file *sf, enum robsd_mode mode)
 	 * the last and first step.
 	 */
 	if (mode == ROBSD_REGRESS) {
-		if (nsteps > 0) {
-			int64_t t0, t1;
+		int64_t t0, t1;
 
-			t0 = step_get_field(&sf->steps[0], "time")->integer;
-			t1 = step_get_field(
-			    &sf->steps[nsteps - 1], "time")->integer;
-			duration = t1 - t0;
-		}
-		return duration;
+		if (nsteps == 0)
+			return 0;
+
+		t0 = step_get_field(&sf->steps[0], "time")->integer;
+		t1 = step_get_field(&sf->steps[nsteps - 1], "time")->integer;
+		return t1 - t0;
 	}
 
 	for (i = 0; i < nsteps; i++) {
