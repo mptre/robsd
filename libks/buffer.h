@@ -14,6 +14,9 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
+#ifndef LIBKS_BUFFER_H
+#define LIBKS_BUFFER_H
+
 #include <stdarg.h>	/* va_list */
 #include <stddef.h>	/* size_t */
 
@@ -52,3 +55,5 @@ int	buffer_vprintf(struct buffer *, const char *, va_list);
 const char	*buffer_get_ptr(const struct buffer *);
 size_t		 buffer_get_len(const struct buffer *);
 size_t		 buffer_get_size(const struct buffer *);
+
+#endif

@@ -42,9 +42,9 @@ main(int argc, char *argv[])
 	if (argc == 0 || config_mode == NULL)
 		usage();
 
-	eternal = arena_alloc(ARENA_FATAL);
+	eternal = arena_alloc();
 	arena_scope(eternal, eternal_scope);
-	scratch = arena_alloc(ARENA_FATAL);
+	scratch = arena_alloc();
 
 	config = config_alloc(config_mode, config_path, &eternal_scope,
 	    scratch);

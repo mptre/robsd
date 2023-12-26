@@ -51,9 +51,9 @@ main(int argc, char *argv[])
 	if (argc > 0 || mode == NULL)
 		usage();
 
-	eternal = arena_alloc(ARENA_FATAL);
+	eternal = arena_alloc();
 	arena_scope(eternal, eternal_scope);
-	scratch = arena_alloc(ARENA_FATAL);
+	scratch = arena_alloc();
 
 	config = config_alloc(mode, path, &eternal_scope, scratch);
 	if (config == NULL) {

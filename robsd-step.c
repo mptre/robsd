@@ -91,10 +91,10 @@ main(int argc, char *argv[])
 	if (action == 0)
 		usage();
 
-	eternal = arena_alloc(ARENA_FATAL);
+	eternal = arena_alloc();
 	arena_scope(eternal, eternal_scope);
 	c.eternal = &eternal_scope;
-	c.scratch = arena_alloc(ARENA_FATAL);
+	c.scratch = arena_alloc();
 
 	switch (action) {
 	case ACTION_READ:

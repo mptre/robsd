@@ -266,7 +266,7 @@ buffer_reserve(struct buffer *bf, size_t len)
 	if (len > ULONG_MAX - bf->bf_len)
 		goto overflow;
 	newlen = bf->bf_len + len;
-	if (bf->bf_siz >= newlen)
+	if (bf->bf_siz > 0 && bf->bf_siz >= newlen)
 		return 0;
 
 	newsiz = bf->bf_siz ? bf->bf_siz : 16;

@@ -38,10 +38,9 @@ main(int argc, char *argv[])
 	if (pledge("stdio rpath wpath cpath flock", NULL) == -1)
 		err(1, "pledge");
 
-	eternal = arena_alloc(ARENA_FATAL);
+	eternal = arena_alloc();
 	arena_scope(eternal, eternal_scope);
-
-	scratch = arena_alloc(ARENA_FATAL);
+	scratch = arena_alloc();
 
 	rh = regress_html_alloc(output, &eternal_scope, scratch);
 

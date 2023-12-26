@@ -813,7 +813,7 @@ report_generate(struct config *config, const char *builddir,
 	enum robsd_mode mode;
 	int error = 1;
 
-	scratch = arena_alloc(ARENA_FATAL);
+	scratch = arena_alloc();
 
 	arena_scope(scratch, s);
 
