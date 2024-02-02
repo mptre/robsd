@@ -267,7 +267,6 @@ CPPCHECKFLAGS+=	--error-exitcode=1
 CPPCHECKFLAGS+=	--max-configs=2
 CPPCHECKFLAGS+=	--suppress-xml=cppcheck-suppressions.xml
 CPPCHECKFLAGS+=	${CPPFLAGS}
-CPPCHECKFLAGS+=	-DFUZZER_AFL
 
 SCRIPTS+=	robsd-base.sh
 SCRIPTS+=	robsd-checkflist.sh
@@ -539,7 +538,7 @@ lint:
 lint-clang-tidy:
 	cd ${.CURDIR} && echo ${CLANGTIDY} | xargs printf '%s\n' | \
 		xargs -I{} clang-tidy --quiet {} -- \
-		${CPPFLAGS} -DFUZZER_AFL
+		${CPPFLAGS}
 .PHONY: lint-clang-tidy
 
 lint-cppcheck:
@@ -549,7 +548,7 @@ lint-cppcheck:
 IWYU?=	include-what-you-use
 lint-include-what-you-use:
 	cd ${.CURDIR} && echo ${CPPCHECK} | xargs printf '%s\n' | \
-		xargs -I{} ${IWYU} ${CPPFLAGS} -DFUZZER_AFL {}
+		xargs -I{} ${IWYU} ${CPPFLAGS} {}
 .PHONY: lint-include-what-you-use
 
 NCPU!!?=	sysctl -n hw.ncpuonline
