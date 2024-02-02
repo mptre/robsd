@@ -468,10 +468,9 @@ report_comment(struct report_context *r)
 		warn("%s", path);
 		return 1;
 	}
-	buffer_printf(r->out, "> comment\n");
+	buffer_printf(r->out, "\n> comment\n");
 	buffer_trim_lines(bf);
 	buffer_puts(r->out, buffer_get_ptr(bf), buffer_get_len(bf));
-	buffer_putc(r->out, '\n');
 	buffer_putc(r->out, '\n');
 	return 0;
 }
@@ -836,8 +835,8 @@ report_generate(struct config *config, const char *builddir,
 	if (mode == ROBSD_REGRESS)
 		regress_suites(&r);
 	error = report_subject(&r) ||
-	    report_comment(&r) ||
 	    report_stats(&r) ||
+	    report_comment(&r) ||
 	    report_steps(&r) ||
 	    report_sanitize(&r);
 

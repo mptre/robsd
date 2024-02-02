@@ -115,14 +115,14 @@ if testcase "robsd: basic"; then
 	robsd_report -m robsd - -- "$_builddir" <<-EOF
 	Subject: robsd: $(hostname -s): ok
 
-	> comment
-	comment
-
 	> stats
 	Status: ok
 	Duration: 01:01:01 (+00:01:10)
 	Build: ${_builddir}
 	Tags: foo bar
+
+	> comment
+	comment
 
 	> error
 	Exit: 1
@@ -541,7 +541,6 @@ if testcase "sanitize"; then
 	> comment
 	comment \x00\r
 	comment
-
 	EOF
 fi
 
