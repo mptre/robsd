@@ -236,6 +236,7 @@ if testcase "robsd: sizes"; then
 	genfile 2 "${_prev_builddir}/rel/shrink"
 	genfile 2 "${_prev_builddir}/rel/same"
 	genfile 1 "${_prev_builddir}/rel/src.diff.1"
+	genfile 1 "${_prev_builddir}/rel/CHANGELOG"
 	genfile -s 1024 1 "${_prev_builddir}/rel/bsd.rd"
 
 	{
@@ -245,6 +246,7 @@ if testcase "robsd: sizes"; then
 	genfile 1 "${_builddir}/rel/shrink"
 	genfile 2 "${_builddir}/rel/same"
 	genfile 4 "${_builddir}/rel/src.diff.1"
+	genfile 4 "${_builddir}/rel/CHANGELOG"
 	genfile -s 1024 3 "${_builddir}/rel/bsd.rd"
 
 	robsd_report -m robsd -- "$_builddir" | sed -n -e '/^> stats/,/^$/p' >"$TMP1"

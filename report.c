@@ -546,7 +546,8 @@ report_stats_sizes(struct report_context *r)
 		size_t delta_abs, size;
 		off_t delta;
 
-		if (fnmatch("*.diff.[[:digit:]]*", entry->basename, 0) == 0)
+		if (strcmp(entry->basename, "CHANGELOG") == 0 ||
+		    fnmatch("*.diff.[[:digit:]]*", entry->basename, 0) == 0)
 			continue;
 
 		prev_path = arena_sprintf(&s, "%s/rel/%s",
