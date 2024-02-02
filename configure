@@ -187,17 +187,6 @@ check_unveil() {
 	EOF
 }
 
-check_warnc() {
-	compile <<-EOF
-	#include <err.h>
-
-	int main(void) {
-		warnc(1, "");
-		return 0;
-	}
-	EOF
-}
-
 _fuzz=''
 _pedantic=0
 _sanitize=0
@@ -230,7 +219,6 @@ HAVE_MACHINE_ARCH=0
 HAVE_PLEDGE=0
 HAVE_STRTONUM=0
 HAVE_UNVEIL=0
-HAVE_WARNC=0
 
 # Order is important, must come first if not defined.
 DEBUG="$(makevar DEBUG || :)"
@@ -281,7 +269,6 @@ check_machine_arch && HAVE_MACHINE_ARCH=1
 check_pledge && HAVE_PLEDGE=1
 check_strtonum && HAVE_STRTONUM=1
 check_unveil && HAVE_UNVEIL=1
-check_warnc && HAVE_WARNC=1
 
 # Redirect stdout to config.h.
 exec 1>config.h
@@ -301,7 +288,6 @@ printf '#ifndef CONFIG_H\n#define CONFIG_H\n'
 [ "$HAVE_PLEDGE" -eq 1 ] && printf '#define HAVE_PLEDGE\t1\n'
 [ "$HAVE_STRTONUM" -eq 1 ] && printf '#define HAVE_STRTONUM\t1\n'
 [ "$HAVE_UNVEIL" -eq 1 ] && printf '#define HAVE_UNVEIL\t1\n'
-[ "$HAVE_WARNC" -eq 1 ] && printf '#define HAVE_WARNC\t1\n'
 
 if [ "$HAVE_ATTRIBUTE_FALLTHROUGH" -eq 1 ]; then
 	printf '#define FALLTHROUGH __attribute__((__fallthrough__))\n'
@@ -320,9 +306,6 @@ fi
 	printf 'long long strtonum(const char *, long long, long long, const char **);\n'
 [ "$HAVE_UNVEIL" -eq 0 ] &&
 	printf 'int unveil(const char *, const char *);\n'
-[ "$HAVE_WARNC" -eq 0 ] && {
-	printf 'void warnc(int, const char *, ...)\n'
-	printf '\t__attribute__((__format__ (printf, 2, 3)));\n'; }
 
 printf '#endif\n'
 

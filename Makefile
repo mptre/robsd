@@ -5,7 +5,6 @@ VERSION=	18.0.0rc12
 COMPATS+=	compat-pledge.c
 COMPATS+=	compat-strtonum.c
 COMPATS+=	compat-unveil.c
-COMPATS+=	compat-warnc.c
 
 SRCS_config+=	alloc.c
 SRCS_config+=	arena-buffer.c
