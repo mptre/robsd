@@ -18,6 +18,14 @@
   (393bd29)
   (Anton Lindqvist)
 
+- robsd-report: ignore growth of CHANGELOG
+  (cbc2e65)
+  (Anton Lindqvist)
+
+- robsd-report: place stats before comment
+  (8f763e7)
+  (Anton Lindqvist)
+
 ## News
 
 - robsd: only include failing steps and cvs step in report.
