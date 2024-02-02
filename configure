@@ -125,7 +125,9 @@ check_gnu_source() {
 
 	_header="$1"; : "${_header:?}"
 	_path="/usr/include/${_header}"
+	# shellcheck disable=SC2086
 	"$CC" $CPPFLAGS -E "$_path" >"$_tmp"
+	# shellcheck disable=SC2086
 	! "$CC" $CPPFLAGS -E -D_GNU_SOURCE "$_path" | cmp -s "$_tmp" -
 }
 
