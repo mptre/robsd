@@ -293,6 +293,7 @@ if testcase "regress rdomain wrap around"; then
 			printf '${rdomain} '
 			_i=$((_i + 1))
 		done
+		printf '\n'
 	} >"$STDIN"
 	{
 		_i=11
@@ -300,6 +301,7 @@ if testcase "regress rdomain wrap around"; then
 			printf '%d ' "$_i"
 			_i=$((_i + 1))
 		done
+		printf '\n'
 	} | robsd_config -R -
 fi
 

@@ -3,8 +3,6 @@
 #include "config.h"
 
 #include <err.h>
-#include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
 
 #include "libks/arena-buffer.h"
@@ -33,43 +31,31 @@ interpolate_file(const char *path, const struct interpolate_arg *arg)
 		.lno	= arg->lno,
 		.flags	= arg->flags,
 	};
-	FILE *fh;
-	struct buffer *bf;
-	const char *buf = NULL;
-	char *line = NULL;
-	size_t linesiz = 0;
+	struct buffer_getline *it = NULL;
+	struct buffer *bf, *out;
+	const char *line;
 	int error = 0;
 
-	fh = fopen(path, "re");
-	if (fh == NULL) {
-		warn("open: %s", path);
+	arena_scope(arg->scratch, s);
+
+	bf = arena_buffer_read(&s, path);
+	if (bf == NULL) {
+		warn("%s", path);
 		return NULL;
 	}
 
-	bf = arena_buffer_alloc(c.arg->eternal, 1 << 10);
-	for (;;) {
-		ssize_t n;
-
-		n = getline(&line, &linesiz, fh);
-		if (n == -1) {
-			if (feof(fh))
-				break;
-			warn("getline: %s", path);
-			error = 1;
-			break;
-		}
+	out = arena_buffer_alloc(c.arg->eternal, 1 << 10);
+	while ((line = buffer_getline(bf, &it)) != NULL) {
 		c.lno++;
-		if (interpolate(&c, bf, line)) {
+		if (interpolate(&c, out, line)) {
 			error = 1;
 			break;
 		}
+		buffer_putc(out, '\n');
 	}
-	if (error == 0)
-		buf = buffer_str(bf);
-	buffer_free(bf);
-	free(line);
-	fclose(fh);
-	return buf;
+	buffer_getline_free(it);
+
+	return error == 0 ? buffer_str(out) : NULL;
 }
 
 const char *
