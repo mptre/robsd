@@ -234,9 +234,7 @@ if testcase "multiple paths"; then
 	EOF
 
 	robsd_regress_log -e -e - -- \
-		-F "$_failed" "$_skipped" "$_empty" "$_absent" <<-EOF
-robsd-regress-log: open: ${_absent}: No such file or directory
-	EOF
+		-F "$_failed" "$_skipped" "$_empty" "$_absent" </dev/null
 
 fi
 

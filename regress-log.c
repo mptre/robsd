@@ -10,19 +10,8 @@
 #include "libks/buffer.h"
 #include "libks/consistency.h"
 
-struct reader {
-	const char	*path;
-	FILE		*fh;
-	char		*line;
-	size_t		 linesiz;
-};
-
 static int	regress_log_parse_impl(const char *, struct buffer *,
     struct buffer *, unsigned int);
-
-static int	reader_open(struct reader *, const char *);
-static ssize_t	reader_getline(struct reader *, const char **);
-static void	reader_close(struct reader *);
 
 static int	ismarker(const char *);
 static int	ismarker_regress(const char *);
@@ -59,26 +48,23 @@ static int
 regress_log_parse_impl(const char *path, struct buffer *scratch,
     struct buffer *out, unsigned int flags)
 {
-	struct reader rd;
+	struct buffer *bf;
+	struct buffer_getline *it = NULL;
 	int error = 0;
 	int nfound = 0;
 	int xtrace = 1;
 
 	ASSERT_CONSISTENCY(flags & REGRESS_LOG_PEEK, out == NULL);
 
-	if (reader_open(&rd, path))
+	bf = buffer_read(path);
+	if (bf == NULL)
 		return -1;
 
 	for (;;) {
 		const char *line;
-		ssize_t n;
 
-		n = reader_getline(&rd, &line);
-		if (n == -1) {
-			error = 1;
-			break;
-		}
-		if (n == 0)
+		line = buffer_getline(bf, &it);
+		if (line == NULL)
 			break;
 		if (xtrace && isxtrace(line))
 			continue;
@@ -86,7 +72,8 @@ regress_log_parse_impl(const char *path, struct buffer *scratch,
 
 		if (ismarker(line))
 			buffer_reset(scratch);
-		buffer_puts(scratch, line, (size_t)n);
+		buffer_puts(scratch, line, strlen(line));
+		buffer_putc(scratch, '\n');
 
 		if (((flags & REGRESS_LOG_SKIPPED) && isskipped(line)) ||
 		    ((flags & REGRESS_LOG_FAILED) && isfailed(line)) ||
@@ -106,7 +93,9 @@ regress_log_parse_impl(const char *path, struct buffer *scratch,
 			buffer_reset(scratch);
 		}
 	}
-	reader_close(&rd);
+
+	buffer_getline_free(it);
+	buffer_free(bf);
 
 	if (error)
 		return -1;
@@ -134,13 +123,15 @@ regress_log_peek(const char *path, unsigned int flags)
 int
 regress_log_trim(const char *path, struct buffer *out)
 {
-	struct reader rd;
+	struct buffer *rd;
+	struct buffer_getline *it = NULL;
 	struct buffer *bf;
 	size_t xbeg = 1;
 	size_t xend = 0;
 	int error = 0;
 
-	if (reader_open(&rd, path))
+	rd = buffer_read(path);
+	if (rd == NULL)
 		return -1;
 
 	buffer_reset(out);
@@ -149,14 +140,9 @@ regress_log_trim(const char *path, struct buffer *out)
 		err(1, NULL);
 	for (;;) {
 		const char *line;
-		ssize_t n;
 
-		n = reader_getline(&rd, &line);
-		if (n == -1) {
-			error = 1;
-			goto out;
-		}
-		if (n == 0)
+		line = buffer_getline(rd, &it);
+		if (line == NULL)
 			break;
 		if (xbeg != 0 && isxtrace(line))
 			continue;
@@ -169,51 +155,17 @@ regress_log_trim(const char *path, struct buffer *out)
 			xend = 0;
 		}
 
-		buffer_puts(bf, line, (size_t)n);
+		buffer_puts(bf, line, strlen(line));
+		buffer_putc(bf, '\n');
 	}
 
 	buffer_printf(out, "%.*s", (int)(xend ? xend : buffer_get_len(bf)),
 	    buffer_get_ptr(bf));
 
-out:
 	buffer_free(bf);
-	reader_close(&rd);
+	buffer_getline_free(it);
+	buffer_free(rd);
 	return error ? -1 : 1;
-}
-
-static int
-reader_open(struct reader *rd, const char *path)
-{
-	memset(rd, 0, sizeof(*rd));
-	rd->fh = fopen(path, "re");
-	if (rd->fh == NULL) {
-		warn("open: %s", path);
-		return 1;
-	}
-	return 0;
-}
-
-static ssize_t
-reader_getline(struct reader *rd, const char **out)
-{
-	ssize_t n;
-
-	n = getline(&rd->line, &rd->linesiz, rd->fh);
-	if (n == -1) {
-		if (feof(rd->fh))
-			return 0;
-		warn("getline: %s", rd->path);
-		return -1;
-	}
-	*out = rd->line;
-	return n;
-}
-
-static void
-reader_close(struct reader *rd)
-{
-	free(rd->line);
-	fclose(rd->fh);
 }
 
 static int
@@ -247,7 +199,7 @@ ismarker_regress(const char *str)
 		return 0;
 	str += sizeof(needle) - 1;
 
-	return str[0] == '\n';
+	return str[0] == '\0';
 }
 
 static int
