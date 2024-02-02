@@ -21,29 +21,29 @@
 
 #include "alloc.h"
 
-struct robsd_stat {
-	char		rs_directory[PATH_MAX];
-	uint64_t	rs_time;
-	double		rs_loadavg;
-	int		rs_nprocs;
-	int		rs_nthreads;
+struct stat_context {
+	char		directory[PATH_MAX];
+	uint64_t	time;
+	double		loadavg;
+	int		nprocs;
+	int		nthreads;
 	struct {
 		long	c_abs[CPUSTATES];
 		double	c_rel[CPUSTATES];
-	} rs_cpu;
+	} cpu;
 };
 
 static void	usage(void) __attribute__((__noreturn__));
 
 /* stat collect routines */
-static int	stat_cpu(struct robsd_stat *);
-static int	stat_directory(struct robsd_stat *, char **);
-static int	stat_directory1(struct robsd_stat *, const char *);
-static int	stat_loadavg(struct robsd_stat *);
-static int	stat_procs_and_threads(struct robsd_stat *);
-static int	stat_time(struct robsd_stat *);
+static int	stat_cpu(struct stat_context *);
+static int	stat_directory(struct stat_context *, char **);
+static int	stat_directory1(struct stat_context *, const char *);
+static int	stat_loadavg(struct stat_context *);
+static int	stat_procs_and_threads(struct stat_context *);
+static int	stat_time(struct stat_context *);
 
-static void	stat_print(const struct robsd_stat *, FILE *);
+static void	stat_print(const struct stat_context *, FILE *);
 
 static int	cpustate(int);
 
@@ -51,7 +51,7 @@ int
 main(int argc, char *argv[])
 {
 	VECTOR(char *) users;
-	struct robsd_stat rs;
+	struct stat_context c;
 	FILE *fh = stdout;
 	unsigned int interval_s = 0;
 	int doheader = 0;
@@ -106,18 +106,18 @@ main(int argc, char *argv[])
 	/* Close common file descriptors since we want to act like a daemon. */
 	close(0);
 
-	memset(&rs, 0, sizeof(rs));
+	memset(&c, 0, sizeof(c));
 	for (;;) {
-		if (stat_time(&rs) ||
-		    stat_cpu(&rs) ||
-		    stat_loadavg(&rs) ||
-		    stat_procs_and_threads(&rs) ||
-		    stat_directory(&rs, users)) {
+		if (stat_time(&c) ||
+		    stat_cpu(&c) ||
+		    stat_loadavg(&c) ||
+		    stat_procs_and_threads(&c) ||
+		    stat_directory(&c, users)) {
 			error = 1;
 			break;
 		}
 
-		stat_print(&rs, fh);
+		stat_print(&c, fh);
 		usleep(interval_s * 1000 * 1000);
 	}
 
@@ -134,7 +134,7 @@ usage(void)
 }
 
 static int
-stat_cpu(struct robsd_stat *rs)
+stat_cpu(struct stat_context *c)
 {
 	int mib[2] = { CTL_KERN, KERN_CPTIME };
 	int i;
@@ -149,23 +149,23 @@ stat_cpu(struct robsd_stat *rs)
 	}
 
 	for (i = 0; i < CPUSTATES; i++) {
-		if (rs->rs_cpu.c_abs[i] == 0)
+		if (c->cpu.c_abs[i] == 0)
 			continue;
-		tot += cpu[i] - rs->rs_cpu.c_abs[i];
+		tot += cpu[i] - c->cpu.c_abs[i];
 	}
 
-	memset(rs->rs_cpu.c_rel, 0, sizeof(rs->rs_cpu.c_rel));
+	memset(c->cpu.c_rel, 0, sizeof(c->cpu.c_rel));
 	for (i = 0; i < CPUSTATES; i++) {
 		double delta;
 
-		if (rs->rs_cpu.c_abs[i] == 0)
+		if (c->cpu.c_abs[i] == 0)
 			continue;
 
-		delta = cpu[i] - rs->rs_cpu.c_abs[i];
-		rs->rs_cpu.c_rel[cpustate(i)] += delta / tot;
+		delta = cpu[i] - c->cpu.c_abs[i];
+		c->cpu.c_rel[cpustate(i)] += delta / tot;
 	}
 
-	memcpy(rs->rs_cpu.c_abs, cpu, sizeof(rs->rs_cpu.c_abs));
+	memcpy(c->cpu.c_abs, cpu, sizeof(c->cpu.c_abs));
 	return 0;
 }
 
@@ -175,12 +175,12 @@ stat_cpu(struct robsd_stat *rs)
  * current working directory. A surprisingly accurate guess.
  */
 static int
-stat_directory(struct robsd_stat *rs, char **users)
+stat_directory(struct stat_context *c, char **users)
 {
 	size_t i;
 
 	for (i = 0; i < VECTOR_LENGTH(users); i++) {
-		switch (stat_directory1(rs, users[i])) {
+		switch (stat_directory1(c, users[i])) {
 		case -1:
 			return 1;
 		case 0:
@@ -193,7 +193,7 @@ stat_directory(struct robsd_stat *rs, char **users)
 }
 
 static int
-stat_directory1(struct robsd_stat *rs, const char *user)
+stat_directory1(struct stat_context *c, const char *user)
 {
 	int mib[6];
 	struct kinfo_proc *kp;
@@ -203,7 +203,7 @@ stat_directory1(struct robsd_stat *rs, const char *user)
 	size_t siz = 0;
 	unsigned int i, nprocs;
 
-	rs->rs_directory[0] = '\0';
+	c->directory[0] = '\0';
 
 	pw = getpwnam(user);
 	if (pw == NULL) {
@@ -251,8 +251,8 @@ stat_directory1(struct robsd_stat *rs, const char *user)
 		if (sysctl(mib, 3, &cwd, &siz, NULL, 0) == -1)
 			continue;	/* process gone by now */
 		if (siz > maxlen) {
-			(void)strlcpy(rs->rs_directory, cwd,
-			    sizeof(rs->rs_directory));
+			(void)strlcpy(c->directory, cwd,
+			    sizeof(c->directory));
 			maxlen = siz;
 		}
 	}
@@ -267,7 +267,7 @@ err:
 }
 
 static int
-stat_loadavg(struct robsd_stat *rs)
+stat_loadavg(struct stat_context *c)
 {
 	int mib[2];
 	int ncpu;
@@ -281,7 +281,7 @@ stat_loadavg(struct robsd_stat *rs)
 		warn("sysctl: vm.loadavg");
 		return 1;
 	}
-	rs->rs_loadavg = (double)lavg.ldavg[0] / lavg.fscale;
+	c->loadavg = (double)lavg.ldavg[0] / lavg.fscale;
 
 	mib[0] = CTL_HW;
 	mib[1] = HW_NCPUONLINE;
@@ -290,12 +290,12 @@ stat_loadavg(struct robsd_stat *rs)
 		warn("sysctl hw.ncpuonline");
 		return 1;
 	}
-	rs->rs_loadavg /= ncpu;
+	c->loadavg /= ncpu;
 	return 0;
 }
 
 static int
-stat_procs_and_threads(struct robsd_stat *rs)
+stat_procs_and_threads(struct stat_context *c)
 {
 	int mib[2];
 	int nprocs, nthreads;
@@ -308,7 +308,7 @@ stat_procs_and_threads(struct robsd_stat *rs)
 		warn("sysctl: kern.nprocs");
 		return 1;
 	}
-	rs->rs_nprocs = nprocs;
+	c->nprocs = nprocs;
 
 	mib[0] = CTL_KERN;
 	mib[1] = KERN_NTHREADS;
@@ -317,13 +317,13 @@ stat_procs_and_threads(struct robsd_stat *rs)
 		warn("sysctl: kern.nthreads");
 		return 1;
 	}
-	rs->rs_nthreads = nthreads;
+	c->nthreads = nthreads;
 
 	return 0;
 }
 
 static int
-stat_time(struct robsd_stat *rs)
+stat_time(struct stat_context *c)
 {
 	struct timespec ts;
 
@@ -332,24 +332,24 @@ stat_time(struct robsd_stat *rs)
 		return 1;
 	}
 
-	rs->rs_time = (uint64_t)(ts.tv_sec + ts.tv_nsec / 1000000000);
+	c->time = (uint64_t)(ts.tv_sec + ts.tv_nsec / 1000000000);
 	return 0;
 }
 
 static void
-stat_print(const struct robsd_stat *rs, FILE *fh)
+stat_print(const struct stat_context *c, FILE *fh)
 {
 	fprintf(fh, "%" PRIu64 ",%.2f,%.2f,%.2f,%.2f,%.2f,%.2f,%d,%d,%s\n",
-	    rs->rs_time,
-	    rs->rs_loadavg,
-	    rs->rs_cpu.c_rel[CP_USER],
-	    rs->rs_cpu.c_rel[CP_SYS],
-	    rs->rs_cpu.c_rel[CP_SPIN],
-	    rs->rs_cpu.c_rel[CP_INTR],
-	    rs->rs_cpu.c_rel[CP_IDLE],
-	    rs->rs_nprocs,
-	    rs->rs_nthreads,
-	    rs->rs_directory);
+	    c->time,
+	    c->loadavg,
+	    c->cpu.c_rel[CP_USER],
+	    c->cpu.c_rel[CP_SYS],
+	    c->cpu.c_rel[CP_SPIN],
+	    c->cpu.c_rel[CP_INTR],
+	    c->cpu.c_rel[CP_IDLE],
+	    c->nprocs,
+	    c->nthreads,
+	    c->directory);
 	fflush(fh);
 }
 
