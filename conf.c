@@ -848,8 +848,8 @@ again:
 		while (isdigit((unsigned char)ch)) {
 			int x = ch - '0';
 
-			if (i32_mul_overflow(val, 10, &val) ||
-			    i32_add_overflow(val, x, &val))
+			if (KS_i32_mul_overflow(val, 10, &val) ||
+			    KS_i32_add_overflow(val, x, &val))
 				error = 1;
 			if (lexer_getc(lx, &ch))
 				return NULL;

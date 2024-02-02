@@ -31,7 +31,7 @@ interpolate_file(const char *path, const struct interpolate_arg *arg)
 		.lno	= arg->lno,
 		.flags	= arg->flags,
 	};
-	struct buffer_getline *it = NULL;
+	struct buffer_getline it = {0};
 	struct buffer *bf, *out;
 	const char *line;
 	int error = 0;
@@ -53,7 +53,7 @@ interpolate_file(const char *path, const struct interpolate_arg *arg)
 		}
 		buffer_putc(out, '\n');
 	}
-	buffer_getline_free(it);
+	buffer_getline_free(&it);
 
 	return error == 0 ? buffer_str(out) : NULL;
 }

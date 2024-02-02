@@ -48,7 +48,7 @@ regress_log_parse_impl(const char *path, struct buffer *scratch,
     struct buffer *out, unsigned int flags)
 {
 	struct buffer *bf;
-	struct buffer_getline *it = NULL;
+	struct buffer_getline it = {0};
 	int error = 0;
 	int nfound = 0;
 	int xtrace = 1;
@@ -93,7 +93,7 @@ regress_log_parse_impl(const char *path, struct buffer *scratch,
 		}
 	}
 
-	buffer_getline_free(it);
+	buffer_getline_free(&it);
 	buffer_free(bf);
 
 	if (error)
@@ -123,7 +123,7 @@ int
 regress_log_trim(const char *path, struct buffer *out)
 {
 	struct buffer *bf, *rd;
-	struct buffer_getline *it = NULL;
+	struct buffer_getline it = {0};
 	size_t xbeg = 1;
 	size_t xend = 0;
 	int error = 0;
@@ -161,7 +161,7 @@ regress_log_trim(const char *path, struct buffer *out)
 	    buffer_get_ptr(bf));
 
 	buffer_free(bf);
-	buffer_getline_free(it);
+	buffer_getline_free(&it);
 	buffer_free(rd);
 	return error ? -1 : 1;
 }

@@ -176,6 +176,8 @@ LLVMFuzzerTestOneInput(const uint8_t *buf, size_t buflen)
 			__builtin_trap();
 		fuzzer_target.file_cb(path, fuzzer_llvm_userdata);
 		close(fd);
+	} else {
+		__builtin_trap();
 	}
 
 	return 0;
