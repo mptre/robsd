@@ -117,22 +117,16 @@ check_gnu99() {
 }
 
 
-# Check if strptime(3) is hidden behind _GNU_SOURCE.
+# Check if the given header rooted in /usr/include depends on _GNU_SOURCE.
 check_gnu_source() {
+	local _header
+	local _path
 	local _tmp="${WRKDIR}/gnu"
 
-	cat <<-EOF >"$_tmp"
-	#include <time.h>
-
-	int main(void) {
-		struct tm tm;
-		return !(strptime("0", "%s", &tm) != NULL);
-	}
-	EOF
-
-	compile <"$_tmp" && return 1
-
-	{ echo "#define _GNU_SOURCE"; cat "$_tmp"; } | compile
+	_header="$1"; : "${_header:?}"
+	_path="/usr/include/${_header}"
+	"$CC" $CPPFLAGS -E "$_path" >"$_tmp"
+	! "$CC" $CPPFLAGS -E -D_GNU_SOURCE "$_path" | cmp -s "$_tmp" -
 }
 
 check_machine() {
@@ -263,7 +257,7 @@ if [ "$_sanitize" -eq 1 ]; then
 fi
 
 check_attribute_fallthrough && HAVE_ATTRIBUTE_FALLTHROUGH=1
-check_gnu_source && HAVE_GNU_SOURCE=1
+check_gnu_source time.h && HAVE_GNU_SOURCE=1
 check_machine && HAVE_MACHINE=1
 check_machine_arch && HAVE_MACHINE_ARCH=1
 check_pledge && HAVE_PLEDGE=1
