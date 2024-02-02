@@ -17,16 +17,16 @@
 #include <time.h>
 #include <unistd.h>
 
+#include "libks/arena.h"
 #include "libks/vector.h"
 
-#include "alloc.h"
-
 struct stat_context {
-	char		directory[PATH_MAX];
-	uint64_t	time;
-	double		loadavg;
-	int		nprocs;
-	int		nthreads;
+	char		 directory[PATH_MAX];
+	struct arena	*scratch;
+	uint64_t	 time;
+	double		 loadavg;
+	int		 nprocs;
+	int		 nthreads;
 	struct {
 		long	c_abs[CPUSTATES];
 		double	c_rel[CPUSTATES];
@@ -107,6 +107,8 @@ main(int argc, char *argv[])
 	close(0);
 
 	memset(&c, 0, sizeof(c));
+	c.scratch = arena_alloc();
+
 	for (;;) {
 		if (stat_time(&c) ||
 		    stat_cpu(&c) ||
@@ -121,6 +123,7 @@ main(int argc, char *argv[])
 		usleep(interval_s * 1000 * 1000);
 	}
 
+	arena_free(c.scratch);
 	VECTOR_FREE(users);
 
 	return error;
@@ -203,6 +206,8 @@ stat_directory1(struct stat_context *c, const char *user)
 	size_t siz = 0;
 	unsigned int i, nprocs;
 
+	arena_scope(c->scratch, s);
+
 	c->directory[0] = '\0';
 
 	pw = getpwnam(user);
@@ -227,7 +232,7 @@ stat_directory1(struct stat_context *c, const char *user)
 		return 0;
 	/* Cope with new processes, roughly 10% growth. */
 	nprocs += nprocs / 8;
-	kp = ecalloc(nprocs, sizeof(*kp));
+	kp = arena_calloc(&s, nprocs, sizeof(*kp));
 	mib[5] = nprocs * kpsiz;
 	if (sysctl(mib, 6, kp, &siz, NULL, 0) == -1) {
 		warn("sysctl: kern.proc.uid");
@@ -258,11 +263,9 @@ stat_directory1(struct stat_context *c, const char *user)
 	}
 
 out:
-	free(kp);
 	return maxlen > 0;
 
 err:
-	free(kp);
 	return -1;
 }
 

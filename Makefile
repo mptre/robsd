@@ -97,7 +97,7 @@ DEPS_robsd-report=	${SRCS_robsd-report:.c=.d}
 PROG_robsd-report=	robsd-report
 
 SRCS_robsd-stat+=	${COMPATS}
-SRCS_robsd-stat+=	alloc.c
+SRCS_robsd-stat+=	arena.c
 SRCS_robsd-stat+=	vector.c
 SRCS_robsd-stat+=	robsd-stat.c
 OBJS_robsd-stat=	${SRCS_robsd-stat:.c=.o}
