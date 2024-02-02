@@ -10,9 +10,9 @@
 #include <fnmatch.h>
 #include <limits.h>
 #include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
 
+#include "libks/arena-buffer.h"
 #include "libks/arena.h"
 #include "libks/buffer.h"
 #include "libks/vector.h"
@@ -140,22 +140,17 @@ out:
 }
 
 int
-invocation_has_tag(const char *directory, const char *tag)
+invocation_has_tag(const char *directory, const char *tag,
+    struct arena *scratch)
 {
-	char path[PATH_MAX];
 	struct buffer *bf;
-	const char *buf, *str;
-	size_t pathsiz = sizeof(path);
+	const char *buf, *path, *str;
 	int found = 0;
-	int n;
 
-	n = snprintf(path, pathsiz, "%s/tags", directory);
-	if (n < 0 || (size_t)n >= pathsiz) {
-		warnc(ENAMETOOLONG, "%s", __func__);
-		return 0;
-	}
+	arena_scope(scratch, s);
 
-	bf = buffer_read(path);
+	path = arena_sprintf(&s, "%s/tags", directory);
+	bf = arena_buffer_read(&s, path);
 	if (bf == NULL)
 		return 0;
 	buffer_putc(bf, '\0');
@@ -170,7 +165,6 @@ invocation_has_tag(const char *directory, const char *tag)
 		     str[taglen] == '\n'))
 			found = 1;
 	}
-	buffer_free(bf);
 	return found;
 }
 

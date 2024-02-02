@@ -3,6 +3,7 @@
 #define INVOCATION_SORT_ASC	0x00000001u
 #define INVOCATION_SORT_DESC	0x00000002u
 
+struct arena;
 struct arena_scope;
 
 struct invocation_entry {
@@ -17,4 +18,4 @@ struct invocation_state		*invocation_find(const char *, const char *,
 void				 invocation_free(struct invocation_state *);
 const struct invocation_entry	*invocation_walk(struct invocation_state *);
 
-int	invocation_has_tag(const char *, const char *);
+int	invocation_has_tag(const char *, const char *, struct arena *);

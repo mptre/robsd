@@ -299,7 +299,7 @@ parse_invocation(struct regress_html *r, const char *arch,
 		error = 1;
 		goto out;
 	}
-	if (invocation_has_tag(directory, "cvs"))
+	if (invocation_has_tag(directory, "cvs", r->scratch))
 		ri->flags |= REGRESS_INVOCATION_CVS;
 	rv = copy_patches(r, ri, directory);
 	if (rv == -1) {
