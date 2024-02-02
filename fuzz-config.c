@@ -5,7 +5,7 @@
 
 #include "conf.h"
 
-struct context {
+struct fuzzer_context {
 	struct arena	*eternal;
 	struct arena	*scratch;
 };
@@ -13,7 +13,7 @@ struct context {
 static void *
 init(void)
 {
-	static struct context c;
+	static struct fuzzer_context c;
 
 	c.eternal = arena_alloc();
 	c.scratch = arena_alloc();
@@ -24,7 +24,7 @@ FUZZER_INIT(init);
 static void
 teardown(void *userdata)
 {
-	struct context *c = userdata;
+	struct fuzzer_context *c = userdata;
 
 	arena_free(c->scratch);
 	arena_free(c->eternal);
@@ -34,7 +34,7 @@ FUZZER_TEARDOWN(teardown);
 static void
 target(const char *path, void *userdata)
 {
-	struct context *c = userdata;
+	struct fuzzer_context *c = userdata;
 	struct config *config = NULL;
 	const char *mode = "robsd";
 
