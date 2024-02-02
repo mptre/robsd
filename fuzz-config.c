@@ -35,7 +35,7 @@ static void
 target(const char *path, void *userdata)
 {
 	struct fuzzer_context *c = userdata;
-	struct config *config = NULL;
+	struct config *config;
 	const char *mode = "robsd";
 
 	arena_scope(c->eternal, eternal_scope);
