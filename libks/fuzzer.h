@@ -150,8 +150,8 @@ main(void)
 #include <limits.h>
 #include <unistd.h>
 
-int	LLVMFuzzerTestOneInput(const uint8_t *, size_t);
-int	LLVMFuzzerInitialize(int *, char ***);
+extern int	LLVMFuzzerTestOneInput(const uint8_t *, size_t);
+extern int	LLVMFuzzerInitialize(int *, char ***);
 
 static void *fuzzer_llvm_userdata;
 
