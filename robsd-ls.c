@@ -54,6 +54,7 @@ main(int argc, char *argv[])
 	eternal = arena_alloc();
 	arena_scope(eternal, eternal_scope);
 	scratch = arena_alloc();
+	arena_scope(scratch, scratch_scope);
 
 	config = config_alloc(mode, path, &eternal_scope, scratch);
 	if (config == NULL) {
@@ -77,7 +78,8 @@ main(int argc, char *argv[])
 		error = 1;
 		goto out;
 	}
-	is = invocation_alloc(robsddir, keepdir, INVOCATION_SORT_DESC);
+	is = invocation_alloc(robsddir, keepdir, &scratch_scope,
+	    INVOCATION_SORT_DESC);
 	if (is == NULL) {
 		error = 1;
 		goto out;

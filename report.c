@@ -104,7 +104,7 @@ previous_builddir(struct config *config, const char *builddir,
 	keepdir = config_interpolate_str(config, "${keep-dir}");
 	if (keepdir == NULL)
 		goto out;
-	is = invocation_alloc(robsddir, keepdir, INVOCATION_SORT_DESC);
+	is = invocation_alloc(robsddir, keepdir, s, INVOCATION_SORT_DESC);
 	if (is == NULL)
 		goto out;
 	while ((entry = invocation_walk(is)) != NULL) {
@@ -536,7 +536,7 @@ report_stats_sizes(struct report_context *r)
 		err(1, NULL);
 
 	directory = arena_sprintf(&s, "%s/rel", r->builddir);
-	is = invocation_find(directory, "*");
+	is = invocation_find(directory, "*", &s);
 	if (is == NULL)
 		goto out;
 	while ((entry = invocation_walk(is)) != NULL) {

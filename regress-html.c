@@ -173,8 +173,10 @@ regress_html_parse(struct regress_html *r, const char *arch,
 	int error = 0;
 	int ninvocations = 0;
 
+	arena_scope(r->scratch, s);
+
 	keepdir = arena_sprintf(r->eternal, "%s/attic", robsddir);
-	is = invocation_alloc(robsddir, keepdir, INVOCATION_SORT_ASC);
+	is = invocation_alloc(robsddir, keepdir, &s, INVOCATION_SORT_ASC);
 	if (is == NULL) {
 		error = 1;
 		goto out;
@@ -481,7 +483,7 @@ copy_patches(struct regress_html *r, struct regress_invocation *ri,
 
 	arena_scope(r->scratch, s);
 
-	is = invocation_find(directory, "src.diff.*");
+	is = invocation_find(directory, "src.diff.*", &s);
 	if (is == NULL)
 		return 0;
 

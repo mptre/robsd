@@ -13,10 +13,9 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "libks/arena.h"
 #include "libks/buffer.h"
 #include "libks/vector.h"
-
-#include "alloc.h"
 
 struct invocation_state {
 	const char			*robsdir;
@@ -32,10 +31,11 @@ static int	directory_desc_cmp(const struct invocation_entry *,
     const struct invocation_entry *);
 
 struct invocation_state *
-invocation_alloc(const char *robsddir, const char *keepdir, unsigned int flags)
+invocation_alloc(const char *robsddir, const char *keepdir,
+    struct arena_scope *s, unsigned int flags)
 {
 	DIR *dir = NULL;
-	struct invocation_state *s = NULL;
+	struct invocation_state *is = NULL;
 	int error = 0;
 
 	dir = opendir(robsddir);
@@ -45,52 +45,51 @@ invocation_alloc(const char *robsddir, const char *keepdir, unsigned int flags)
 		goto out;
 	}
 
-	s = ecalloc(1, sizeof(*s));
-	s->robsdir = robsddir;
-	s->keepdir = keepdir;
-	if (VECTOR_INIT(s->directories))
+	is = arena_calloc(s, 1, sizeof(*is));
+	is->robsdir = robsddir;
+	is->keepdir = keepdir;
+	if (VECTOR_INIT(is->directories))
 		err(1, NULL);
 
-	if (invocation_read(s, dir)) {
+	if (invocation_read(is, dir)) {
 		error = 1;
 		goto out;
 	}
 	if (flags & INVOCATION_SORT_ASC)
-		VECTOR_SORT(s->directories, directory_asc_cmp);
+		VECTOR_SORT(is->directories, directory_asc_cmp);
 	else if (flags & INVOCATION_SORT_DESC)
-		VECTOR_SORT(s->directories, directory_desc_cmp);
+		VECTOR_SORT(is->directories, directory_desc_cmp);
 
 out:
 	if (dir != NULL)
 		closedir(dir);
 	if (error) {
-		invocation_free(s);
+		invocation_free(is);
 		return NULL;
 	}
-	return s;
+	return is;
 }
 
 void
-invocation_free(struct invocation_state *s)
+invocation_free(struct invocation_state *is)
 {
-	if (s == NULL)
+	if (is == NULL)
 		return;
-
-	VECTOR_FREE(s->directories);
-	free(s);
+	VECTOR_FREE(is->directories);
 }
 
 const struct invocation_entry *
-invocation_walk(struct invocation_state *s)
+invocation_walk(struct invocation_state *is)
 {
-	return VECTOR_POP(s->directories);
+	return VECTOR_POP(is->directories);
 }
 
 struct invocation_state *
-invocation_find(const char *directory, const char *pattern)
+invocation_find(const char *directory, const char *pattern,
+    struct arena_scope *s)
 {
 	DIR *dir = NULL;
-	struct invocation_state *s = NULL;
+	struct invocation_state *is = NULL;
 	int error = 0;
 
 	dir = opendir(directory);
@@ -99,8 +98,8 @@ invocation_find(const char *directory, const char *pattern)
 		error = 1;
 		goto out;
 	}
-	s = ecalloc(1, sizeof(*s));
-	if (VECTOR_INIT(s->directories))
+	is = arena_calloc(s, 1, sizeof(*is));
+	if (VECTOR_INIT(is->directories))
 		err(1, NULL);
 
 	for (;;) {
@@ -121,7 +120,7 @@ invocation_find(const char *directory, const char *pattern)
 		    de->d_name[0] == '.')
 			continue;
 
-		entry = VECTOR_ALLOC(s->directories);
+		entry = VECTOR_ALLOC(is->directories);
 		if (entry == NULL)
 			err(1, NULL);
 		(void)snprintf(entry->path, sizeof(entry->path), "%s/%s",
@@ -134,10 +133,10 @@ out:
 	if (dir != NULL)
 		closedir(dir);
 	if (error) {
-		invocation_free(s);
+		invocation_free(is);
 		return NULL;
 	}
-	return s;
+	return is;
 }
 
 int
@@ -176,7 +175,7 @@ invocation_has_tag(const char *directory, const char *tag)
 }
 
 static int
-invocation_read(struct invocation_state *s, DIR *dir)
+invocation_read(struct invocation_state *is, DIR *dir)
 {
 	char path[PATH_MAX];
 
@@ -188,7 +187,7 @@ invocation_read(struct invocation_state *s, DIR *dir)
 		de = readdir(dir);
 		if (de == NULL) {
 			if (errno != 0) {
-				warn("readdir: %s", s->robsdir);
+				warn("readdir: %s", is->robsdir);
 				return 1;
 			}
 			break;
@@ -197,11 +196,11 @@ invocation_read(struct invocation_state *s, DIR *dir)
 			continue;
 
 		(void)snprintf(path, sizeof(path), "%s/%s",
-		    s->robsdir, de->d_name);
-		if (strcmp(path, s->keepdir) == 0)
+		    is->robsdir, de->d_name);
+		if (strcmp(path, is->keepdir) == 0)
 			continue;
 
-		entry = VECTOR_ALLOC(s->directories);
+		entry = VECTOR_ALLOC(is->directories);
 		if (entry == NULL)
 			err(1, NULL);
 		(void)snprintf(entry->path, sizeof(entry->path), "%s", path);
