@@ -35,7 +35,7 @@ interpolate_file(const char *path, const struct interpolate_arg *arg)
 	};
 	FILE *fh;
 	struct buffer *bf;
-	char *buf = NULL;
+	const char *buf = NULL;
 	char *line = NULL;
 	size_t linesiz = 0;
 	int error = 0;
