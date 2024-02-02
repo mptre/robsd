@@ -1,5 +1,5 @@
-struct buffer;
 struct arena_scope;
+struct buffer;
 
 struct interpolate_arg {
 	/*

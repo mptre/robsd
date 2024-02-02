@@ -123,9 +123,8 @@ regress_log_peek(const char *path, unsigned int flags)
 int
 regress_log_trim(const char *path, struct buffer *out)
 {
-	struct buffer *rd;
+	struct buffer *bf, *rd;
 	struct buffer_getline *it = NULL;
-	struct buffer *bf;
 	size_t xbeg = 1;
 	size_t xend = 0;
 	int error = 0;
