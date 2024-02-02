@@ -16,6 +16,9 @@
   <suppress>
     <id>redundantContinue</id>
   </suppress>
+  <suppress>
+    <id>toomanyconfigs</id>
+  </suppress>
 
   <!-- libks/arithmetic.h -->
   <suppress>
