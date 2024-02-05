@@ -1,4 +1,4 @@
-# 18.0.0 - YYYY-MM-DD
+# 18.0.0 - 2024-02-05
 
 ## Changes
 
@@ -18,11 +18,11 @@
   (393bd29)
   (Anton Lindqvist)
 
-- robsd-report: ignore growth of CHANGELOG
+- robsd-report: ignore growth of CHANGELOG.
   (cbc2e65)
   (Anton Lindqvist)
 
-- robsd-report: place stats before comment
+- robsd-report: place stats before comment.
   (8f763e7)
   (Anton Lindqvist)
 
@@ -50,7 +50,7 @@
   (d4a147e)
   (Anton Lindqvist)
 
-- robsd-stat: make interval configurable
+- robsd-stat: make interval configurable.
   (9c31812)
   (Anton Lindqvist)
 
