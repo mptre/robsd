@@ -582,7 +582,7 @@ if testcase "error: comment invalid"; then
 	EOF
 fi
 
-if testcase "error: step.cvs invalid"; then
+if testcase "error: step.csv invalid"; then
 	{
 		step_serialize -s 1 -n end
 	} >"$(step_path "$_builddir")"
