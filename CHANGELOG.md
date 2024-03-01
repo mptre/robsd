@@ -1,3 +1,17 @@
+# 19.0.0 - YYYY-MM-DD
+
+## Changes
+
+- robsd-regress: unconditionally install snapshot packages.
+  (6050317)
+  (Anton Lindqvist)
+
+## News
+
+- robsd-report: increase size growth threshold.
+  (d53f1ee)
+  (Anton Lindqvist)
+
 # 18.0.0 - 2024-02-05
 
 ## Changes
