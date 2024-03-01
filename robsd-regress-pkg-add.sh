@@ -16,4 +16,4 @@ while read -r _p; do
 done
 
 [ -e "${_tmpdir}/packages" ] || exit 0
-xargs pkg_add <"${_tmpdir}/packages" || :
+xargs pkg_add -Dsnapshot <"${_tmpdir}/packages" || :

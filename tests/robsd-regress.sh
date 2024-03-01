@@ -72,7 +72,7 @@ obj:
 EOF
 	cat <<-EOF >"${BINDIR}/pkg_add"
 	#!/bin/sh
-	echo "pkg_add \${1}" >>${TSHDIR}/pkg
+	echo "pkg_add \${*}" >>${TSHDIR}/pkg
 	# Simulate failure, must be ignored.
 	exit 1
 	EOF
@@ -99,7 +99,7 @@ EOF
 	FOO=1 BAR=2
 	EOF
 	assert_file - "${TSHDIR}/pkg" <<-EOF
-	pkg_add not-installed
+	pkg_add -Dsnapshot not-installed
 	pkg_delete not-installed
 	pkg_delete -a
 	EOF
