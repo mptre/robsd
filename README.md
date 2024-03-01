@@ -55,9 +55,17 @@ as its configuration.
 
 ## Installation
 
-The installation prefix defaults to `/usr/local` and can be altered using the
-`PREFIX` environment variable:
+### OpenBSD
 
+	# pkg_add robsd
+
+### From source
+
+The installation prefix defaults to `/usr/local` and can be altered using the
+`PREFIX` environment variable when invoking `configure`:
+
+	$ ./configure
+	$ make
 	$ make install
 
 ## License
