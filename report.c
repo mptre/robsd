@@ -39,7 +39,7 @@ struct report_context {
 };
 
 static int	threshold_duration_s = 60;
-static size_t	threshold_size_b = (size_t)(1024 * 100);
+static size_t	threshold_size_b = (size_t)(1024 * 1024);
 static size_t	threshold_size_ramdisk_b = (size_t)1024;
 
 static void
@@ -565,9 +565,9 @@ report_stats_sizes(struct report_context *r)
 		delta = st.st_size - prev_st.st_size;
 		delta_abs = (size_t)(delta < 0 ? -delta : delta);
 		if (strcmp(entry->basename, "bsd.rd") == 0) {
-			if (delta_abs <= threshold_size_ramdisk_b)
+			if (delta_abs < threshold_size_ramdisk_b)
 				continue;
-		} else if (delta_abs <= threshold_size_b) {
+		} else if (delta_abs < threshold_size_b) {
 			continue;
 		}
 
