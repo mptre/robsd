@@ -33,6 +33,7 @@
 
 /* Return values for parser routines. */
 #define CONFIG_APPEND	0
+#define CONFIG_ERROR	1
 #define CONFIG_NOP	2
 
 /*
@@ -53,11 +54,14 @@ enum token_type {
 	/* keywords */
 	TOKEN_KEYWORD,
 	TOKEN_ENV,
+	TOKEN_HOURS,
+	TOKEN_MINUTES,
 	TOKEN_NO_PARALLEL,
 	TOKEN_OBJ,
 	TOKEN_PACKAGES,
 	TOKEN_QUIET,
 	TOKEN_ROOT,
+	TOKEN_SECONDS,
 	TOKEN_TARGETS,
 
 	/* types */
@@ -159,6 +163,8 @@ static int	config_parse_user(struct config *, struct variable_value *);
 static int	config_parse_regress(struct config *, struct variable_value *);
 static int	config_parse_regress_option_env(struct config *, const char *);
 static int	config_parse_regress_env(struct config *,
+    struct variable_value *);
+static int	config_parse_regress_timeout(struct config *,
     struct variable_value *);
 static int	config_parse_directory(struct config *,
     struct variable_value *);
@@ -299,6 +305,7 @@ static const struct grammar robsd_regress[] = {
 	{ "regress",		LIST,		config_parse_regress,		REQ|REP,	{ NULL } },
 	{ "regress-env",	LIST,		config_parse_regress_env,	REP,		{ NULL } },
 	{ "regress-user",	STRING,		config_parse_user,		0,		{ "${build-user}" } },
+	{ "regress-timeout",	INTEGER,	config_parse_regress_timeout,	0,		{ NULL } },
 	{ "regress-*-env",	STRING,		NULL,				PAT|EARLY,	{ "${regress-env}" } },
 	{ "regress-*-targets",	LIST,		NULL,				PAT|FUN,	{ D_FUN(config_default_regress_targets) } },
 	{ "regress-*-parallel",	INTEGER,	NULL,				PAT|FUN,	{ D_FUN(config_default_parallel) } },
@@ -812,6 +819,10 @@ again:
 		buf = buffer_get_ptr(bf);
 		if (strcmp("env", buf) == 0)
 			return lexer_emit(lx, &s, TOKEN_ENV);
+		if (strcmp("h", buf) == 0)
+			return lexer_emit(lx, &s, TOKEN_HOURS);
+		if (strcmp("m", buf) == 0)
+			return lexer_emit(lx, &s, TOKEN_MINUTES);
 		if (strcmp("no-parallel", buf) == 0)
 			return lexer_emit(lx, &s, TOKEN_NO_PARALLEL);
 		if (strcmp("obj", buf) == 0)
@@ -824,6 +835,8 @@ again:
 			return lexer_emit(lx, &s, TOKEN_ROOT);
 		if (strcmp("targets", buf) == 0)
 			return lexer_emit(lx, &s, TOKEN_TARGETS);
+		if (strcmp("s", buf) == 0)
+			return lexer_emit(lx, &s, TOKEN_SECONDS);
 
 		if (strcmp("yes", buf) == 0) {
 			tk = lexer_emit(lx, &s, TOKEN_BOOLEAN);
@@ -920,6 +933,12 @@ token_serialize(const struct token *tk)
 		return "ROOT";
 	case TOKEN_TARGETS:
 		return "TARGETS";
+	case TOKEN_HOURS:
+		return "HOURS";
+	case TOKEN_MINUTES:
+		return "MINUTES";
+	case TOKEN_SECONDS:
+		return "SECONDS";
 	case TOKEN_BOOLEAN:
 		return "BOOLEAN";
 	case TOKEN_INTEGER:
@@ -1364,6 +1383,39 @@ config_parse_regress_env(struct config *cf, struct variable_value *val)
 	env = config_find(cf, "regress-env");
 	variable_value_concat(&env->va_val, val);
 	return CONFIG_NOP;
+}
+
+static int
+config_parse_regress_timeout(struct config *cf, struct variable_value *val)
+{
+	struct token *tk;
+	struct variable_value timeout;
+	int scalar = 0;
+
+	if (config_parse_integer(cf, &timeout) == CONFIG_ERROR)
+		return CONFIG_ERROR;
+	if (lexer_if(cf->lx, TOKEN_SECONDS, &tk)) {
+		scalar = 1;
+	} else if (lexer_if(cf->lx, TOKEN_MINUTES, &tk)) {
+		scalar = 60;
+	} else if (lexer_if(cf->lx, TOKEN_HOURS, &tk)) {
+		scalar = 3600;
+	} else {
+		struct token *nx;
+
+		if (lexer_next(cf->lx, &nx))
+			lexer_warnx(cf->lx, nx->tk_lno, "unknown timeout unit");
+		return CONFIG_ERROR;
+	}
+
+	if (KS_i32_mul_overflow(scalar, timeout.integer, &timeout.integer)) {
+		lexer_warnx(cf->lx, tk->tk_lno, "timeout too large");
+		return CONFIG_ERROR;
+	}
+
+	variable_value_init(val, INTEGER);
+	val->integer = timeout.integer;
+	return CONFIG_APPEND;
 }
 
 static int

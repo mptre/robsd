@@ -120,6 +120,16 @@ Defaults to regress.
 .El
 .It Ic regress-env No { Do Ar key=val Dc Ar ... No }
 Environment variables added to all regression tests.
+.It Ic regress-timeout Ar timeout unit
+Abort each regression test if it has been running for more than
+.Ar timeout .
+The
+.Ar unit
+must be either
+.Ic s , m
+or
+.Ic h .
+Defaults to unlimited.
 .It Ic regress-user Dq Ar user
 User to run regression tests on behalf of.
 Defaults to build.

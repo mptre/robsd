@@ -31,6 +31,7 @@ static void	sighandler(int);
 
 static pid_t	step_fork(struct step_context *, const char *, const char *,
     pid_t *);
+static int	step_timeout(struct step_context *);
 
 static const char	*resolve_step_script(struct step_context *,
     const char *);
@@ -48,7 +49,7 @@ step_exec(const char *step_name, struct config *config, struct arena *scratch,
 	};
 	const char *step_script;
 	pid_t pid;
-	int error, status;
+	int error, status, timeout;
 
 	step_script = resolve_step_script(&c, step_name);
 	if (step_script == NULL) {
@@ -59,9 +60,17 @@ step_exec(const char *step_name, struct config *config, struct arena *scratch,
 	error = step_fork(&c, step_name, step_script, &pid);
 	if (error)
 		return error;
+
+	timeout = step_timeout(&c);
+	if (timeout > 0) {
+		siginstall(SIGALRM, sighandler, 0);
+		alarm((unsigned int)timeout);
+	}
+
 	if (waitpid(-pid, &status, 0) == -1) {
 		if (gotsig) {
-			warnx("caught signal, kill process group ...");
+			warnx("caught signal %d, kill process group ...",
+			    gotsig);
 			if (killwaitpg(pid, 5000, &status))
 				warnx("failed to kill process group");
 		} else {
@@ -233,6 +242,14 @@ step_fork(struct step_context *c, const char *step_name,
 
 	*out = pid;
 	return 0;
+}
+
+static int
+step_timeout(struct step_context *c)
+{
+	if (config_get_mode(c->config) != ROBSD_REGRESS)
+		return 0;
+	return config_value(c->config, "regress-timeout", integer, 0);
 }
 
 static const char *

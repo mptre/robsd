@@ -27,7 +27,7 @@ setup() {
 }
 
 
-# robsd_exec -m mode [-e] [-] [-- robsd-exec-argument ...]
+# robsd_exec -m mode [-E exit] [-e] [-] [-- robsd-exec-argument ...]
 robsd_exec() {
 	local _err0=0
 	local _err1=0
@@ -37,6 +37,7 @@ robsd_exec() {
 
 	while [ $# -gt 0 ]; do
 		case "$1" in
+		-E)	shift; _err0="$1";;
 		-e)	_err0="1";;
 		-m)	shift; _mode="$1";;
 		-)	_stdin=1;;
@@ -88,6 +89,15 @@ if testcase "robsd-regress"; then
 	robsd_exec -m robsd-regress - -- test <<-EOF
 	robsd-regress: test
 	EOF
+fi
+
+if testcase "robsd-regress: timeout"; then
+	echo 'regress-timeout 1s' >> "${TSHDIR}/.conf/robsd-regress.conf"
+	cat <<-'EOF' >"${TSHDIR}/robsd-regress-exec.sh"
+	sleep 60
+	EOF
+
+	robsd_exec -E 143 -m robsd-regress -- test >/dev/null
 fi
 
 if testcase "trace"; then

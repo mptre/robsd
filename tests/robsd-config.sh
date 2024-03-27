@@ -305,6 +305,59 @@ if testcase "regress rdomain wrap around"; then
 	} | robsd_config -R -
 fi
 
+if testcase "regress timeout hours"; then
+	{
+		default_regress_config
+		echo 'regress-timeout 1h'
+	} >"$CONFIG"
+	echo "TIMEOUT=\${regress-timeout}" >"$STDIN"
+	robsd_config -R - <<-EOF
+	TIMEOUT=3600
+	EOF
+fi
+
+if testcase "regress timeout minutes"; then
+	{
+		default_regress_config
+		echo 'regress-timeout 1m'
+	} >"$CONFIG"
+	echo "TIMEOUT=\${regress-timeout}" >"$STDIN"
+	robsd_config -R - <<-EOF
+	TIMEOUT=60
+	EOF
+fi
+
+if testcase "regress timeout seconds"; then
+	{
+		default_regress_config
+		echo 'regress-timeout 1s'
+	} >"$CONFIG"
+	echo "TIMEOUT=\${regress-timeout}" >"$STDIN"
+	robsd_config -R - <<-EOF
+	TIMEOUT=1
+	EOF
+fi
+
+if testcase "regress timeout invalid unit"; then
+	{
+		default_regress_config
+		echo 'regress-timeout 1a'
+	} >"$CONFIG"
+	robsd_config -R -e - <<-EOF
+	robsd-config: ${CONFIG}:6: unknown timeout unit
+	EOF
+fi
+
+if testcase "regress timeout invalid too large"; then
+	{
+		default_regress_config
+		echo 'regress-timeout 2147483647h'
+	} >"$CONFIG"
+	robsd_config -R -e - <<-EOF
+	robsd-config: ${CONFIG}:6: timeout too large
+	EOF
+fi
+
 if testcase "regress invalid flags"; then
 	echo 'regress "bin/csh" noway' >"$CONFIG"
 	robsd_config -R -e | grep -e noway >"$TMP1"
