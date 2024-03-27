@@ -12,6 +12,10 @@
   (d53f1ee)
   (Anton Lindqvist)
 
+- robsd-regress: add timeout configuration knob.
+  (f7527b5)
+  (Anton Lindqvist)
+
 # 18.0.0 - 2024-02-05
 
 ## Changes
