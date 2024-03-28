@@ -49,7 +49,7 @@ step_exec(const char *step_name, struct config *config, struct arena *scratch,
 	};
 	const char *step_script;
 	pid_t pid;
-	int error, status, timeout;
+	int error, status;
 
 	step_script = resolve_step_script(&c, step_name);
 	if (step_script == NULL) {
@@ -60,13 +60,6 @@ step_exec(const char *step_name, struct config *config, struct arena *scratch,
 	error = step_fork(&c, step_name, step_script, &pid);
 	if (error)
 		return error;
-
-	timeout = step_timeout(&c);
-	if (timeout > 0) {
-		siginstall(SIGALRM, sighandler, 0);
-		alarm((unsigned int)timeout);
-	}
-
 	if (waitpid(-pid, &status, 0) == -1) {
 		if (gotsig) {
 			warnx("caught signal %d, kill process group ...",
@@ -187,7 +180,7 @@ step_fork(struct step_context *c, const char *step_name,
     const char *step_script, pid_t *out)
 {
 	int proc_pipe[2];
-	int status;
+	int status, timeout;
 	pid_t pid;
 
 	/* NOLINTNEXTLINE(android-cloexec-pipe2) */
@@ -239,6 +232,12 @@ step_fork(struct step_context *c, const char *step_name,
 		return error ? error : 1;
 	}
 	close(proc_pipe[0]);
+
+	timeout = step_timeout(c);
+	if (timeout > 0) {
+		siginstall(SIGALRM, sighandler, 0);
+		alarm((unsigned int)timeout);
+	}
 
 	*out = pid;
 	return 0;
