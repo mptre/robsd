@@ -16,6 +16,8 @@
 #include "conf.h"
 #include "mode.h"
 
+#define SIG_NO_RESTART	1
+
 struct step_context {
 	struct config		*config;
 	struct arena		*scratch;
@@ -156,15 +158,15 @@ killwaitpg1(int pgid, int signo, int timoms, int *status)
 }
 
 static void
-siginstall(int signo, void (*handler)(int), int rmflags)
+siginstall(int signo, void (*handler)(int), int restart)
 {
 	struct sigaction sa;
 
 	if (sigaction(signo, NULL, &sa) == -1)
 		err(1, "sigaction");
 	sa.sa_handler = handler;
-	if (rmflags)
-		sa.sa_flags &= rmflags;
+	if (restart == SIG_NO_RESTART)
+		sa.sa_flags &= ~SA_RESTART;
 	if (sigaction(signo, &sa, NULL) == -1)
 		err(1, "sigaction");
 }
@@ -218,7 +220,7 @@ step_fork(struct step_context *c, const char *step_name,
 	}
 
 	siginstall(SIGPIPE, SIG_IGN, 0);
-	siginstall(SIGTERM, sighandler, ~SA_RESTART);
+	siginstall(SIGTERM, sighandler, SIG_NO_RESTART);
 
 	/* Wait for the process group to become present. */
 	close(proc_pipe[1]);
