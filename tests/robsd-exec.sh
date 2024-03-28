@@ -92,7 +92,7 @@ if testcase "robsd-regress"; then
 fi
 
 if testcase "robsd-regress: timeout"; then
-	echo 'regress-timeout 1s' >> "${TSHDIR}/.conf/robsd-regress.conf"
+	echo 'regress-timeout 2s' >> "${TSHDIR}/.conf/robsd-regress.conf"
 	cat <<-'EOF' >"${TSHDIR}/robsd-regress-exec.sh"
 	sleep 60
 	EOF
