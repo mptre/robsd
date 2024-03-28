@@ -29,7 +29,7 @@ static int	killwaitpg1(int, int, int, int *);
 static void	siginstall(int, void (*)(int), int);
 static void	sighandler(int);
 
-static pid_t	step_fork(struct step_context *, const char *, const char *,
+static int	step_fork(struct step_context *, const char *, const char *,
     pid_t *);
 static int	step_timeout(struct step_context *);
 
@@ -182,7 +182,7 @@ sighandler(int signo)
 	gotsig = signo;
 }
 
-static pid_t
+static int
 step_fork(struct step_context *c, const char *step_name,
     const char *step_script, pid_t *out)
 {
