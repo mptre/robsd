@@ -1,16 +1,19 @@
 portable no
 
+_builddir="${TSHDIR}/2022-11-21"
 _step="${EXECDIR}/robsd-hash.sh"
 
-if testcase "basic"; then
+setup() {
 	robsd_config - <<-EOF
 	robsddir "${TSHDIR}"
 	EOF
-	_builddir="${TSHDIR}/2022-11-21"
 	echo "$_builddir" >"${TSHDIR}/.running"
 	mkdir "$_builddir" "${_builddir}/tmp" "${_builddir}/rel" \
 		"${_builddir}/relx"
 	: >"${_builddir}/rel/SHA256"
+}
+
+if testcase "basic"; then
 	{
 		step_serialize -s 1 -n env -t 1666666666
 		step_serialize -H -s 2 -n cvs -t 1666666666
@@ -31,14 +34,6 @@ if testcase "basic"; then
 fi
 
 if testcase "previous cvs date"; then
-	robsd_config - <<-EOF
-	robsddir "${TSHDIR}"
-	EOF
-	_builddir="${TSHDIR}/2022-11-21"
-	echo "$_builddir" >"${TSHDIR}/.running"
-	mkdir "$_builddir" "${_builddir}/tmp" "${_builddir}/rel" \
-		"${_builddir}/relx"
-	: >"${_builddir}/rel/SHA256"
 	step_serialize -s 1 -n env -t 1666666666 \
 		>"$(step_path "$_builddir")"
 
@@ -53,4 +48,17 @@ if testcase "previous cvs date"; then
 	Build cvs date: 1555555555 - Thu Apr 18 02:45:55 UTC 2019
 	Build id: 2022-11-21
 	EOF
+fi
+
+if testcase "cvs step skipped"; then
+	{
+		step_serialize -s 1 -n env -t 1666666666
+		step_serialize -H -s 2 -n cvs -i 1
+	} >"$(step_path "$_builddir")"
+
+	robsd_step_exec -m robsd "$_step"
+
+	if [ -e "${_builddir}/rel/CHANGELOG" ]; then
+		fail "expected CHANGELOG to be absent"
+	fi
 fi

@@ -48,7 +48,9 @@ done
 	fi
 } >BUILDINFO
 
-cvs_changelog -t "$_tmpdir" >CHANGELOG
+if step_eval -n cvs "$(step_path "$BUILDDIR")" 2>/dev/null && ! step_skip; then
+	cvs_changelog -t "$_tmpdir" >CHANGELOG
+fi
 
 # Compute missing checksums.
 mv SHA256 SHA256.orig
