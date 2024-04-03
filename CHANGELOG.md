@@ -16,6 +16,16 @@
   (f7527b5)
   (Anton Lindqvist)
 
+- robsd-regress-html: introduce noterm regress outcome
+  (53e3624)
+  (Anton Lindqvist)
+
+## Bug fixes
+
+- robsd: do not create CHANGELOG if cvs step is skipped.
+  (1b7dcd6)
+  (Anton Lindqvist)
+
 # 18.0.0 - 2024-02-05
 
 ## Changes
