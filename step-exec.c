@@ -64,7 +64,7 @@ step_exec(const char *step_name, struct config *config, struct arena *scratch,
 		return error;
 	if (waitpid(-pid, &status, 0) == -1) {
 		if (gotsig) {
-			warnx("caught signal %d, kill process group ...",
+			warnx("caught signal %d, kill process group",
 			    gotsig);
 			if (killwaitpg(pid, 5000, &status))
 				warnx("failed to kill process group");
@@ -118,10 +118,10 @@ waiteof(int fd, int timoms)
 static int
 killwaitpg(int pgid, int timoms, int *status)
 {
-	warnx("sending term signal ...");
+	warnx("sending term signal");
 	if (killwaitpg1(pgid, SIGTERM, timoms, status) == 0)
 		return 0;
-	warnx("sending kill signal ...");
+	warnx("sending kill signal");
 	if (killwaitpg1(pgid, SIGKILL, timoms, status) == 0)
 		return 0;
 
