@@ -1220,7 +1220,7 @@ step_name() {
 	fi
 }
 
-# step_path dir
+# step_path build-dir
 #
 # Get the path to the steps file.
 step_path() {
