@@ -644,6 +644,26 @@ if testcase "unknown failed and skipped"; then
 	EOF
 fi
 
+if testcase "timeout"; then
+	_buildir="${TSHDIR}/amd64/2022-10-25.1"
+	_time="$_2022_10_25"
+	mkbuilddir "$_buildir"
+	{
+		step_serialize -s 1 -n test/timeout -l timeout.log -t "$_time" -e 124
+		touch "${_buildir}/timeout.log"
+
+		step_serialize -H -s 2 -n end -t "$((_time + 3600))"
+	} >"$(step_path "$_buildir")"
+
+	robsd_regress_html -- -o "${TSHDIR}/html" "amd64:${TSHDIR}/amd64"
+
+	xpath '//a[@class="suite" or @class="status"]' "${TSHDIR}/html/index.html" >"$TMP1"
+	assert_file - "$TMP1" "suites" <<-EOF
+	test/timeout
+	NOTERM
+	EOF
+fi
+
 if testcase "invalid: steps empty"; then
 	_buildir="${TSHDIR}/amd64/2022-10-25.1"
 	_time="$_2022_10_25"

@@ -22,6 +22,7 @@
 #include "html.h"
 #include "invocation.h"
 #include "regress-log.h"
+#include "step-exec.h"
 #include "step.h"
 
 #define FOR_RUN_STATUSES(OP)					\
@@ -30,7 +31,8 @@
 	OP(FAIL,   1)						\
 	OP(XFAIL,  0)						\
 	OP(XPASS,  1)						\
-	OP(SKIP,   0)
+	OP(SKIP,   0)						\
+	OP(NOTERM, 1)
 
 struct regress_html {
 	VECTOR(struct regress_invocation)	 invocations;
@@ -361,7 +363,9 @@ parse_run_log(struct regress_html *r, const struct run *run,
 
 	arena_scope(r->scratch, s);
 
-	if (run->exit != 0) {
+	if (run->exit == EX_TIMEOUT) {
+		*status = NOTERM;
+	} else if (run->exit != 0) {
 		/*
 		 * Give higher precedence to XPASS than FAIL, matches what
 		 * bluhm@ does.

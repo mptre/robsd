@@ -97,7 +97,7 @@ if testcase "robsd-regress: timeout"; then
 	sleep 60
 	EOF
 
-	robsd_exec -E 143 -m robsd-regress -- test >/dev/null
+	robsd_exec -E 124 -m robsd-regress -- test >/dev/null
 fi
 
 if testcase "trace"; then

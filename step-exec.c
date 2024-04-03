@@ -24,7 +24,7 @@ struct step_context {
 	unsigned int		 flags;
 };
 
-static int	exitstatus(int);
+static int	exitstatus(int, int);
 static int	waiteof(int, int);
 static int	killwaitpg(int, int, int *);
 static int	killwaitpg1(int, int, int, int *);
@@ -72,15 +72,17 @@ step_exec(const char *step_name, struct config *config, struct arena *scratch,
 			err(1, "waitpid");
 		}
 	}
-	error = exitstatus(status);
+	error = exitstatus(status, gotsig);
 	if (error)
 		warnx("process group exited %d", error);
 	return error;
 }
 
 static int
-exitstatus(int status)
+exitstatus(int status, int signal)
 {
+	if (signal == SIGALRM)
+		return EX_TIMEOUT;
 	if (WIFEXITED(status))
 		return WEXITSTATUS(status);
 	if (WIFSIGNALED(status))
@@ -230,7 +232,7 @@ step_fork(struct step_context *c, const char *step_name,
 		warnx("process group failure");
 		if (waitpid(pid, &status, 0) == -1)
 			return 1;
-		error = exitstatus(status);
+		error = exitstatus(status, 0);
 		return error ? error : 1;
 	}
 	close(proc_pipe[0]);

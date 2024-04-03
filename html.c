@@ -73,6 +73,7 @@ html_head_enter(struct html *html)
 	    "    td.XFAIL { background: #80ffc0; }\n"
 	    "    td.XPASS { background: #ff80c0; }\n"
 	    "    td.SKIP { background: #8080ff; }\n"
+	    "    td.NOTERM { background: #ffff80; }\n"
 	    "    a.status { color: #000; }\n"
 	    "  </style>\n";
 
