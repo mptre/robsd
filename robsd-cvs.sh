@@ -7,6 +7,7 @@ ROBSDDIR="${robsddir}"
 BUILDDIR="${builddir}"
 CVSROOT="${cvs-root}"
 CVSUSER="${cvs-user}"
+TMPDIR="${tmp-dir}"
 EOF
 
 if [ -z "$CVSROOT" ] || [ -z "$CVSUSER" ]; then
@@ -36,16 +37,14 @@ robsd-regress)
 	;;
 esac
 
-_tmpdir="${BUILDDIR}/tmp"
-
 {
 [ "$_MODE" = "robsd" ] && echo src "$BSDSRCDIR"
 [ "$_MODE" = "robsd" ] && echo xenocara "$XSRCDIR"
 [ "$_MODE" = "robsd-ports" ] && echo ports "${CHROOT}${PORTSDIR}"
 [ "$_MODE" = "robsd-regress" ] && echo src "$BSDSRCDIR"
 } | while read -r _m _d; do
-	_ci="${_tmpdir}/cvs-${_m}-ci.log"
-	_up="${_tmpdir}/cvs-${_m}-up.log"
+	_ci="${TMPDIR}/cvs-${_m}-ci.log"
+	_up="${TMPDIR}/cvs-${_m}-up.log"
 
 	if ! [ -d "${_d}/CVS" ]; then
 		unpriv "$CVSUSER" <<-EOF 2>&1 | tee "$_up"
@@ -55,7 +54,7 @@ _tmpdir="${BUILDDIR}/tmp"
 	else
 		unpriv "$CVSUSER" "cd ${_d} && exec cvs -qd ${CVSROOT} update -Pd" 2>&1 |
 		tee "$_up" |
-		cvs_log -t "${_tmpdir}/cvs-${_m}" -c "$_d" -h "$CVSROOT" -u "$CVSUSER" |
+		cvs_log -t "${TMPDIR}/cvs-${_m}" -c "$_d" -h "$CVSROOT" -u "$CVSUSER" |
 		tee "$_ci"
 	fi
 
