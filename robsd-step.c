@@ -297,6 +297,7 @@ steps_list(struct step_context *c, int argc, char **argv)
 	VECTOR(const struct config_step) steps;
 	size_t i;
 	unsigned int offset = 1;
+	int error = 0;
 	int ch;
 
 	while ((ch = getopt(argc, argv, "C:m:o:")) != -1) {
@@ -331,17 +332,22 @@ steps_list(struct step_context *c, int argc, char **argv)
 	config = config_alloc(config_mode, config_path, c->eternal, c->scratch);
 	if (config == NULL)
 		return 1;
-	if (config_parse(config))
-		return 1;
+	if (config_parse(config)) {
+		error = 1;
+		goto out;
+	}
 
 	arena_scope(c->scratch, s);
 
 	steps = config_get_steps(config, 0, &s);
-	if (steps == NULL)
-		return 1;
+	if (steps == NULL) {
+		error = 1;
+		goto out;
+	}
 	if (offset - 1 >= VECTOR_LENGTH(steps)) {
 		warnx("offset %u too large", offset);
-		return 1;
+		error = 1;
+		goto out;
 	}
 	for (i = offset - 1; i < VECTOR_LENGTH(steps); i++)
 		printf("%zu %s%s\n",
@@ -349,7 +355,7 @@ steps_list(struct step_context *c, int argc, char **argv)
 		    steps[i].name,
 		    steps[i].flags.parallel ? " parallel" : "");
 
+out:
 	config_free(config);
-
-	return 0;
+	return error;
 }
