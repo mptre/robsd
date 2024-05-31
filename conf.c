@@ -50,6 +50,7 @@ static struct variable	*config_default_build_dir(struct config *,
 static struct variable	*config_default_exec_dir(struct config *, const char *);
 static struct variable	*config_default_inet4(struct config *, const char *);
 static struct variable	*config_default_inet6(struct config *, const char *);
+static struct variable	*config_default_trace(struct config *, const char *);
 
 static struct variable	*config_append_string(struct config *,
     const char *, const char *);
@@ -69,6 +70,7 @@ static const struct grammar common_grammar[] = {
 	{ "robsddir",		DIRECTORY,	config_parse_directory,	REQ,	{ NULL } },
 	{ "skip",		LIST,		config_parse_list,	0,	{ NULL } },
 	{ "stat-interval",	INTEGER,	config_parse_integer,	0,	{ D_I32(10) } },
+	{ "trace",		STRING,		NULL,			FUN,	{ D_FUN(config_default_trace) } },
 };
 
 struct config *
@@ -427,29 +429,44 @@ config_get_steps(struct config *cf, unsigned int flags, struct arena_scope *s)
 {
 	VECTOR(struct config_step) steps;
 	size_t i;
+	int error = 0;
 
 	steps = cf->callbacks->get_steps(cf, s);
 	arena_cleanup(s, config_free_steps, steps);
 
+	cf->interpolate.trace = (flags & CONFIG_STEPS_TRACE_COMMAND) ? 1 : 0;
+
 	for (i = 0; i < VECTOR_LENGTH(steps); i++) {
 		struct config_step *cs = &steps[i];
 		struct variable_value *val = &cs->command.val;
-		const char *script_path;
+		const char *script_path, *trace;
 
 		script_path = config_interpolate_str(cf, cs->command.path);
-		if (script_path == NULL)
-			return NULL;
+		if (script_path == NULL) {
+			error = 1;
+			goto out;
+		}
+
+		trace = config_interpolate_str(cf, "${trace}");
+		if (trace == NULL) {
+			error = 1;
+			goto out;
+		}
 
 		variable_value_init(val, LIST);
 		variable_value_append(val, "sh");
 		variable_value_append(val, "-eu");
-		if (flags & CONFIG_STEPS_TRACE_COMMAND)
-			variable_value_append(val, "-x");
+		if (trace[0] != '\0')
+			variable_value_append(val, trace);
 		variable_value_append(val, script_path);
 		variable_value_append(val, cs->name);
 		variable_value_append(val, NULL);
 	}
 
+out:
+	cf->interpolate.trace = 0;
+	if (error)
+		return NULL;
 	return steps;
 }
 
@@ -997,6 +1014,16 @@ config_default_inet6(struct config *cf, const char *name)
 		addr = "";
 	variable_value_init(&val, STRING);
 	val.str = addr;
+	return config_append(cf, name, &val);
+}
+
+static struct variable *
+config_default_trace(struct config *cf, const char *name)
+{
+	struct variable_value val;
+
+	variable_value_init(&val, STRING);
+	val.str = cf->interpolate.trace ? "-x" : "";
 	return config_append(cf, name, &val);
 }
 

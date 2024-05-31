@@ -53,6 +53,7 @@ struct config {
 	struct {
 		int	early;
 		int	rdomain;
+		int	trace;
 	} interpolate;
 
 	enum robsd_mode			  mode;
