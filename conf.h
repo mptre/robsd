@@ -1,4 +1,5 @@
 #include "mode.h"
+#include "variable-value.h"
 
 struct arena;
 struct arena_scope;
@@ -15,22 +16,6 @@ struct arena_scope;
 	}								\
 	_v;								\
 })
-
-struct variable_value {
-	enum variable_type {
-		INTEGER,
-		STRING,
-		DIRECTORY,
-		LIST,
-	} type;
-
-	union {
-		const void	 *ptr;
-		const char	 *str;
-		char		**list;
-		int		  integer;
-	};
-};
 
 struct config_step {
 	const char	*name;

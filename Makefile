@@ -197,6 +197,7 @@ KNFMT+=	step.c
 KNFMT+=	step.h
 KNFMT+=	token.c
 KNFMT+=	token.h
+KNFMT+=	variable-value.h
 
 CLANGTIDY+=	alloc.c
 CLANGTIDY+=	alloc.h
@@ -245,6 +246,7 @@ CLANGTIDY+=	step.c
 CLANGTIDY+=	step.h
 CLANGTIDY+=	token.c
 CLANGTIDY+=	token.h
+CLANGTIDY+=	variable-value.h
 
 CPPCHECK+=	alloc.c
 CPPCHECK+=	conf-robsd-cross.c
