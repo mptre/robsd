@@ -296,9 +296,10 @@ steps_list(struct step_context *c, int argc, char **argv)
 	const char *config_path = NULL;
 	VECTOR(struct config_step) steps;
 	size_t i;
+	unsigned int offset = 1;
 	int ch;
 
-	while ((ch = getopt(argc, argv, "C:m:")) != -1) {
+	while ((ch = getopt(argc, argv, "C:m:o:")) != -1) {
 		switch (ch) {
 		case 'C':
 			config_path = optarg;
@@ -306,6 +307,18 @@ steps_list(struct step_context *c, int argc, char **argv)
 		case 'm':
 			config_mode = optarg;
 			break;
+		case 'o': {
+			const char *errstr;
+			long long num;
+
+			num = strtonum(optarg, 1, INT_MAX, &errstr);
+			if (num == 0) {
+				warnx("offset %s %s", optarg, errstr);
+				return 1;
+			}
+			offset = (unsigned int)num;
+			break;
+		}
 		default:
 			usage();
 		}
@@ -326,8 +339,12 @@ steps_list(struct step_context *c, int argc, char **argv)
 	steps = config_get_steps(config, 0, &s);
 	if (steps == NULL)
 		return 1;
-	for (i = 0; i < VECTOR_LENGTH(steps); i++)
-		printf("%s\n", steps[i].name);
+	if (offset - 1 >= VECTOR_LENGTH(steps)) {
+		warnx("offset %u too large", offset);
+		return 1;
+	}
+	for (i = offset - 1; i < VECTOR_LENGTH(steps); i++)
+		printf("%zu %s\n", i + 1, steps[i].name);
 
 	config_free(config);
 

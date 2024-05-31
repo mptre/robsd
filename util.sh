@@ -853,7 +853,6 @@ robsd() {
 	local _jobs=""
 	local _name
 	local _ncpu
-	local _s
 	local _step
 	local _steps
 
@@ -871,11 +870,7 @@ robsd() {
 	_ncpu="$(sysctl -n hw.ncpuonline)"
 	_steps="$(step_path "$_builddir")"
 
-	while :; do
-		_name="$(step_name "$_step")"
-		_s="$_step"
-		_step=$((_step + 1))
-
+	steps -o "$_step" | while read -r _step _name; do
 		if step_eval -n "$_name" "$_steps" 2>/dev/null &&
 		   step_skip; then
 			info "step ${_name} skipped"
@@ -893,7 +888,7 @@ robsd() {
 			else
 				_delta=0
 			fi
-			step_write -t -s "$_s" -n "$_name" -e 0 \
+			step_write -t -s "$_step" -n "$_name" -e 0 \
 				-d "$_d1" -a "$_delta" "$_steps"
 			# The hook is invoked as late as possible in the exit
 			# trap handler.
@@ -909,7 +904,7 @@ robsd() {
 
 			# Execute job in parallel.
 			step_exec_job -b "$_builddir" -s "$_steps" \
-				-i "$_s" -n "$_name" &
+				-i "$_step" -n "$_name" &
 			_jobs="${_jobs}${_jobs:+ }${!}"
 			info "parallel jobs $(jobs_count "${_jobs}")/${_ncpu}"
 		else
@@ -922,7 +917,7 @@ robsd() {
 
 			# Execute job synchronously.
 			step_exec_job -b "$_builddir" -s "$_steps" \
-				-i "$_s" -n "$_name"
+				-i "$_step" -n "$_name"
 		fi
 
 		# Reboot in progress?
@@ -1197,25 +1192,11 @@ step_id() {
 
 	_name="$1"; : "${_name:?}"
 
-	_id="$(steps | cat -n | grep -w "$_name" | awk '{print $1}')"
+	_id="$(steps | grep -w "$_name" | cut -d ' ' -f 1)"
 	if [ -n "$_id" ]; then
 		echo "$_id"
 	else
 		echo "step_id: ${_name}: unknown step" 1>&2
-		return 1
-	fi
-}
-
-# step_name step-id
-#
-# Resolve the given numeric step to its corresponding name.
-step_name() {
-	local _step
-
-	_step="$(steps | sed -n -e "${1}p")"
-	if [ -n "$_step" ]; then
-		echo "$_step"
-	else
 		return 1
 	fi
 }
@@ -1230,11 +1211,11 @@ step_path() {
 	echo "${_dir}/step.csv"
 }
 
-# steps
+# steps [robsd-step-argument ...]
 #
-# Get the names of all steps in execution order.
+# Get steps in execution order.
 steps() {
-	"$ROBSDSTEP" -L -m "$_MODE" ${ROBSDCONF:+"-C${ROBSDCONF}"}
+	"$ROBSDSTEP" -L -m "$_MODE" ${ROBSDCONF:+"-C${ROBSDCONF}"} "$@"
 }
 
 # step_next file

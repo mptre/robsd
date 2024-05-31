@@ -298,7 +298,10 @@ if testcase "list: robsd-regress"; then
 	regress "bin/ksh"
 	EOF
 
-	robsd_step -- -L -C "$ROBSDCONF" -m robsd-regress | grep / >"$TMP1"
+	robsd_step -- -L -C "$ROBSDCONF" -m robsd-regress |
+	awk '{print $2}' |
+	grep / >"$TMP1"
+
 	assert_file - "$TMP1" <<-EOF
 	bin/csh
 	bin/ksh
@@ -315,9 +318,40 @@ if testcase "list: robsd-regress parallel disabled"; then
 	regress "test/two"
 	EOF
 
-	robsd_step -- -L -C "$ROBSDCONF" -m robsd-regress | grep / >"$TMP1"
+	robsd_step -- -L -C "$ROBSDCONF" -m robsd-regress |
+	awk '{print $2}' |
+	grep / >"$TMP1"
+
 	assert_file - "$TMP1" <<-EOF
 	test/one
 	test/two
+	EOF
+fi
+
+if testcase "list: offset"; then
+	robsd_config - <<-EOF
+	robsddir "$TSHDIR"
+	EOF
+
+	robsd_step - -- -L -C "$ROBSDCONF" -m robsd -o 17 <<-EOF
+	17 end
+	EOF
+fi
+
+if testcase "list: invalid offset"; then
+	robsd_config - <<-EOF
+	robsddir "$TSHDIR"
+	EOF
+
+	robsd_step -e - -- -L -C "$ROBSDCONF" -m robsd -o 0 <<-EOF
+	robsd-step: offset 0 too small
+	EOF
+
+	robsd_step -e - -- -L -C "$ROBSDCONF" -m robsd -o 100 <<-EOF
+	robsd-step: offset 100 too large
+	EOF
+
+	robsd_step -e - -- -L -C "$ROBSDCONF" -m robsd -o 4294967296 <<-EOF
+	robsd-step: offset 4294967296 too large
 	EOF
 fi

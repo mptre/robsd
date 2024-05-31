@@ -19,6 +19,7 @@
 .Nm robsd-step
 .Fl L
 .Fl m Ar mode
+.Op Fl o Ar offset
 .Sh DESCRIPTION
 The
 .Nm
@@ -72,6 +73,9 @@ Must be either robsd, robsd-cross, robsd-ports or robsd-regress.
 In read mode, select the step with
 .Ar name
 to operate on.
+.It Fl o Ar offset
+In list mode, exclude all steps up to exclusively
+.Ar offset .
 .El
 .Sh EXAMPLES
 .Bd -literal
