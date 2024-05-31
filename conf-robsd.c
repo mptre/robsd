@@ -1,3 +1,5 @@
+#include "libks/compiler.h"
+
 #include "conf-priv.h"
 #include "conf.h"
 #include "variable-value.h"
@@ -57,11 +59,23 @@ config_robsd_init(struct config *cf)
 	return 0;
 }
 
+static void
+config_robsd_free(struct config *UNUSED(cf))
+{
+}
+
+static void
+config_robsd_after_parse(struct config *UNUSED(cf))
+{
+}
+
 const struct config_callbacks *
 config_robsd_callbacks(void)
 {
 	static const struct config_callbacks callbacks = {
 		.init		= config_robsd_init,
+		.free		= config_robsd_free,
+		.after_parse	= config_robsd_after_parse,
 		.get_steps	= config_default_get_steps,
 	};
 

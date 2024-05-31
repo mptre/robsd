@@ -1,0 +1,108 @@
+#!/bin/ksh
+
+set -eu
+
+usage() {
+	xargs 1>&2 <<-EOF
+	usage: canvas
+	[-d]
+	[-c comment]
+	[-r path]
+	[-s step]
+	[-t tag]
+	-C path
+	EOF
+	exit 1
+}
+
+. "${EXECDIR:-/usr/local/libexec/robsd}/util.sh"
+
+setmode "canvas"
+setprogname "canvas"
+
+_comment=""
+_statpid=""
+_step=1
+_tags=""
+
+while getopts "dC:c:r:s:t:" opt; do
+	case "$opt" in
+	C)	ROBSDCONF="$OPTARG";;
+	d)	DETACH=0;;
+	c)	_comment="$OPTARG";;
+	r)	BUILDDIR="$(readlink -f "$OPTARG")";;
+	s)	SKIP="${SKIP}${SKIP:+ }${OPTARG}";;
+	t)	_tags="${_tags}${_tags:+ }${OPTARG}";;
+	*)	usage;;
+	esac
+done
+shift $((OPTIND - 1))
+[ $# -ne 0 ] && usage
+# XXX ensure ROBSDCONF not empty
+
+# XXX handle skip merge with above
+config_load <<'EOF'
+ROBSDDIR="${robsddir}"
+KEEP="${keep}"
+SKIP="${skip}"
+STATINTERVAL="${stat-interval}"
+EOF
+
+trap 'trap_exit -r "$ROBSDDIR" -b "$BUILDDIR" -s "$_statpid"' EXIT
+
+if [ -z "$BUILDDIR" ]; then
+	BUILDDIR="${ROBSDDIR}/$(build_id "$ROBSDDIR")"
+else
+	_step="$(step_next "$(step_path "$BUILDDIR")")"
+fi
+build_init "$BUILDDIR"
+info "using directory ${BUILDDIR} at step ${_step}"
+
+lock_acquire "$ROBSDDIR" "$BUILDDIR"
+
+if [ "$_step" -eq 1 ]; then
+	if [ -n "$_comment" ]; then
+		cat "$_comment" >"${BUILDDIR}/comment"
+	fi
+
+	if [ -n "$SKIP" ]; then
+		info "skipping steps: ${SKIP}"
+		for _skip in $SKIP; do
+			_id="$(step_id "$_skip")"
+			step_write -S -t -s "$_id" -n "$_skip" -e 0 -d 0 -l "" \
+				"$(step_path "$BUILDDIR")"
+		done
+	fi
+
+	if [ -n "$_tags" ]; then
+		echo "$_tags" >"${BUILDDIR}/tags"
+	fi
+
+	"$ROBSDSTAT" -H >"${BUILDDIR}/stat.csv"
+fi
+
+# XXX
+if [ "$KEEP" -gt 0 ]; then
+	/usr/local/sbin/robsd-clean "$KEEP"
+fi
+
+"$ROBSDSTAT" -i "$STATINTERVAL" -u build >>"${BUILDDIR}/stat.csv" 2>&1 &
+_statpid="$!"
+
+if [ "$DETACH" -eq 1 ]; then
+	# Signal to info() that no further output should be written to robsd.log
+	# as we're about redirect all output to the same log.
+	DETACH=2
+	exec </dev/null >>"${BUILDDIR}/robsd.log" 2>&1
+
+	# Reinstall trap handler since they are not inherited by subprocesses.
+	trap '-' EXIT
+	{
+		trap 'trap_exit -r "$ROBSDDIR" -b "$BUILDDIR" -s "${_statpid}"' EXIT
+		robsd -b "$BUILDDIR" -s "$_step"
+	} &
+	info "running in detach mode as pid ${!}"
+else
+	info "running as pid ${$}"
+	robsd -b "$BUILDDIR" -s "$_step"
+fi

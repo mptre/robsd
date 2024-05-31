@@ -2,7 +2,7 @@
 
 set -u
 
-# robsd_config [-CPR] [-]
+# robsd_config [-CPRc] [-]
 robsd_config() {
 	local _stdin=0
 	local _mode="robsd"
@@ -12,6 +12,7 @@ robsd_config() {
 		-C)	_mode="robsd-cross";;
 		-P)	_mode="robsd-ports";;
 		-R)	_mode="robsd-regress";;
+		-c)	_mode="canvas";;
 		-)	_stdin=1;;
 		*)	break;;
 		esac
@@ -49,6 +50,12 @@ robsd_config() {
 			cat <<-EOF
 			bsd-srcdir "${TSHDIR}"
 			cvs-user "nobody"
+			EOF
+			;;
+		canvas)
+			cat <<-EOF
+			canvas-name "test"
+			canvas-dir "${TSHDIR}"
 			EOF
 			;;
 		*)

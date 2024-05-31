@@ -1,3 +1,4 @@
+TESTS+=	canvas-robsd-config.sh
 TESTS+=	check-perf.sh
 TESTS+=	cleandir.sh
 TESTS+=	config-load.sh

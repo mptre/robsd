@@ -17,6 +17,7 @@ variable_value_init(struct variable_value *val, enum variable_type type)
 		if (VECTOR_INIT(val->list))
 			err(1, NULL);
 		break;
+	case INVALID:
 	case INTEGER:
 	case STRING:
 	case DIRECTORY:
@@ -33,6 +34,7 @@ variable_value_clear(struct variable_value *val)
 		break;
 	}
 
+	case INVALID:
 	case STRING:
 	case INTEGER:
 	case DIRECTORY:

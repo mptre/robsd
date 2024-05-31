@@ -31,6 +31,11 @@
 #include "log.h"
 #include "token.h"
 
+struct config_lexer_context {
+	struct config	*cf;
+	struct buffer	*bf;
+};
+
 static struct token	*config_lexer_read(struct lexer *, void *);
 static const char	*token_serialize(const struct token *);
 
@@ -82,6 +87,7 @@ config_alloc(const char *mode, const char *path, struct arena_scope *eternal,
 		[ROBSD_CROSS]	= config_robsd_cross_callbacks,
 		[ROBSD_PORTS]	= config_robsd_ports_callbacks,
 		[ROBSD_REGRESS]	= config_robsd_regress_callbacks,
+		[CANVAS]	= config_canvas_callbacks,
 	};
 	struct config *cf;
 	enum robsd_mode m;
@@ -116,6 +122,8 @@ config_free(struct config *cf)
 	if (cf == NULL)
 		return;
 
+	cf->callbacks->free(cf);
+
 	VECTOR_FREE(cf->grammar);
 
 	while (!VECTOR_EMPTY(cf->variables)) {
@@ -132,18 +140,20 @@ config_free(struct config *cf)
 int
 config_parse(struct config *cf)
 {
-	struct buffer *bf;
+	struct config_lexer_context ctx = {
+		.cf	= cf,
+	};
 	int error;
 
 	arena_scope(cf->scratch, s);
 
-	bf = arena_buffer_alloc(&s, 1 << 10);
+	ctx.bf = arena_buffer_alloc(&s, 1 << 10);
 	cf->lx = lexer_alloc(&(struct lexer_arg){
 	    .path = cf->path,
 	    .callbacks = {
 		.read		= config_lexer_read,
 		.serialize	= token_serialize,
-		.arg		= bf,
+		.arg		= &ctx,
 	    },
 	});
 	if (cf->lx == NULL) {
@@ -151,6 +161,10 @@ config_parse(struct config *cf)
 		goto out;
 	}
 	error = config_parse1(cf);
+	if (error)
+		goto out;
+
+	cf->callbacks->after_parse(cf);
 
 out:
 	return error;
@@ -230,6 +244,10 @@ config_find(struct config *cf, const char *name)
 	memset(&vadef, 0, sizeof(vadef));
 	vadef.va_val.type = gr->gr_type;
 	switch (vadef.va_val.type) {
+	case INVALID:
+		__builtin_trap();
+		/* UNREACHABLE */
+
 	case INTEGER:
 		vadef.va_val.integer = gr->gr_default.i32;
 		break;
@@ -312,11 +330,15 @@ config_interpolate_lookup(const char *name, struct arena_scope *s, void *arg)
 		return NULL;
 
 	va = config_find(cf, name);
-	if (va == NULL)
+	if (va == NULL || !is_variable_value_valid(&va->va_val))
 		return NULL;
 
 	bf = arena_buffer_alloc(s, 128);
 	switch (va->va_val.type) {
+	case INVALID:
+		__builtin_trap();
+		/* UNREACHABLE */
+
 	case INTEGER:
 		buffer_printf(bf, "%d", va->va_val.integer);
 		break;
@@ -491,8 +513,9 @@ out:
 static struct token *
 config_lexer_read(struct lexer *lx, void *arg)
 {
+	struct config_lexer_context *ctx = (struct config_lexer_context *)arg;
 	struct lexer_state s;
-	struct buffer *bf = (struct buffer *)arg;
+	struct buffer *bf = ctx->bf;
 	struct token *tk;
 	char ch;
 
@@ -532,6 +555,8 @@ again:
 		buffer_putc(bf, '\0');
 
 		buf = buffer_get_ptr(bf);
+		if (strcmp("command", buf) == 0)
+			return lexer_emit(lx, &s, TOKEN_COMMAND);
 		if (strcmp("env", buf) == 0)
 			return lexer_emit(lx, &s, TOKEN_ENV);
 		if (strcmp("h", buf) == 0)
@@ -544,6 +569,13 @@ again:
 			return lexer_emit(lx, &s, TOKEN_OBJ);
 		if (strcmp("packages", buf) == 0)
 			return lexer_emit(lx, &s, TOKEN_PACKAGES);
+		/*
+		 * Limited to canvas, necessary to avoid conflict with
+		 * robsd-regress parallel keyword.
+		 */
+		if (config_get_mode(ctx->cf) == CANVAS &&
+		    strcmp("parallel", buf) == 0)
+			return lexer_emit(lx, &s, TOKEN_PARALLEL);
 		if (strcmp("quiet", buf) == 0)
 			return lexer_emit(lx, &s, TOKEN_QUIET);
 		if (strcmp("root", buf) == 0)
@@ -634,6 +666,8 @@ token_serialize(const struct token *tk)
 		return "RBRACE";
 	case TOKEN_KEYWORD:
 		return "KEYWORD";
+	case TOKEN_COMMAND:
+		return "COMMAND";
 	case TOKEN_ENV:
 		return "ENV";
 	case TOKEN_NO_PARALLEL:
@@ -642,6 +676,8 @@ token_serialize(const struct token *tk)
 		return "OBJ";
 	case TOKEN_PACKAGES:
 		return "PACKAGES";
+	case TOKEN_PARALLEL:
+		return "PARALLEL";
 	case TOKEN_QUIET:
 		return "QUIET";
 	case TOKEN_ROOT:

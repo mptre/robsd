@@ -328,6 +328,19 @@ if testcase "list: robsd-regress parallel disabled"; then
 	EOF
 fi
 
+if testcase "list: canvas"; then
+	robsd_config -c - <<-EOF
+	step "first" command { "true" }
+	step "second" command { "true" } parallel
+	EOF
+
+	robsd_step - -- -L -C "$ROBSDCONF" -m canvas <<-EOF
+	1 first
+	2 second parallel
+	3 end
+	EOF
+fi
+
 if testcase "list: offset"; then
 	robsd_config - <<-EOF
 	robsddir "$TSHDIR"

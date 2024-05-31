@@ -19,12 +19,14 @@ enum token_type {
 
 	/* keywords */
 	TOKEN_KEYWORD,
+	TOKEN_COMMAND,
 	TOKEN_ENV,
 	TOKEN_HOURS,
 	TOKEN_MINUTES,
 	TOKEN_NO_PARALLEL,
 	TOKEN_OBJ,
 	TOKEN_PACKAGES,
+	TOKEN_PARALLEL,
 	TOKEN_QUIET,
 	TOKEN_ROOT,
 	TOKEN_SECONDS,
@@ -51,6 +53,10 @@ struct config {
 	} steps;
 
 	struct {
+		struct config_step	*steps;
+	} canvas;
+
+	struct {
 		int	early;
 		int	rdomain;
 		int	trace;
@@ -61,6 +67,8 @@ struct config {
 
 struct config_callbacks {
 	int			 (*init)(struct config *);
+	void			 (*free)(struct config *);
+	void			 (*after_parse)(struct config *);
 	struct config_step	*(*get_steps)(struct config *,
 	    struct arena_scope *);
 };
@@ -96,6 +104,7 @@ const struct config_callbacks	*config_robsd_callbacks(void);
 const struct config_callbacks	*config_robsd_cross_callbacks(void);
 const struct config_callbacks	*config_robsd_ports_callbacks(void);
 const struct config_callbacks	*config_robsd_regress_callbacks(void);
+const struct config_callbacks	*config_canvas_callbacks(void);
 
 struct variable		*config_append(struct config *, const char *,
     const struct variable_value *);

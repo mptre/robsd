@@ -136,6 +136,8 @@ config_load() {
 	robsd-regress)
 		regress_config_load
 		;;
+	canvas)
+		;;
 	*)
 		return 1
 		;;

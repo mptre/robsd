@@ -5,7 +5,8 @@
 	OP(ROBSD,	  "robsd")					\
 	OP(ROBSD_CROSS,	  "robsd-cross")				\
 	OP(ROBSD_PORTS,	  "robsd-ports")				\
-	OP(ROBSD_REGRESS, "robsd-regress")
+	OP(ROBSD_REGRESS, "robsd-regress")				\
+	OP(CANVAS,        "canvas")
 
 enum robsd_mode {
 #define OP(c, _) c,

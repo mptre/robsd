@@ -128,6 +128,15 @@ lexer_ungetc(struct lexer *lx, char ch)
 }
 
 int
+lexer_back(struct lexer *lx, struct token **tk)
+{
+	if (lx->lx_tk == NULL)
+		return 0;
+	*tk = lx->lx_tk;
+	return 1;
+}
+
+int
 lexer_next(struct lexer *lx, struct token **tk)
 {
 	if (lx->lx_tk == NULL)

@@ -70,6 +70,11 @@ regressname(const char *path, const char *suffix, struct arena_scope *s)
 	return arena_sprintf(s, "regress-%s-%s", path, suffix);
 }
 
+static void
+config_robsd_regress_after_parse(struct config *UNUSED(cf))
+{
+}
+
 static int
 config_robsd_regress_init(struct config *cf)
 {
@@ -86,6 +91,11 @@ config_robsd_regress_init(struct config *cf)
 	cf->interpolate.rdomain = RDOMAIN_MIN;
 
 	return 0;
+}
+
+static void
+config_robsd_regress_free(struct config *UNUSED(cf))
+{
 }
 
 static int
@@ -170,6 +180,8 @@ config_robsd_regress_callbacks(void)
 {
 	static const struct config_callbacks callbacks = {
 		.init		= config_robsd_regress_init,
+		.free		= config_robsd_regress_free,
+		.after_parse	= config_robsd_regress_after_parse,
 		.get_steps	= config_robsd_regress_get_steps,
 	};
 

@@ -40,6 +40,7 @@ struct token	*lexer_emit(struct lexer *, const struct lexer_state *, int);
 int		 lexer_getc(struct lexer *, char *);
 void		 lexer_ungetc(struct lexer *, char);
 
+int	lexer_back(struct lexer *, struct token **);
 int	lexer_next(struct lexer *, struct token **);
 int	lexer_expect(struct lexer *, int, struct token **);
 int	lexer_peek(struct lexer *, int);
