@@ -36,6 +36,7 @@
 #define CONFIG_APPEND	0
 #define CONFIG_ERROR	1
 #define CONFIG_NOP	2
+#define CONFIG_FATAL    3
 
 /*
  * Bounds for rdomain, favor something large enough to not conflict with
@@ -1119,10 +1120,10 @@ config_parse1(struct config *cf)
 		}
 
 		switch (config_parse_keyword(cf, tk)) {
-		case 1:
+		case CONFIG_ERROR:
 			error = 1;
 			break;
-		case -1:
+		case CONFIG_FATAL:
 			error = 1;
 			goto out;
 		}
@@ -1148,7 +1149,7 @@ config_parse_keyword(struct config *cf, struct token *tk)
 	if (gr == NULL) {
 		lexer_warnx(cf->lx, tk->tk_lno, "unknown keyword '%s'",
 		    tk->tk_str);
-		return -1;
+		return CONFIG_FATAL;
 	}
 
 	if ((gr->gr_flags & REP) == 0 && config_present(cf, tk->tk_str)) {
