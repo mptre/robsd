@@ -16,7 +16,8 @@
 #include "step.h"
 
 enum step_action {
-	ACTION_READ = 1,
+	ACTION_INVALID,
+	ACTION_READ,
 	ACTION_WRITE,
 	ACTION_LIST,
 };
@@ -119,6 +120,9 @@ main(int argc, char *argv[])
 		if (pledge("stdio rpath", NULL) == -1)
 			err(1, "pledge");
 		break;
+	case ACTION_INVALID:
+		__builtin_trap(); /* UNREACHABLE */
+		break;
 	}
 
 	switch (action) {
@@ -145,6 +149,9 @@ main(int argc, char *argv[])
 		break;
 	case ACTION_LIST:
 		error = steps_list(&c, argc, argv);
+		break;
+	case ACTION_INVALID:
+		__builtin_trap(); /* UNREACHABLE */
 		break;
 	}
 
