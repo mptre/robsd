@@ -39,6 +39,7 @@ struct step_file {
 
 static int	steps_parse_header(struct step_file *, struct lexer *);
 static int	steps_parse_row(struct step_file *, struct lexer *);
+static void	steps_sort(struct step *);
 
 static int	step_serialize(const struct step *, struct buffer *,
     struct arena *);
@@ -292,7 +293,7 @@ out:
 	return error;
 }
 
-void
+static void
 steps_sort(struct step *steps)
 {
 	VECTOR_SORT(steps, step_cmp);

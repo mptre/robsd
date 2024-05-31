@@ -23,7 +23,6 @@ int64_t			 steps_total_duration(const struct step_file *,
     enum robsd_mode);
 int			 steps_write(struct step_file *, struct arena *);
 
-void		 steps_sort(struct step *);
 struct step	*steps_find_by_name(struct step *, const char *);
 struct step	*steps_find_by_id(struct step *, int);
 void		 steps_header(struct buffer *);
