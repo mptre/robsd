@@ -881,23 +881,6 @@ robsd() {
 		fi
 		info "step ${_name}"
 
-		if [ "$_name" = "end" ]; then
-			# The duration of the end step is the accumulated
-			# duration.
-			_d1="$(duration_total -s "$_steps")"
-			_d0="$(duration_prev "$_name" || :)"
-			if [ -n "$_d0" ]; then
-				_delta="$((_d1 - _d0))"
-			else
-				_delta=0
-			fi
-			step_write -t -s "$_step" -n "$_name" -e 0 \
-				-d "$_d1" -a "$_delta" "$_steps"
-			# The hook is invoked as late as possible in the exit
-			# trap handler.
-			return 0
-		fi
-
 		if [ -n "$_parallel" ]; then
 			# Ensure the job queue is not full.
 			if [ "$(jobs_count "$_jobs")" -eq "$_ncpu" ]; then
@@ -916,6 +899,23 @@ robsd() {
 				info "parallel barrier $(jobs_count "${_jobs}")/${_ncpu}"
 				echo "$_jobs" | xargs "$ROBSDWAIT" -a
 				_jobs=""
+			fi
+
+			if [ "$_name" = "end" ]; then
+				# The duration of the end step is the
+				# accumulated duration.
+				_d1="$(duration_total -s "$_steps")"
+				_d0="$(duration_prev "$_name" || :)"
+				if [ -n "$_d0" ]; then
+					_delta="$((_d1 - _d0))"
+				else
+					_delta=0
+				fi
+				step_write -t -s "$_step" -n "$_name" -e 0 \
+					-d "$_d1" -a "$_delta" "$_steps"
+				# The hook is invoked as late as possible in the
+				# exit trap handler.
+				return 0
 			fi
 
 			# Execute job synchronously.
