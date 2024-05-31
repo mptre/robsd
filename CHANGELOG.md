@@ -1,3 +1,20 @@
+# 20.0.0 - YYYY-MM-DD
+
+## Changes
+
+- robsd-hook: prefix step related interpolation variables.
+  Variable exit has been renamed to step-exit and name to step-name.
+  (d27e243ede81)
+  (Anton Lindqvist)
+
+## News
+
+- canvas: new utility exposing the generic parts of the robsd tooling.
+  Providing an empty canvas for task automation, capable of handling both
+  synchronous and asynchronous.
+  (a54b81ca5008)
+  (Anton Lindqvist)
+
 # 19.0.0 - 2024-04-13
 
 ## Changes
