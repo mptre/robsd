@@ -29,6 +29,11 @@ setup() {
 	EOF
 	mv "$ROBSDCONF" "${TSHDIR}/.conf/robsd-regress.conf"
 
+	robsd_config -c - <<-EOF
+	step "first" command { "true" }
+	EOF
+	mv "$ROBSDCONF" "${TSHDIR}/.conf/canvas.conf"
+
 	mkdir -p "${_builddir}/rel" "${_builddir}/tmp"
 }
 
@@ -438,6 +443,22 @@ if testcase "robsd-regress: failure in non-regress step"; then
 	Log: env.log
 
 	env failure
+	EOF
+fi
+
+if testcase "canvas: basic"; then
+	{
+		step_serialize -s 1 -n first -l first.log
+		step_serialize -H -s 2 -n end -d 60
+	} >"$(step_path "$_builddir")"
+
+	robsd_report -m canvas - -- "$_builddir" <<-EOF
+	Subject: canvas: test: ok
+
+	> stats
+	Status: ok
+	Duration: 00:01:00
+	Build: ${_builddir}
 	EOF
 fi
 

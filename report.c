@@ -39,6 +39,9 @@ struct report_context {
 	} regress;
 };
 
+static const char	*report_status(struct report_context *,
+    struct arena_scope *);
+
 static int	threshold_duration_s = 60;
 static size_t	threshold_size_b = (size_t)(1024 * 1024);
 static size_t	threshold_size_ramdisk_b = (size_t)1024;
@@ -342,6 +345,21 @@ regress_report_step_log(struct report_context *r, const struct step *step)
 	return rv;
 }
 
+static int
+canvas_report_subject(struct report_context *r)
+{
+	const char *canvas_name;
+
+	arena_scope(r->scratch, s);
+
+	canvas_name = config_interpolate_str(r->config, "${canvas-name}");
+	if (canvas_name == NULL)
+		return 1;
+	buffer_printf(r->out, "Subject: %s: %s: %s\n\n",
+	    robsd_mode_str(r->mode), canvas_name, report_status(r, &s));
+	return 0;
+}
+
 static const char *
 report_hostname(struct arena_scope *s)
 {
@@ -405,6 +423,9 @@ report_subject(struct report_context *r)
 {
 	const char *status_prefix = " ";
 	const char *hostname, *mode, *status;
+
+	if (r->mode == CANVAS)
+		return canvas_report_subject(r);
 
 	arena_scope(r->scratch, s);
 
