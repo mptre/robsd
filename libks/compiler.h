@@ -18,7 +18,12 @@
 #define LIBKS_COMPILER_H
 
 #define UNUSED(x)	_##x __attribute__((__unused__))
-#define MAYBE_UNUSED(x)	x __attribute__((__unused__))
+
+#ifndef NDEBUG
+#define NDEBUG_UNUSED(x) x
+#else
+#define NDEBUG_UNUSED(x) UNUSED(x)
+#endif
 
 #define likely(x)	__builtin_expect((x), 1)
 #define unlikely(x)	__builtin_expect((x), 0)
