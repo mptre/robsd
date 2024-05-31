@@ -774,11 +774,23 @@ struct config_step *
 config_get_steps(struct config *cf, struct arena_scope *s)
 {
 	VECTOR(struct config_step) steps;
+	size_t i;
 
 	if (cf->mode == ROBSD_REGRESS)
 		steps = config_regress_get_steps(cf, s);
 	else
 		steps = config_default_get_steps(cf, s);
+
+	for (i = 0; i < VECTOR_LENGTH(steps); i++) {
+		struct config_step *cs = &steps[i];
+		const char *script_path;
+
+		script_path = config_interpolate_str(cf, cs->script_path);
+		if (script_path == NULL)
+			return NULL;
+		cs->script_path = script_path;
+	}
+
 	return steps;
 }
 

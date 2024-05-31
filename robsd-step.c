@@ -324,6 +324,8 @@ steps_list(struct step_context *c, int argc, char **argv)
 	arena_scope(c->scratch, s);
 
 	steps = config_get_steps(config, &s);
+	if (steps == NULL)
+		return 1;
 	for (i = 0; i < VECTOR_LENGTH(steps); i++)
 		printf("%s\n", steps[i].name);
 
