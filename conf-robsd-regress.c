@@ -147,7 +147,7 @@ config_robsd_regress_get_steps(struct config *cf, struct arena_scope *s)
 
 			cs = config_steps_add_script(steps,
 			    "${exec-dir}/robsd-regress-exec.sh", regress[r]);
-			cs->flags.parallel = parallel ? 1 : 0;
+			cs->flags.parallel = 1;
 		} else {
 			const char **dst;
 
