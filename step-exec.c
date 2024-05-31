@@ -33,12 +33,11 @@ static int	killwaitpg1(int, int, int, int *);
 static void	siginstall(int, void (*)(int), int);
 static void	sighandler(int);
 
-static int	step_fork(struct step_context *, const char *, const char *,
-    pid_t *);
+static int	step_fork(struct step_context *, char *const *, pid_t *);
 static int	step_timeout(struct step_context *);
 
-static const char	*resolve_step_script(struct step_context *,
-    const char *);
+static char *const	*resolve_step_command(struct step_context *,
+    const char *, struct arena_scope *);
 
 static volatile sig_atomic_t	gotsig;
 
@@ -51,17 +50,19 @@ step_exec(const char *step_name, struct config *config, struct arena *scratch,
 		.scratch	= scratch,
 		.flags		= flags,
 	};
-	const char *step_script;
+	char *const *command;
 	pid_t pid;
 	int error, status;
 
-	step_script = resolve_step_script(&c, step_name);
-	if (step_script == NULL) {
+	arena_scope(scratch, s);
+
+	command = resolve_step_command(&c, step_name, &s);
+	if (command == NULL) {
 		warnx("%s: step script not found", step_name);
 		return 1;
 	}
 
-	error = step_fork(&c, step_name, step_script, &pid);
+	error = step_fork(&c, command, &pid);
 	if (error)
 		return error;
 	if (waitpid(-pid, &status, 0) == -1) {
@@ -182,8 +183,7 @@ sighandler(int signo)
 }
 
 static int
-step_fork(struct step_context *c, const char *step_name,
-    const char *step_script, pid_t *out)
+step_fork(struct step_context *c, char *const *command, pid_t *out)
 {
 	int proc_pipe[2];
 	int status, timeout;
@@ -197,17 +197,6 @@ step_fork(struct step_context *c, const char *step_name,
 	if (pid == -1)
 		err(1, "fork");
 	if (pid == 0) {
-		const char *argv[7];
-		int argc = 0;
-
-		argv[argc++] = "sh";
-		argv[argc++] = "-eu";
-		if (c->flags & STEP_EXEC_TRACE)
-			argv[argc++] = "-x";
-		argv[argc++] = step_script;
-		argv[argc++] = step_name;
-		argv[argc++] = NULL;
-
 		close(proc_pipe[0]);
 		if (setsid() == -1)
 			err(1, "setsid");
@@ -219,8 +208,8 @@ step_fork(struct step_context *c, const char *step_name,
 
 		/* Signal to the parent that the process group is present. */
 		close(proc_pipe[1]);
-		execvp(argv[0], (char *const *)argv);
-		err(1, "%s", argv[0]);
+		execvp(command[0], command);
+		err(1, "%s", command[0]);
 	}
 
 	siginstall(SIGPIPE, SIG_IGN, 0);
@@ -262,8 +251,10 @@ find_step(struct step_context *c, const char *step_name, struct arena_scope *s)
 {
 	VECTOR(struct config_step) steps;
 	size_t i;
+	unsigned int flags;
 
-	steps = config_get_steps(c->config, s);
+	flags = (c->flags & STEP_EXEC_TRACE) ? CONFIG_STEPS_TRACE_COMMAND : 0;
+	steps = config_get_steps(c->config, flags, s);
 	for (i = 0; i < VECTOR_LENGTH(steps); i++) {
 		const struct config_step *cs = &steps[i];
 
@@ -273,15 +264,14 @@ find_step(struct step_context *c, const char *step_name, struct arena_scope *s)
 	return NULL;
 }
 
-static const char *
-resolve_step_script(struct step_context *c, const char *step_name)
+static char *const *
+resolve_step_command(struct step_context *c, const char *step_name,
+    struct arena_scope *s)
 {
 	const struct config_step *cs;
 
-	arena_scope(c->scratch, s);
-
-	cs = find_step(c, step_name, &s);
+	cs = find_step(c, step_name, s);
 	if (cs == NULL)
 		return NULL;
-	return cs->script_path;
+	return cs->command.val.list;
 }
