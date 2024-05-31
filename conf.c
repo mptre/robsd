@@ -749,14 +749,11 @@ config_regress_get_steps(struct config *cf, struct arena_scope *s)
 	return steps;
 }
 
-struct config_step *
-config_get_steps(struct config *cf, struct arena_scope *s)
+static struct config_step *
+config_default_get_steps(struct config *cf, struct arena_scope *s)
 {
 	VECTOR(struct config_step) steps;
 	size_t i;
-
-	if (cf->mode == ROBSD_REGRESS)
-		return config_regress_get_steps(cf, s);
 
 	ARENA_VECTOR_INIT(s, steps, cf->steps.len);
 
@@ -770,6 +767,18 @@ config_get_steps(struct config *cf, struct arena_scope *s)
 		*dst = *cs;
 	}
 
+	return steps;
+}
+
+struct config_step *
+config_get_steps(struct config *cf, struct arena_scope *s)
+{
+	VECTOR(struct config_step) steps;
+
+	if (cf->mode == ROBSD_REGRESS)
+		steps = config_regress_get_steps(cf, s);
+	else
+		steps = config_default_get_steps(cf, s);
 	return steps;
 }
 
