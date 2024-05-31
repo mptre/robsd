@@ -354,6 +354,27 @@ regress_report_step_log(struct report_context *r, const struct step *step)
 }
 
 static int
+canvas_report_step_log(struct report_context *r, const struct step *step)
+{
+	struct buffer *bf;
+	const char *log_path, *str;
+
+	arena_scope(r->scratch, s);
+
+	log_path = step_get_log_path(r, step, &s);
+	if (log_path == NULL)
+		return STEP_LOG_UNHANDLED;
+	bf = arena_buffer_read(&s, log_path);
+	if (bf == NULL) {
+		warn("%s", log_path);
+		return STEP_LOG_ERROR;
+	}
+	str = buffer_str(bf);
+	buffer_printf(r->out, "\n%s", str);
+	return STEP_LOG_HANDLED;
+}
+
+static int
 canvas_report_subject(struct report_context *r)
 {
 	const char *canvas_name;
@@ -718,6 +739,8 @@ report_step_log(struct report_context *r, const struct step *step)
 		rv = ports_report_step_log(r, step);
 	else if (r->mode == ROBSD_REGRESS)
 		rv = regress_report_step_log(r, step);
+	else if (r->mode == CANVAS)
+		rv = canvas_report_step_log(r, step);
 	if (rv == STEP_LOG_ERROR)
 		return 1;
 	if (rv == STEP_LOG_HANDLED)

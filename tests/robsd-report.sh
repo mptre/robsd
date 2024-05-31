@@ -449,7 +449,9 @@ fi
 
 if testcase "canvas: basic"; then
 	{
-		step_serialize -s 1 -n first -l first.log
+		step_serialize -s 1 -n first -l first.log -e 1
+		genlog 20 >"${_builddir}/first.log"
+
 		step_serialize -H -s 2 -n end -d 60
 	} >"$(step_path "$_builddir")"
 
@@ -460,6 +462,13 @@ if testcase "canvas: basic"; then
 	Status: ok
 	Duration: 00:01:00
 	Build: ${_builddir}
+
+	> first
+	Exit: 1
+	Duration: 00:00:01
+	Log: first.log
+
+	$(cat "${_builddir}/first.log")
 	EOF
 fi
 
