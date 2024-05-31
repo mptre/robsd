@@ -21,7 +21,6 @@
 
 struct step_context {
 	struct config		*config;
-	struct arena		*scratch;
 	unsigned int		 flags;
 };
 
@@ -46,7 +45,6 @@ step_exec(const char *step_name, struct config *config, struct arena *scratch,
 {
 	struct step_context c = {
 		.config		= config,
-		.scratch	= scratch,
 		.flags		= flags,
 	};
 	char *const *command;
