@@ -45,7 +45,8 @@ const char	*config_interpolate_str(struct config *, const char *);
 const char	*config_interpolate_lookup(const char *, struct arena_scope *,
     void *);
 
-enum robsd_mode			  config_get_mode(const struct config *);
-const char			**config_get_steps(struct config *);
-const struct variable_value	 *config_get_value(struct config *,
+enum robsd_mode			 config_get_mode(const struct config *);
+struct config_step		*config_get_steps(struct config *,
+    struct arena_scope *);
+const struct variable_value	*config_get_value(struct config *,
     const char *);

@@ -18,6 +18,7 @@
 #include <unistd.h>
 
 #include "libks/arena-buffer.h"
+#include "libks/arena-vector.h"
 #include "libks/arena.h"
 #include "libks/arithmetic.h"
 #include "libks/buffer.h"
@@ -682,98 +683,91 @@ is_parallel(struct config *cf, const char *step_name)
 	return config_value(cf, name, integer, 1);
 }
 
-static const char **
-config_regress_get_steps(struct config *cf)
+static struct config_step *
+config_regress_get_steps(struct config *cf, struct arena_scope *s)
 {
-	VECTOR(const char *) regress_no_parallel;
-	VECTOR(const char *) steps;
+	VECTOR(struct config_step) regress_no_parallel;
+	VECTOR(struct config_step) steps;
 	VECTOR(char *) regress;
-	size_t i = 0;
-	size_t nregress, r, s;
+	struct config_step *dst;
+	size_t i, nregress, r;
 
 	regress = config_value(cf, "regress", list, NULL);
 	nregress = VECTOR_LENGTH(regress);
 
-	if (VECTOR_INIT(steps))
-		err(1, NULL);
-	if (VECTOR_RESERVE(steps, cf->steps.len + nregress))
-		err(1, NULL);
-	if (VECTOR_INIT(regress_no_parallel))
-		err(1, NULL);
+	ARENA_VECTOR_INIT(s, steps, cf->steps.len + nregress);
+	ARENA_VECTOR_INIT(s, regress_no_parallel, 0);
 
 	/* Include synchronous steps up to ${regress}. */
-	for (s = 0; s < cf->steps.len; s++) {
-		const struct config_step *cs = &cf->steps.ptr[s];
+	for (i = 0; i < cf->steps.len; i++) {
+		const struct config_step *cs = &cf->steps.ptr[i];
 
 		if (cs->name == NULL)
 			break;
 
-		if (VECTOR_ALLOC(steps) == NULL)
+		dst = VECTOR_ALLOC(steps);
+		if (dst == NULL)
 			err(1, NULL);
-		steps[i++] = cs->name;
+		*dst = *cs;
 	}
 
 	/* Include parallel ${regress} steps. */
 	for (r = 0; r < nregress; r++) {
 		if (is_parallel(cf, regress[r])) {
-			if (VECTOR_ALLOC(steps) == NULL)
+			dst = VECTOR_ALLOC(steps);
+			if (dst == NULL)
 				err(1, NULL);
-			steps[i++] = regress[r];
 		} else {
-			const char **dst;
-
 			dst = VECTOR_ALLOC(regress_no_parallel);
 			if (dst == NULL)
 				err(1, NULL);
-			*dst = regress[r];
 		}
+		*dst = (struct config_step){
+		    .name		= regress[r],
+		    .script_path	= "${exec-dir}/robsd-regress-exec.sh",
+		};
 	}
 
 	/* Include non-parallel ${regress} steps. */
 	for (r = 0; r < VECTOR_LENGTH(regress_no_parallel); r++) {
-		if (VECTOR_ALLOC(steps) == NULL)
+		dst = VECTOR_ALLOC(steps);
+		if (dst == NULL)
 			err(1, NULL);
-		steps[i++] = regress_no_parallel[r];
+		*dst = regress_no_parallel[r];
 	}
 
 	/* Include remaining synchronous steps. */
-	for (s++; s < cf->steps.len; s++) {
-		const struct config_step *cs = &cf->steps.ptr[s];
+	for (i++; i < cf->steps.len; i++) {
+		const struct config_step *cs = &cf->steps.ptr[i];
 
-		if (VECTOR_ALLOC(steps) == NULL)
+		dst = VECTOR_ALLOC(steps);
+		if (dst == NULL)
 			err(1, NULL);
-		steps[i++] = cs->name;
+		*dst = *cs;
 	}
-
-	VECTOR_FREE(regress_no_parallel);
 
 	return steps;
 }
 
-/*
- * Returns a vector including all steps. The caller is responsible for freeing
- * the vector.
- */
-const char **
-config_get_steps(struct config *cf)
+struct config_step *
+config_get_steps(struct config *cf, struct arena_scope *s)
 {
-	VECTOR(const char *) steps;
+	VECTOR(struct config_step) steps;
 	size_t i;
 
 	if (cf->mode == ROBSD_REGRESS)
-		return config_regress_get_steps(cf);
+		return config_regress_get_steps(cf, s);
 
-	if (VECTOR_INIT(steps))
-		err(1, NULL);
-	if (VECTOR_RESERVE(steps, cf->steps.len))
-		err(1, NULL);
+	ARENA_VECTOR_INIT(s, steps, cf->steps.len);
 
 	for (i = 0; i < cf->steps.len; i++) {
 		const struct config_step *cs = &cf->steps.ptr[i];
+		struct config_step *dst;
 
-		if (VECTOR_ALLOC(steps) == NULL)
+		dst = VECTOR_ALLOC(steps);
+		if (dst == NULL)
 			err(1, NULL);
-		steps[i] = cs->name;
+		*dst = *cs;
 	}
 
 	return steps;

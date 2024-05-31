@@ -8,6 +8,7 @@ COMPATS+=	compat-unveil.c
 
 SRCS_config+=	alloc.c
 SRCS_config+=	arena-buffer.c
+SRCS_config+=	arena-vector.c
 SRCS_config+=	arena.c
 SRCS_config+=	arithmetic.c
 SRCS_config+=	buffer.c

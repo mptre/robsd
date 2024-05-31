@@ -294,8 +294,8 @@ steps_list(struct step_context *c, int argc, char **argv)
 	struct config *config;
 	const char *config_mode = NULL;
 	const char *config_path = NULL;
-	const char **steps;
-	size_t i, nsteps;
+	VECTOR(struct config_step) steps;
+	size_t i;
 	int ch;
 
 	while ((ch = getopt(argc, argv, "C:m:")) != -1) {
@@ -321,11 +321,11 @@ steps_list(struct step_context *c, int argc, char **argv)
 	if (config_parse(config))
 		return 1;
 
-	steps = config_get_steps(config);
-	nsteps = VECTOR_LENGTH(steps);
-	for (i = 0; i < nsteps; i++)
-		printf("%s\n", steps[i]);
-	VECTOR_FREE(steps);
+	arena_scope(c->scratch, s);
+
+	steps = config_get_steps(config, &s);
+	for (i = 0; i < VECTOR_LENGTH(steps); i++)
+		printf("%s\n", steps[i].name);
 
 	config_free(config);
 
