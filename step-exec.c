@@ -2,7 +2,6 @@
 
 #include "config.h"
 
-#include <sys/stat.h>
 #include <sys/wait.h>
 
 #include <err.h>
