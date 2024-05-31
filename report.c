@@ -25,6 +25,10 @@
 #include "step.h"
 #include "variable-value.h"
 
+#define STEP_LOG_HANDLED	1
+#define STEP_LOG_UNHANDLED	2
+#define STEP_LOG_ERROR		3
+
 struct report_context {
 	struct arena		*scratch;
 	const char		*builddir;
@@ -172,10 +176,10 @@ report_cvs_log(struct report_context *r)
 		if (ncvs++ > 0)
 			buffer_putc(r->out, '\n');
 		if (format_file(r, path))
-			return -1;
+			return STEP_LOG_ERROR;
 	}
 
-	return 1;
+	return STEP_LOG_HANDLED;
 }
 
 static const char *
@@ -231,10 +235,12 @@ ports_report_step_log(struct report_context *r, const struct step *step)
 		path = arena_sprintf(&s, "%s/tmp/packages.diff", r->builddir);
 		if (step_get_field(step, "exit")->integer == 0) {
 			buffer_putc(r->out, '\n');
-			return format_file(r, path) ? -1 : 1;
+			if (format_file(r, path))
+				return STEP_LOG_ERROR;
+			return STEP_LOG_HANDLED;
 		}
 	}
-	return 0;
+	return STEP_LOG_UNHANDLED;
 }
 
 static int
@@ -331,7 +337,7 @@ regress_report_step_log(struct report_context *r, const struct step *step)
 	log_path = step_get_log_path(r, step, &s);
 	if (log_path == NULL) {
 		warnx("step '%s' is missing mandatory log field", name);
-		return -1;
+		return STEP_LOG_ERROR;
 	}
 	regress_log_flags = REGRESS_LOG_FAILED | REGRESS_LOG_XPASSED;
 	if (!is_regress_quiet(r, name))
@@ -340,9 +346,11 @@ regress_report_step_log(struct report_context *r, const struct step *step)
 	if (rv > 0) {
 		buffer_putc(r->out, '\n');
 		buffer_puts(r->out, buffer_get_ptr(bf), buffer_get_len(bf));
+		return STEP_LOG_HANDLED;
 	}
-
-	return rv;
+	if (rv < 0)
+		return STEP_LOG_ERROR;
+	return STEP_LOG_UNHANDLED;
 }
 
 static int
@@ -707,11 +715,11 @@ report_step_log(struct report_context *r, const struct step *step,
 
 	if (r->mode == ROBSD_PORTS)
 		rv = ports_report_step_log(r, step);
-	if (r->mode == ROBSD_REGRESS)
+	else if (r->mode == ROBSD_REGRESS)
 		rv = regress_report_step_log(r, step);
-	if (rv < 0)
+	if (rv == STEP_LOG_ERROR)
 		return 1;
-	if (rv > 0)
+	if (rv == STEP_LOG_HANDLED)
 		return 0;
 
 	name = step_get_field(step, "name")->str;
