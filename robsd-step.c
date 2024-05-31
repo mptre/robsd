@@ -329,6 +329,8 @@ steps_list(struct step_context *c, int argc, char **argv)
 	if (argc != 0 || config_mode == NULL)
 		usage();
 
+	arena_scope(c->scratch, s);
+
 	config = config_alloc(config_mode, config_path, c->eternal, c->scratch);
 	if (config == NULL)
 		return 1;
@@ -336,8 +338,6 @@ steps_list(struct step_context *c, int argc, char **argv)
 		error = 1;
 		goto out;
 	}
-
-	arena_scope(c->scratch, s);
 
 	steps = config_get_steps(config, 0, &s);
 	if (steps == NULL) {
