@@ -34,20 +34,12 @@
 static struct token	*config_lexer_read(struct lexer *, void *);
 static const char	*token_serialize(const struct token *);
 
-/*
- * grammar ---------------------------------------------------------------------
- */
-
 static const struct grammar	*config_find_grammar_for_keyword(
     const struct config *, const char *);
 static const struct grammar	*config_find_grammar_for_interpolation(
     const struct config *, const char *);
 static int			 grammar_equals(const struct grammar *,
     const char *);
-
-/*
- * config ----------------------------------------------------------------------
- */
 
 static int	config_parse1(struct config *);
 static int	config_parse_keyword(struct config *, struct token *);
