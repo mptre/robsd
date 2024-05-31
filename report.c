@@ -705,13 +705,14 @@ report_skip_step(struct report_context *r, const struct step *step)
 }
 
 static int
-report_step_log(struct report_context *r, const struct step *step,
-    struct arena_scope *s)
+report_step_log(struct report_context *r, const struct step *step)
 {
 	struct buffer *bf;
 	const char *log_path, *name, *str;
 	size_t len;
 	int rv = 0;
+
+	arena_scope(r->scratch, s);
 
 	if (r->mode == ROBSD_PORTS)
 		rv = ports_report_step_log(r, step);
@@ -726,10 +727,10 @@ report_step_log(struct report_context *r, const struct step *step,
 	if (strcmp(name, "cvs") == 0)
 		return report_cvs_log(r) < 0 ? 1 : 0;
 
-	log_path = step_get_log_path(r, step, s);
+	log_path = step_get_log_path(r, step, &s);
 	if (log_path == NULL)
 		return 0;
-	bf = arena_buffer_read(s, log_path);
+	bf = arena_buffer_read(&s, log_path);
 	if (bf == NULL) {
 		warn("%s", log_path);
 		return 1;
@@ -783,7 +784,7 @@ report_steps(struct report_context *r)
 		buffer_printf(r->out, "Log: %s\n",
 		    step_get_field(step, "log")->str);
 
-		if (report_step_log(r, step, &s))
+		if (report_step_log(r, step))
 			return 1;
 	}
 
