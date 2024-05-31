@@ -26,6 +26,7 @@
 #include "libks/vector.h"
 
 #include "alloc.h"
+#include "conf-priv.h"
 #include "if.h"
 #include "interpolate.h"
 #include "lexer.h"
@@ -127,32 +128,6 @@ static int			 grammar_equals(const struct grammar *,
 /*
  * config ----------------------------------------------------------------------
  */
-
-struct config {
-	struct arena_scope		*eternal;
-	struct arena			*scratch;
-	struct lexer			*lx;
-	const char			*path;
-
-	VECTOR(const struct grammar *)	 grammar;
-
-	struct {
-		const struct config_step	*ptr;
-		size_t				 len;
-	} steps;
-
-	struct {
-		int	early;
-		int	rdomain;
-	} interpolate;
-
-	VECTOR(struct variable)		 variables;
-
-	/* Sentinel used for absent list variables during interpolation. */
-	VECTOR(char *)			 empty_list;
-
-	enum robsd_mode			 mode;
-};
 
 static int	config_parse1(struct config *);
 static int	config_parse_keyword(struct config *, struct token *);
@@ -333,9 +308,14 @@ struct config *
 config_alloc(const char *mode, const char *path, struct arena_scope *eternal,
     struct arena *scratch)
 {
+	static const struct config_callbacks *(*callbacks[])(void) = {
+		[ROBSD]		= config_robsd_callbacks,
+		[ROBSD_CROSS]	= config_robsd_cross_callbacks,
+		[ROBSD_PORTS]	= config_robsd_ports_callbacks,
+		[ROBSD_REGRESS]	= config_robsd_regress_callbacks,
+	};
 	const struct grammar *grammar;
 	struct config *cf;
-	const char *defaultpath = NULL;
 	size_t common_grammar_len = sizeof(common_grammar) /
 	    sizeof(common_grammar[0]);
 	size_t grammar_len = 0;
@@ -352,6 +332,7 @@ config_alloc(const char *mode, const char *path, struct arena_scope *eternal,
 	cf->scratch = scratch;
 	cf->path = path;
 	cf->mode = m;
+	cf->callbacks = callbacks[cf->mode]();
 	if (VECTOR_INIT(cf->grammar))
 		err(1, NULL);
 	if (VECTOR_INIT(cf->variables))
@@ -360,16 +341,16 @@ config_alloc(const char *mode, const char *path, struct arena_scope *eternal,
 		err(1, NULL);
 	cf->interpolate.rdomain = RDOMAIN_MIN;
 
+	if (cf->callbacks->init(cf))
+		goto err;
 	switch (cf->mode) {
 	case ROBSD:
-		defaultpath = "/etc/robsd.conf";
 		grammar = robsd;
 		grammar_len = sizeof(robsd) / sizeof(robsd[0]);
 		cf->steps.ptr = robsd_steps;
 		cf->steps.len = sizeof(robsd_steps) / sizeof(robsd_steps[0]);
 		break;
 	case ROBSD_CROSS:
-		defaultpath = "/etc/robsd-cross.conf";
 		grammar = robsd_cross;
 		grammar_len = sizeof(robsd_cross) / sizeof(robsd_cross[0]);
 		cf->steps.ptr = robsd_cross_steps;
@@ -377,7 +358,6 @@ config_alloc(const char *mode, const char *path, struct arena_scope *eternal,
 		    sizeof(robsd_cross_steps[0]);
 		break;
 	case ROBSD_PORTS:
-		defaultpath = "/etc/robsd-ports.conf";
 		grammar = robsd_ports;
 		grammar_len = sizeof(robsd_ports) / sizeof(robsd_ports[0]);
 		cf->steps.ptr = robsd_ports_steps;
@@ -385,7 +365,6 @@ config_alloc(const char *mode, const char *path, struct arena_scope *eternal,
 		    sizeof(robsd_ports_steps[0]);
 		break;
 	case ROBSD_REGRESS:
-		defaultpath = "/etc/robsd-regress.conf";
 		grammar = robsd_regress;
 		grammar_len = sizeof(robsd_regress) / sizeof(robsd_regress[0]);
 		cf->steps.ptr = robsd_regress_steps;
@@ -393,8 +372,6 @@ config_alloc(const char *mode, const char *path, struct arena_scope *eternal,
 		    sizeof(robsd_regress_steps[0]);
 		break;
 	}
-	if (cf->path == NULL)
-		cf->path = defaultpath;
 
 	if (VECTOR_RESERVE(cf->grammar, grammar_len + common_grammar_len))
 		err(1, NULL);
@@ -416,6 +393,10 @@ config_alloc(const char *mode, const char *path, struct arena_scope *eternal,
 	}
 
 	return cf;
+
+err:
+	config_free(cf);
+	return NULL;
 }
 
 void
