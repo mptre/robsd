@@ -1,5 +1,7 @@
 #include "variable-value.h"
 
+#include "config.h"
+
 #include <assert.h>
 #include <err.h>
 #include <string.h>
