@@ -256,9 +256,8 @@ steps_write(struct step_file *sf, struct arena *scratch)
 	FILE *fh = NULL;
 	struct buffer *bf;
 	size_t nsteps = VECTOR_LENGTH(sf->steps);
-	size_t i;
+	size_t i, n;
 	int error = 0;
-	int n;
 
 	bf = buffer_alloc(1 << 16);
 	if (bf == NULL)
