@@ -40,6 +40,13 @@ config_canvas_init(struct config *cf)
 static void
 config_canvas_free(struct config *cf)
 {
+	while (!VECTOR_EMPTY(cf->canvas.steps)) {
+		struct config_step *cs;
+
+		cs = VECTOR_POP(cf->canvas.steps);
+		variable_value_clear(&cs->command.val);
+	}
+
 	VECTOR_FREE(cf->canvas.steps);
 }
 
