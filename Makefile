@@ -23,6 +23,7 @@ SRCS_config+=	lexer.c
 SRCS_config+=	log.c
 SRCS_config+=	mode.c
 SRCS_config+=	token.c
+SRCS_config+=	variable-value.c
 SRCS_config+=	vector.c
 
 SRCS_robsd-config+=	${COMPATS}
@@ -197,6 +198,7 @@ KNFMT+=	step.c
 KNFMT+=	step.h
 KNFMT+=	token.c
 KNFMT+=	token.h
+KNFMT+=	variable-value.c
 KNFMT+=	variable-value.h
 
 CLANGTIDY+=	alloc.c
@@ -246,6 +248,7 @@ CLANGTIDY+=	step.c
 CLANGTIDY+=	step.h
 CLANGTIDY+=	token.c
 CLANGTIDY+=	token.h
+CLANGTIDY+=	variable-value.c
 CLANGTIDY+=	variable-value.h
 
 CPPCHECK+=	alloc.c
@@ -279,6 +282,7 @@ CPPCHECK+=	robsd-wait.c
 CPPCHECK+=	step-exec.c
 CPPCHECK+=	step.c
 CPPCHECK+=	token.c
+CPPCHECK+=	variable-value.c
 
 CPPCHECKFLAGS+=	--quiet
 CPPCHECKFLAGS+=	--check-level=exhaustive
