@@ -330,6 +330,7 @@ fi
 
 if testcase "list: canvas"; then
 	robsd_config -c - <<-EOF
+	canvas-dir "$TSHDIR"
 	step "first" command { "true" }
 	step "second" command { "true" } parallel
 	EOF

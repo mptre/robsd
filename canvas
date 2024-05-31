@@ -31,21 +31,23 @@ while getopts "dC:c:r:s:t:" opt; do
 	d)	DETACH=0;;
 	c)	_comment="$OPTARG";;
 	r)	BUILDDIR="$(readlink -f "$OPTARG")";;
-	s)	SKIP="${SKIP}${SKIP:+ }${OPTARG}";;
+	s)	SKIP="${SKIP:-}${SKIP:+ }${OPTARG}";;
 	t)	_tags="${_tags}${_tags:+ }${OPTARG}";;
 	*)	usage;;
 	esac
 done
 shift $((OPTIND - 1))
 [ $# -ne 0 ] && usage
-# XXX ensure ROBSDCONF not empty
+[ -n "${ROBSDCONF:-}" ] || usage
 
-# XXX handle skip merge with above
 config_load <<'EOF'
 ROBSDDIR="${robsddir}"
 KEEP="${keep}"
-SKIP="${skip}"
 STATINTERVAL="${stat-interval}"
+EOF
+
+config_load <<EOF
+SKIP="${SKIP:-} \${skip}"
 EOF
 
 trap 'trap_exit -r "$ROBSDDIR" -b "$BUILDDIR" -s "$_statpid"' EXIT
@@ -81,7 +83,6 @@ if [ "$_step" -eq 1 ]; then
 	"$ROBSDSTAT" -H >"${BUILDDIR}/stat.csv"
 fi
 
-# XXX
 if [ "$KEEP" -gt 0 ]; then
 	/usr/local/sbin/robsd-clean "$KEEP"
 fi

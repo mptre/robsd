@@ -55,7 +55,6 @@ robsd_config() {
 		canvas)
 			cat <<-EOF
 			canvas-name "test"
-			canvas-dir "${TSHDIR}"
 			EOF
 			;;
 		*)

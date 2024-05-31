@@ -30,6 +30,7 @@ setup() {
 	mv "$ROBSDCONF" "${TSHDIR}/.conf/robsd-regress.conf"
 
 	robsd_config -c - <<-EOF
+	canvas-dir "$TSHDIR"
 	step "first" command { "true" }
 	EOF
 	mv "$ROBSDCONF" "${TSHDIR}/.conf/canvas.conf"
