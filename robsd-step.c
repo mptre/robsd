@@ -121,8 +121,8 @@ main(int argc, char *argv[])
 			err(1, "pledge");
 		break;
 	case ACTION_INVALID:
-		__builtin_trap(); /* UNREACHABLE */
-		break;
+		__builtin_trap();
+		/* UNREACHABLE */
 	}
 
 	switch (action) {
@@ -151,8 +151,8 @@ main(int argc, char *argv[])
 		error = steps_list(&c, argc, argv);
 		break;
 	case ACTION_INVALID:
-		__builtin_trap(); /* UNREACHABLE */
-		break;
+		__builtin_trap();
+		/* UNREACHABLE */
 	}
 
 out:
