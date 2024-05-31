@@ -1,3 +1,5 @@
+portable no
+
 robsd_mock >"$TMP1"; read -r _ BINDIR CANVASDIR <"$TMP1"
 
 setup() {
