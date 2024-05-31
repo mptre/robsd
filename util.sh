@@ -853,6 +853,7 @@ robsd() {
 	local _jobs=""
 	local _name
 	local _ncpu
+	local _parallel
 	local _step
 	local _steps
 
@@ -870,7 +871,7 @@ robsd() {
 	_ncpu="$(sysctl -n hw.ncpuonline)"
 	_steps="$(step_path "$_builddir")"
 
-	steps -o "$_step" | while read -r _step _name; do
+	steps -o "$_step" | while read -r _step _name _parallel; do
 		if step_eval -n "$_name" "$_steps" 2>/dev/null &&
 		   step_skip; then
 			info "step ${_name} skipped"
@@ -895,7 +896,7 @@ robsd() {
 			return 0
 		fi
 
-		if step_parallel "$_name"; then
+		if [ -n "$_parallel" ]; then
 			# Ensure the job queue is not full.
 			if [ "$(jobs_count "$_jobs")" -eq "$_ncpu" ]; then
 				info "parallel wait $(jobs_count "${_jobs}")/${_ncpu}"
@@ -1253,20 +1254,6 @@ step_next() {
 
 	echo "step_next: cannot find next step" 1>&2
 	return 1
-}
-
-# step_parallel step-name
-#
-# Exits zero if the step can be executed in parallel.
-step_parallel() {
-	case "$_MODE" in
-	robsd-regress)
-		regress_step_parallel "$_name"
-		;;
-	*)
-		return 1
-		;;
-	esac
 }
 
 # step_skip

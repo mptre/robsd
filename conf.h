@@ -34,10 +34,15 @@ struct variable_value {
 
 struct config_step {
 	const char	*name;
+
 	union {
 		const char		*path;
 		struct variable_value	 val;
 	} command;
+
+	struct {
+		unsigned int	parallel:1;
+	} flags;
 };
 
 struct config	*config_alloc(const char *, const char *, struct arena_scope *,

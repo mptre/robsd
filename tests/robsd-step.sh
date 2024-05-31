@@ -299,12 +299,12 @@ if testcase "list: robsd-regress"; then
 	EOF
 
 	robsd_step -- -L -C "$ROBSDCONF" -m robsd-regress |
-	awk '{print $2}' |
+	cut -d ' ' -f 2- |
 	grep / >"$TMP1"
 
 	assert_file - "$TMP1" <<-EOF
-	bin/csh
-	bin/ksh
+	bin/csh parallel
+	bin/ksh parallel
 	lib/libc/locale
 	gnu/usr.bin/perl
 	EOF
@@ -319,7 +319,7 @@ if testcase "list: robsd-regress parallel disabled"; then
 	EOF
 
 	robsd_step -- -L -C "$ROBSDCONF" -m robsd-regress |
-	awk '{print $2}' |
+	cut -d ' ' -f 2- |
 	grep / >"$TMP1"
 
 	assert_file - "$TMP1" <<-EOF

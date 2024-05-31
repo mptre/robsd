@@ -235,23 +235,23 @@ static const struct grammar robsd[] = {
 };
 
 static const struct config_step robsd_steps[] = {
-	{ "env",	{ "${exec-dir}/robsd-env.sh" } },
-	{ "cvs",	{ "${exec-dir}/robsd-cvs.sh" } },
-	{ "patch",	{ "${exec-dir}/robsd-patch.sh" } },
-	{ "kernel",	{ "${exec-dir}/robsd-kernel.sh" } },
-	{ "reboot",	{ "/dev/null" } },
-	{ "env",	{ "${exec-dir}/robsd-env.sh" } },
-	{ "base",	{ "${exec-dir}/robsd-base.sh" } },
-	{ "release",	{ "${exec-dir}/robsd-release.sh" } },
-	{ "checkflist",	{ "${exec-dir}/robsd-checkflist.sh" } },
-	{ "xbase",	{ "${exec-dir}/robsd-xbase.sh" } },
-	{ "xrelease",	{ "${exec-dir}/robsd-xrelease.sh" } },
-	{ "image",	{ "${exec-dir}/robsd-image.sh" } },
-	{ "hash",	{ "${exec-dir}/robsd-hash.sh" } },
-	{ "revert",	{ "${exec-dir}/robsd-revert.sh" } },
-	{ "distrib",	{ "${exec-dir}/robsd-distrib.sh" } },
-	{ "dmesg",	{ "${exec-dir}/robsd-dmesg.sh" } },
-	{ "end",	{ "/dev/null" } },
+	{ "env",	{ "${exec-dir}/robsd-env.sh" },		{0} },
+	{ "cvs",	{ "${exec-dir}/robsd-cvs.sh" },		{0} },
+	{ "patch",	{ "${exec-dir}/robsd-patch.sh" },	{0} },
+	{ "kernel",	{ "${exec-dir}/robsd-kernel.sh" },	{0} },
+	{ "reboot",	{ "/dev/null" },			{0} },
+	{ "env",	{ "${exec-dir}/robsd-env.sh" },		{0} },
+	{ "base",	{ "${exec-dir}/robsd-base.sh" },	{0} },
+	{ "release",	{ "${exec-dir}/robsd-release.sh" },	{0} },
+	{ "checkflist",	{ "${exec-dir}/robsd-checkflist.sh" },	{0} },
+	{ "xbase",	{ "${exec-dir}/robsd-xbase.sh" },	{0} },
+	{ "xrelease",	{ "${exec-dir}/robsd-xrelease.sh" },	{0} },
+	{ "image",	{ "${exec-dir}/robsd-image.sh" },	{0} },
+	{ "hash",	{ "${exec-dir}/robsd-hash.sh" },	{0} },
+	{ "revert",	{ "${exec-dir}/robsd-revert.sh" },	{0} },
+	{ "distrib",	{ "${exec-dir}/robsd-distrib.sh" },	{0} },
+	{ "dmesg",	{ "${exec-dir}/robsd-dmesg.sh" },	{0} },
+	{ "end",	{ "/dev/null" },			{0} },
 };
 
 static const struct grammar robsd_cross[] = {
@@ -260,12 +260,12 @@ static const struct grammar robsd_cross[] = {
 };
 
 static const struct config_step robsd_cross_steps[] = {
-	{ "env",	{ "${exec-dir}/robsd-env.sh" } },
-	{ "dirs",	{ "${exec-dir}/robsd-cross-dirs.sh" } },
-	{ "tools",	{ "${exec-dir}/robsd-cross-tools.sh" } },
-	{ "distrib",	{ "${exec-dir}/robsd-cross-distrib.sh" } },
-	{ "dmesg",	{ "${exec-dir}/robsd-dmesg.sh" } },
-	{ "end",	{ "/dev/null" } },
+	{ "env",	{ "${exec-dir}/robsd-env.sh" },			{0} },
+	{ "dirs",	{ "${exec-dir}/robsd-cross-dirs.sh" },		{0} },
+	{ "tools",	{ "${exec-dir}/robsd-cross-tools.sh" },		{0} },
+	{ "distrib",	{ "${exec-dir}/robsd-cross-distrib.sh" },	{0} },
+	{ "dmesg",	{ "${exec-dir}/robsd-dmesg.sh" },		{0} },
+	{ "end",	{ "/dev/null" },				{0} },
 };
 
 static const struct grammar robsd_ports[] = {
@@ -283,16 +283,16 @@ static const struct grammar robsd_ports[] = {
 };
 
 static struct config_step robsd_ports_steps[] = {
-	{ "env",	{ "${exec-dir}/robsd-env.sh" } },
-	{ "cvs",	{ "${exec-dir}/robsd-cvs.sh" } },
-	{ "clean",	{ "${exec-dir}/robsd-ports-clean.sh" } },
-	{ "proot",	{ "${exec-dir}/robsd-ports-proot.sh" } },
-	{ "patch",	{ "${exec-dir}/robsd-patch.sh" } },
-	{ "dpb",	{ "${exec-dir}/robsd-ports-dpb.sh" } },
-	{ "distrib",	{ "${exec-dir}/robsd-ports-distrib.sh" } },
-	{ "revert",	{ "${exec-dir}/robsd-revert.sh" } },
-	{ "dmesg",	{ "${exec-dir}/robsd-dmesg.sh" } },
-	{ "end",	{ "/dev/null" } },
+	{ "env",	{ "${exec-dir}/robsd-env.sh" },			{0} },
+	{ "cvs",	{ "${exec-dir}/robsd-cvs.sh" },			{0} },
+	{ "clean",	{ "${exec-dir}/robsd-ports-clean.sh" },		{0} },
+	{ "proot",	{ "${exec-dir}/robsd-ports-proot.sh" },		{0} },
+	{ "patch",	{ "${exec-dir}/robsd-patch.sh" },		{0} },
+	{ "dpb",	{ "${exec-dir}/robsd-ports-dpb.sh" },		{0} },
+	{ "distrib",	{ "${exec-dir}/robsd-ports-distrib.sh" },	{0} },
+	{ "revert",	{ "${exec-dir}/robsd-revert.sh" },		{0} },
+	{ "dmesg",	{ "${exec-dir}/robsd-dmesg.sh" },		{0} },
+	{ "end",	{ "/dev/null" },				{0} },
 };
 
 static const struct grammar robsd_regress[] = {
@@ -314,18 +314,18 @@ static const struct grammar robsd_regress[] = {
 };
 
 static struct config_step robsd_regress_steps[] = {
-	{ "env",	{ "${exec-dir}/robsd-env.sh" } },
-	{ "pkg-add",	{ "${exec-dir}/robsd-regress-pkg-add.sh" } },
-	{ "cvs",	{ "${exec-dir}/robsd-cvs.sh" } },
-	{ "patch",	{ "${exec-dir}/robsd-patch.sh" } },
-	{ "obj",	{ "${exec-dir}/robsd-regress-obj.sh" } },
-	{ "mount",	{ "${exec-dir}/robsd-regress-mount.sh" } },
-	{ NULL,		{ NULL } }, /* ${regress} */
-	{ "umount",	{ "${exec-dir}/robsd-regress-umount.sh" } },
-	{ "revert",	{ "${exec-dir}/robsd-revert.sh" } },
-	{ "pkg-del",	{ "${exec-dir}/robsd-regress-pkg-del.sh" } },
-	{ "dmesg",	{ "${exec-dir}/robsd-dmesg.sh" } },
-	{ "end",	{ "/dev/null" } },
+	{ "env",	{ "${exec-dir}/robsd-env.sh" },			{0} },
+	{ "pkg-add",	{ "${exec-dir}/robsd-regress-pkg-add.sh" },	{0} },
+	{ "cvs",	{ "${exec-dir}/robsd-cvs.sh" },			{0} },
+	{ "patch",	{ "${exec-dir}/robsd-patch.sh" },		{0} },
+	{ "obj",	{ "${exec-dir}/robsd-regress-obj.sh" },		{0} },
+	{ "mount",	{ "${exec-dir}/robsd-regress-mount.sh" },	{0} },
+	{ NULL,		{ NULL },					{0} }, /* ${regress} */
+	{ "umount",	{ "${exec-dir}/robsd-regress-umount.sh" },	{0} },
+	{ "revert",	{ "${exec-dir}/robsd-revert.sh" },		{0} },
+	{ "pkg-del",	{ "${exec-dir}/robsd-regress-pkg-del.sh" },	{0} },
+	{ "dmesg",	{ "${exec-dir}/robsd-dmesg.sh" },		{0} },
+	{ "end",	{ "/dev/null" },				{0} },
 };
 
 struct config *
@@ -724,7 +724,10 @@ config_regress_get_steps(struct config *cf, struct arena_scope *s)
 
 	/* Include parallel ${regress} steps. */
 	for (r = 0; r < nregress; r++) {
-		if (is_parallel(cf, regress[r])) {
+		int parallel;
+
+		parallel = is_parallel(cf, regress[r]);
+		if (parallel) {
 			dst = VECTOR_ALLOC(steps);
 			if (dst == NULL)
 				err(1, NULL);
@@ -736,6 +739,7 @@ config_regress_get_steps(struct config *cf, struct arena_scope *s)
 		*dst = (struct config_step){
 		    .name	= regress[r],
 		    .command	= { "${exec-dir}/robsd-regress-exec.sh" },
+		    .flags	= { .parallel = parallel ? 1 : 0 },
 		};
 	}
 

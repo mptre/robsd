@@ -344,7 +344,10 @@ steps_list(struct step_context *c, int argc, char **argv)
 		return 1;
 	}
 	for (i = offset - 1; i < VECTOR_LENGTH(steps); i++)
-		printf("%zu %s\n", i + 1, steps[i].name);
+		printf("%zu %s%s\n",
+		    i + 1,
+		    steps[i].name,
+		    steps[i].flags.parallel ? " parallel" : "");
 
 	config_free(config);
 

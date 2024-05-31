@@ -100,15 +100,3 @@ regress_step_after() {
 	fi
 	return "$_exit"
 }
-
-# regress_step_parallel step-name
-#
-# Exits zero if the step can be executed in parallel.
-regress_step_parallel() {
-	local _name
-
-	_name="$1"; : "${_name:?}"
-	# All regress suite steps are expected to contain at least one slash.
-	[ "$_name" != "${_name#*/}" ] &&
-		[ "$(config_value "regress-${_name}-parallel")" -eq 1 ]
-}
