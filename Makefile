@@ -560,7 +560,7 @@ install: all
 # robsd-wait
 	${INSTALL} -m 0555 ${PROG_robsd-wait} ${DESTDIR}${LIBEXECDIR}/robsd
 # canvas
-	${INSTALL} -m 0555 ${.CURDIR}/canvas ${DESTDIR}${BINDIR}
+	${INSTALL} -m 0555 ${.CURDIR}/canvas ${DESTDIR}${PREFIX}/bin
 .PHONY: install
 
 lint:
