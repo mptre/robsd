@@ -393,8 +393,31 @@ config_copy_grammar(struct config *cf, const struct grammar *grammar,
 	}
 }
 
-static void
-config_free_steps(void *arg)
+struct config_step *
+config_steps_add_script(struct config_step *steps, const char *script,
+    const char *step_name)
+{
+	struct config_step *dst;
+	struct variable_value *val;
+
+	dst = VECTOR_CALLOC(steps);
+	if (dst == NULL)
+		err(1, NULL);
+	dst->name = step_name;
+
+	val = &dst->command.val;
+	variable_value_init(val, LIST);
+	variable_value_append(val, "sh");
+	variable_value_append(val, "-eu");
+	variable_value_append(val, "${trace}");
+	variable_value_append(val, script);
+	variable_value_append(val, step_name);
+
+	return dst;
+}
+
+void
+config_steps_free(void *arg)
 {
 	VECTOR(struct config_step) steps = arg;
 	size_t i;
@@ -410,15 +433,12 @@ config_default_get_steps(struct config *cf, struct arena_scope *s)
 	size_t i;
 
 	ARENA_VECTOR_INIT(s, steps, cf->steps.len);
+	arena_cleanup(s, config_steps_free, steps);
 
 	for (i = 0; i < cf->steps.len; i++) {
 		const struct config_step *cs = &cf->steps.ptr[i];
-		struct config_step *dst;
 
-		dst = VECTOR_ALLOC(steps);
-		if (dst == NULL)
-			err(1, NULL);
-		*dst = *cs;
+		config_steps_add_script(steps, cs->command.path, cs->name);
 	}
 
 	return steps;
@@ -431,36 +451,34 @@ config_get_steps(struct config *cf, unsigned int flags, struct arena_scope *s)
 	size_t i;
 	int error = 0;
 
-	steps = cf->callbacks->get_steps(cf, s);
-	arena_cleanup(s, config_free_steps, steps);
-
 	cf->interpolate.trace = (flags & CONFIG_STEPS_TRACE_COMMAND) ? 1 : 0;
 
+	steps = cf->callbacks->get_steps(cf, s);
+
 	for (i = 0; i < VECTOR_LENGTH(steps); i++) {
-		struct config_step *cs = &steps[i];
-		struct variable_value *val = &cs->command.val;
-		const char *script_path, *trace;
+		struct variable_value *val = &steps[i].command.val;
+		struct variable_value newval;
+		size_t j;
 
-		script_path = config_interpolate_str(cf, cs->command.path);
-		if (script_path == NULL) {
-			error = 1;
-			goto out;
+		/* Interpolate all command arguments. */
+		variable_value_init(&newval, LIST);
+		for (j = 0; j < VECTOR_LENGTH(val->list); j++) {
+			const char *arg;
+
+			arg = config_interpolate_str(cf, val->list[j]);
+			if (arg == NULL) {
+				error = 1;
+				goto out;
+			}
+			if (arg[0] == '\0')
+				continue;
+			variable_value_append(&newval, arg);
 		}
+		/* Append NULL sentinel required by execvp(3). */
+		variable_value_append(&newval, NULL);
 
-		trace = config_interpolate_str(cf, "${trace}");
-		if (trace == NULL) {
-			error = 1;
-			goto out;
-		}
-
-		variable_value_init(val, LIST);
-		variable_value_append(val, "sh");
-		variable_value_append(val, "-eu");
-		if (trace[0] != '\0')
-			variable_value_append(val, trace);
-		variable_value_append(val, script_path);
-		variable_value_append(val, cs->name);
-		variable_value_append(val, NULL);
+		variable_value_clear(&steps[i].command.val);
+		steps[i].command.val = newval;
 	}
 
 out:

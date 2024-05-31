@@ -111,6 +111,10 @@ const char		*config_interpolate_early(struct config *,
     const char *);
 int			 config_present(const struct config *, const char *);
 
+struct config_step	*config_steps_add_script(struct config_step *,
+    const char *, const char *);
+void			 config_steps_free(void *);
+
 int	config_parse_boolean(struct config *, struct variable_value *);
 int	config_parse_directory(struct config *, struct variable_value *);
 int	config_parse_glob(struct config *, struct variable_value *);

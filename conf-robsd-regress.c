@@ -104,16 +104,17 @@ is_parallel(struct config *cf, const char *step_name)
 static struct config_step *
 config_robsd_regress_get_steps(struct config *cf, struct arena_scope *s)
 {
-	VECTOR(struct config_step) regress_no_parallel;
+	VECTOR(const char *) regress_no_parallel;
 	VECTOR(struct config_step) steps;
 	VECTOR(char *) regress;
-	struct config_step *dst;
 	size_t i, nregress, r;
 
 	regress = config_value(cf, "regress", list, NULL);
 	nregress = VECTOR_LENGTH(regress);
 
 	ARENA_VECTOR_INIT(s, steps, cf->steps.len + nregress);
+	arena_cleanup(s, config_steps_free, steps);
+
 	ARENA_VECTOR_INIT(s, regress_no_parallel, 0);
 
 	/* Include synchronous steps up to ${regress}. */
@@ -123,10 +124,7 @@ config_robsd_regress_get_steps(struct config *cf, struct arena_scope *s)
 		if (cs->name == NULL)
 			break;
 
-		dst = VECTOR_ALLOC(steps);
-		if (dst == NULL)
-			err(1, NULL);
-		*dst = *cs;
+		config_steps_add_script(steps, cs->command.path, cs->name);
 	}
 
 	/* Include parallel ${regress} steps. */
@@ -135,37 +133,33 @@ config_robsd_regress_get_steps(struct config *cf, struct arena_scope *s)
 
 		parallel = is_parallel(cf, regress[r]);
 		if (parallel) {
-			dst = VECTOR_ALLOC(steps);
-			if (dst == NULL)
-				err(1, NULL);
+			struct config_step *cs;
+
+			cs = config_steps_add_script(steps,
+			    "${exec-dir}/robsd-regress-exec.sh", regress[r]);
+			cs->flags.parallel = parallel ? 1 : 0;
 		} else {
+			const char **dst;
+
 			dst = VECTOR_ALLOC(regress_no_parallel);
 			if (dst == NULL)
 				err(1, NULL);
+			*dst = regress[r];
 		}
-		*dst = (struct config_step){
-		    .name	= regress[r],
-		    .command	= { "${exec-dir}/robsd-regress-exec.sh" },
-		    .flags	= { .parallel = parallel ? 1 : 0 },
-		};
 	}
 
 	/* Include non-parallel ${regress} steps. */
 	for (r = 0; r < VECTOR_LENGTH(regress_no_parallel); r++) {
-		dst = VECTOR_ALLOC(steps);
-		if (dst == NULL)
-			err(1, NULL);
-		*dst = regress_no_parallel[r];
+		config_steps_add_script(steps,
+		    "${exec-dir}/robsd-regress-exec.sh",
+		    regress_no_parallel[r]);
 	}
 
 	/* Include remaining synchronous steps. */
 	for (i++; i < cf->steps.len; i++) {
 		const struct config_step *cs = &cf->steps.ptr[i];
 
-		dst = VECTOR_ALLOC(steps);
-		if (dst == NULL)
-			err(1, NULL);
-		*dst = *cs;
+		config_steps_add_script(steps, cs->command.path, cs->name);
 	}
 
 	return steps;
