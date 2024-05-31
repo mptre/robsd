@@ -134,8 +134,8 @@ struct config {
 	VECTOR(const struct grammar *)	 grammar;
 
 	struct {
-		const char *const	*ptr;
-		size_t			 len;
+		const struct config_step	*ptr;
+		size_t				 len;
 	} steps;
 
 	struct {
@@ -232,24 +232,24 @@ static const struct grammar robsd[] = {
 	{ "x11-srcdir",		DIRECTORY,	config_parse_directory,	0,	{ "/usr/xenocara" } },
 };
 
-static const char *robsd_steps[] = {
-	"env",
-	"cvs",
-	"patch",
-	"kernel",
-	"reboot",
-	"env",
-	"base",
-	"release",
-	"checkflist",
-	"xbase",
-	"xrelease",
-	"image",
-	"hash",
-	"revert",
-	"distrib",
-	"dmesg",
-	"end",
+static const struct config_step robsd_steps[] = {
+	{ "env",	"${exec-dir}/robsd-env.sh" },
+	{ "cvs",	"${exec-dir}/robsd-cvs.sh" },
+	{ "patch",	"${exec-dir}/robsd-patch.sh" },
+	{ "kernel",	"${exec-dir}/robsd-kernel.sh" },
+	{ "reboot",	"/dev/null" },
+	{ "env",	"${exec-dir}/robsd-env.sh" },
+	{ "base",	"${exec-dir}/robsd-base.sh" },
+	{ "release",	"${exec-dir}/robsd-release.sh" },
+	{ "checkflist",	"${exec-dir}/robsd-checkflist.sh" },
+	{ "xbase",	"${exec-dir}/robsd-xbase.sh" },
+	{ "xrelease",	"${exec-dir}/robsd-xrelease.sh" },
+	{ "image",	"${exec-dir}/robsd-image.sh" },
+	{ "hash",	"${exec-dir}/robsd-hash.sh" },
+	{ "revert",	"${exec-dir}/robsd-revert.sh" },
+	{ "distrib",	"${exec-dir}/robsd-distrib.sh" },
+	{ "dmesg",	"${exec-dir}/robsd-dmesg.sh" },
+	{ "end",	"/dev/null" },
 };
 
 static const struct grammar robsd_cross[] = {
@@ -257,13 +257,13 @@ static const struct grammar robsd_cross[] = {
 	{ "bsd-srcdir",	DIRECTORY,	config_parse_directory,	0,	{ "/usr/src" } },
 };
 
-static const char *robsd_cross_steps[] = {
-	"env",
-	"dirs",
-	"tools",
-	"distrib",
-	"dmesg",
-	"end",
+static const struct config_step robsd_cross_steps[] = {
+	{ "env",	"${exec-dir}/robsd-env.sh" },
+	{ "dirs",	"${exec-dir}/robsd-cross-dirs.sh" },
+	{ "tools",	"${exec-dir}/robsd-cross-tools.sh" },
+	{ "distrib",	"${exec-dir}/robsd-cross-distrib.sh" },
+	{ "dmesg",	"${exec-dir}/robsd-dmesg.sh" },
+	{ "end",	"/dev/null" },
 };
 
 static const struct grammar robsd_ports[] = {
@@ -280,17 +280,17 @@ static const struct grammar robsd_ports[] = {
 	{ "ports-user",		STRING,		config_parse_user,	REQ,	{ NULL } },
 };
 
-static const char *robsd_ports_steps[] = {
-	"env",
-	"cvs",
-	"clean",
-	"proot",
-	"patch",
-	"dpb",
-	"distrib",
-	"revert",
-	"dmesg",
-	"end",
+static struct config_step robsd_ports_steps[] = {
+	{ "env",	"${exec-dir}/robsd-env.sh" },
+	{ "cvs",	"${exec-dir}/robsd-cvs.sh" },
+	{ "clean",	"${exec-dir}/robsd-ports-clean.sh" },
+	{ "proot",	"${exec-dir}/robsd-ports-proot.sh" },
+	{ "patch",	"${exec-dir}/robsd-patch.sh" },
+	{ "dpb",	"${exec-dir}/robsd-ports-dpb.sh" },
+	{ "distrib",	"${exec-dir}/robsd-ports-distrib.sh" },
+	{ "revert",	"${exec-dir}/robsd-revert.sh" },
+	{ "dmesg",	"${exec-dir}/robsd-dmesg.sh" },
+	{ "end",	"/dev/null" },
 };
 
 static const struct grammar robsd_regress[] = {
@@ -311,19 +311,19 @@ static const struct grammar robsd_regress[] = {
 	{ "regress-*-parallel",	INTEGER,	NULL,				PAT|FUN,	{ D_FUN(config_default_parallel) } },
 };
 
-static const char *robsd_regress_steps[] = {
-	"env",
-	"pkg-add",
-	"cvs",
-	"patch",
-	"obj",
-	"mount",
-	NULL,		/* ${regress} */
-	"umount",
-	"revert",
-	"pkg-del",
-	"dmesg",
-	"end",
+static struct config_step robsd_regress_steps[] = {
+	{ "env",	"${exec-dir}/robsd-env.sh" },
+	{ "pkg-add",	"${exec-dir}/robsd-regress-pkg-add.sh" },
+	{ "cvs",	"${exec-dir}/robsd-cvs.sh" },
+	{ "patch",	"${exec-dir}/robsd-patch.sh" },
+	{ "obj",	"${exec-dir}/robsd-regress-obj.sh" },
+	{ "mount",	"${exec-dir}/robsd-regress-mount.sh" },
+	{ NULL,		NULL }, /* ${regress} */
+	{ "umount",	"${exec-dir}/robsd-regress-umount.sh" },
+	{ "revert",	"${exec-dir}/robsd-revert.sh" },
+	{ "pkg-del",	"${exec-dir}/robsd-regress-pkg-del.sh" },
+	{ "dmesg",	"${exec-dir}/robsd-dmesg.sh" },
+	{ "end",	"/dev/null" },
 };
 
 struct config *
@@ -703,12 +703,14 @@ config_regress_get_steps(struct config *cf)
 
 	/* Include synchronous steps up to ${regress}. */
 	for (s = 0; s < cf->steps.len; s++) {
-		if (cf->steps.ptr[s] == NULL)
+		const struct config_step *cs = &cf->steps.ptr[s];
+
+		if (cs->name == NULL)
 			break;
 
 		if (VECTOR_ALLOC(steps) == NULL)
 			err(1, NULL);
-		steps[i++] = cf->steps.ptr[s];
+		steps[i++] = cs->name;
 	}
 
 	/* Include parallel ${regress} steps. */
@@ -736,9 +738,11 @@ config_regress_get_steps(struct config *cf)
 
 	/* Include remaining synchronous steps. */
 	for (s++; s < cf->steps.len; s++) {
+		const struct config_step *cs = &cf->steps.ptr[s];
+
 		if (VECTOR_ALLOC(steps) == NULL)
 			err(1, NULL);
-		steps[i++] = cf->steps.ptr[s];
+		steps[i++] = cs->name;
 	}
 
 	VECTOR_FREE(regress_no_parallel);
@@ -765,9 +769,11 @@ config_get_steps(struct config *cf)
 		err(1, NULL);
 
 	for (i = 0; i < cf->steps.len; i++) {
+		const struct config_step *cs = &cf->steps.ptr[i];
+
 		if (VECTOR_ALLOC(steps) == NULL)
 			err(1, NULL);
-		steps[i] = cf->steps.ptr[i];
+		steps[i] = cs->name;
 	}
 
 	return steps;

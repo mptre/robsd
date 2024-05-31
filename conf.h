@@ -14,6 +14,11 @@ struct arena_scope;
 	_v;								\
 })
 
+struct config_step {
+	const char	*name;
+	const char	*script_path;
+};
+
 struct variable_value {
 	enum variable_type {
 		INTEGER,
