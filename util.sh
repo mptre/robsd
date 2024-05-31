@@ -1150,7 +1150,7 @@ step_exec_job() {
 	step_write -l "$_log" -s "$_id" -n "$_name" -e "$_exit" -d "$_d1" \
 		-a "$_delta" "$_steps"
 
-	robsd_hook -v "exit=${_exit}" -v "step=${_name}"
+	robsd_hook -v "step-exit=${_exit}" -v "step-name=${_name}"
 
 	case "$_MODE" in
 	robsd-regress)
@@ -1325,7 +1325,7 @@ trap_exit() {
 	fi
 
 	if step_eval -n end "$_steps" 2>/dev/null; then
-		robsd_hook -v "exit=0" -v "step=end"
+		robsd_hook -v "step-exit=0" -v "step-name=end"
 	fi
 
 	lock_release "$_robsddir" "$_builddir" || :

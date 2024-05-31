@@ -49,7 +49,7 @@ if testcase "basic"; then
 
 	robsd_config - <<-EOF
 	robsddir "${ROBSDDIR}"
-	hook { "sh" "${_hook}" "\${builddir}" "\${step}" "\${exit}" }
+	hook { "sh" "${_hook}" "\${builddir}" "\${step-name}" "\${step-exit}" }
 	EOF
 	mkdir -p "$ROBSDDIR"
 	echo "Index: dir/file.c" >"${TSHDIR}/src-one.diff"

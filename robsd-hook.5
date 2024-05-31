@@ -19,15 +19,15 @@ can refer to a configuration variable, see
 .Xr robsd-config 8 .
 In addition, the following variables are also available:
 .Pp
-.Bl -tag -compact -width exit
-.It Ic exit
+.Bl -tag -compact -width step-exit
+.It Ic step-exit
 exit code of the step
-.It Ic step
+.It Ic step-name
 name of the step
 .El
 .Sh EXAMPLES
 .Bd -literal
-hook { "echo" "step ${step} done" }
+hook { "echo" "step ${step-name} done" }
 .Ed
 .Sh SEE ALSO
 .Xr robsd-cross.conf 5 ,
