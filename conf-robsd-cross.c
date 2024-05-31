@@ -1,8 +1,18 @@
 #include "conf-priv.h"
+#include "conf.h"
 
 static const struct grammar robsd_cross_grammar[] = {
 	{ "crossdir",	STRING,		config_parse_string,	REQ,	{ NULL } },
 	{ "bsd-srcdir",	DIRECTORY,	config_parse_directory,	0,	{ "/usr/src" } },
+};
+
+static const struct config_step robsd_cross_steps[] = {
+	{ "env",	{ "${exec-dir}/robsd-env.sh" },			{0} },
+	{ "dirs",	{ "${exec-dir}/robsd-cross-dirs.sh" },		{0} },
+	{ "tools",	{ "${exec-dir}/robsd-cross-tools.sh" },		{0} },
+	{ "distrib",	{ "${exec-dir}/robsd-cross-distrib.sh" },	{0} },
+	{ "dmesg",	{ "${exec-dir}/robsd-dmesg.sh" },		{0} },
+	{ "end",	{ "/dev/null" },				{0} },
 };
 
 static int
@@ -13,6 +23,10 @@ config_robsd_cross_init(struct config *cf)
 
 	config_copy_grammar(cf, robsd_cross_grammar,
 	    sizeof(robsd_cross_grammar) / sizeof(robsd_cross_grammar[0]));
+
+	cf->steps.ptr = robsd_cross_steps;
+	cf->steps.len = sizeof(robsd_cross_steps) /
+	    sizeof(robsd_cross_steps[0]);
 
 	return 0;
 }

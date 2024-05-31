@@ -1,4 +1,5 @@
 #include "conf-priv.h"
+#include "conf.h"
 
 static const struct grammar robsd_grammar[] = {
 	{ "destdir",		DIRECTORY,	config_parse_directory,	REQ,	{ NULL } },
@@ -20,6 +21,26 @@ static const struct grammar robsd_grammar[] = {
 	{ "x11-srcdir",		DIRECTORY,	config_parse_directory,	0,	{ "/usr/xenocara" } },
 };
 
+static const struct config_step robsd_steps[] = {
+	{ "env",	{ "${exec-dir}/robsd-env.sh" },		{0} },
+	{ "cvs",	{ "${exec-dir}/robsd-cvs.sh" },		{0} },
+	{ "patch",	{ "${exec-dir}/robsd-patch.sh" },	{0} },
+	{ "kernel",	{ "${exec-dir}/robsd-kernel.sh" },	{0} },
+	{ "reboot",	{ "/dev/null" },			{0} },
+	{ "env",	{ "${exec-dir}/robsd-env.sh" },		{0} },
+	{ "base",	{ "${exec-dir}/robsd-base.sh" },	{0} },
+	{ "release",	{ "${exec-dir}/robsd-release.sh" },	{0} },
+	{ "checkflist",	{ "${exec-dir}/robsd-checkflist.sh" },	{0} },
+	{ "xbase",	{ "${exec-dir}/robsd-xbase.sh" },	{0} },
+	{ "xrelease",	{ "${exec-dir}/robsd-xrelease.sh" },	{0} },
+	{ "image",	{ "${exec-dir}/robsd-image.sh" },	{0} },
+	{ "hash",	{ "${exec-dir}/robsd-hash.sh" },	{0} },
+	{ "revert",	{ "${exec-dir}/robsd-revert.sh" },	{0} },
+	{ "distrib",	{ "${exec-dir}/robsd-distrib.sh" },	{0} },
+	{ "dmesg",	{ "${exec-dir}/robsd-dmesg.sh" },	{0} },
+	{ "end",	{ "/dev/null" },			{0} },
+};
+
 static int
 config_robsd_init(struct config *cf)
 {
@@ -28,6 +49,9 @@ config_robsd_init(struct config *cf)
 
 	config_copy_grammar(cf, robsd_grammar,
 	    sizeof(robsd_grammar) / sizeof(robsd_grammar[0]));
+
+	cf->steps.ptr = robsd_steps;
+	cf->steps.len = sizeof(robsd_steps) / sizeof(robsd_steps[0]);
 
 	return 0;
 }

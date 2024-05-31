@@ -1,4 +1,5 @@
 #include "conf-priv.h"
+#include "conf.h"
 
 static const struct grammar robsd_ports_grammar[] = {
 	{ "chroot",		STRING,		config_parse_string,	REQ,	{ NULL } },
@@ -14,6 +15,19 @@ static const struct grammar robsd_ports_grammar[] = {
 	{ "ports-user",		STRING,		config_parse_user,	REQ,	{ NULL } },
 };
 
+static struct config_step robsd_ports_steps[] = {
+	{ "env",	{ "${exec-dir}/robsd-env.sh" },			{0} },
+	{ "cvs",	{ "${exec-dir}/robsd-cvs.sh" },			{0} },
+	{ "clean",	{ "${exec-dir}/robsd-ports-clean.sh" },		{0} },
+	{ "proot",	{ "${exec-dir}/robsd-ports-proot.sh" },		{0} },
+	{ "patch",	{ "${exec-dir}/robsd-patch.sh" },		{0} },
+	{ "dpb",	{ "${exec-dir}/robsd-ports-dpb.sh" },		{0} },
+	{ "distrib",	{ "${exec-dir}/robsd-ports-distrib.sh" },	{0} },
+	{ "revert",	{ "${exec-dir}/robsd-revert.sh" },		{0} },
+	{ "dmesg",	{ "${exec-dir}/robsd-dmesg.sh" },		{0} },
+	{ "end",	{ "/dev/null" },				{0} },
+};
+
 static int
 config_robsd_ports_init(struct config *cf)
 {
@@ -22,6 +36,10 @@ config_robsd_ports_init(struct config *cf)
 
 	config_copy_grammar(cf, robsd_ports_grammar,
 	    sizeof(robsd_ports_grammar) / sizeof(robsd_ports_grammar[0]));
+
+	cf->steps.ptr = robsd_ports_steps;
+	cf->steps.len = sizeof(robsd_ports_steps) /
+	    sizeof(robsd_ports_steps[0]);
 
 	return 0;
 }

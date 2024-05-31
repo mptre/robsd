@@ -48,6 +48,21 @@ static const struct grammar robsd_regress_grammar[] = {
 	{ "regress-*-parallel",	INTEGER,	NULL,				PAT|FUN,	{ D_FUN(config_default_parallel) } },
 };
 
+static struct config_step robsd_regress_steps[] = {
+	{ "env",	{ "${exec-dir}/robsd-env.sh" },			{0} },
+	{ "pkg-add",	{ "${exec-dir}/robsd-regress-pkg-add.sh" },	{0} },
+	{ "cvs",	{ "${exec-dir}/robsd-cvs.sh" },			{0} },
+	{ "patch",	{ "${exec-dir}/robsd-patch.sh" },		{0} },
+	{ "obj",	{ "${exec-dir}/robsd-regress-obj.sh" },		{0} },
+	{ "mount",	{ "${exec-dir}/robsd-regress-mount.sh" },	{0} },
+	{ NULL,		{ NULL },					{0} }, /* ${regress} */
+	{ "umount",	{ "${exec-dir}/robsd-regress-umount.sh" },	{0} },
+	{ "revert",	{ "${exec-dir}/robsd-revert.sh" },		{0} },
+	{ "pkg-del",	{ "${exec-dir}/robsd-regress-pkg-del.sh" },	{0} },
+	{ "dmesg",	{ "${exec-dir}/robsd-dmesg.sh" },		{0} },
+	{ "end",	{ "/dev/null" },				{0} },
+};
+
 static const char *
 regressname(const char *path, const char *suffix, struct arena_scope *s)
 {
@@ -62,6 +77,10 @@ config_robsd_regress_init(struct config *cf)
 
 	config_copy_grammar(cf, robsd_regress_grammar,
 	    sizeof(robsd_regress_grammar) / sizeof(robsd_regress_grammar[0]));
+
+	cf->steps.ptr = robsd_regress_steps;
+	cf->steps.len = sizeof(robsd_regress_steps) /
+	    sizeof(robsd_regress_steps[0]);
 
 	cf->interpolate.rdomain = RDOMAIN_MIN;
 

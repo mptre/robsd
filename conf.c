@@ -86,63 +86,6 @@ static const struct grammar common_grammar[] = {
 	{ "stat-interval",	INTEGER,	config_parse_integer,	0,	{ D_I32(10) } },
 };
 
-static const struct config_step robsd_steps[] = {
-	{ "env",	{ "${exec-dir}/robsd-env.sh" },		{0} },
-	{ "cvs",	{ "${exec-dir}/robsd-cvs.sh" },		{0} },
-	{ "patch",	{ "${exec-dir}/robsd-patch.sh" },	{0} },
-	{ "kernel",	{ "${exec-dir}/robsd-kernel.sh" },	{0} },
-	{ "reboot",	{ "/dev/null" },			{0} },
-	{ "env",	{ "${exec-dir}/robsd-env.sh" },		{0} },
-	{ "base",	{ "${exec-dir}/robsd-base.sh" },	{0} },
-	{ "release",	{ "${exec-dir}/robsd-release.sh" },	{0} },
-	{ "checkflist",	{ "${exec-dir}/robsd-checkflist.sh" },	{0} },
-	{ "xbase",	{ "${exec-dir}/robsd-xbase.sh" },	{0} },
-	{ "xrelease",	{ "${exec-dir}/robsd-xrelease.sh" },	{0} },
-	{ "image",	{ "${exec-dir}/robsd-image.sh" },	{0} },
-	{ "hash",	{ "${exec-dir}/robsd-hash.sh" },	{0} },
-	{ "revert",	{ "${exec-dir}/robsd-revert.sh" },	{0} },
-	{ "distrib",	{ "${exec-dir}/robsd-distrib.sh" },	{0} },
-	{ "dmesg",	{ "${exec-dir}/robsd-dmesg.sh" },	{0} },
-	{ "end",	{ "/dev/null" },			{0} },
-};
-
-static const struct config_step robsd_cross_steps[] = {
-	{ "env",	{ "${exec-dir}/robsd-env.sh" },			{0} },
-	{ "dirs",	{ "${exec-dir}/robsd-cross-dirs.sh" },		{0} },
-	{ "tools",	{ "${exec-dir}/robsd-cross-tools.sh" },		{0} },
-	{ "distrib",	{ "${exec-dir}/robsd-cross-distrib.sh" },	{0} },
-	{ "dmesg",	{ "${exec-dir}/robsd-dmesg.sh" },		{0} },
-	{ "end",	{ "/dev/null" },				{0} },
-};
-
-static struct config_step robsd_ports_steps[] = {
-	{ "env",	{ "${exec-dir}/robsd-env.sh" },			{0} },
-	{ "cvs",	{ "${exec-dir}/robsd-cvs.sh" },			{0} },
-	{ "clean",	{ "${exec-dir}/robsd-ports-clean.sh" },		{0} },
-	{ "proot",	{ "${exec-dir}/robsd-ports-proot.sh" },		{0} },
-	{ "patch",	{ "${exec-dir}/robsd-patch.sh" },		{0} },
-	{ "dpb",	{ "${exec-dir}/robsd-ports-dpb.sh" },		{0} },
-	{ "distrib",	{ "${exec-dir}/robsd-ports-distrib.sh" },	{0} },
-	{ "revert",	{ "${exec-dir}/robsd-revert.sh" },		{0} },
-	{ "dmesg",	{ "${exec-dir}/robsd-dmesg.sh" },		{0} },
-	{ "end",	{ "/dev/null" },				{0} },
-};
-
-static struct config_step robsd_regress_steps[] = {
-	{ "env",	{ "${exec-dir}/robsd-env.sh" },			{0} },
-	{ "pkg-add",	{ "${exec-dir}/robsd-regress-pkg-add.sh" },	{0} },
-	{ "cvs",	{ "${exec-dir}/robsd-cvs.sh" },			{0} },
-	{ "patch",	{ "${exec-dir}/robsd-patch.sh" },		{0} },
-	{ "obj",	{ "${exec-dir}/robsd-regress-obj.sh" },		{0} },
-	{ "mount",	{ "${exec-dir}/robsd-regress-mount.sh" },	{0} },
-	{ NULL,		{ NULL },					{0} }, /* ${regress} */
-	{ "umount",	{ "${exec-dir}/robsd-regress-umount.sh" },	{0} },
-	{ "revert",	{ "${exec-dir}/robsd-revert.sh" },		{0} },
-	{ "pkg-del",	{ "${exec-dir}/robsd-regress-pkg-del.sh" },	{0} },
-	{ "dmesg",	{ "${exec-dir}/robsd-dmesg.sh" },		{0} },
-	{ "end",	{ "/dev/null" },				{0} },
-};
-
 struct config *
 config_alloc(const char *mode, const char *path, struct arena_scope *eternal,
     struct arena *scratch)
@@ -174,35 +117,12 @@ config_alloc(const char *mode, const char *path, struct arena_scope *eternal,
 	if (VECTOR_INIT(cf->empty_list))
 		err(1, NULL);
 
-	if (cf->callbacks->init(cf))
-		goto err;
-	switch (cf->mode) {
-	case ROBSD:
-		cf->steps.ptr = robsd_steps;
-		cf->steps.len = sizeof(robsd_steps) / sizeof(robsd_steps[0]);
-		break;
-	case ROBSD_CROSS:
-		cf->steps.ptr = robsd_cross_steps;
-		cf->steps.len = sizeof(robsd_cross_steps) /
-		    sizeof(robsd_cross_steps[0]);
-		break;
-	case ROBSD_PORTS:
-		cf->steps.ptr = robsd_ports_steps;
-		cf->steps.len = sizeof(robsd_ports_steps) /
-		    sizeof(robsd_ports_steps[0]);
-		break;
-	case ROBSD_REGRESS:
-		cf->steps.ptr = robsd_regress_steps;
-		cf->steps.len = sizeof(robsd_regress_steps) /
-		    sizeof(robsd_regress_steps[0]);
-		break;
+	if (cf->callbacks->init(cf)) {
+		config_free(cf);
+		return NULL;
 	}
 
 	return cf;
-
-err:
-	config_free(cf);
-	return NULL;
 }
 
 void
