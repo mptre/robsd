@@ -64,8 +64,6 @@ main(int argc, char *argv[])
 
 	opterr = 0;
 	while ((ch = getopt(argc, argv, "LRWf:")) != -1) {
-		int dobreak = 0;
-
 		switch (ch) {
 		case 'L':
 			action = ACTION_LIST;
@@ -80,11 +78,10 @@ main(int argc, char *argv[])
 			c.path = optarg;
 			break;
 		default:
-			dobreak = 1;
+			goto done;
 		}
-		if (dobreak)
-			break;
 	}
+done:
 	if (optind >= 2) {
 		argc -= optind - 2;
 		argv += optind - 2;
