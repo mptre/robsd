@@ -23,6 +23,7 @@
 #include "mode.h"
 #include "regress-log.h"
 #include "step.h"
+#include "variable-value.h"
 
 struct report_context {
 	struct arena		*scratch;

@@ -1,5 +1,6 @@
 #include "conf-priv.h"
 #include "conf.h"
+#include "variable-value.h"
 
 static const struct grammar robsd_grammar[] = {
 	{ "destdir",		DIRECTORY,	config_parse_directory,	REQ,	{ NULL } },

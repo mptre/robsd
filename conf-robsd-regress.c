@@ -10,6 +10,7 @@
 #include "conf.h"
 #include "lexer.h"
 #include "token.h"
+#include "variable-value.h"
 
 /*
  * Bounds for rdomain, favor something large enough to not conflict with

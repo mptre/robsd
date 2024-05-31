@@ -10,6 +10,7 @@
 
 #include "conf.h"
 #include "invocation.h"
+#include "variable-value.h"
 
 static void	usage(void) __attribute__((__noreturn__));
 

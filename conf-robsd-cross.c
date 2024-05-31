@@ -1,5 +1,6 @@
 #include "conf-priv.h"
 #include "conf.h"
+#include "variable-value.h"
 
 static const struct grammar robsd_cross_grammar[] = {
 	{ "crossdir",	STRING,		config_parse_string,	REQ,	{ NULL } },

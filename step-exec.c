@@ -16,6 +16,7 @@
 
 #include "conf.h"
 #include "mode.h"
+#include "variable-value.h"
 
 #define SIG_NO_RESTART	1
 

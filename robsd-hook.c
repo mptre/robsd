@@ -10,6 +10,7 @@
 
 #include "conf.h"
 #include "interpolate.h"
+#include "variable-value.h"
 
 static void	usage(void) __attribute__((__noreturn__));
 
