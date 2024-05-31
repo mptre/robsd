@@ -220,7 +220,7 @@ stat_directory1(struct stat_context *c, const char *user)
 	mib[1] = KERN_PROC;
 	mib[2] = KERN_PROC_UID;
 	mib[3] = (int)pw->pw_uid;
-	mib[4] = kpsiz;
+	mib[4] = (int)kpsiz;
 	mib[5] = 0;
 
 	if (sysctl(mib, 6, NULL, &siz, NULL, 0) == -1) {
@@ -233,7 +233,7 @@ stat_directory1(struct stat_context *c, const char *user)
 	/* Cope with new processes, roughly 10% growth. */
 	nprocs += nprocs / 8;
 	kp = arena_calloc(&s, nprocs, sizeof(*kp));
-	mib[5] = nprocs * kpsiz;
+	mib[5] = (int)(nprocs * kpsiz);
 	if (sysctl(mib, 6, kp, &siz, NULL, 0) == -1) {
 		warn("sysctl: kern.proc.uid");
 		goto err;

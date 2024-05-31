@@ -149,7 +149,7 @@ kqueue_handle_events(struct wait_context *c, int nevents)
 		const struct kevent *kev = &c->kqueue.events[i];
 		int pid;
 
-		pid = kev->ident;
+		pid = (int)kev->ident;
 		if (kev->flags & EV_ERROR) {
 			if (kev->data == ESRCH) { /* process already gone */
 				MAP_REMOVE(c->pids, pid);
