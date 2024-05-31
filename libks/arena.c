@@ -38,7 +38,7 @@
 #if defined(HAVE_ASAN)
 #  include <sanitizer/asan_interface.h>
 #  define USED_IF_ASAN(x) x
-#  define POISON_SIZE 8
+#  define POISON_SIZE _Alignof(max_align_t)
 #else
 #  define ASAN_POISON_MEMORY_REGION(...) (void)0
 #  define ASAN_UNPOISON_MEMORY_REGION(...) (void)0
@@ -83,7 +83,7 @@ union address {
 	size_t		 size;
 };
 
-static const size_t maxalign = sizeof(void *);
+static const size_t maxalign = _Alignof(max_align_t);
 
 static void
 frame_poison(const struct arena_frame *USED_IF_ASAN(frame))
@@ -102,13 +102,12 @@ frame_unpoison(const struct arena_frame *USED_IF_ASAN(frame),
 static union address
 align_address(const struct arena *a, union address addr)
 {
+	const union address old_addr = addr;
+
 	addr.u64 = (addr.u64 + maxalign - 1) & ~(maxalign - 1);
-	if (a->poison_size > 0) {
-		if (a->poison_size > SIZE_MAX - addr.u64) {
-			/* Insufficient space for poison bytes is not fatal. */
-		} else {
-			addr.u64 += a->poison_size;
-		}
+	if (a->poison_size > 0 && addr.u64 - old_addr.u64 < a->poison_size) {
+		/* Insufficient space for poison bytes is not fatal. */
+		(void)KS_u64_add_overflow(a->poison_size, addr.u64, &addr.u64);
 	}
 	return addr;
 }
