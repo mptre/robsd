@@ -246,7 +246,7 @@ step_timeout(struct step_context *c)
 static const struct config_step *
 find_step(struct step_context *c, const char *step_name, struct arena_scope *s)
 {
-	VECTOR(struct config_step) steps;
+	VECTOR(const struct config_step) steps;
 	size_t i;
 	unsigned int flags;
 

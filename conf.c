@@ -520,7 +520,7 @@ config_default_get_steps(struct config *cf, struct arena_scope *s)
 	return steps;
 }
 
-struct config_step *
+const struct config_step *
 config_get_steps(struct config *cf, unsigned int flags, struct arena_scope *s)
 {
 	VECTOR(struct config_step) steps;

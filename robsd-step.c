@@ -294,7 +294,7 @@ steps_list(struct step_context *c, int argc, char **argv)
 	struct config *config;
 	const char *config_mode = NULL;
 	const char *config_path = NULL;
-	VECTOR(struct config_step) steps;
+	VECTOR(const struct config_step) steps;
 	size_t i;
 	unsigned int offset = 1;
 	int ch;
