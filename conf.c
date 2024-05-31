@@ -99,8 +99,6 @@ config_alloc(const char *mode, const char *path, struct arena_scope *eternal,
 		err(1, NULL);
 	if (VECTOR_INIT(cf->variables))
 		err(1, NULL);
-	if (VECTOR_INIT(cf->empty_list))
-		err(1, NULL);
 
 	if (cf->callbacks->init(cf)) {
 		config_free(cf);
@@ -127,7 +125,6 @@ config_free(struct config *cf)
 	VECTOR_FREE(cf->variables);
 
 	lexer_free(cf->lx);
-	VECTOR_FREE(cf->empty_list);
 }
 
 int
@@ -244,7 +241,7 @@ config_find(struct config *cf, const char *name)
 	}
 
 	case LIST:
-		vadef.va_val.list = cf->empty_list;
+		ARENA_VECTOR_INIT(cf->eternal, vadef.va_val.list, 0);
 		break;
 	}
 

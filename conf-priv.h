@@ -58,9 +58,6 @@ struct config {
 
 	struct variable			 *variables;	/* VECTOR(struct variable) */
 
-	/* Sentinel used for absent list variables during interpolation. */
-	char				**empty_list;	/* VECTOR(char *) */
-
 	enum robsd_mode			  mode;
 };
 
