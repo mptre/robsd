@@ -17,4 +17,8 @@ struct variable_value {
 	};
 };
 
+void	variable_value_init(struct variable_value *, enum variable_type);
+void	variable_value_clear(struct variable_value *);
+void	variable_value_concat(struct variable_value *, struct variable_value *);
+
 #endif

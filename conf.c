@@ -22,7 +22,6 @@
 #include "libks/arena.h"
 #include "libks/arithmetic.h"
 #include "libks/buffer.h"
-#include "libks/compiler.h"
 #include "libks/vector.h"
 
 #include "alloc.h"
@@ -33,46 +32,6 @@
 #include "log.h"
 #include "token.h"
 
-/* Return values for parser routines. */
-#define CONFIG_APPEND	0
-#define CONFIG_ERROR	1
-#define CONFIG_NOP	2
-#define CONFIG_FATAL    3
-
-/*
- * Bounds for rdomain, favor something large enough to not conflict with
- * existing ones.
- */
-#define RDOMAIN_MIN	11
-#define RDOMAIN_MAX	256
-
-enum token_type {
-	/* sentinels */
-	TOKEN_UNKNOWN,
-
-	/* literals */
-	TOKEN_LBRACE,
-	TOKEN_RBRACE,
-
-	/* keywords */
-	TOKEN_KEYWORD,
-	TOKEN_ENV,
-	TOKEN_HOURS,
-	TOKEN_MINUTES,
-	TOKEN_NO_PARALLEL,
-	TOKEN_OBJ,
-	TOKEN_PACKAGES,
-	TOKEN_QUIET,
-	TOKEN_ROOT,
-	TOKEN_SECONDS,
-	TOKEN_TARGETS,
-
-	/* types */
-	TOKEN_BOOLEAN,
-	TOKEN_INTEGER,
-	TOKEN_STRING,
-};
-
 static struct token	*config_lexer_read(struct lexer *, void *);
 static const char	*token_serialize(const struct token *);
 
@@ -80,17 +39,6 @@ static const char	*token_serialize(const struct token *);
  * variable --------------------------------------------------------------------
  */
 
-struct variable {
-	char			*va_name;
-	size_t			 va_namelen;
-	struct variable_value	 va_val;
-};
-
-static void	variable_value_init(struct variable_value *,
-    enum variable_type);
-static void	variable_value_clear(struct variable_value *);
-static void	variable_value_concat(struct variable_value *,
-    struct variable_value *);
 static void	variable_value_append(struct variable_value *, const char *);
 
 /*
@@ -111,46 +59,15 @@ static int			 grammar_equals(const struct grammar *,
 static int	config_parse1(struct config *);
 static int	config_parse_keyword(struct config *, struct token *);
 static int	config_validate(const struct config *);
-static int	config_parse_boolean(struct config *, struct variable_value *);
-static int	config_parse_string(struct config *, struct variable_value *);
-static int	config_parse_integer(struct config *, struct variable_value *);
-static int	config_parse_glob(struct config *, struct variable_value *);
-static int	config_parse_list(struct config *, struct variable_value *);
-static int	config_parse_user(struct config *, struct variable_value *);
-static int	config_parse_regress(struct config *, struct variable_value *);
-static int	config_parse_regress_option_env(struct config *, const char *);
-static int	config_parse_regress_env(struct config *,
-    struct variable_value *);
-static int	config_parse_regress_timeout(struct config *,
-    struct variable_value *);
-static int	config_parse_directory(struct config *,
-    struct variable_value *);
 
 static struct variable	*config_default_build_dir(struct config *,
     const char *);
 static struct variable	*config_default_exec_dir(struct config *, const char *);
 static struct variable	*config_default_inet4(struct config *, const char *);
 static struct variable	*config_default_inet6(struct config *, const char *);
-static struct variable	*config_default_regress_targets(struct config *,
-    const char *);
-static struct variable	*config_default_rdomain(struct config *, const char *);
-static struct variable	*config_default_parallel(struct config *, const char *);
 
-static struct variable	*config_append(struct config *, const char *,
-    const struct variable_value *);
 static struct variable	*config_append_string(struct config *,
     const char *, const char *);
-static int		 config_present(const struct config *,
-    const char *);
-static struct variable	*config_find(struct config *, const char *);
-static struct variable	*config_find_or_create_list(struct config *,
-    const char *);
-
-static const char	*config_interpolate_early(struct config *,
-    const char *);
-
-static const char	*regressname(const char *, const char *,
-    struct arena_scope *);
 
 /* Common configuration shared among all robsd modes. */
 static const struct grammar common_grammar[] = {
@@ -167,26 +84,6 @@ static const struct grammar common_grammar[] = {
 	{ "robsddir",		DIRECTORY,	config_parse_directory,	REQ,	{ NULL } },
 	{ "skip",		LIST,		config_parse_list,	0,	{ NULL } },
 	{ "stat-interval",	INTEGER,	config_parse_integer,	0,	{ D_I32(10) } },
-};
-
-static const struct grammar robsd[] = {
-	{ "destdir",		DIRECTORY,	config_parse_directory,	REQ,	{ NULL } },
-	{ "kernel",		STRING,		config_parse_string,	0,	{ "GENERIC.MP" } },
-	{ "reboot",		INTEGER,	config_parse_boolean,	0,	{ NULL } },
-	{ "bsd-diff",		LIST,		config_parse_glob,	0,	{ NULL } },
-	{ "bsd-objdir",		DIRECTORY,	config_parse_directory,	0,	{ "/usr/obj" } },
-	{ "bsd-reldir",		STRING,		NULL,			0,	{ "${builddir}/rel" } },
-	{ "bsd-srcdir",		DIRECTORY,	config_parse_directory,	0,	{ "/usr/src" } },
-	{ "cvs-root",		STRING,		config_parse_string,	0,	{ NULL } },
-	{ "cvs-user",		STRING,		config_parse_user,	0,	{ NULL } },
-	{ "distrib-host",	STRING,		config_parse_string,	0,	{ NULL } },
-	{ "distrib-path",	STRING,		config_parse_string,	0,	{ NULL } },
-	{ "distrib-signify",	STRING,		config_parse_string,	0,	{ NULL } },
-	{ "distrib-user",	STRING,		config_parse_user,	0,	{ NULL } },
-	{ "x11-diff",		LIST,		config_parse_glob,	0,	{ NULL } },
-	{ "x11-objdir",		DIRECTORY,	config_parse_directory,	0,	{ "/usr/xobj" } },
-	{ "x11-reldir",		STRING,		NULL,			0,	{ "${builddir}/relx" } },
-	{ "x11-srcdir",		DIRECTORY,	config_parse_directory,	0,	{ "/usr/xenocara" } },
 };
 
 static const struct config_step robsd_steps[] = {
@@ -209,11 +106,6 @@ static const struct config_step robsd_steps[] = {
 	{ "end",	{ "/dev/null" },			{0} },
 };
 
-static const struct grammar robsd_cross[] = {
-	{ "crossdir",	STRING,		config_parse_string,	REQ,	{ NULL } },
-	{ "bsd-srcdir",	DIRECTORY,	config_parse_directory,	0,	{ "/usr/src" } },
-};
-
 static const struct config_step robsd_cross_steps[] = {
 	{ "env",	{ "${exec-dir}/robsd-env.sh" },			{0} },
 	{ "dirs",	{ "${exec-dir}/robsd-cross-dirs.sh" },		{0} },
@@ -221,20 +113,6 @@ static const struct config_step robsd_cross_steps[] = {
 	{ "distrib",	{ "${exec-dir}/robsd-cross-distrib.sh" },	{0} },
 	{ "dmesg",	{ "${exec-dir}/robsd-dmesg.sh" },		{0} },
 	{ "end",	{ "/dev/null" },				{0} },
-};
-
-static const struct grammar robsd_ports[] = {
-	{ "chroot",		STRING,		config_parse_string,	REQ,	{ NULL } },
-	{ "cvs-root",		STRING,		config_parse_string,	0,	{ NULL } },
-	{ "cvs-user",		STRING,		config_parse_user,	0,	{ NULL } },
-	{ "distrib-host",	STRING,		config_parse_string,	0,	{ NULL } },
-	{ "distrib-path",	STRING,		config_parse_string,	0,	{ NULL } },
-	{ "distrib-signify",	STRING,		config_parse_string,	0,	{ NULL } },
-	{ "distrib-user",	STRING,		config_parse_user,	0,	{ NULL } },
-	{ "ports",		LIST,		config_parse_list,	REQ,	{ NULL } },
-	{ "ports-diff",		LIST,		config_parse_glob,	0,	{ NULL } },
-	{ "ports-dir",		STRING,		config_parse_string,	0,	{ "/usr/ports" } },
-	{ "ports-user",		STRING,		config_parse_user,	REQ,	{ NULL } },
 };
 
 static struct config_step robsd_ports_steps[] = {
@@ -248,24 +126,6 @@ static struct config_step robsd_ports_steps[] = {
 	{ "revert",	{ "${exec-dir}/robsd-revert.sh" },		{0} },
 	{ "dmesg",	{ "${exec-dir}/robsd-dmesg.sh" },		{0} },
 	{ "end",	{ "/dev/null" },				{0} },
-};
-
-static const struct grammar robsd_regress[] = {
-	{ "parallel",		INTEGER,	config_parse_boolean,		0,		{ D_I32(1) } },
-	{ "rdonly",		INTEGER,	config_parse_boolean,		0,		{ NULL } },
-	{ "sudo",		STRING,		config_parse_string,		0,		{ "doas -n" } },
-	{ "bsd-diff",		LIST,		config_parse_glob,		0,		{ NULL } },
-	{ "bsd-srcdir",		DIRECTORY,	config_parse_directory,		0,		{ "/usr/src" } },
-	{ "cvs-root",		STRING,		config_parse_string,		0,		{ NULL } },
-	{ "cvs-user",		STRING,		config_parse_user,		0,		{ NULL } },
-	{ "rdomain",		INTEGER,	NULL,				FUN|EARLY,	{ D_FUN(config_default_rdomain) } },
-	{ "regress",		LIST,		config_parse_regress,		REQ|REP,	{ NULL } },
-	{ "regress-env",	LIST,		config_parse_regress_env,	REP,		{ NULL } },
-	{ "regress-user",	STRING,		config_parse_user,		0,		{ "${build-user}" } },
-	{ "regress-timeout",	INTEGER,	config_parse_regress_timeout,	0,		{ NULL } },
-	{ "regress-*-env",	STRING,		NULL,				PAT|EARLY,	{ "${regress-env}" } },
-	{ "regress-*-targets",	LIST,		NULL,				PAT|FUN,	{ D_FUN(config_default_regress_targets) } },
-	{ "regress-*-parallel",	INTEGER,	NULL,				PAT|FUN,	{ D_FUN(config_default_parallel) } },
 };
 
 static struct config_step robsd_regress_steps[] = {
@@ -293,12 +153,7 @@ config_alloc(const char *mode, const char *path, struct arena_scope *eternal,
 		[ROBSD_PORTS]	= config_robsd_ports_callbacks,
 		[ROBSD_REGRESS]	= config_robsd_regress_callbacks,
 	};
-	const struct grammar *grammar;
 	struct config *cf;
-	size_t common_grammar_len = sizeof(common_grammar) /
-	    sizeof(common_grammar[0]);
-	size_t grammar_len = 0;
-	size_t i;
 	enum robsd_mode m;
 
 	if (robsd_mode_parse(mode, &m)) {
@@ -318,57 +173,29 @@ config_alloc(const char *mode, const char *path, struct arena_scope *eternal,
 		err(1, NULL);
 	if (VECTOR_INIT(cf->empty_list))
 		err(1, NULL);
-	cf->interpolate.rdomain = RDOMAIN_MIN;
 
 	if (cf->callbacks->init(cf))
 		goto err;
 	switch (cf->mode) {
 	case ROBSD:
-		grammar = robsd;
-		grammar_len = sizeof(robsd) / sizeof(robsd[0]);
 		cf->steps.ptr = robsd_steps;
 		cf->steps.len = sizeof(robsd_steps) / sizeof(robsd_steps[0]);
 		break;
 	case ROBSD_CROSS:
-		grammar = robsd_cross;
-		grammar_len = sizeof(robsd_cross) / sizeof(robsd_cross[0]);
 		cf->steps.ptr = robsd_cross_steps;
 		cf->steps.len = sizeof(robsd_cross_steps) /
 		    sizeof(robsd_cross_steps[0]);
 		break;
 	case ROBSD_PORTS:
-		grammar = robsd_ports;
-		grammar_len = sizeof(robsd_ports) / sizeof(robsd_ports[0]);
 		cf->steps.ptr = robsd_ports_steps;
 		cf->steps.len = sizeof(robsd_ports_steps) /
 		    sizeof(robsd_ports_steps[0]);
 		break;
 	case ROBSD_REGRESS:
-		grammar = robsd_regress;
-		grammar_len = sizeof(robsd_regress) / sizeof(robsd_regress[0]);
 		cf->steps.ptr = robsd_regress_steps;
 		cf->steps.len = sizeof(robsd_regress_steps) /
 		    sizeof(robsd_regress_steps[0]);
 		break;
-	}
-
-	if (VECTOR_RESERVE(cf->grammar, grammar_len + common_grammar_len))
-		err(1, NULL);
-	for (i = 0; i < grammar_len; i++) {
-		const struct grammar **dst;
-
-		dst = VECTOR_ALLOC(cf->grammar);
-		if (dst == NULL)
-			err(1, NULL);
-		*dst = &grammar[i];
-	}
-	for (i = 0; i < common_grammar_len; i++) {
-		const struct grammar **dst;
-
-		dst = VECTOR_ALLOC(cf->grammar);
-		if (dst == NULL)
-			err(1, NULL);
-		*dst = &common_grammar[i];
 	}
 
 	return cf;
@@ -459,7 +286,7 @@ config_append_string(struct config *cf, const char *name, const char *str)
 	return config_append(cf, name, &val);
 }
 
-static struct variable *
+struct variable *
 config_find_or_create_list(struct config *cf, const char *name)
 {
 	if (!config_present(cf, name)) {
@@ -471,7 +298,7 @@ config_find_or_create_list(struct config *cf, const char *name)
 	return config_find(cf, name);
 }
 
-static struct variable *
+struct variable *
 config_find(struct config *cf, const char *name)
 {
 	static struct variable vadef;
@@ -609,7 +436,7 @@ config_interpolate_lookup(const char *name, struct arena_scope *s, void *arg)
 	return buffer_str(bf);
 }
 
-static const char *
+const char *
 config_interpolate_early(struct config *cf, const char *template)
 {
 	const char *str;
@@ -632,17 +459,34 @@ config_get_mode(const struct config *cf)
 	return cf->mode;
 }
 
-static int
-is_parallel(struct config *cf, const char *step_name)
+void
+config_copy_grammar(struct config *cf, const struct grammar *grammar,
+    unsigned int len)
 {
-	const char *name;
+	size_t common_grammar_len = sizeof(common_grammar) /
+	    sizeof(common_grammar[0]);
+	unsigned int i;
 
-	arena_scope(cf->scratch, s);
+	if (VECTOR_RESERVE(cf->grammar, len + common_grammar_len))
+		err(1, NULL);
 
-	if (!config_value(cf, "parallel", integer, 1))
-		return 0;
-	name = regressname(step_name, "parallel", &s);
-	return config_value(cf, name, integer, 1);
+	for (i = 0; i < len; i++) {
+		const struct grammar **dst;
+
+		dst = VECTOR_ALLOC(cf->grammar);
+		if (dst == NULL)
+			err(1, NULL);
+		*dst = &grammar[i];
+	}
+
+	for (i = 0; i < common_grammar_len; i++) {
+		const struct grammar **dst;
+
+		dst = VECTOR_ALLOC(cf->grammar);
+		if (dst == NULL)
+			err(1, NULL);
+		*dst = &common_grammar[i];
+	}
 }
 
 static void
@@ -655,77 +499,7 @@ config_free_steps(void *arg)
 		variable_value_clear(&steps[i].command.val);
 }
 
-static struct config_step *
-config_regress_get_steps(struct config *cf, struct arena_scope *s)
-{
-	VECTOR(struct config_step) regress_no_parallel;
-	VECTOR(struct config_step) steps;
-	VECTOR(char *) regress;
-	struct config_step *dst;
-	size_t i, nregress, r;
-
-	regress = config_value(cf, "regress", list, NULL);
-	nregress = VECTOR_LENGTH(regress);
-
-	ARENA_VECTOR_INIT(s, steps, cf->steps.len + nregress);
-	ARENA_VECTOR_INIT(s, regress_no_parallel, 0);
-
-	/* Include synchronous steps up to ${regress}. */
-	for (i = 0; i < cf->steps.len; i++) {
-		const struct config_step *cs = &cf->steps.ptr[i];
-
-		if (cs->name == NULL)
-			break;
-
-		dst = VECTOR_ALLOC(steps);
-		if (dst == NULL)
-			err(1, NULL);
-		*dst = *cs;
-	}
-
-	/* Include parallel ${regress} steps. */
-	for (r = 0; r < nregress; r++) {
-		int parallel;
-
-		parallel = is_parallel(cf, regress[r]);
-		if (parallel) {
-			dst = VECTOR_ALLOC(steps);
-			if (dst == NULL)
-				err(1, NULL);
-		} else {
-			dst = VECTOR_ALLOC(regress_no_parallel);
-			if (dst == NULL)
-				err(1, NULL);
-		}
-		*dst = (struct config_step){
-		    .name	= regress[r],
-		    .command	= { "${exec-dir}/robsd-regress-exec.sh" },
-		    .flags	= { .parallel = parallel ? 1 : 0 },
-		};
-	}
-
-	/* Include non-parallel ${regress} steps. */
-	for (r = 0; r < VECTOR_LENGTH(regress_no_parallel); r++) {
-		dst = VECTOR_ALLOC(steps);
-		if (dst == NULL)
-			err(1, NULL);
-		*dst = regress_no_parallel[r];
-	}
-
-	/* Include remaining synchronous steps. */
-	for (i++; i < cf->steps.len; i++) {
-		const struct config_step *cs = &cf->steps.ptr[i];
-
-		dst = VECTOR_ALLOC(steps);
-		if (dst == NULL)
-			err(1, NULL);
-		*dst = *cs;
-	}
-
-	return steps;
-}
-
-static struct config_step *
+struct config_step *
 config_default_get_steps(struct config *cf, struct arena_scope *s)
 {
 	VECTOR(struct config_step) steps;
@@ -752,10 +526,7 @@ config_get_steps(struct config *cf, unsigned int flags, struct arena_scope *s)
 	VECTOR(struct config_step) steps;
 	size_t i;
 
-	if (cf->mode == ROBSD_REGRESS)
-		steps = config_regress_get_steps(cf, s);
-	else
-		steps = config_default_get_steps(cf, s);
+	steps = cf->callbacks->get_steps(cf, s);
 	arena_cleanup(s, config_free_steps, steps);
 
 	for (i = 0; i < VECTOR_LENGTH(steps); i++) {
@@ -956,7 +727,7 @@ token_serialize(const struct token *tk)
 	return "UNKNOWN";
 }
 
-static void
+void
 variable_value_init(struct variable_value *val, enum variable_type type)
 {
 	memset(val, 0, sizeof(*val));
@@ -974,7 +745,7 @@ variable_value_init(struct variable_value *val, enum variable_type type)
 	}
 }
 
-static void
+void
 variable_value_clear(struct variable_value *val)
 {
 	switch (val->type) {
@@ -990,7 +761,7 @@ variable_value_clear(struct variable_value *val)
 	}
 }
 
-static void
+void
 variable_value_concat(struct variable_value *dst, struct variable_value *src)
 {
 	size_t i;
@@ -1150,7 +921,7 @@ config_validate(const struct config *cf)
 	return error;
 }
 
-static int
+int
 config_parse_boolean(struct config *cf, struct variable_value *val)
 {
 	struct token *tk;
@@ -1162,7 +933,7 @@ config_parse_boolean(struct config *cf, struct variable_value *val)
 	return 0;
 }
 
-static int
+int
 config_parse_string(struct config *cf, struct variable_value *val)
 {
 	struct token *tk;
@@ -1174,7 +945,7 @@ config_parse_string(struct config *cf, struct variable_value *val)
 	return 0;
 }
 
-static int
+int
 config_parse_integer(struct config *cf, struct variable_value *val)
 {
 	struct token *tk;
@@ -1186,7 +957,7 @@ config_parse_integer(struct config *cf, struct variable_value *val)
 	return 0;
 }
 
-static int
+int
 config_parse_glob(struct config *cf, struct variable_value *val)
 {
 	glob_t g;
@@ -1221,7 +992,7 @@ config_parse_glob(struct config *cf, struct variable_value *val)
 	return 0;
 }
 
-static int
+int
 config_parse_list(struct config *cf, struct variable_value *val)
 {
 	struct token *tk;
@@ -1251,7 +1022,7 @@ err:
 	return 1;
 }
 
-static int
+int
 config_parse_user(struct config *cf, struct variable_value *val)
 {
 	struct token *tk;
@@ -1269,176 +1040,7 @@ config_parse_user(struct config *cf, struct variable_value *val)
 	return 0;
 }
 
-static int
-config_parse_regress(struct config *cf, struct variable_value *UNUSED(val))
-{
-	struct lexer *lx = cf->lx;
-	struct token *tk;
-	struct variable *regress;
-	const char *path;
-	char **dst;
-
-	if (!lexer_expect(lx, TOKEN_STRING, &tk))
-		return 1;
-	path = tk->tk_str;
-
-	for (;;) {
-		const char *name;
-
-		arena_scope(cf->scratch, s);
-
-		if (lexer_if(lx, TOKEN_ENV, &tk)) {
-			if (config_parse_regress_option_env(cf, path))
-				return 1;
-		} else if (lexer_if(lx, TOKEN_NO_PARALLEL, &tk)) {
-			struct variable_value newval;
-
-			name = regressname(path, "parallel", &s);
-			variable_value_init(&newval, INTEGER);
-			newval.integer = 0;
-			config_append(cf, name, &newval);
-		} else if (lexer_if(lx, TOKEN_OBJ, &tk)) {
-			struct variable_value newval;
-			struct variable *obj;
-
-			if (config_parse_list(cf, &newval))
-				return 1;
-			obj = config_find_or_create_list(cf, "regress-obj");
-			variable_value_concat(&obj->va_val, &newval);
-		} else if (lexer_if(lx, TOKEN_PACKAGES, &tk)) {
-			struct variable_value newval;
-			struct variable *packages;
-
-			if (config_parse_list(cf, &newval))
-				return 1;
-			packages = config_find_or_create_list(cf,
-			    "regress-packages");
-			variable_value_concat(&packages->va_val, &newval);
-		} else if (lexer_if(lx, TOKEN_QUIET, &tk)) {
-			struct variable_value newval;
-
-			name = regressname(path, "quiet", &s);
-			variable_value_init(&newval, INTEGER);
-			newval.integer = 1;
-			config_append(cf, name, &newval);
-		} else if (lexer_if(lx, TOKEN_ROOT, &tk)) {
-			struct variable_value newval;
-
-			name = regressname(path, "root", &s);
-			variable_value_init(&newval, INTEGER);
-			newval.integer = 1;
-			config_append(cf, name, &newval);
-		} else if (lexer_if(lx, TOKEN_TARGETS, &tk)) {
-			struct variable_value newval;
-			struct variable *targets;
-
-			if (config_parse_list(cf, &newval))
-				return 1;
-			name = regressname(path, "targets", &s);
-			targets = config_find_or_create_list(cf, name);
-			variable_value_concat(&targets->va_val, &newval);
-		} else {
-			break;
-		}
-	}
-
-	regress = config_find_or_create_list(cf, "regress");
-	dst = VECTOR_ALLOC(regress->va_val.list);
-	if (dst == NULL)
-		err(1, NULL);
-	*dst = arena_strdup(cf->eternal, path);
-	return CONFIG_NOP;
-}
-
-static int
-config_parse_regress_option_env(struct config *cf, const char *path)
-{
-	struct variable_value defval, intval, newval;
-	struct variable *va;
-	const char *name, *str, *template;
-	char **dst;
-
-	if (config_parse_list(cf, &newval))
-		return 1;
-
-	arena_scope(cf->scratch, s);
-
-	/* Prepend ${regress-env} for default enviroment. */
-	name = regressname(path, "env", &s);
-	variable_value_init(&defval, LIST);
-	dst = VECTOR_ALLOC(defval.list);
-	if (dst == NULL)
-		err(1, NULL);
-	*dst = arena_strdup(cf->eternal, "${regress-env}");
-	variable_value_concat(&defval, &newval);
-	va = config_append(cf, name, &defval);
-
-	/* Do early interpolation to expand rdomain(s). */
-	template = arena_sprintf(&s, "${%s}", name);
-	str = config_interpolate_early(cf, template);
-	if (str == NULL)
-		return 1;
-	variable_value_init(&intval, STRING);
-	intval.str = str;
-	variable_value_clear(&va->va_val);
-	va->va_val = intval;
-
-	return 0;
-}
-
-static int
-config_parse_regress_env(struct config *cf, struct variable_value *val)
-{
-	struct variable *env;
-
-	if (config_parse_list(cf, val))
-		return 1;
-
-	if (!config_present(cf, "regress-env")) {
-		struct variable_value def;
-
-		variable_value_init(&def, LIST);
-		config_append(cf, "regress-env", &def);
-	}
-	env = config_find(cf, "regress-env");
-	variable_value_concat(&env->va_val, val);
-	return CONFIG_NOP;
-}
-
-static int
-config_parse_regress_timeout(struct config *cf, struct variable_value *val)
-{
-	struct token *tk;
-	struct variable_value timeout;
-	int scalar = 0;
-
-	if (config_parse_integer(cf, &timeout) == CONFIG_ERROR)
-		return CONFIG_ERROR;
-	if (lexer_if(cf->lx, TOKEN_SECONDS, &tk)) {
-		scalar = 1;
-	} else if (lexer_if(cf->lx, TOKEN_MINUTES, &tk)) {
-		scalar = 60;
-	} else if (lexer_if(cf->lx, TOKEN_HOURS, &tk)) {
-		scalar = 3600;
-	} else {
-		struct token *nx;
-
-		if (lexer_next(cf->lx, &nx))
-			lexer_warnx(cf->lx, nx->tk_lno, "unknown timeout unit");
-		return CONFIG_ERROR;
-	}
-
-	if (KS_i32_mul_overflow(scalar, timeout.integer, &timeout.integer)) {
-		lexer_warnx(cf->lx, tk->tk_lno, "timeout too large");
-		return CONFIG_ERROR;
-	}
-
-	variable_value_init(val, INTEGER);
-	val->integer = timeout.integer;
-	return CONFIG_APPEND;
-}
-
-static int
+int
 config_parse_directory(struct config *cf, struct variable_value *val)
 {
 	struct stat st;
@@ -1561,41 +1163,7 @@ config_default_inet6(struct config *cf, const char *name)
 	return config_append(cf, name, &val);
 }
 
-static struct variable *
-config_default_regress_targets(struct config *cf, const char *name)
-{
-	struct variable_value val;
-	char **dst;
-
-	variable_value_init(&val, LIST);
-	dst = VECTOR_ALLOC(val.list);
-	if (dst == NULL)
-		err(1, NULL);
-	*dst = arena_strdup(cf->eternal, "regress");
-	return config_append(cf, name, &val);
-}
-
-static struct variable *
-config_default_rdomain(struct config *cf, const char *UNUSED(name))
-{
-	static struct variable va;
-	int rdomain;
-
-	rdomain = cf->interpolate.rdomain++;
-	if (rdomain == RDOMAIN_MAX)
-		cf->interpolate.rdomain = rdomain = RDOMAIN_MIN;
-	variable_value_init(&va.va_val, INTEGER);
-	va.va_val.integer = rdomain;
-	return &va;
-}
-
-static struct variable *
-config_default_parallel(struct config *cf, const char *UNUSED(name))
-{
-	return config_find(cf, "parallel");
-}
-
-static struct variable *
+struct variable *
 config_append(struct config *cf, const char *name,
     const struct variable_value *val)
 {
@@ -1610,7 +1178,7 @@ config_append(struct config *cf, const char *name,
 	return va;
 }
 
-static int
+int
 config_present(const struct config *cf, const char *name)
 {
 	size_t i;
@@ -1622,10 +1190,4 @@ config_present(const struct config *cf, const char *name)
 			return 1;
 	}
 	return 0;
-}
-
-static const char *
-regressname(const char *path, const char *suffix, struct arena_scope *s)
-{
-	return arena_sprintf(s, "regress-%s-%s", path, suffix);
 }
