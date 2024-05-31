@@ -9,9 +9,11 @@
 #include <errno.h>
 #include <fcntl.h>
 #include <signal.h>
+#include <string.h>
 #include <unistd.h>
 
 #include "libks/arena.h"
+#include "libks/vector.h"
 
 #include "conf.h"
 #include "mode.h"
@@ -255,38 +257,31 @@ step_timeout(struct step_context *c)
 	return config_value(c->config, "regress-timeout", integer, 0);
 }
 
+static const struct config_step *
+find_step(struct step_context *c, const char *step_name, struct arena_scope *s)
+{
+	VECTOR(struct config_step) steps;
+	size_t i;
+
+	steps = config_get_steps(c->config, s);
+	for (i = 0; i < VECTOR_LENGTH(steps); i++) {
+		const struct config_step *cs = &steps[i];
+
+		if (strcmp(cs->name, step_name) == 0)
+			return cs;
+	}
+	return NULL;
+}
+
 static const char *
 resolve_step_script(struct step_context *c, const char *step_name)
 {
-	struct stat st;
-	const char *step_script, *template;
-	enum robsd_mode mode = config_get_mode(c->config);
+	const struct config_step *cs;
 
 	arena_scope(c->scratch, s);
 
-	/* Give mode specific step script higher precedence. */
-	template = arena_sprintf(&s, "${exec-dir}/%s-%s.sh",
-	    robsd_mode_str(mode), step_name);
-	step_script = config_interpolate_str(c->config, template);
-	if (step_script == NULL)
+	cs = find_step(c, step_name, &s);
+	if (cs == NULL)
 		return NULL;
-	if (stat(step_script, &st) == 0 && S_ISREG(st.st_mode))
-		return step_script;
-
-	/* Fallback to robsd step script. */
-	template = arena_sprintf(&s, "${exec-dir}/robsd-%s.sh", step_name);
-	step_script = config_interpolate_str(c->config, template);
-	if (step_script == NULL)
-		return NULL;
-	if (stat(step_script, &st) == 0 && S_ISREG(st.st_mode))
-		return step_script;
-
-	if (mode == ROBSD_REGRESS) {
-		/* Assume regress test step. */
-		template = arena_sprintf(&s, "${exec-dir}/%s-exec.sh",
-		    robsd_mode_str(mode));
-		return config_interpolate_str(c->config, template);
-	}
-
-	return NULL;
+	return cs->script_path;
 }

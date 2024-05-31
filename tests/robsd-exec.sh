@@ -62,21 +62,21 @@ robsd_exec() {
 }
 
 if testcase "robsd"; then
-	cat <<-EOF >"${TSHDIR}/robsd-test.sh"
+	cat <<-EOF >"${TSHDIR}/robsd-env.sh"
 	echo robsd
 	EOF
 
-	robsd_exec -m robsd - -- test <<-EOF
+	robsd_exec -m robsd - -- env <<-EOF
 	robsd
 	EOF
 fi
 
 if testcase "robsd-cross"; then
-	cat <<-EOF >"${TSHDIR}/robsd-cross-test.sh"
+	cat <<-EOF >"${TSHDIR}/robsd-env.sh"
 	echo robsd-cross
 	EOF
 
-	robsd_exec -m robsd-cross - -- test <<-EOF
+	robsd_exec -m robsd-cross - -- env <<-EOF
 	robsd-cross
 	EOF
 fi
@@ -86,8 +86,8 @@ if testcase "robsd-regress"; then
 	echo robsd-regress: ${*}
 	EOF
 
-	robsd_exec -m robsd-regress - -- test <<-EOF
-	robsd-regress: test
+	robsd_exec -m robsd-regress - -- test/one <<-EOF
+	robsd-regress: test/one
 	EOF
 fi
 
@@ -97,15 +97,15 @@ if testcase "robsd-regress: timeout"; then
 	sleep 60
 	EOF
 
-	robsd_exec -E 124 -m robsd-regress -- test >/dev/null
+	robsd_exec -E 124 -m robsd-regress -- test/one >/dev/null
 fi
 
 if testcase "trace"; then
-	cat <<-'EOF' >"${TSHDIR}/robsd-test.sh"
+	cat <<-'EOF' >"${TSHDIR}/robsd-env.sh"
 	:
 	EOF
 
-	robsd_exec -m robsd - -- -x test <<-EOF
+	robsd_exec -m robsd - -- -x env <<-EOF
 	+ :
 	EOF
 fi
