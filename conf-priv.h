@@ -41,10 +41,9 @@ struct config {
 	struct arena			 *scratch;
 	struct lexer			 *lx;
 	const char			 *path;
-
 	const struct config_callbacks	 *callbacks;
-
 	const struct grammar		**grammar;	/* VECTOR(const struct grammar *) */
+	struct variable			 *variables;	/* VECTOR(struct variable) */
 
 	struct {
 		const struct config_step	*ptr;
@@ -55,8 +54,6 @@ struct config {
 		int	early;
 		int	rdomain;
 	} interpolate;
-
-	struct variable			 *variables;	/* VECTOR(struct variable) */
 
 	enum robsd_mode			  mode;
 };
