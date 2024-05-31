@@ -355,6 +355,7 @@ MANLINT+=	robsd.8
 MANLINT+=	robsd.conf.5
 
 SHLINT+=	${SCRIPTS}
+SHLINT+=	canvas
 SHLINT+=	configure
 SHLINT+=	robsd
 SHLINT+=	robsd-clean
