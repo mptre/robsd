@@ -456,10 +456,10 @@ if testcase "canvas: basic"; then
 	} >"$(step_path "$_builddir")"
 
 	robsd_report -m canvas - -- "$_builddir" <<-EOF
-	Subject: canvas: test: ok
+	Subject: canvas: test: 1 failure
 
 	> stats
-	Status: ok
+	Status: 1 failure
 	Duration: 00:01:00
 	Build: ${_builddir}
 

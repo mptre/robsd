@@ -300,7 +300,8 @@ regress_report_skip_step(struct report_context *r, const struct step *step)
 }
 
 static const char *
-regress_report_status(struct report_context *r, struct arena_scope *s)
+number_of_failures_report_status(struct report_context *r,
+    struct arena_scope *s)
 {
 	VECTOR(struct step) steps;
 	size_t i, nsteps;
@@ -419,8 +420,8 @@ report_status(struct report_context *r, struct arena_scope *s)
 	VECTOR(struct step) steps;
 	size_t nsteps;
 
-	if (r->mode == ROBSD_REGRESS)
-		return regress_report_status(r, s);
+	if (r->mode == ROBSD_REGRESS || r->mode == CANVAS)
+		return number_of_failures_report_status(r, s);
 
 	/*
 	 * All other robsd utilities halts if a step failed, only bother
