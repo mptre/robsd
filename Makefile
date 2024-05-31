@@ -365,6 +365,7 @@ SHLINT+=	robsd-ports
 SHLINT+=	robsd-regress
 SHLINT+=	robsd-rescue
 SHLINT+=	tests/canvas-robsd-config.sh
+SHLINT+=	tests/canvas.sh
 SHLINT+=	tests/check-perf.sh
 SHLINT+=	tests/cleandir.sh
 SHLINT+=	tests/config-load.sh
