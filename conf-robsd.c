@@ -31,7 +31,7 @@ static const struct config_step robsd_steps[] = {
 	{ "cvs",	{ "${exec-dir}/robsd-cvs.sh" },		{0} },
 	{ "patch",	{ "${exec-dir}/robsd-patch.sh" },	{0} },
 	{ "kernel",	{ "${exec-dir}/robsd-kernel.sh" },	{0} },
-	{ "reboot",	{ "/dev/null" },			{0} },
+	{ "reboot",	{ "${exec-dir}/robsd-reboot.sh"  },	{0} },
 	{ "env",	{ "${exec-dir}/robsd-env.sh" },		{0} },
 	{ "base",	{ "${exec-dir}/robsd-base.sh" },	{0} },
 	{ "release",	{ "${exec-dir}/robsd-release.sh" },	{0} },
