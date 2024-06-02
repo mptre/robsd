@@ -47,7 +47,7 @@ STATINTERVAL="${stat-interval}"
 EOF
 
 config_load <<EOF
-SKIP="${SKIP:-} \${skip}"
+SKIP="${SKIP:-}${SKIP:+ }\${skip}"
 EOF
 
 trap 'trap_exit -r "$ROBSDDIR" -b "$BUILDDIR" -s "$_statpid"' EXIT

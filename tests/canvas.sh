@@ -19,6 +19,10 @@ if testcase "basic"; then
 	   >"$TMP1" 2>&1; then
 		fail - "expected exit zero" <"$TMP1"
 	fi
+
+	if grep -q 'skipping steps' "$TMP1"; then
+		fail - "expected no steps to be skipped" <"$TMP1"
+	fi
 fi
 
 if testcase "skip"; then
