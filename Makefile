@@ -493,7 +493,6 @@ ${PROG_fuzz-step}: ${OBJS_fuzz-step}
 install: all
 	mkdir -p ${DESTDIR}${BINDIR}
 	${INSTALL} -m 0555 ${.CURDIR}/robsd ${DESTDIR}${BINDIR}
-	${INSTALL} -m 0555 ${.CURDIR}/robsd-clean ${DESTDIR}${BINDIR}
 	${INSTALL} -m 0555 ${.CURDIR}/robsd-kill ${DESTDIR}${BINDIR}
 	${INSTALL} -m 0555 ${.CURDIR}/robsd-rescue ${DESTDIR}${BINDIR}
 	mkdir -p ${DESTDIR}${LIBEXECDIR}/robsd
@@ -502,9 +501,11 @@ install: all
 	${INSTALL_MAN} ${.CURDIR}/robsd.conf.5 ${DESTDIR}${MANDIR}/man5
 	@mkdir -p ${DESTDIR}${MANDIR}/man8
 	${INSTALL_MAN} ${.CURDIR}/robsd.8 ${DESTDIR}${MANDIR}/man8
-	${INSTALL_MAN} ${.CURDIR}/robsd-clean.8 ${DESTDIR}${MANDIR}/man8
 	${INSTALL_MAN} ${.CURDIR}/robsd-kill.8 ${DESTDIR}${MANDIR}/man8
 	${INSTALL_MAN} ${.CURDIR}/robsd-rescue.8 ${DESTDIR}${MANDIR}/man8
+# robsd-clean
+	${INSTALL} -m 0555 ${.CURDIR}/robsd-clean ${DESTDIR}${BINDIR}
+	${INSTALL_MAN} ${.CURDIR}/robsd-clean.8 ${DESTDIR}${MANDIR}/man8
 # robsd-config
 	${INSTALL} -m 0555 ${PROG_robsd-config} ${DESTDIR}${LIBEXECDIR}/robsd
 	${INSTALL_MAN} ${.CURDIR}/robsd-config.8 ${DESTDIR}${MANDIR}/man8
@@ -528,20 +529,17 @@ install: all
 	${INSTALL_MAN} ${.CURDIR}/robsd-cross.conf.5 ${DESTDIR}${MANDIR}/man5
 	${INSTALL_MAN} ${.CURDIR}/robsd-cross.8 ${DESTDIR}${MANDIR}/man8
 	${INSTALL_MAN} ${.CURDIR}/robsd-crossenv.8 ${DESTDIR}${MANDIR}/man8
-	ln -f ${DESTDIR}${BINDIR}/robsd-clean ${DESTDIR}${BINDIR}/robsd-cross-clean
 	ln -f ${DESTDIR}${BINDIR}/robsd-kill ${DESTDIR}${BINDIR}/robsd-cross-kill
 # robsd-ports
 	${INSTALL} -m 0555 ${.CURDIR}/robsd-ports ${DESTDIR}${BINDIR}
 	${INSTALL_MAN} ${.CURDIR}/robsd-ports.conf.5 ${DESTDIR}${MANDIR}/man5
 	${INSTALL_MAN} ${.CURDIR}/robsd-ports.8 ${DESTDIR}${MANDIR}/man8
-	ln -f ${DESTDIR}${BINDIR}/robsd-clean ${DESTDIR}${BINDIR}/robsd-ports-clean
 	ln -f ${DESTDIR}${BINDIR}/robsd-kill ${DESTDIR}${BINDIR}/robsd-ports-kill
 	ln -f ${DESTDIR}${BINDIR}/robsd-rescue ${DESTDIR}${BINDIR}/robsd-ports-rescue
 # robsd-regress
 	${INSTALL} -m 0555 ${.CURDIR}/robsd-regress ${DESTDIR}${BINDIR}
 	${INSTALL_MAN} ${.CURDIR}/robsd-regress.conf.5 ${DESTDIR}${MANDIR}/man5
 	${INSTALL_MAN} ${.CURDIR}/robsd-regress.8 ${DESTDIR}${MANDIR}/man8
-	ln -f ${DESTDIR}${BINDIR}/robsd-clean ${DESTDIR}${BINDIR}/robsd-regress-clean
 	ln -f ${DESTDIR}${BINDIR}/robsd-kill ${DESTDIR}${BINDIR}/robsd-regress-kill
 # robsd-regress-html
 	${INSTALL} -m 0555 ${PROG_robsd-regress-html} ${DESTDIR}${BINDIR}

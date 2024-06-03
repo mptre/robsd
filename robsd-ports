@@ -103,7 +103,7 @@ if [ "$_step" -eq 1 ]; then
 fi
 
 if [ "$KEEP" -gt 0 ]; then
-	/usr/local/sbin/robsd-ports-clean "$KEEP"
+	/usr/local/sbin/robsd-clean -m "${_MODE}" "${KEEP}"
 fi
 
 "$ROBSDSTAT" -i "$STATINTERVAL" -u _pbuild -u _pfetch >>"${BUILDDIR}/stat.csv" 2>&1 &

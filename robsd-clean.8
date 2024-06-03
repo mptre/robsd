@@ -2,19 +2,11 @@
 .Dt ROBSD-CLEAN 8
 .Os
 .Sh NAME
-.Nm robsd-clean ,
-.Nm robsd-cross-clean ,
-.Nm robsd-ports-clean ,
-.Nm robsd-regress-clean
+.Nm robsd-clean
 .Nd clean old invocations
 .Sh SYNOPSIS
 .Nm robsd-clean
-.Ar count
-.Nm robsd-cross-clean
-.Ar count
-.Nm robsd-ports-clean
-.Ar count
-.Nm robsd-regress-clean
+.Fl m Ar mode
 .Ar count
 .Sh DESCRIPTION
 The
@@ -30,12 +22,13 @@ rooted in
 .Ic robsddir .
 Only a selected few files are kept in order to reduce disk usage.
 The same files can be used to track various metrics over time.
+.Pp
+The options are as follows:
+.Bl -tag -width Ds
+.It Fl m Ar mode
+Mode used to indicate the kind of configuration.
+.El
 .Sh DIAGNOSTICS
 .Ex -std
-.Sh SEE ALSO
-.Xr robsd 8 ,
-.Xr robsd-cross 8 ,
-.Xr robsd-ports 8 ,
-.Xr robsd-regress 8
 .Sh AUTHORS
 .An Anton Lindqvist Aq Mt anton@basename.se
