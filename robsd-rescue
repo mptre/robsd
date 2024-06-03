@@ -34,7 +34,7 @@ fi
 lock_acquire "$ROBSDDIR" "$BUILDDIR"
 
 if step_eval -n patch "$(step_path "$BUILDDIR")" 2>/dev/null; then
-	step_exec -X -b "$BUILDDIR" -l /dev/null -s revert || :
+	step_exec -X -l /dev/null -s revert || :
 else
 	info "step patch not found, cannot revert diff(s)"
 fi

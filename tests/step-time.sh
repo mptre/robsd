@@ -1,6 +1,11 @@
 portable no
 
-BUILDDIR="$TSHDIR"; export BUILDDIR
+setup() {
+	BUILDDIR="${TSHDIR}/2024-06-02.1"; export BUILDDIR
+	mkdir -p "${BUILDDIR}/tmp"
+	echo "$BUILDDIR" >"${TSHDIR}/.running"
+}
+
 EXECDIR="$TSHDIR"
 
 # Ensure the step time is only stamped when the same step is started.

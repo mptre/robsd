@@ -2,11 +2,9 @@
 . "${EXECDIR}/util-regress.sh"
 
 config_load <<-'EOF'
-BUILDDIR="${builddir}"
+TMPDIR="${tmp-dir}"
 EOF
 
-_tmpdir="${BUILDDIR}/tmp"
-
-[ -e "${_tmpdir}/packages" ] || exit 0
-xargs pkg_delete <"${_tmpdir}/packages" || :
+[ -e "${TMPDIR}/packages" ] || exit 0
+xargs pkg_delete <"${TMPDIR}/packages" || :
 pkg_delete -a || :

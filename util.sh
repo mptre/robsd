@@ -1090,32 +1090,31 @@ step_eval() {
 	return "$_err"
 }
 
-# step_exec [-X] -b build-dir -l log -s step
+# step_exec [-X] -l log -s step
 #
 # Execute the given script and redirect any output to log.
 step_exec() (
-	local _builddir
 	local _err
 	local _fail
 	local _log
 	local _step
 	local _trace="yes"
+	local _tmpdir
 
 	while [ $# -gt 0 ]; do
 		case "$1" in
 		-X)	_trace="";;
-		-b)	shift; _builddir="$1";;
 		-l)	shift; _log="$1";;
 		-s)	shift; _step="$1";;
 		*)	break;;
 		esac
 		shift
 	done
-	: "${_builddir:?}"
 	: "${_log:?}"
 	: "${_step:?}"
 
-	_fail="$(mktemp -p "${_builddir}/tmp" step-exec.XXXXXX)"
+	_tmpdir="$(config_value tmp-dir)"
+	_fail="$(mktemp -p "${_tmpdir}" step-exec.XXXXXX)"
 	echo 0 >"$_fail"
 
 	[ "$DETACH" -eq 0 ] || exec >/dev/null 2>&1
@@ -1169,7 +1168,7 @@ step_exec_job() {
 	_log="$(log_id -b "$_builddir" -n "$_name" -s "$_id")"
 	_t0="$(date '+%s')"
 	step_write -t -l "$_log" -s "$_id" -n "$_name" -e -1 -d -1 "$_steps"
-	step_exec -b "$_builddir" -l "${_builddir}/${_log}" -s "$_name" || _exit="$?"
+	step_exec -l "${_builddir}/${_log}" -s "$_name" || _exit="$?"
 	_t1="$(date '+%s')"
 	_d1="$((_t1 - _t0))"
 	_d0="$(duration_prev "$_name" || :)"

@@ -5,9 +5,8 @@ ROBSDDIR="${robsddir}"
 BUILDDIR="${builddir}"
 RELDIR="${bsd-reldir}"
 RELXDIR="${x11-reldir}"
+TMPDIR="${tmp-dir}"
 EOF
-
-_tmpdir="${BUILDDIR}/tmp"
 
 if [ -e "${RELXDIR}/SHA256" ]; then
 	cat "${RELXDIR}/SHA256" >>"${RELDIR}/SHA256"
@@ -49,7 +48,7 @@ done
 } >BUILDINFO
 
 if step_eval -n cvs "$(step_path "$BUILDDIR")" 2>/dev/null && ! step_skip; then
-	cvs_changelog -t "$_tmpdir" >CHANGELOG
+	cvs_changelog -t "$TMPDIR" >CHANGELOG
 fi
 
 # Compute missing checksums.
