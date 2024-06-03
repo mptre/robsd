@@ -65,6 +65,7 @@ static const struct grammar common_grammar[] = {
 	{ "arch",		STRING,		NULL,			0,	{ MACHINE_ARCH } },
 	{ "build-user",		STRING,		NULL,			0,	{ "build" } },
 	{ "builddir",		STRING,		NULL,			FUN,	{ D_FUN(config_default_build_dir) } },
+	{ "comment-path",	STRING,		NULL,			0,	{ "${builddir}/comment" } },
 	{ "exec-dir",		STRING,		NULL,			FUN,	{ D_FUN(config_default_exec_dir) } },
 	{ "hook",		LIST,		config_parse_list,	0,	{ NULL } },
 	{ "inet",		STRING,		NULL,			FUN,	{ D_FUN(config_default_inet4) } },

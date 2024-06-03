@@ -3,6 +3,7 @@
 config_load <<'EOF'
 ROBSDDIR="${robsddir}"
 BUILDDIR="${builddir}"
+COMMENT="${comment-path}"
 RELDIR="${bsd-reldir}"
 RELXDIR="${x11-reldir}"
 TMPDIR="${tmp-dir}"
@@ -41,9 +42,9 @@ done
 		xargs <"${BUILDDIR}/tags"
 	fi
 
-	if [ -e "${BUILDDIR}/comment" ]; then
+	if [ -e "${COMMENT}" ]; then
 		echo
-		cat "${BUILDDIR}/comment"
+		cat "${COMMENT}"
 	fi
 } >BUILDINFO
 

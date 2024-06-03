@@ -21,12 +21,15 @@ to be substituted with the corresponding value.
 The following additional variables are also available during interpolation for
 all modes:
 .Pp
-.Bl -tag -compact -width keep-dir
+.Bl -tag -compact -width comment-path
 .It Ic arch
 CPU architecture.
 .It Ic builddir
 The current invocation directory rooted in
 .Ic robsddir .
+.It Ic comment-path
+Path to comment rooted in
+.Ic builddir .
 .It Ic inet
 .Xr inet 4
 address associated with the egress interface.
@@ -40,7 +43,7 @@ Directory used by
 .Xr robsd-clean 8
 while cleaning out old invocations.
 .It Ic tmp-dir
-Temporary directory rooted inside
+Temporary directory rooted in
 .Ic builddir .
 .El
 .Pp

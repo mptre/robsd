@@ -71,13 +71,13 @@ lock_acquire "$ROBSDDIR" "$BUILDDIR"
 
 if [ "$_step" -eq 1 ]; then
 	if [ -n "$_comment" ]; then
-		cat "$_comment" >"${BUILDDIR}/comment"
+		cat "$_comment" >"$(config_value comment-path)"
 	elif [ -n "$PORTSDIFF" ]; then
 		# Generate comment including a list of the diff(s).
 		{
 			echo 'Applied the following diff(s):'
 			echo "$PORTSDIFF" | xargs ls
-		} >"${BUILDDIR}/comment"
+		} >"$(config_value comment-path)"
 	fi
 
 	# shellcheck disable=SC2086,SC2153

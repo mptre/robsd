@@ -517,7 +517,9 @@ report_comment(struct report_context *r)
 
 	arena_scope(r->scratch, s);
 
-	path = arena_sprintf(&s, "%s/comment", r->builddir);
+	path = config_interpolate_str(r->config, "${comment-path}");
+	if (path == NULL)
+		return 1;
 	bf = arena_buffer_read(&s, path);
 	if (bf == NULL) {
 		if (errno == ENOENT)
