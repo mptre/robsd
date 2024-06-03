@@ -7,6 +7,11 @@
   (d27e243ede81)
   (Anton Lindqvist)
 
+- robsd-clean: stop installing symlinks for each robsd utility. Instead,
+  robsd-clean accepts a mode argument by now.
+  (747a1ac6192c)
+  (Anton Lindqvist)
+
 ## News
 
 - canvas: new utility exposing the generic parts of the robsd tooling.
