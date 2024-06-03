@@ -107,7 +107,6 @@ config_load() {
 	: "${BUILDDIR:=}"
 	: "${DETACH:=1}"
 	: "${EXECDIR:=/usr/local/libexec/robsd}"; export EXECDIR
-	PATH="${PATH}:/usr/X11R6/bin"; export PATH
 	: "${ROBSDCONFIG:=${EXECDIR}/robsd-config}"
 	: "${ROBSDEXEC:=${EXECDIR}/robsd-exec}"
 	: "${ROBSDHOOK:=${EXECDIR}/robsd-hook}"

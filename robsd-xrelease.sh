@@ -7,6 +7,8 @@ RELEASEDIR="${x11-reldir}"; export RELEASEDIR
 XSRCDIR="${x11-srcdir}"
 EOF
 
+PATH="${PATH}:/usr/X11R6/bin"; export PATH
+
 DESTDIR="${DESTDIR}/xenocara"; export DESTDIR
 mkdir -p "$DESTDIR"
 cleandir "$DESTDIR"
