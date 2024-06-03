@@ -1,5 +1,6 @@
-# robsd_config [-e] [-] [-- robsd-config-argument ...]
+# robsd_config [-e]  [-N] [-] [-- robsd-config-argument ...]
 robsd_config() {
+	local _config="${CONFIG}"
 	local _err0=0
 	local _err1=0
 	local _stdin=0
@@ -8,6 +9,7 @@ robsd_config() {
 	while [ $# -gt 0 ]; do
 		case "$1" in
 		-e)	_err0="1";;
+		-N)	_config="";;
 		-)	_stdin=1;;
 		*)	break;;
 		esac
@@ -18,7 +20,7 @@ robsd_config() {
 	[ -e "$CONFIG" ] || : >"$CONFIG"
 	[ -e "$STDIN" ] || : >"$STDIN"
 
-	${EXEC:-} "$ROBSDCONFIG" -m canvas -C "$CONFIG" "$@" - \
+	${EXEC:-} "$ROBSDCONFIG" -m canvas ${_config:+"-C${_config}"} "$@" - \
 		<"$STDIN" >"$_stdout" 2>&1 || _err1="$?"
 	if [ "$_err0" -ne "$_err1" ]; then
 		fail - "expected exit ${_err0}, got ${_err1}" <"$_stdout"
@@ -85,5 +87,11 @@ if testcase "invalid: interpolate step variable"; then
 	echo "\${step}" >"$STDIN"
 	robsd_config -e - <<-EOF
 	robsd-config: /dev/stdin:1: invalid substitution, unknown variable 'step'
+	EOF
+fi
+
+if testcase "invalid: missing path"; then
+	robsd_config -e -N - <<-EOF
+	robsd-config: configuration file missing
 	EOF
 fi

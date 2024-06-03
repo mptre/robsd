@@ -25,16 +25,16 @@ static const struct grammar canvas_grammar[] = {
 static int
 config_canvas_init(struct config *cf)
 {
-	if (cf->path == NULL) {
-		warnx("configuration file missing");
-		return 1;
-	}
-
 	config_copy_grammar(cf, canvas_grammar,
 	    sizeof(canvas_grammar) / sizeof(canvas_grammar[0]));
 
 	if (VECTOR_INIT(cf->canvas.steps))
 		err(1, NULL);
+
+	if (cf->path == NULL) {
+		warnx("configuration file missing");
+		return 1;
+	}
 
 	return 0;
 }
