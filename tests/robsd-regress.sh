@@ -177,9 +177,7 @@ EOF
 		sleep .1
 	done
 
-	_robsdkill="${TSHDIR}/robsd-regress-kill"
-	cp "$ROBSDKILL" "$_robsdkill"
-	PATH="${BINDIR}:${PATH}" sh "$_robsdkill"
+	env "PATH=${BINDIR}:${PATH}" sh "$ROBSDKILL" -m robsd-regress
 	while pgrep -q -f "${ROBSDREGRESS}$"; do
 		sleep .1
 	done

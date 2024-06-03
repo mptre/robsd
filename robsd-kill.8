@@ -2,28 +2,23 @@
 .Dt ROBSD-KILL 8
 .Os
 .Sh NAME
-.Nm robsd-kill ,
-.Nm robsd-cross-kill ,
-.Nm robsd-ports-kill ,
-.Nm robsd-regress-kill
+.Nm robsd-kill
 .Nd kill robsd
 .Sh SYNOPSIS
 .Nm robsd-kill
-.Nm robsd-cross-kill
-.Nm robsd-ports-kill
-.Nm robsd-regress-kill
+.Fl m Ar mode
 .Sh DESCRIPTION
 The
 .Nm
 utility
 kills the corresponding robsd process in a graceful manner.
+.Pp
+The options are as follows:
+.Bl -tag -width Ds
+.It Fl m Ar mode
+Mode used to indicate the kind of configuration.
+.El
 .Sh DIAGNOSTICS
 .Ex -std
-.Sh SEE ALSO
-.Xr robsd.conf 5 ,
-.Xr robsd 8 ,
-.Xr robsd-cross 8 ,
-.Xr robsd-ports 8 ,
-.Xr robsd-regress 8
 .Sh AUTHORS
 .An Anton Lindqvist Aq Mt anton@basename.se

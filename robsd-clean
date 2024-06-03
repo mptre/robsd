@@ -23,7 +23,7 @@ while getopts "m:" opt; do
 	esac
 done
 shift $((OPTIND - 1))
-[ $# -eq 1 ] || usage
+{ [ -n "$_mode" ] && [ $# -eq 1 ]; } || usage
 
 setmode "$_mode"
 
