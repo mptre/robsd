@@ -328,13 +328,6 @@ SCRIPTS+=	util-ports.sh
 SCRIPTS+=	util-regress.sh
 SCRIPTS+=	util.sh
 
-PREFIX=		/usr/local
-BINDIR=		${PREFIX}/sbin
-LIBEXECDIR=	${PREFIX}/libexec
-MANDIR=		${PREFIX}/man
-INSTALL?=	install
-INSTALL_MAN?=	${INSTALL}
-
 MANLINT+=	robsd-clean.8
 MANLINT+=	robsd-config.8
 MANLINT+=	robsd-cross.8
