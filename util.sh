@@ -846,6 +846,35 @@ report() {
 	"$ROBSDREPORT" -m "$_MODE" ${ROBSDCONF:+-C ${ROBSDCONF}} "$_builddir" >"$_report"
 }
 
+# report_receiver -b build-dir
+#
+# Get report mail receiver.
+report_receiver() {
+	local _builddir
+	local _steps
+
+	while [ $# -gt 0 ]; do
+		case "$1" in
+		-b)	shift; _builddir="${1}";;
+		*)	break;;
+		esac
+		shift
+	done
+	: "${_builddir:?}"
+
+	_steps="$(step_path "${_builddir}")"
+
+	case "${_MODE}" in
+	canvas)
+		step_eval 1 "${_steps}"
+		step_value user
+		;;
+	*)
+		echo root
+		;;
+	esac
+}
+
 # robsd -b build-dir -s step-id
 #
 # Main loop shared between utilities.
@@ -1292,6 +1321,7 @@ step_value() {
 trap_exit() {
 	local _err="$?"
 	local _builddir=""
+	local _receiver=
 	local _robsddir=""
 	local _statpid=""
 	local _steps
@@ -1319,10 +1349,11 @@ trap_exit() {
 	if [ "$_err" -ne 0 ] ||
 	   step_eval -n end "$_steps" 2>/dev/null
 	then
+		# Do not send mail during interactive invocations.
 		if report -b "$_builddir" &&
 		   [ "$DETACH" -ne 0 ]; then
-			# Do not send mail during interactive invocations.
-			sendmail root <"${_builddir}/report"
+			_receiver="$(report_receiver -b "$_builddir")"
+			sendmail "${_receiver}" <"${_builddir}/report"
 		fi
 	fi
 

@@ -374,6 +374,7 @@ SHLINT+=	tests/lock-acquire.sh
 SHLINT+=	tests/log-id.sh
 SHLINT+=	tests/purge.sh
 SHLINT+=	tests/regress-failed.sh
+SHLINT+=	tests/report-receiver.sh
 SHLINT+=	tests/robsd-config.sh
 SHLINT+=	tests/robsd-cross.sh
 SHLINT+=	tests/robsd-crossenv.sh

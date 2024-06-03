@@ -14,6 +14,7 @@ TESTS+=	lock-acquire.sh
 TESTS+=	log-id.sh
 TESTS+=	purge.sh
 TESTS+=	regress-failed.sh
+TESTS+=	report-receiver.sh
 TESTS+=	robsd-config.sh
 TESTS+=	robsd-cross.sh
 TESTS+=	robsd-crossenv.sh
