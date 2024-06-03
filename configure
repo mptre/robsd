@@ -228,6 +228,7 @@ LDFLAGS="$(unset DEBUG; makevar LDFLAGS || :)"
 PREFIX="$(makevar PREFIX || echo /usr/local)"
 BINDIR="$(makevar BINDIR || echo "${PREFIX}/bin")"
 MANDIR="$(makevar MANDIR || echo "${PREFIX}/man")"
+LIBEXECDIR="${PREFIX}/libexec"
 INSTALL="$(makevar INSTALL || echo install)"
 INSTALL_MAN="$(makevar INSTALL_MAN || echo "$INSTALL")"
 
@@ -320,6 +321,7 @@ LDFLAGS=	$(rmdup $LDFLAGS)
 
 BINDIR?=	$(echo $BINDIR)
 MANDIR?=	$(echo $MANDIR)
+LIBEXECDIR?=	$(echo $LIBEXECDIR)
 INSTALL?=	$(echo $INSTALL)
 INSTALL_MAN?=	$(echo $INSTALL_MAN)
 
