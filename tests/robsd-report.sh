@@ -36,6 +36,8 @@ setup() {
 	mv "$ROBSDCONF" "${TSHDIR}/.conf/canvas.conf"
 
 	mkdir -p "${_builddir}/rel" "${_builddir}/tmp"
+
+	echo "$_builddir" >"${TSHDIR}/.running"
 }
 
 # robsd_report -m mode [-e] [-] -- [robsd-step-argument ...]

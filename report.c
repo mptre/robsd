@@ -164,13 +164,15 @@ report_cvs_log(struct report_context *r)
 
 	for (i = 0; i < npaths; i++) {
 		struct stat st;
-		const char *path;
+		const char *path, *tmpdir;
 
 		if (paths[i].mode != r->mode)
 			continue;
 
-		path = arena_sprintf(&s, "%s/tmp/%s",
-		    r->builddir, paths[i].filename);
+		tmpdir = config_interpolate_str(r->config, "${tmp-dir}");
+		if (tmpdir == NULL)
+			return STEP_LOG_ERROR;
+		path = arena_sprintf(&s, "%s/%s", tmpdir, paths[i].filename);
 		if (stat(path, &st) == 0 && st.st_size == 0)
 			continue;
 		if (ncvs++ > 0)
@@ -230,9 +232,12 @@ ports_report_step_log(struct report_context *r, const struct step *step)
 	if (strcmp(name, "cvs") == 0)
 		return report_cvs_log(r);
 	if (strcmp(name, "dpb") == 0) {
-		const char *path;
+		const char *path, *tmpdir;
 
-		path = arena_sprintf(&s, "%s/tmp/packages.diff", r->builddir);
+		tmpdir = config_interpolate_str(r->config, "${tmp-dir}");
+		if (tmpdir == NULL)
+			return STEP_LOG_ERROR;
+		path = arena_sprintf(&s, "%s/packages.diff", tmpdir);
 		if (step_get_field(step, "exit")->integer == 0) {
 			buffer_putc(r->out, '\n');
 			if (format_file(r, path))
