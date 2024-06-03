@@ -12,6 +12,11 @@
   (747a1ac6192c)
   (Anton Lindqvist)
 
+- robsd-kill: stop installing symlinks for each robsd utility. Instead,
+  robsd-kill accepts a mode argument by now.
+  (16d930d99e5b)
+  (Anton Lindqvist)
+
 ## News
 
 - canvas: new utility exposing the generic parts of the robsd tooling.
