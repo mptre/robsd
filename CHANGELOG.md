@@ -7,14 +7,9 @@
   (d27e243ede81)
   (Anton Lindqvist)
 
-- robsd-clean: stop installing symlinks for each robsd utility. Instead,
-  robsd-clean accepts a mode argument by now.
-  (747a1ac6192c)
-  (Anton Lindqvist)
-
-- robsd-kill: stop installing symlinks for each robsd utility. Instead,
-  robsd-kill accepts a mode argument by now.
-  (16d930d99e5b)
+- Stop installing symlinks for robsd-clean, robsd-kill and robsd-rescue.
+  Instead, all utlitities accepts a mode argument by now.
+  (747a1ac6192c, 16d930d99e5b, f20c493e5a3b)
   (Anton Lindqvist)
 
 ## News
