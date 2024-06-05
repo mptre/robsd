@@ -494,14 +494,12 @@ install: all
 	mkdir -p ${DESTDIR}${BINDIR}
 	mkdir -p ${DESTDIR}${SBINDIR}
 	${INSTALL} -m 0555 ${.CURDIR}/robsd ${DESTDIR}${SBINDIR}
-	${INSTALL} -m 0555 ${.CURDIR}/robsd-rescue ${DESTDIR}${SBINDIR}
 	mkdir -p ${DESTDIR}${LIBEXECDIR}/robsd
 	cd ${.CURDIR} && ${INSTALL} -m 0444 ${SCRIPTS} ${DESTDIR}${LIBEXECDIR}/robsd
 	@mkdir -p ${DESTDIR}${MANDIR}/man5
 	${INSTALL_MAN} ${.CURDIR}/robsd.conf.5 ${DESTDIR}${MANDIR}/man5
 	@mkdir -p ${DESTDIR}${MANDIR}/man8
 	${INSTALL_MAN} ${.CURDIR}/robsd.8 ${DESTDIR}${MANDIR}/man8
-	${INSTALL_MAN} ${.CURDIR}/robsd-rescue.8 ${DESTDIR}${MANDIR}/man8
 # robsd-clean
 	${INSTALL} -m 0555 ${.CURDIR}/robsd-clean ${DESTDIR}${SBINDIR}
 	${INSTALL_MAN} ${.CURDIR}/robsd-clean.8 ${DESTDIR}${MANDIR}/man8
@@ -519,6 +517,9 @@ install: all
 # robsd-ls
 	${INSTALL} -m 0555 ${PROG_robsd-ls} ${DESTDIR}${LIBEXECDIR}/robsd
 	${INSTALL_MAN} ${.CURDIR}/robsd-ls.8 ${DESTDIR}${MANDIR}/man8
+# robsd-rescue
+	${INSTALL} -m 0555 ${.CURDIR}/robsd-rescue ${DESTDIR}${SBINDIR}
+	${INSTALL_MAN} ${.CURDIR}/robsd-rescue.8 ${DESTDIR}${MANDIR}/man8
 # robsd-stat
 	${INSTALL} -m 0555 ${PROG_robsd-stat} ${DESTDIR}${LIBEXECDIR}/robsd
 	${INSTALL_MAN} ${.CURDIR}/robsd-stat.8 ${DESTDIR}${MANDIR}/man8
@@ -535,7 +536,6 @@ install: all
 	${INSTALL} -m 0555 ${.CURDIR}/robsd-ports ${DESTDIR}${SBINDIR}
 	${INSTALL_MAN} ${.CURDIR}/robsd-ports.conf.5 ${DESTDIR}${MANDIR}/man5
 	${INSTALL_MAN} ${.CURDIR}/robsd-ports.8 ${DESTDIR}${MANDIR}/man8
-	ln -f ${DESTDIR}${SBINDIR}/robsd-rescue ${DESTDIR}${SBINDIR}/robsd-ports-rescue
 # robsd-regress
 	${INSTALL} -m 0555 ${.CURDIR}/robsd-regress ${DESTDIR}${SBINDIR}
 	${INSTALL_MAN} ${.CURDIR}/robsd-regress.conf.5 ${DESTDIR}${MANDIR}/man5

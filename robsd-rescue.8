@@ -2,12 +2,11 @@
 .Dt ROBSD-RESCUE 8
 .Os
 .Sh NAME
-.Nm robsd-rescue ,
-.Nm robsd-ports-rescue
+.Nm robsd-rescue
 .Nd recover from failed robsd invocations
 .Sh SYNOPSIS
 .Nm robsd-rescue
-.Nm robsd-ports-rescue
+.Fl m Ar mode
 .Sh DESCRIPTION
 The
 .Nm
@@ -19,10 +18,13 @@ Reverting any diff applied to the source directories.
 .It
 Release the lock, allowing for new invocations.
 .El
+.Pp
+The options are as follows:
+.Bl -tag -width Ds
+.It Fl m Ar mode
+Mode used to indicate the kind of configuration.
+.El
 .Sh DIAGNOSTICS
 .Ex -std
-.Sh SEE ALSO
-.Xr robsd 8 ,
-.Xr robsd-ports 8
 .Sh AUTHORS
 .An Anton Lindqvist Aq Mt anton@basename.se
