@@ -12,7 +12,7 @@ cd "${BSDSRCDIR}/sys/arch/$(machine)/compile/${KERNEL}"
 # Cannot create object directory symlink as build user.
 make obj
 
-unpriv "$BUILDUSER" <<EOF
+unpriv "${BUILDUSER}" <<EOF
 make config
 make && exit 0
 

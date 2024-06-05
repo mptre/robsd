@@ -17,6 +17,6 @@ cat <<-EOF >"${CHROOT}/etc/doas.conf"
 permit nopass keepenv root
 EOF
 
-chroot "$CHROOT" sh -x <<EOF
-make -C "$PORTSDIR" fix-permissions
+chroot "${CHROOT}" sh -x <<EOF
+make -C "${PORTSDIR}" fix-permissions
 EOF

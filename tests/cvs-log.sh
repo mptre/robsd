@@ -12,7 +12,7 @@ su() {
 	fi
 
 	while read -r _file; do
-		case "$_file" in
+		case "${_file}" in
 		bin/ed/ed.*)
 			cat <<-EOF
 			Working file: ${_file}
@@ -83,7 +83,7 @@ if testcase "basic"; then
 	Date: 2019/07/13 23:59:59
 	EOF
 
-	cat <<-EOF >"$TMP1"
+	cat <<-EOF >"${TMP1}"
 	P bin/ed/ed.1
 	P bin/ed/ed.c
 	P regress/usr.bin/mandoc/char/N/basic.out_ascii
@@ -130,16 +130,16 @@ if testcase "basic"; then
 
 	EOF
 
-	cvs_log -t "${TSHDIR}/.cvs" -c "$TSHDIR" -h example.com:/cvs \
-		-u nobody <"$TMP1" >"${TSHDIR}/act"
+	cvs_log -t "${TSHDIR}/.cvs" -c "${TSHDIR}" -h example.com:/cvs \
+		-u nobody <"${TMP1}" >"${TSHDIR}/act"
 	assert_file "${TSHDIR}/exp" "${TSHDIR}/act"
 fi
 
 if testcase "previous build absent"; then
-	if ! cvs_log -t "${TSHDIR}/.cvs" -c "$TSHDIR" -h example.com:/cvs \
-	   -u nobody >"$TMP1" 2>&1
+	if ! cvs_log -t "${TSHDIR}/.cvs" -c "${TSHDIR}" -h example.com:/cvs \
+	   -u nobody >"${TMP1}" 2>&1
 	then
-		fail - "expected exit zero" <"$TMP1"
+		fail - "expected exit zero" <"${TMP1}"
 	fi
 fi
 
@@ -159,16 +159,16 @@ if testcase "previous build no updates"; then
 	missing date header
 	EOF
 
-	cat <<-EOF >"$TMP1"
+	cat <<-EOF >"${TMP1}"
 	P bin/ed/ed.1
 	P bin/ed/ed.c
 	P sbin/dhclient/clparse.c
 	EOF
 
 	if ! cvs_log -t "${TSHDIR}/.cvs" -u nobody -c /dev/null \
-	   <"$TMP1" >"${TSHDIR}/act"
+	   <"${TMP1}" >"${TSHDIR}/act"
 	then
-		fail - "expected exit zero" <"$TMP1"
+		fail - "expected exit zero" <"${TMP1}"
 	fi
 	assert_file "/dev/null" "${TSHDIR}/act"
 fi

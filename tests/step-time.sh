@@ -3,30 +3,30 @@ portable no
 setup() {
 	BUILDDIR="${TSHDIR}/2024-06-02.1"; export BUILDDIR
 	mkdir -p "${BUILDDIR}/tmp"
-	echo "$BUILDDIR" >"${TSHDIR}/.running"
+	echo "${BUILDDIR}" >"${TSHDIR}/.running"
 }
 
-EXECDIR="$TSHDIR"
+EXECDIR="${TSHDIR}"
 
 # Ensure the step time is only stamped when the same step is started.
 if testcase "step time"; then
-	_steps="$(step_path "$TSHDIR")"
+	_steps="$(step_path "${TSHDIR}")"
 
 	cat <<-EOF >"${EXECDIR}/robsd-env.sh"
-	"$ROBSDSTEP" -W -f "$_steps" -i 1 -- time=1666666666
+	"${ROBSDSTEP}" -W -f "${_steps}" -i 1 -- time=1666666666
 	EOF
 
 	robsd_config - <<-EOF
-	robsddir "$TSHDIR"
+	robsddir "${TSHDIR}"
 	EOF
 
-	(setmode "robsd" && config_load </dev/null && build_init "$TSHDIR" &&
-	 robsd -b "$TSHDIR" -s 1) >"$TMP1" 2>&1 || :
+	(setmode "robsd" && config_load </dev/null && build_init "${TSHDIR}" &&
+	 robsd -b "${TSHDIR}" -s 1) >"${TMP1}" 2>&1 || :
 
-	assert_file - "$TMP1" <<-EOF
+	assert_file - "${TMP1}" <<-EOF
 	robsd-test: step env
 	EOF
 
-	step_eval -n env "$_steps"
+	step_eval -n env "${_steps}"
 	assert_eq "1666666666" "$(step_value time)"
 fi

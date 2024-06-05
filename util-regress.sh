@@ -25,10 +25,10 @@ regress_duration_total() {
 	done
 	: "${_steps:?}"
 
-	if step_eval 1 "$_steps" 2>/dev/null; then
+	if step_eval 1 "${_steps}" 2>/dev/null; then
 		_t0="$(step_value time)"
 	fi
-	if step_eval -1 "$_steps" 2>/dev/null; then
+	if step_eval -1 "${_steps}" 2>/dev/null; then
 		_t1="$(step_value time)"
 	fi
 	echo "$((_t1 - _t0))"
@@ -41,7 +41,7 @@ regress_failed() {
 	local _log
 
 	_log="$1"; : "${_log:?}"
-	regress_log -FPn "$_log"
+	regress_log -FPn "${_log}"
 }
 
 # regress_log [robsd-regress-log-argument ...]
@@ -98,5 +98,5 @@ regress_step_after() {
 	   grep -q "^${_name}$"; then
 		return 0
 	fi
-	return "$_exit"
+	return "${_exit}"
 }

@@ -5,7 +5,7 @@ BUILDDIR="${builddir}"
 REBOOT="${reboot}"
 EOF
 
-[ "$REBOOT" -eq 1 ] || exit 0
+[ "${REBOOT}" -eq 1 ] || exit 0
 
 cat <<-EOF >>/etc/rc.firsttime
 /usr/local/sbin/robsd -r ${BUILDDIR} >/dev/null

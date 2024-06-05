@@ -40,11 +40,11 @@ _step=1
 _tags=""
 
 while getopts "dP:c:r:s:t:" opt; do
-	case "$opt" in
+	case "${opt}" in
 	d)	DETACH=0;;
 	P)	PORTSDIFF="${PORTSDIFF} $(readlink -f "${OPTARG}")";;
-	c)	_comment="$OPTARG";;
-	r)	BUILDDIR="$(readlink -f "$OPTARG")";;
+	c)	_comment="${OPTARG}";;
+	r)	BUILDDIR="$(readlink -f "${OPTARG}")";;
 	s)	SKIP="${SKIP}${SKIP:+ }${OPTARG}";;
 	t)	_tags="${_tags}${_tags:+ }${OPTARG}";;
 	*)	usage;;
@@ -56,60 +56,60 @@ if [ $# -gt 0 ]; then
 	SKIP="${SKIP}${SKIP:+ }cvs clean proot distrib"
 fi
 
-trap 'trap_exit -r "$ROBSDDIR" -b "$BUILDDIR" -s "$_statpid"' EXIT
+trap 'trap_exit -r "${ROBSDDIR}" -b "${BUILDDIR}" -s "${_statpid}"' EXIT
 
-if [ -z "$BUILDDIR" ]; then
+if [ -z "${BUILDDIR}" ]; then
 	check_perf
-	BUILDDIR="${ROBSDDIR}/$(build_id "$ROBSDDIR")"
+	BUILDDIR="${ROBSDDIR}/$(build_id "${ROBSDDIR}")"
 else
-	_step="$(step_next "$(step_path "$BUILDDIR")")"
+	_step="$(step_next "$(step_path "${BUILDDIR}")")"
 fi
-build_init "$BUILDDIR"
+build_init "${BUILDDIR}"
 info "using directory ${BUILDDIR} at step ${_step}"
 
-lock_acquire "$ROBSDDIR" "$BUILDDIR"
+lock_acquire "${ROBSDDIR}" "${BUILDDIR}"
 
-if [ "$_step" -eq 1 ]; then
-	if [ -n "$_comment" ]; then
-		cat "$_comment" >"$(config_value comment-path)"
-	elif [ -n "$PORTSDIFF" ]; then
+if [ "${_step}" -eq 1 ]; then
+	if [ -n "${_comment}" ]; then
+		cat "${_comment}" >"$(config_value comment-path)"
+	elif [ -n "${PORTSDIFF}" ]; then
 		# Generate comment including a list of the diff(s).
 		{
 			echo 'Applied the following diff(s):'
-			echo "$PORTSDIFF" | xargs ls
+			echo "${PORTSDIFF}" | xargs ls
 		} >"$(config_value comment-path)"
 	fi
 
 	# shellcheck disable=SC2086,SC2153
-	diff_copy -d "${CHROOT}${PORTSDIR}" "${BUILDDIR}/ports.diff" $PORTSDIFF
+	diff_copy -d "${CHROOT}${PORTSDIR}" "${BUILDDIR}/ports.diff" ${PORTSDIFF}
 
-	if [ -n "$SKIP" ]; then
+	if [ -n "${SKIP}" ]; then
 		info "skipping steps: ${SKIP}"
-		for _skip in $SKIP; do
-			_id="$(step_id "$_skip")"
-			step_write -S -t -s "$_id" -n "$_skip" -e 0 -d 0 -l "" \
-				"$(step_path "$BUILDDIR")"
+		for _skip in ${SKIP}; do
+			_id="$(step_id "${_skip}")"
+			step_write -S -t -s "${_id}" -n "${_skip}" -e 0 -d 0 -l "" \
+				"$(step_path "${BUILDDIR}")"
 		done
 	fi
 
-	if [ -n "$_tags" ]; then
-		echo "$_tags" >"${BUILDDIR}/tags"
+	if [ -n "${_tags}" ]; then
+		echo "${_tags}" >"${BUILDDIR}/tags"
 	fi
 
 	# List of ports used by the steps.
-	echo "$PORTS" | xargs printf '%s\n' >"${BUILDDIR}/tmp/ports"
+	echo "${PORTS}" | xargs printf '%s\n' >"${BUILDDIR}/tmp/ports"
 
-	"$ROBSDSTAT" -H >"${BUILDDIR}/stat.csv"
+	"${ROBSDSTAT}" -H >"${BUILDDIR}/stat.csv"
 fi
 
-if [ "$KEEP" -gt 0 ]; then
+if [ "${KEEP}" -gt 0 ]; then
 	/usr/local/sbin/robsd-clean -m "${_MODE}" "${KEEP}"
 fi
 
-"$ROBSDSTAT" -i "$STATINTERVAL" -u _pbuild -u _pfetch >>"${BUILDDIR}/stat.csv" 2>&1 &
+"${ROBSDSTAT}" -i "${STATINTERVAL}" -u _pbuild -u _pfetch >>"${BUILDDIR}/stat.csv" 2>&1 &
 _statpid="$!"
 
-if [ "$DETACH" -eq 1 ]; then
+if [ "${DETACH}" -eq 1 ]; then
 	# Signal to info() that no further output should be written to robsd.log
 	# as we're about redirect all output to the same log.
 	DETACH=2
@@ -118,11 +118,11 @@ if [ "$DETACH" -eq 1 ]; then
 	# Reinstall trap handler since they are not inherited by subprocesses.
 	trap '-' EXIT
 	{
-		trap 'trap_exit -r "$ROBSDDIR" -b "$BUILDDIR" -s "${_statpid}"' EXIT
-		robsd -b "$BUILDDIR" -s "$_step"
+		trap 'trap_exit -r "${ROBSDDIR}" -b "${BUILDDIR}" -s "${_statpid}"' EXIT
+		robsd -b "${BUILDDIR}" -s "${_step}"
 	} &
 	info "running in detach mode as pid ${!}"
 else
 	info "running as pid ${$}"
-	robsd -b "$BUILDDIR" -s "$_step"
+	robsd -b "${BUILDDIR}" -s "${_step}"
 fi

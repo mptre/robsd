@@ -17,19 +17,19 @@ robsd_config() {
 	done
 	[ "${1:-}" = "--" ] && shift
 
-	[ -e "$CONFIG" ] || : >"$CONFIG"
-	[ -e "$STDIN" ] || : >"$STDIN"
+	[ -e "${CONFIG}" ] || : >"${CONFIG}"
+	[ -e "${STDIN}" ] || : >"${STDIN}"
 
-	${EXEC:-} "$ROBSDCONFIG" -m canvas ${_config:+"-C${_config}"} "$@" - \
-		<"$STDIN" >"$_stdout" 2>&1 || _err1="$?"
-	if [ "$_err0" -ne "$_err1" ]; then
-		fail - "expected exit ${_err0}, got ${_err1}" <"$_stdout"
+	${EXEC:-} "${ROBSDCONFIG}" -m canvas ${_config:+"-C${_config}"} "$@" - \
+		<"${STDIN}" >"${_stdout}" 2>&1 || _err1="$?"
+	if [ "${_err0}" -ne "${_err1}" ]; then
+		fail - "expected exit ${_err0}, got ${_err1}" <"${_stdout}"
 		return 0
 	fi
-	if [ "$_stdin" -eq 1 ]; then
-		assert_file - "$_stdout"
+	if [ "${_stdin}" -eq 1 ]; then
+		assert_file - "${_stdout}"
 	else
-		cat "$_stdout"
+		cat "${_stdout}"
 	fi
 }
 
@@ -48,12 +48,12 @@ if testcase "basic"; then
 	{
 		default_canvas_config
 		echo 'step "first" command { "true" }'
-	} >"$CONFIG"
+	} >"${CONFIG}"
 	robsd_config
 fi
 
 if testcase "invalid: no steps"; then
-	default_canvas_config >"$CONFIG"
+	default_canvas_config >"${CONFIG}"
 	robsd_config -e - <<-EOF
 	robsd-config: ${CONFIG}: mandatory variable 'step' missing
 	EOF
@@ -63,7 +63,7 @@ if testcase "invalid: step no command"; then
 	{
 		default_canvas_config
 		echo 'step "first"'
-	} >"$CONFIG"
+	} >"${CONFIG}"
 	robsd_config -e - <<-EOF
 	robsd-config: ${CONFIG}:3: mandatory step option 'command' missing
 	EOF
@@ -73,7 +73,7 @@ if testcase "invalid: step empty command"; then
 	{
 		default_canvas_config
 		echo 'step "first" command {}'
-	} >"$CONFIG"
+	} >"${CONFIG}"
 	robsd_config -e - <<-EOF
 	robsd-config: ${CONFIG}:3: mandatory step option 'command' missing
 	EOF
@@ -83,8 +83,8 @@ if testcase "invalid: interpolate step variable"; then
 	{
 		default_canvas_config
 		echo 'step "first" command { "true" }'
-	} >"$CONFIG"
-	echo "\${step}" >"$STDIN"
+	} >"${CONFIG}"
+	echo "\${step}" >"${STDIN}"
 	robsd_config -e - <<-EOF
 	robsd-config: /dev/stdin:1: invalid substitution, unknown variable 'step'
 	EOF

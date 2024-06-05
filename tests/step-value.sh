@@ -1,8 +1,8 @@
 portable no
 
 if testcase "basic"; then
-	step_serialize -n test -t 1 >"$TMP1"
-	if ! step_eval -n test "$TMP1"; then
+	step_serialize -n test -t 1 >"${TMP1}"
+	if ! step_eval -n test "${TMP1}"; then
 		fail "expected step to evaluate"
 	fi
 	if ! step_value name >/dev/null 2>&1; then

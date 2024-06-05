@@ -1,6 +1,6 @@
 portable no
 
-robsd_mock >"$TMP1"; read -r _ BINDIR ROBSDDIR <"$TMP1"
+robsd_mock >"${TMP1}"; read -r _ BINDIR ROBSDDIR <"${TMP1}"
 
 ROBSDREGRESS="${EXECDIR}/robsd-regress"
 ROBSDKILL="${EXECDIR}/robsd-kill"
@@ -16,7 +16,7 @@ if testcase "basic"; then
 	regress "test/targets" targets { "one" "two" }
 	regress "test/xpass"
 	EOF
-	mkdir "$ROBSDDIR"
+	mkdir "${ROBSDDIR}"
 	mkdir -p "${TSHDIR}/regress/test/fail"
 	cat <<EOF >"${TSHDIR}/regress/test/fail/Makefile"
 regress:
@@ -86,8 +86,8 @@ EOF
 	EOF
 	chmod u+x "${BINDIR}/pkg_delete"
 
-	if ! PATH="${BINDIR}:${PATH}" sh "$ROBSDREGRESS" -d >"$TMP1" 2>&1; then
-		fail - "expected exit zero" <"$TMP1"
+	if ! PATH="${BINDIR}:${PATH}" sh "${ROBSDREGRESS}" -d >"${TMP1}" 2>&1; then
+		fail - "expected exit zero" <"${TMP1}"
 	fi
 	assert_file - "${TSHDIR}/hello" <<-EOF
 	hello
@@ -107,12 +107,12 @@ EOF
 	echo two | assert_file - "${TSHDIR}/targets-two"
 
 	_builddir="$(find "${ROBSDDIR}" -type d -mindepth 1 -maxdepth 1)"
-	_steps="$(step_path "$_builddir")"
-	step_eval -n test/xpass "$_steps"
+	_steps="$(step_path "${_builddir}")"
+	step_eval -n test/xpass "${_steps}"
 	if [ "$(step_value exit)" -ne 1 ]; then
 		fail "expected test/xpass to exit non-zero"
 	fi
-	step_eval -n test/targets "$_steps"
+	step_eval -n test/targets "${_steps}"
 	if [ "$(step_value exit)" -eq 0 ]; then
 		fail "expected test/targets to exit non-zero"
 	fi
@@ -126,7 +126,7 @@ if testcase "failure in non-test step"; then
 	robsddir "${ROBSDDIR}"
 	regress "test/nothing"
 	EOF
-	mkdir "$ROBSDDIR"
+	mkdir "${ROBSDDIR}"
 	# Make the env step fail.
 	cat <<-EOF >"${BINDIR}/df"
 	#!/bin/sh
@@ -134,8 +134,8 @@ if testcase "failure in non-test step"; then
 	EOF
 	chmod u+x "${BINDIR}/df"
 
-	if PATH="${BINDIR}:${PATH}" sh "$ROBSDREGRESS" -d >"$TMP1" 2>&1; then
-		fail - "expected exit non-zero" <"$TMP1"
+	if PATH="${BINDIR}:${PATH}" sh "${ROBSDREGRESS}" -d >"${TMP1}" 2>&1; then
+		fail - "expected exit non-zero" <"${TMP1}"
 	fi
 
 	rm "${BINDIR}/df"
@@ -146,12 +146,12 @@ if testcase "failure in non-test step, conflicting with test name"; then
 	robsddir "${ROBSDDIR}"
 	regress "usr.bin/patch"
 	EOF
-	mkdir "$ROBSDDIR"
+	mkdir "${ROBSDDIR}"
 	: >"${TSHDIR}/patch"
 
-	if PATH="${BINDIR}:${PATH}" sh "$ROBSDREGRESS" \
-	   -d -S "${TSHDIR}/patch" >"$TMP1" 2>&1; then
-		fail - "expected exit non-zero" <"$TMP1"
+	if PATH="${BINDIR}:${PATH}" sh "${ROBSDREGRESS}" \
+	   -d -S "${TSHDIR}/patch" >"${TMP1}" 2>&1; then
+		fail - "expected exit non-zero" <"${TMP1}"
 	fi
 fi
 
@@ -160,7 +160,7 @@ if testcase "kill"; then
 	robsddir "${ROBSDDIR}"
 	regress "test/sleep"
 	EOF
-	mkdir "$ROBSDDIR"
+	mkdir "${ROBSDDIR}"
 	mkdir -p "${TSHDIR}/regress/test/sleep"
 	cat <<EOF >"${TSHDIR}/regress/test/sleep/Makefile"
 regress:
@@ -169,15 +169,15 @@ regress:
 obj:
 EOF
 
-	if ! PATH="${BINDIR}:${PATH}" sh "$ROBSDREGRESS" \
-	   >"$TMP1" 2>&1; then
-		fail - "expected exit zero" <"$TMP1"
+	if ! PATH="${BINDIR}:${PATH}" sh "${ROBSDREGRESS}" \
+	   >"${TMP1}" 2>&1; then
+		fail - "expected exit zero" <"${TMP1}"
 	fi
 	until [ -e "${TSHDIR}/sleep" ]; do
 		sleep .1
 	done
 
-	env "PATH=${BINDIR}:${PATH}" sh "$ROBSDKILL" -m robsd-regress
+	env "PATH=${BINDIR}:${PATH}" sh "${ROBSDKILL}" -m robsd-regress
 	while pgrep -q -f "${ROBSDREGRESS}$"; do
 		sleep .1
 	done

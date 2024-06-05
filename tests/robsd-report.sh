@@ -4,40 +4,40 @@ setup() {
 	mkdir "${TSHDIR}/.conf"
 
 	robsd_config - <<-EOF
-	robsddir "$TSHDIR"
+	robsddir "${TSHDIR}"
 	EOF
-	mv "$ROBSDCONF" "${TSHDIR}/.conf/robsd.conf"
+	mv "${ROBSDCONF}" "${TSHDIR}/.conf/robsd.conf"
 
 	robsd_config -C - <<-EOF
-	robsddir "$TSHDIR"
+	robsddir "${TSHDIR}"
 	EOF
-	mv "$ROBSDCONF" "${TSHDIR}/.conf/robsd-cross.conf"
+	mv "${ROBSDCONF}" "${TSHDIR}/.conf/robsd-cross.conf"
 
 	robsd_config -P - <<-EOF
-	robsddir "$TSHDIR"
+	robsddir "${TSHDIR}"
 	ports { "devel/robsd" }
 	EOF
-	mv "$ROBSDCONF" "${TSHDIR}/.conf/robsd-ports.conf"
+	mv "${ROBSDCONF}" "${TSHDIR}/.conf/robsd-ports.conf"
 
 	robsd_config -R - <<-EOF
-	robsddir "$TSHDIR"
+	robsddir "${TSHDIR}"
 	regress "test/pass"
 	regress "test/fail/one"
 	regress "test/fail/two"
 	regress "test/quiet" quiet
 	regress "test/skip"
 	EOF
-	mv "$ROBSDCONF" "${TSHDIR}/.conf/robsd-regress.conf"
+	mv "${ROBSDCONF}" "${TSHDIR}/.conf/robsd-regress.conf"
 
 	robsd_config -c - <<-EOF
-	canvas-dir "$TSHDIR"
+	canvas-dir "${TSHDIR}"
 	step "first" command { "true" }
 	EOF
-	mv "$ROBSDCONF" "${TSHDIR}/.conf/canvas.conf"
+	mv "${ROBSDCONF}" "${TSHDIR}/.conf/canvas.conf"
 
 	mkdir -p "${_builddir}/rel" "${_builddir}/tmp"
 
-	echo "$_builddir" >"${TSHDIR}/.running"
+	echo "${_builddir}" >"${TSHDIR}/.running"
 }
 
 # robsd_report -m mode [-e] [-] -- [robsd-step-argument ...]
@@ -52,7 +52,7 @@ robsd_report() {
 		case "$1" in
 		-e)	_err0="1";;
 		-m)	shift; _mode="$1";;
-		-)	cat >"$_stdin";;
+		-)	cat >"${_stdin}";;
 		*)	break;;
 		esac
 		shift
@@ -60,16 +60,16 @@ robsd_report() {
 	: "${_mode:?}"
 	[ "${1:-}" = "--" ] && shift
 
-	${EXEC:-} "$ROBSDREPORT" -m "$_mode" -C "${TSHDIR}/.conf/${_mode}.conf" "$@" \
-		>"$_stdout" 2>&1 || _err1="$?"
-	if [ "$_err0" -ne "$_err1" ]; then
-		fail - "expected exit ${_err0}, got ${_err1}" <"$_stdout"
+	${EXEC:-} "${ROBSDREPORT}" -m "${_mode}" -C "${TSHDIR}/.conf/${_mode}.conf" "$@" \
+		>"${_stdout}" 2>&1 || _err1="$?"
+	if [ "${_err0}" -ne "${_err1}" ]; then
+		fail - "expected exit ${_err0}, got ${_err1}" <"${_stdout}"
 		return 0
 	fi
-	if [ -e "$_stdin" ]; then
-		assert_file "$_stdin" "$_stdout"
+	if [ -e "${_stdin}" ]; then
+		assert_file "${_stdin}" "${_stdout}"
 	else
-		cat "$_stdout"
+		cat "${_stdout}"
 	fi
 }
 
@@ -102,8 +102,8 @@ genlog() {
 	local _n
 
 	_n="$1"; : "${_n:?}"
-	while [ "$_i" -le "$_n" ]; do
-		echo "$_i"
+	while [ "${_i}" -le "${_n}" ]; do
+		echo "${_i}"
 		_i="$((_i + 1))"
 	done
 }
@@ -116,11 +116,11 @@ if testcase "robsd: basic"; then
 		genlog 20 >"${_builddir}/error.log"
 
 		step_serialize -H -s 3 -n end -d 3661 -a 70
-	} >"$(step_path "$_builddir")"
+	} >"$(step_path "${_builddir}")"
 	printf 'comment\n\n' >"${_builddir}/comment"
 	printf 'foo bar\n' >"${_builddir}/tags"
 
-	robsd_report -m robsd - -- "$_builddir" <<-EOF
+	robsd_report -m robsd - -- "${_builddir}" <<-EOF
 	Subject: robsd: $(hostname -s): ok
 
 	> stats
@@ -161,10 +161,10 @@ if testcase "robsd: cvs"; then
 		printf 'ports ci\n' >"${_builddir}/tmp/cvs-ports-ci.log"
 
 		step_serialize -H -s 2 -n end
-	} >"$(step_path "$_builddir")"
+	} >"$(step_path "${_builddir}")"
 
-	robsd_report -m robsd -- "$_builddir" | sed -n -e '/^> cvs/,$p' >"$TMP1"
-	assert_file - "$TMP1" <<-EOF
+	robsd_report -m robsd -- "${_builddir}" | sed -n -e '/^> cvs/,$p' >"${TMP1}"
+	assert_file - "${TMP1}" <<-EOF
 	> cvs
 	Exit: 0
 	Duration: 00:00:01
@@ -180,20 +180,20 @@ if testcase "robsd: checkflist empty"; then
 	{
 		step_serialize -s 1 -n checkflist -l checkflist.log
 		printf '+ one\n+ two\n' >"${_builddir}/checkflist.log"
-	} >"$(step_path "$_builddir")"
+	} >"$(step_path "${_builddir}")"
 
-	robsd_report -m robsd -- "$_builddir" | sed -n -e '/^> checkflist/,$p' >"$TMP1"
-	assert_file /dev/null "$TMP1"
+	robsd_report -m robsd -- "${_builddir}" | sed -n -e '/^> checkflist/,$p' >"${TMP1}"
+	assert_file /dev/null "${TMP1}"
 fi
 
 if testcase "robsd: checkflist not empty"; then
 	{
 		step_serialize -s 1 -n checkflist -l checkflist.log
 		printf '+ one\n+ two\nhello\n' >"${_builddir}/checkflist.log"
-	} >"$(step_path "$_builddir")"
+	} >"$(step_path "${_builddir}")"
 
-	robsd_report -m robsd -- "$_builddir" | sed -n -e '/^> checkflist/,$p' >"$TMP1"
-	assert_file - "$TMP1" <<-EOF
+	robsd_report -m robsd -- "${_builddir}" | sed -n -e '/^> checkflist/,$p' >"${TMP1}"
+	assert_file - "${TMP1}" <<-EOF
 	> checkflist
 	Exit: 0
 	Duration: 00:00:01
@@ -208,10 +208,10 @@ fi
 if testcase "robsd: skip"; then
 	{
 		step_serialize -s 1 -n cvs -i 1
-	} >"$(step_path "$_builddir")"
+	} >"$(step_path "${_builddir}")"
 
-	robsd_report -m robsd -- "$_builddir" | sed -n -e '/^> stats/,$p' >"$TMP1"
-	assert_file - "$TMP1" <<-EOF
+	robsd_report -m robsd -- "${_builddir}" | sed -n -e '/^> stats/,$p' >"${TMP1}"
+	assert_file - "${TMP1}" <<-EOF
 	> stats
 	Status: ok
 	Duration: 00:00:00
@@ -225,10 +225,10 @@ if testcase "robsd: failure"; then
 		step_serialize -H -s 2 -n skip -i 1 -d 40
 		step_serialize -H -s 3 -n error -e 1 -l error.log -d 40
 		touch "${_builddir}/error.log"
-	} >"$(step_path "$_builddir")"
+	} >"$(step_path "${_builddir}")"
 
-	robsd_report -m robsd -- "$_builddir" | sed -n -e '/^> stats/,/^$/p' >"$TMP1"
-	assert_file - "$TMP1" <<-EOF
+	robsd_report -m robsd -- "${_builddir}" | sed -n -e '/^> stats/,/^$/p' >"${TMP1}"
+	assert_file - "${TMP1}" <<-EOF
 	> stats
 	Status: failed in error
 	Duration: 00:01:20
@@ -249,7 +249,7 @@ if testcase "robsd: sizes"; then
 
 	{
 		step_serialize -s 1 -n end
-	} >"$(step_path "$_builddir")"
+	} >"$(step_path "${_builddir}")"
 	genfile 3 "${_builddir}/rel/grow"
 	genfile 1 "${_builddir}/rel/shrink"
 	genfile 2 "${_builddir}/rel/same"
@@ -257,8 +257,8 @@ if testcase "robsd: sizes"; then
 	genfile 4 "${_builddir}/rel/CHANGELOG"
 	genfile -s 1024 3 "${_builddir}/rel/bsd.rd"
 
-	robsd_report -m robsd -- "$_builddir" | sed -n -e '/^> stats/,/^$/p' >"$TMP1"
-	assert_file - "$TMP1" <<-EOF
+	robsd_report -m robsd -- "${_builddir}" | sed -n -e '/^> stats/,/^$/p' >"${TMP1}"
+	assert_file - "${TMP1}" <<-EOF
 	> stats
 	Status: ok
 	Duration: 00:00:01
@@ -273,11 +273,11 @@ if testcase "robsd-cross: basic"; then
 	{
 		step_serialize -s 1 -n ok -l ok.log
 		step_serialize -H -s 2 -n end
-	} >"$(step_path "$_builddir")"
+	} >"$(step_path "${_builddir}")"
 	echo arm64 >"${_builddir}/target"
 
 	_machine="$(machine 2>/dev/null || arch)"
-	robsd_report -m robsd-cross - -- "$_builddir" <<-EOF
+	robsd_report -m robsd-cross - -- "${_builddir}" <<-EOF
 	Subject: robsd-cross: $(hostname -s): ${_machine}.arm64: ok
 
 	> stats
@@ -297,9 +297,9 @@ if testcase "robsd-ports: basic"; then
 		printf 'diff' >"${_builddir}/tmp/packages.diff"
 
 		step_serialize -H -s 3 -n end
-	} >"$(step_path "$_builddir")"
+	} >"$(step_path "${_builddir}")"
 
-	robsd_report -m robsd-ports - -- "$_builddir" <<-EOF
+	robsd_report -m robsd-ports - -- "${_builddir}" <<-EOF
 	Subject: robsd-ports: $(hostname -s): ok
 
 	> stats
@@ -329,9 +329,9 @@ if testcase "robsd-ports: dpb failure"; then
 	{
 		step_serialize -s 1 -n dpb -e 1 -l dpb.log
 		printf 'dpb failure\n' >"${_builddir}/dpb.log"
-	} >"$(step_path "$_builddir")"
+	} >"$(step_path "${_builddir}")"
 
-	robsd_report -m robsd-ports - -- "$_builddir" <<-EOF
+	robsd_report -m robsd-ports - -- "${_builddir}" <<-EOF
 	Subject: robsd-ports: $(hostname -s): failed in dpb
 
 	> stats
@@ -366,9 +366,9 @@ if testcase "robsd-regress: basic"; then
 		printf '==== test ====\nSKIPPED\n' >"${_builddir}/skip.log"
 
 		step_serialize -H -s 6 -n end
-	} >"$(step_path "$_builddir")"
+	} >"$(step_path "${_builddir}")"
 
-	robsd_report -m robsd-regress - -- "$_builddir" <<-EOF
+	robsd_report -m robsd-regress - -- "${_builddir}" <<-EOF
 	Subject: robsd-regress: $(hostname -s): 2 failures
 
 	> stats
@@ -406,10 +406,10 @@ if testcase "robsd-regress: ok"; then
 	{
 		step_serialize -s 1 -n test/pass -l pass.log
 		: >"${_builddir}/pass.log"
-	} >"$(step_path "$_builddir")"
+	} >"$(step_path "${_builddir}")"
 
-	robsd_report -m robsd-regress -- "$_builddir" | sed -n -e '/^Subject/p' >"$TMP1"
-	assert_file - "$TMP1" <<-EOF
+	robsd_report -m robsd-regress -- "${_builddir}" | sed -n -e '/^Subject/p' >"${TMP1}"
+	assert_file - "${TMP1}" <<-EOF
 	Subject: robsd-regress: $(hostname -s): ok
 	EOF
 fi
@@ -418,10 +418,10 @@ if testcase "robsd-regress: one failure"; then
 	{
 		step_serialize -s 1 -n test/fail/one -e 1 -l fail-one.log
 		: >"${_builddir}/fail-one.log"
-	} >"$(step_path "$_builddir")"
+	} >"$(step_path "${_builddir}")"
 
-	robsd_report -m robsd-regress -- "$_builddir" | sed -n -e '/^Subject/p' >"$TMP1"
-	assert_file - "$TMP1" <<-EOF
+	robsd_report -m robsd-regress -- "${_builddir}" | sed -n -e '/^Subject/p' >"${TMP1}"
+	assert_file - "${TMP1}" <<-EOF
 	Subject: robsd-regress: $(hostname -s): 1 failure
 	EOF
 fi
@@ -431,10 +431,10 @@ if testcase "robsd-regress: failure in non-regress step"; then
 		step_serialize -s 1 -n foo
 		step_serialize -H -s 2 -n env -e 1 -l env.log -t $((1666666666 + 30))
 		printf 'env failure\n' >"${_builddir}/env.log"
-	} >"$(step_path "$_builddir")"
+	} >"$(step_path "${_builddir}")"
 
-	robsd_report -m robsd-regress -- "$_builddir" | sed -n -e '/^> stats/,$p' >"$TMP1"
-	assert_file - "$TMP1" <<-EOF
+	robsd_report -m robsd-regress -- "${_builddir}" | sed -n -e '/^> stats/,$p' >"${TMP1}"
+	assert_file - "${TMP1}" <<-EOF
 	> stats
 	Status: 1 failure
 	Duration: 00:00:30
@@ -455,9 +455,9 @@ if testcase "canvas: basic"; then
 		genlog 20 >"${_builddir}/first.log"
 
 		step_serialize -H -s 2 -n end -d 60
-	} >"$(step_path "$_builddir")"
+	} >"$(step_path "${_builddir}")"
 
-	robsd_report -m canvas - -- "$_builddir" <<-EOF
+	robsd_report -m canvas - -- "${_builddir}" <<-EOF
 	Subject: canvas: test: 1 failure
 
 	> stats
@@ -477,9 +477,9 @@ fi
 if testcase "robsd-regress: invalid: missing log in non-regress step"; then
 	{
 		step_serialize -s 1 -n test/unstable -e 1
-	} >"$(step_path "$_builddir")"
+	} >"$(step_path "${_builddir}")"
 
-	robsd_report -m robsd-regress -e - -- "$_builddir" <<-EOF
+	robsd_report -m robsd-regress -e - -- "${_builddir}" <<-EOF
 	robsd-report: step 'test/unstable' is missing mandatory log field
 	EOF
 fi
@@ -487,9 +487,9 @@ fi
 if testcase "robsd-regress: invalid: missing log in regress step"; then
 	{
 		step_serialize -s 1 -n test/pass
-	} >"$(step_path "$_builddir")"
+	} >"$(step_path "${_builddir}")"
 
-	robsd_report -m robsd-regress -e - -- "$_builddir" <<-EOF
+	robsd_report -m robsd-regress -e - -- "${_builddir}" <<-EOF
 	robsd-report: step 'test/pass' is missing mandatory log field
 	EOF
 fi
@@ -498,10 +498,10 @@ if testcase "step log one line"; then
 	{
 		step_serialize -s 1 -n error -e 1 -l error.log
 		printf 'a\n' >"${_builddir}/error.log"
-	} >"$(step_path "$_builddir")"
+	} >"$(step_path "${_builddir}")"
 
-	robsd_report -m robsd -- "$_builddir" | sed -n -e '/^> error/,$p' >"$TMP1"
-	assert_file - "$TMP1" <<-EOF
+	robsd_report -m robsd -- "${_builddir}" | sed -n -e '/^> error/,$p' >"${TMP1}"
+	assert_file - "${TMP1}" <<-EOF
 	> error
 	Exit: 1
 	Duration: 00:00:01
@@ -515,10 +515,10 @@ if testcase "step log few lines"; then
 	{
 		step_serialize -s 1 -n error -e 1 -l error.log
 		printf 'a\nb\n' >"${_builddir}/error.log"
-	} >"$(step_path "$_builddir")"
+	} >"$(step_path "${_builddir}")"
 
-	robsd_report -m robsd -- "$_builddir" | sed -n -e '/^> error/,$p' >"$TMP1"
-	assert_file - "$TMP1" <<-EOF
+	robsd_report -m robsd -- "${_builddir}" | sed -n -e '/^> error/,$p' >"${TMP1}"
+	assert_file - "${TMP1}" <<-EOF
 	> error
 	Exit: 1
 	Duration: 00:00:01
@@ -533,10 +533,10 @@ if testcase "step log no trailing new line"; then
 	{
 		step_serialize -s 1 -n error -e 1 -l error.log
 		printf 'a' >"${_builddir}/error.log"
-	} >"$(step_path "$_builddir")"
+	} >"$(step_path "${_builddir}")"
 
-	robsd_report -m robsd -- "$_builddir" | sed -n -e '/^> error/,$p' >"$TMP1"
-	assert_file - "$TMP1" <<-EOF
+	robsd_report -m robsd -- "${_builddir}" | sed -n -e '/^> error/,$p' >"${TMP1}"
+	assert_file - "${TMP1}" <<-EOF
 	> error
 	Exit: 1
 	Duration: 00:00:01
@@ -550,10 +550,10 @@ if testcase "step log empty"; then
 	{
 		step_serialize -s 1 -n error -e 1 -l error.log
 		touch "${_builddir}/error.log"
-	} >"$(step_path "$_builddir")"
+	} >"$(step_path "${_builddir}")"
 
-	robsd_report -m robsd -- "$_builddir" | sed -n -e '/^> error/,$p' >"$TMP1"
-	assert_file - "$TMP1" <<-EOF
+	robsd_report -m robsd -- "${_builddir}" | sed -n -e '/^> error/,$p' >"${TMP1}"
+	assert_file - "${TMP1}" <<-EOF
 	> error
 	Exit: 1
 	Duration: 00:00:01
@@ -566,11 +566,11 @@ if testcase "sanitize"; then
 	{
 		step_serialize -s 1 -n ok -l ok.log
 		: >"${_builddir}/ok.log"
-	} >"$(step_path "$_builddir")"
+	} >"$(step_path "${_builddir}")"
 	printf 'comment \000\r\ncomment\n\n' >"${_builddir}/comment"
 
-	robsd_report -m robsd -- "$_builddir" | sed -n -e '/^> comment/,/^$/p' >"$TMP1"
-	assert_file - "$TMP1" <<-EOF
+	robsd_report -m robsd -- "${_builddir}" | sed -n -e '/^> comment/,/^$/p' >"${TMP1}"
+	assert_file - "${TMP1}" <<-EOF
 	> comment
 	comment \x00\r
 	comment
@@ -578,27 +578,27 @@ if testcase "sanitize"; then
 fi
 
 if testcase "error: missing mode"; then
-	if ${EXEC:-} "$ROBSDREPORT" >"$TMP1" 2>&1; then
-		fail - "expected exit non-zero" <"$TMP1"
+	if ${EXEC:-} "${ROBSDREPORT}" >"${TMP1}" 2>&1; then
+		fail - "expected exit non-zero" <"${TMP1}"
 	fi
-	if ! grep -q usage "$TMP1"; then
-		fail - "expected usage" <"$TMP1"
+	if ! grep -q usage "${TMP1}"; then
+		fail - "expected usage" <"${TMP1}"
 	fi
 fi
 
 if testcase "error: unknown mode"; then
-	if ${EXEC:-} "$ROBSDREPORT" -m nein /var/empty >"$TMP1" 2>&1; then
-		fail - "expected exit non-zero" <"$TMP1"
+	if ${EXEC:-} "${ROBSDREPORT}" -m nein /var/empty >"${TMP1}" 2>&1; then
+		fail - "expected exit non-zero" <"${TMP1}"
 	fi
-	if ! grep -q 'unknown mode' "$TMP1"; then
-		fail - "expected unknown mode" <"$TMP1"
+	if ! grep -q 'unknown mode' "${TMP1}"; then
+		fail - "expected unknown mode" <"${TMP1}"
 	fi
 fi
 
 if testcase "error: config invalid"; then
 	chmod u-r "${TSHDIR}/.conf/robsd.conf"
 
-	robsd_report -e -m robsd - -- "$_builddir" <<-EOF
+	robsd_report -e -m robsd - -- "${_builddir}" <<-EOF
 	robsd-report: ${TSHDIR}/.conf/robsd.conf: Permission denied
 	EOF
 fi
@@ -606,11 +606,11 @@ fi
 if testcase "error: comment invalid"; then
 	{
 		step_serialize -s 1 -n end
-	} >"$(step_path "$_builddir")"
+	} >"$(step_path "${_builddir}")"
 	printf 'comment\n\n' >"${_builddir}/comment"
 	chmod u-r "${_builddir}/comment"
 
-	robsd_report -e -m robsd - -- "$_builddir" <<-EOF
+	robsd_report -e -m robsd - -- "${_builddir}" <<-EOF
 	robsd-report: ${_builddir}/comment: Permission denied
 	EOF
 fi
@@ -618,10 +618,10 @@ fi
 if testcase "error: step.csv invalid"; then
 	{
 		step_serialize -s 1 -n end
-	} >"$(step_path "$_builddir")"
-	chmod u-r "$(step_path "$_builddir")"
+	} >"$(step_path "${_builddir}")"
+	chmod u-r "$(step_path "${_builddir}")"
 
-	robsd_report -e -m robsd - -- "$_builddir" <<-EOF
+	robsd_report -e -m robsd - -- "${_builddir}" <<-EOF
 	robsd-report: $(step_path "${_builddir}"): Permission denied
 	EOF
 fi

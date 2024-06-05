@@ -18,16 +18,16 @@ robsd_hook() {
 	done
 	[ "${1:-}" = "--" ] && shift
 
-	${EXEC:-} "$ROBSDHOOK" -m "$_mode" -C "$CONFIG" "$@" \
-		>"$_stdout" 2>&1 || _err1="$?"
-	if [ "$_err0" -ne "$_err1" ]; then
-		fail - "expected exit ${_err0}, got ${_err1}" <"$_stdout"
+	${EXEC:-} "${ROBSDHOOK}" -m "${_mode}" -C "${CONFIG}" "$@" \
+		>"${_stdout}" 2>&1 || _err1="$?"
+	if [ "${_err0}" -ne "${_err1}" ]; then
+		fail - "expected exit ${_err0}, got ${_err1}" <"${_stdout}"
 		return 0
 	fi
-	if [ "$_stdin" -eq 1 ]; then
-		assert_file - "$_stdout"
+	if [ "${_stdin}" -eq 1 ]; then
+		assert_file - "${_stdout}"
 	else
-		cat "$_stdout"
+		cat "${_stdout}"
 	fi
 }
 
@@ -67,7 +67,7 @@ CONFIG="${TSHDIR}/robsd.conf"
 
 if testcase "robsd"; then
 	{ echo "hook { \"echo\" \"\${reboot}\" \"\${extra}\" }";
-	  default_config; } >"$CONFIG"
+	  default_config; } >"${CONFIG}"
 	robsd_hook - -- -v extra=extra <<-EOF
 	0 extra
 	EOF
@@ -75,7 +75,7 @@ fi
 
 if testcase "robsd-ports"; then
 	{ echo "hook { \"echo\" \"\${chroot}\" \"\${extra}\" }";
-	  default_ports_config; } >"$CONFIG"
+	  default_ports_config; } >"${CONFIG}"
 	robsd_hook -P - -- -v extra=extra <<-EOF
 	/tmp extra
 	EOF
@@ -83,46 +83,46 @@ fi
 
 if testcase "robsd-regress"; then
 	{ echo "hook { \"echo\" \"\${rdonly}\" \"\${extra}\" }";
-	  default_regress_config; } >"$CONFIG"
+	  default_regress_config; } >"${CONFIG}"
 	robsd_hook -R - -- -v extra=extra <<-EOF
 	0 extra
 	EOF
 fi
 
 if testcase "hook not defined"; then
-	default_config >"$CONFIG"
+	default_config >"${CONFIG}"
 	robsd_hook - </dev/null
 fi
 
 if testcase "verbose"; then
-	{ echo "hook { \"true\" }"; default_config; } >"$CONFIG"
+	{ echo "hook { \"true\" }"; default_config; } >"${CONFIG}"
 	robsd_hook - -- -V <<-EOF
 	robsd-hook: exec "true"
 	EOF
 fi
 
 if testcase "invalid: variable reserved"; then
-	default_config >"$CONFIG"
+	default_config >"${CONFIG}"
 	robsd_hook -e - -- -v robsddir=/tmp <<-EOF
 	robsd-hook: variable 'robsddir' cannot be defined
 	EOF
 fi
 
 if testcase "invalid: variable missing separator"; then
-	default_config >"$CONFIG"
+	default_config >"${CONFIG}"
 	robsd_hook -e - -- -v extra <<-EOF
 	robsd-hook: missing variable separator in 'extra'
 	EOF
 fi
 
 if testcase "invalid: interpolation"; then
-	{ echo "hook { \"\${nein}\" }"; default_config; } >"$CONFIG"
+	{ echo "hook { \"\${nein}\" }"; default_config; } >"${CONFIG}"
 	robsd_hook -e - <<-EOF
 	robsd-hook: invalid substitution, unknown variable 'nein'
 	EOF
 fi
 
 if testcase "invalid: arguments"; then
-	default_config >"$CONFIG"
+	default_config >"${CONFIG}"
 	robsd_hook -e -- -nein >/dev/null
 fi

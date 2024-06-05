@@ -14,26 +14,26 @@ if [ -e "${RELXDIR}/SHA256" ]; then
 	rm "${RELXDIR}/SHA256"
 fi
 
-if [ -d "$RELXDIR" ]; then
-	find "$RELXDIR" -type f -exec mv {} "$RELDIR" \;
-	rm -r "$RELXDIR"
+if [ -d "${RELXDIR}" ]; then
+	find "${RELXDIR}" -type f -exec mv {} "${RELDIR}" \;
+	rm -r "${RELXDIR}"
 fi
 
-cd "$RELDIR"
+cd "${RELDIR}"
 
-diff_list "$BUILDDIR" "*.diff" |
+diff_list "${BUILDDIR}" "*.diff" |
 while read -r _f; do
-	cp "$_f" .
+	cp "${_f}" .
 done
 
 {
 	# Set the date to the start of the build.
-	_date="$(build_date -b "$BUILDDIR")"
-	date -u -r "$_date" "+Build date: %s - %+"
+	_date="$(build_date -b "${BUILDDIR}")"
+	date -u -r "${_date}" "+Build date: %s - %+"
 	# Include date of the last CVS revision.
 	for _dir in $(prev_release); do
-		_date="$(cvs_date -b "$BUILDDIR" -s "$(step_path "$_dir")")" || continue
-		date -u -r "$_date" "+Build cvs date: %s - %+"
+		_date="$(cvs_date -b "${BUILDDIR}" -s "$(step_path "${_dir}")")" || continue
+		date -u -r "${_date}" "+Build cvs date: %s - %+"
 		break
 	done
 	echo "Build id: ${BUILDDIR##*/}"
@@ -48,8 +48,8 @@ done
 	fi
 } >BUILDINFO
 
-if step_eval -n cvs "$(step_path "$BUILDDIR")" 2>/dev/null && ! step_skip; then
-	cvs_changelog -t "$TMPDIR" >CHANGELOG
+if step_eval -n cvs "$(step_path "${BUILDDIR}")" 2>/dev/null && ! step_skip; then
+	cvs_changelog -t "${TMPDIR}" >CHANGELOG
 fi
 
 # Compute missing checksums.

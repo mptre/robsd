@@ -7,11 +7,11 @@ EOF
 
 PATH="${PATH}:/usr/X11R6/bin"; export PATH
 
-cleandir "$XOBJDIR"
-chown build:wobj "$XOBJDIR"
-chmod 770 "$XOBJDIR"
+cleandir "${XOBJDIR}"
+chown build:wobj "${XOBJDIR}"
+chmod 770 "${XOBJDIR}"
 
-cd "$XSRCDIR"
+cd "${XSRCDIR}"
 make bootstrap
 make obj
 make build

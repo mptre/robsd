@@ -16,8 +16,8 @@ if testcase "basic"; then
 		return x;
 	}
 	EOF
-	diff_create >"$DIFF"
-	if ! diff_apply -d "$TSHDIR" -t "$TSHDIR" -u nobody "$DIFF"; then
+	diff_create >"${DIFF}"
+	if ! diff_apply -d "${TSHDIR}" -t "${TSHDIR}" -u nobody "${DIFF}"; then
 		fail "failed to apply diff"
 	fi
 	assert_file - "${TSHDIR}/foo" <<-EOF
@@ -35,8 +35,8 @@ if testcase "already applied"; then
 		return x;
 	}
 	EOF
-	diff_create >"$DIFF"
-	if ! diff_apply -d "$TSHDIR" -t "$TSHDIR" -u nobody "$DIFF"; then
+	diff_create >"${DIFF}"
+	if ! diff_apply -d "${TSHDIR}" -t "${TSHDIR}" -u nobody "${DIFF}"; then
 		fail "failed to apply diff"
 	fi
 	assert_file - "${TSHDIR}/foo" <<-EOF
@@ -55,13 +55,13 @@ if testcase "new directory"; then
 	echo a >"${TSHDIR}/patch/empty/a"
 	echo b >"${TSHDIR}/patch/empty/b"
 	{
-		cd "$TSHDIR"
+		cd "${TSHDIR}"
 		diff -u -L patch/not-empty/b -L patch/not-empty/b /dev/null patch/not-empty/b || :
 		diff -u -L patch/empty/a -L patch/empty/a /dev/null patch/empty/a || :
 		diff -u -L patch/empty/b -L patch/empty/b /dev/null patch/empty/b || :
-	} >"$DIFF"
+	} >"${DIFF}"
 	rm -r "${TSHDIR}/patch/not-empty/b" "${TSHDIR}/patch/empty"
-	if ! diff_apply -d "$TSHDIR" -t "$TSHDIR" -u nobody "$DIFF"; then
+	if ! diff_apply -d "${TSHDIR}" -t "${TSHDIR}" -u nobody "${DIFF}"; then
 		fail "failed to apply diff"
 	fi
 	echo a | assert_file - "${TSHDIR}/patch/not-empty/a"
@@ -69,16 +69,16 @@ if testcase "new directory"; then
 	echo a | assert_file - "${TSHDIR}/patch/empty/a"
 	echo b | assert_file - "${TSHDIR}/patch/empty/b"
 
-	if ! diff_revert -d "$TSHDIR" -t "$TSHDIR" -u nobody "$DIFF" >"$TMP1" 2>&1; then
-		fail - "failed to revert diff" <"$TMP1"
+	if ! diff_revert -d "${TSHDIR}" -t "${TSHDIR}" -u nobody "${DIFF}" >"${TMP1}" 2>&1; then
+		fail - "failed to revert diff" <"${TMP1}"
 	fi
-	assert_file - "$TMP1" <<-EOF
+	assert_file - "${TMP1}" <<-EOF
 	robsd-test: reverting diff ${DIFF}
 	robsd-test: removing empty directory ${TSHDIR}/patch/empty
 	EOF
 
 	if [ -d "${TSHDIR}/patch/empty" ]; then
-		find "$TSHDIR" -type d -mindepth 2 |
+		find "${TSHDIR}" -type d -mindepth 2 |
 		fail - "expected empty directory to be removed"
 	fi
 fi
@@ -90,11 +90,11 @@ if testcase "failure"; then
 		return x;
 	}
 	EOF
-	diff_create >"$DIFF"
-	if diff_apply -d "/var/empty" -t "$TSHDIR" -u nobody "$DIFF" >"$TMP1" 2>&1; then
+	diff_create >"${DIFF}"
+	if diff_apply -d "/var/empty" -t "${TSHDIR}" -u nobody "${DIFF}" >"${TMP1}" 2>&1; then
 		fail "expected exit non-zero"
 	fi
-	if ! [ -s "$TMP1" ]; then
+	if ! [ -s "${TMP1}" ]; then
 		fail "expected some output"
 	fi
 fi

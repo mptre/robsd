@@ -8,22 +8,22 @@ robsd_ls() {
 	while [ $# -gt 0 ]; do
 		case "$1" in
 		-e)	_err0="1";;
-		-)	cat >"$_stdin";;
+		-)	cat >"${_stdin}";;
 		*)	break;;
 		esac
 		shift
 	done
 	[ "${1:-}" = "--" ] && shift
 
-	${EXEC:-} "$ROBSDLS" -C "$ROBSDCONF" "$@" >"$_stdout" 2>&1 || _err1="$?"
-	if [ "$_err0" -ne "$_err1" ]; then
-		fail - "expected exit ${_err0}, got ${_err1}" <"$_stdout"
+	${EXEC:-} "${ROBSDLS}" -C "${ROBSDCONF}" "$@" >"${_stdout}" 2>&1 || _err1="$?"
+	if [ "${_err0}" -ne "${_err1}" ]; then
+		fail - "expected exit ${_err0}, got ${_err1}" <"${_stdout}"
 		return 0
 	fi
-	if [ -e "$_stdin" ]; then
-		assert_file "$_stdin" "$_stdout"
+	if [ -e "${_stdin}" ]; then
+		assert_file "${_stdin}" "${_stdout}"
 	else
-		cat "$_stdout"
+		cat "${_stdout}"
 	fi
 }
 
@@ -107,8 +107,8 @@ if testcase "skip build dir not running"; then
 fi
 
 if testcase "invalid missing mode"; then
-	robsd_ls -e >"$TMP1"
-	if ! grep -q usage "$TMP1"; then
-		fail - "expected usage" <"$TMP1"
+	robsd_ls -e >"${TMP1}"
+	if ! grep -q usage "${TMP1}"; then
+		fail - "expected usage" <"${TMP1}"
 	fi
 fi

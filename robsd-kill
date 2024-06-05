@@ -17,15 +17,15 @@ setprogname "robsd-kill"
 _mode=""
 
 while getopts "m:" opt; do
-	case "$opt" in
+	case "${opt}" in
 	m)	_mode="${OPTARG}";;
 	*)	usage;;
 	esac
 done
 shift $((OPTIND - 1))
-{ [ -n "$_mode" ] && [ $# -eq 0 ]; } || usage
+{ [ -n "${_mode}" ] && [ $# -eq 0 ]; } || usage
 
-setmode "$_mode"
+setmode "${_mode}"
 
 config_load <<'EOF'
 ROBSDDIR="${robsddir}"

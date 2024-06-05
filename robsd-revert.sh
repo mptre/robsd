@@ -7,7 +7,7 @@ BUILDDIR="${builddir}"
 TMPDIR="${tmp-dir}"
 EOF
 
-case "$_MODE" in
+case "${_MODE}" in
 robsd)
 	config_load <<-'EOF'
 	BSDSRCDIR="${bsd-srcdir}"
@@ -15,14 +15,14 @@ robsd)
 	XSRCDIR="${x11-srcdir}"
 	EOF
 
-	diff_list "$BUILDDIR" "src.diff" |
+	diff_list "${BUILDDIR}" "src.diff" |
 	while read -r _diff; do
-		diff_revert -d "$BSDSRCDIR" -t "$TMPDIR" -u "$CVSUSER" "$_diff"
+		diff_revert -d "${BSDSRCDIR}" -t "${TMPDIR}" -u "${CVSUSER}" "${_diff}"
 	done
 
-	diff_list "$BUILDDIR" "xenocara.diff" |
+	diff_list "${BUILDDIR}" "xenocara.diff" |
 	while read -r _diff; do
-		diff_revert -d "$XSRCDIR" -t "$TMPDIR" -u "$CVSUSER" "$_diff"
+		diff_revert -d "${XSRCDIR}" -t "${TMPDIR}" -u "${CVSUSER}" "${_diff}"
 	done
 	;;
 robsd-ports)
@@ -32,9 +32,9 @@ robsd-ports)
 	PORTSDIR="${ports-dir}"
 	EOF
 
-	diff_list "$BUILDDIR" "ports.diff" |
+	diff_list "${BUILDDIR}" "ports.diff" |
 	while read -r _diff; do
-		diff_revert -d "${CHROOT}${PORTSDIR}" -t "$TMPDIR" -u "$CVSUSER" "$_diff"
+		diff_revert -d "${CHROOT}${PORTSDIR}" -t "${TMPDIR}" -u "${CVSUSER}" "${_diff}"
 	done
 	;;
 robsd-regress)
@@ -43,9 +43,9 @@ robsd-regress)
 	CVSUSER="${cvs-user}"
 	EOF
 
-	diff_list "$BUILDDIR" "src.diff" |
+	diff_list "${BUILDDIR}" "src.diff" |
 	while read -r _diff; do
-		diff_revert -d "$BSDSRCDIR" -t "$TMPDIR" -u "$CVSUSER" "$_diff"
+		diff_revert -d "${BSDSRCDIR}" -t "${TMPDIR}" -u "${CVSUSER}" "${_diff}"
 	done
 	;;
 *)

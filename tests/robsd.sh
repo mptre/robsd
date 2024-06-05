@@ -1,6 +1,6 @@
 portable no
 
-robsd_mock >"$TMP1"; read -r WRKDIR BINDIR ROBSDDIR <"$TMP1"
+robsd_mock >"${TMP1}"; read -r WRKDIR BINDIR ROBSDDIR <"${TMP1}"
 
 ROBSD="${EXECDIR}/robsd"
 
@@ -36,7 +36,7 @@ done
 if testcase "basic"; then
 	# Ensure hook exit status is ignored.
 	_hook="${TSHDIR}/hook.sh"
-	cat <<-'EOF' >"$_hook"
+	cat <<-'EOF' >"${_hook}"
 	if [ "$2" = "end" ]; then
 		if ! [ -e "${1}/report" ]; then
 			echo no report
@@ -51,24 +51,24 @@ if testcase "basic"; then
 	robsddir "${ROBSDDIR}"
 	hook { "sh" "${_hook}" "\${builddir}" "\${step-name}" "\${step-exit}" }
 	EOF
-	mkdir -p "$ROBSDDIR"
+	mkdir -p "${ROBSDDIR}"
 	echo "Index: dir/file.c" >"${TSHDIR}/src-one.diff"
 	echo "Index: dir/file.c" >"${TSHDIR}/src-two.diff"
 	echo "Index: dir/file.c" >"${TSHDIR}/xenocara.diff"
 
 	_fail="${TSHDIR}/fail"
 	env EXECDIR="${WRKDIR}/exec" PATH="${BINDIR}:${PATH}" \
-		sh "$ROBSD" -d \
+		sh "${ROBSD}" -d \
 		-S "${TSHDIR}/src-one.diff" \
 		-S "${TSHDIR}/src-two.diff" \
 		-X "${TSHDIR}/xenocara.diff" \
 		-s cvs -s reboot -t daily \
-		>"$TMP1" 2>&1 || : >"$_fail"
-	if [ -e "$_fail" ]; then
-		fail - "expected exit zero" <"$TMP1"
+		>"${TMP1}" 2>&1 || : >"${_fail}"
+	if [ -e "${_fail}" ]; then
+		fail - "expected exit zero" <"${TMP1}"
 	fi
 	if [ -e "${ROBSDDIR}/.running" ]; then
-		fail - "lock not removed" <"$TMP1"
+		fail - "lock not removed" <"${TMP1}"
 	fi
 	_builddir="$(find "${ROBSDDIR}" -type d -mindepth 1 -maxdepth 1)"
 
@@ -81,8 +81,8 @@ if testcase "basic"; then
 
 	echo daily | assert_file - "${_builddir}/tags"
 
-	robsd_log_sanitize "$TMP1"
-	assert_file - "$TMP1" <<-EOF
+	robsd_log_sanitize "${TMP1}"
+	assert_file - "${TMP1}" <<-EOF
 	robsd: using directory ${_builddir} at step 1
 	robsd: using diff ${TSHDIR}/src-one.diff rooted in ${TSHDIR}
 	robsd: using diff ${TSHDIR}/src-two.diff rooted in ${TSHDIR}
@@ -132,18 +132,18 @@ if testcase "reboot"; then
 	hook { "true" }
 	reboot yes
 	EOF
-	mkdir -p "$ROBSDDIR"
+	mkdir -p "${ROBSDDIR}"
 
 	_fail="${TSHDIR}/fail"
 	env EXECDIR="${WRKDIR}/exec" PATH="${BINDIR}:${PATH}" \
-		sh "$ROBSD" -d >"$TMP1" 2>&1 || : >"$_fail"
-	if [ -e "$_fail" ]; then
-		fail - "expected exit zero" <"$TMP1"
+		sh "${ROBSD}" -d >"${TMP1}" 2>&1 || : >"${_fail}"
+	if [ -e "${_fail}" ]; then
+		fail - "expected exit zero" <"${TMP1}"
 	fi
 	_builddir="$(find "${ROBSDDIR}" -type d -mindepth 1 -maxdepth 1)"
 
-	robsd_log_sanitize "$TMP1"
-	assert_file - "$TMP1" <<-EOF
+	robsd_log_sanitize "${TMP1}"
+	assert_file - "${TMP1}" <<-EOF
 	robsd: using directory ${_builddir} at step 1
 	robsd: step env
 	robsd-hook: exec "true"
@@ -159,7 +159,7 @@ if testcase "reboot"; then
 	EOF
 
 	if [ -e "${_builddir}/report" ]; then
-		fail - "expected no report" <"$TMP1"
+		fail - "expected no report" <"${TMP1}"
 	fi
 fi
 
@@ -167,14 +167,14 @@ if testcase "already running"; then
 	robsd_config - <<-EOF
 	robsddir "${ROBSDDIR}"
 	EOF
-	mkdir -p "$ROBSDDIR"
+	mkdir -p "${ROBSDDIR}"
 	echo /var/empty >"${ROBSDDIR}/.running"
 	env EXECDIR="${WRKDIR}/exec" PATH="${BINDIR}:${PATH}" \
-		sh "$ROBSD" -d 2>&1 | grep -v 'using ' >"$TMP1"
+		sh "${ROBSD}" -d 2>&1 | grep -v 'using ' >"${TMP1}"
 	if ! [ -e "${ROBSDDIR}/.running" ]; then
-		fail - "lock not preserved" <"$TMP1"
+		fail - "lock not preserved" <"${TMP1}"
 	fi
-	assert_file - "$TMP1" <<-EOF
+	assert_file - "${TMP1}" <<-EOF
 	robsd: /var/empty: lock already acquired
 	robsd: trap exit 1
 	EOF
@@ -184,14 +184,14 @@ if testcase "already running detached"; then
 	robsd_config - <<-EOF
 	robsddir "${ROBSDDIR}"
 	EOF
-	mkdir -p "$ROBSDDIR"
+	mkdir -p "${ROBSDDIR}"
 	echo /var/empty >"${ROBSDDIR}/.running"
 	env EXECDIR="${WRKDIR}/exec" PATH="${BINDIR}:${PATH}" \
-		sh "$ROBSD" 2>&1 | grep -v 'using ' >"$TMP1"
+		sh "${ROBSD}" 2>&1 | grep -v 'using ' >"${TMP1}"
 	if ! [ -e "${ROBSDDIR}/.running" ]; then
-		fail - "lock not preserved" <"$TMP1"
+		fail - "lock not preserved" <"${TMP1}"
 	fi
-	assert_file - "$TMP1" <<-EOF
+	assert_file - "${TMP1}" <<-EOF
 	robsd: /var/empty: lock already acquired
 	robsd: trap exit 1
 	EOF
@@ -202,12 +202,12 @@ if testcase "early failure"; then
 	robsddir "${ROBSDDIR}"
 	EOF
 	echo 'echo 0' >"${BINDIR}/sysctl"
-	mkdir -p "$ROBSDDIR"
+	mkdir -p "${ROBSDDIR}"
 	if env EXECDIR="${WRKDIR}/exec" PATH="${BINDIR}:${PATH}" \
-	   sh "$ROBSD" -d >"$TMP1" 2>&1; then
-		fail - "expected exit non-zero" <"$TMP1"
+	   sh "${ROBSD}" -d >"${TMP1}" 2>&1; then
+		fail - "expected exit non-zero" <"${TMP1}"
 	fi
-	assert_file - "$TMP1" <<-EOF
+	assert_file - "${TMP1}" <<-EOF
 	robsd: non-optimal performance detected, check hw.perfpolicy and hw.setperf
 	robsd: trap exit 1
 	EOF

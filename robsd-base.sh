@@ -5,10 +5,10 @@ BSDOBJDIR="${bsd-objdir}"; export BSDOBJDIR
 BSDSRCDIR="${bsd-srcdir}"; export BSDSRCDIR
 EOF
 
-chown build:wobj "$BSDOBJDIR"
-chmod 770 "$BSDOBJDIR"
+chown build:wobj "${BSDOBJDIR}"
+chmod 770 "${BSDOBJDIR}"
 
-cd "$BSDSRCDIR"
+cd "${BSDSRCDIR}"
 make obj
 make build
 

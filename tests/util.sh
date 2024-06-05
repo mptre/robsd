@@ -21,7 +21,7 @@ robsd_config() {
 
 	ROBSDCONF="${TSHDIR}/robsd.conf"; export ROBSDCONF
 	{
-		case "$_mode" in
+		case "${_mode}" in
 		robsd)
 			cat <<-EOF
 			destdir "${TSHDIR}"
@@ -62,8 +62,8 @@ robsd_config() {
 			;;
 		esac
 
-		[ "$_stdin" -eq 1 ] && cat
-	} >"$ROBSDCONF"
+		[ "${_stdin}" -eq 1 ] && cat
+	} >"${ROBSDCONF}"
 }
 
 # robsd_log_sanitize path
@@ -77,7 +77,7 @@ robsd_log_sanitize() {
 		-e '/running as pid/d' \
 		-e '/^\+ /d' \
 		-e 's|parallel \([^ ]*\) .*|parallel \1 I/N|' \
-		"$_path"
+		"${_path}"
 }
 
 # robsd_mock
@@ -96,7 +96,7 @@ robsd_mock() {
 	TSHCLEAN="${TSHCLEAN} ${_tmpdir}"
 
 	_bindir="${_tmpdir}/bin"
-	mkdir "$_bindir"
+	mkdir "${_bindir}"
 
 	cat <<-EOF >"${_tmpdir}/bin/id"
 	echo 0
@@ -131,9 +131,9 @@ robsd_mock() {
 	chmod u+x "${_bindir}/su"
 
 	ROBSDDIR="${TSHDIR}/build"
-	mkdir "$ROBSDDIR"
+	mkdir "${ROBSDDIR}"
 
-	echo "$_tmpdir" "$_bindir" "$ROBSDDIR"
+	echo "${_tmpdir}" "${_bindir}" "${ROBSDDIR}"
 }
 
 # robsd_step_exec -m mode step
@@ -156,9 +156,9 @@ robsd_step_exec() {
 	: "${_mode:?}"
 	_step="$1"; : "${_step:?}"
 
-	(setmode "$_mode" && sh -eux -o pipefail "$_step") >"$_out" 2>&1 || _err1="$?"
-	if [ "$_err0" -ne "$_err1" ]; then
-		fail - "expected exit ${_err0}, got ${_err1}" <"$_out"
+	(setmode "${_mode}" && sh -eux -o pipefail "${_step}") >"${_out}" 2>&1 || _err1="$?"
+	if [ "${_err0}" -ne "${_err1}" ]; then
+		fail - "expected exit ${_err0}, got ${_err1}" <"${_out}"
 	fi
 }
 
@@ -166,7 +166,7 @@ robsd_step_exec() {
 #
 # Get the step file CSV header.
 step_header() {
-	"$ROBSDSTEP" -W -f /dev/null -H
+	"${ROBSDSTEP}" -W -f /dev/null -H
 }
 
 # step_serialize [-H] [-d duration] [-e exit] [-i skip] [-l log] [-n name] [-s step]
@@ -202,7 +202,7 @@ step_serialize() {
 		shift
 	done
 
-	[ "$_header" -eq 0 ] || step_header
+	[ "${_header}" -eq 0 ] || step_header
 	printf '%s,%s,%s,%s,%s,%s,%s,%s,%s\n' \
 		"${_step}" "${_name}" "${_exit}" "${_duration}" "${_delta}" "${_log}" \
 		"${_user}" "${_time}" "${_skip}"
@@ -234,7 +234,7 @@ portable() {
 	fi
 }
 
-ROBSDDIR="$TSHDIR"; export ROBSDDIR
+ROBSDDIR="${TSHDIR}"; export ROBSDDIR
 PATH="/bin:/sbin:/usr/bin:/usr/sbin:/usr/X11R6/bin"; export PATH
 TMP1="${TSHDIR}/tmp1"; export TMP1
 TZ=""; export TZ

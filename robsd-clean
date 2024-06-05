@@ -17,21 +17,21 @@ setprogname "robsd-clean"
 _mode=""
 
 while getopts "m:" opt; do
-	case "$opt" in
+	case "${opt}" in
 	m)	_mode="${OPTARG}";;
 	*)	usage;;
 	esac
 done
 shift $((OPTIND - 1))
-{ [ -n "$_mode" ] && [ $# -eq 1 ]; } || usage
+{ [ -n "${_mode}" ] && [ $# -eq 1 ]; } || usage
 
-setmode "$_mode"
+setmode "${_mode}"
 
 config_load <<'EOF'
 ROBSDDIR="${robsddir}"
 KEEPDIR="${keep-dir}"
 EOF
 
-purge "$ROBSDDIR" "$1" | while read -r _d; do
+purge "${ROBSDDIR}" "$1" | while read -r _d; do
 	info "moving ${_d} to ${KEEPDIR}"
 done

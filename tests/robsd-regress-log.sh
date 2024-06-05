@@ -15,21 +15,21 @@ robsd_regress_log() {
 	done
 	[ "${1:-}" = "--" ] && shift
 
-	${EXEC:-} "$ROBSDREGRESSLOG" "$@" \
-		>"$_stdout" 2>&1 || _err1="$?"
-	if [ "$_err0" -ne "$_err1" ]; then
-		fail - "expected exit ${_err0}, got ${_err1}" <"$_stdout"
+	${EXEC:-} "${ROBSDREGRESSLOG}" "$@" \
+		>"${_stdout}" 2>&1 || _err1="$?"
+	if [ "${_err0}" -ne "${_err1}" ]; then
+		fail - "expected exit ${_err0}, got ${_err1}" <"${_stdout}"
 		return 0
 	fi
-	if [ "$_stdin" -eq 1 ]; then
-		assert_file - "$_stdout"
+	if [ "${_stdin}" -eq 1 ]; then
+		assert_file - "${_stdout}"
 	else
-		cat "$_stdout"
+		cat "${_stdout}"
 	fi
 }
 
 if testcase "skipped"; then
-	cat <<-EOF >"$TMP1"
+	cat <<-EOF >"${TMP1}"
 	cc   -o optionstest optionstest.o apps.o -lcrypto -lssl
 
 	===> x509
@@ -39,7 +39,7 @@ if testcase "skipped"; then
 	SKIPPED
 	EOF
 
-	robsd_regress_log - -- -S "$TMP1" <<-EOF
+	robsd_regress_log - -- -S "${TMP1}" <<-EOF
 	===> x509
 	missing package p5-IO-Socket-SSL
 	SKIPPED
@@ -50,7 +50,7 @@ if testcase "skipped"; then
 fi
 
 if testcase "skipped many lines"; then
-	cat <<-EOF >"$TMP1"
+	cat <<-EOF >"${TMP1}"
 	==== t-permit-1 ====
 	t-permit-1
 
@@ -61,7 +61,7 @@ if testcase "skipped many lines"; then
 	SKIPPED
 	EOF
 
-	robsd_regress_log - -- -S "$TMP1" <<-EOF
+	robsd_regress_log - -- -S "${TMP1}" <<-EOF
 	==== t-run-keepenv-path ====
 	All of directories we are allowed to use for temporary data
 	(/home/src/regress/usr.bin/doas/obj /tmp)
@@ -71,19 +71,19 @@ if testcase "skipped many lines"; then
 fi
 
 if testcase "skipped no lines"; then
-	cat <<-EOF >"$TMP1"
+	cat <<-EOF >"${TMP1}"
 	==== test
 	SKIPPED
 	EOF
 
-	robsd_regress_log - -- -S "$TMP1" <<-EOF
+	robsd_regress_log - -- -S "${TMP1}" <<-EOF
 	==== test
 	SKIPPED
 	EOF
 fi
 
 if testcase "skipped early without marker"; then
-	cat <<-EOF >"$TMP1"
+	cat <<-EOF >"${TMP1}"
 	+ trace1
 	package test is required for this regress
 	SKIPPED
@@ -93,7 +93,7 @@ if testcase "skipped early without marker"; then
 	+ trace3
 	EOF
 
-	robsd_regress_log - -- -S "$TMP1" <<-EOF
+	robsd_regress_log - -- -S "${TMP1}" <<-EOF
 	package test is required for this regress
 	SKIPPED
 
@@ -104,7 +104,7 @@ if testcase "skipped early without marker"; then
 fi
 
 if testcase "failed"; then
-	cat <<-EOF >"$TMP1"
+	cat <<-EOF >"${TMP1}"
 	==== test-ci-revert ====
 	enter description, terminated with single '.' or end of file:
 	NOTE: This is NOT the log message!
@@ -120,7 +120,7 @@ if testcase "failed"; then
 	FAILED
 	EOF
 
-	robsd_regress_log - -- -F "$TMP1" <<-EOF
+	robsd_regress_log - -- -F "${TMP1}" <<-EOF
 	==== test-ci-keywords ====
 	enter description, terminated with single '.' or end of file:
 	NOTE: This is NOT the log message!
@@ -134,7 +134,7 @@ if testcase "failed"; then
 fi
 
 if testcase "failed only expected fail"; then
-	cat <<-EOF >"$TMP1"
+	cat <<-EOF >"${TMP1}"
 	==== test-pass ====
 	./test
 
@@ -144,11 +144,11 @@ if testcase "failed only expected fail"; then
 	EXPECTED_FAIL
 	EOF
 
-	robsd_regress_log -e - -- -F "$TMP1" </dev/null
+	robsd_regress_log -e - -- -F "${TMP1}" </dev/null
 fi
 
 if testcase "failed and skipped"; then
-	cat <<-EOF >"$TMP1"
+	cat <<-EOF >"${TMP1}"
 	==== t0 ====
 	SKIPPED
 
@@ -156,14 +156,14 @@ if testcase "failed and skipped"; then
 	FAILED
 	EOF
 
-	robsd_regress_log - -- -F "$TMP1" <<-EOF
+	robsd_regress_log - -- -F "${TMP1}" <<-EOF
 	==== t1 ====
 	FAILED
 	EOF
 fi
 
 if testcase "expected fail"; then
-	cat <<-EOF >"$TMP1"
+	cat <<-EOF >"${TMP1}"
 	===> subdir
 	==== one ====
 	./one
@@ -173,7 +173,7 @@ if testcase "expected fail"; then
 	EXPECTED_FAIL
 	EOF
 
-	robsd_regress_log - -- -X "$TMP1" <<-EOF
+	robsd_regress_log - -- -X "${TMP1}" <<-EOF
 	==== two ====
 	./two
 	EXPECTED_FAIL
@@ -181,7 +181,7 @@ if testcase "expected fail"; then
 fi
 
 if testcase "unexpected pass"; then
-	cat <<-EOF >"$TMP1"
+	cat <<-EOF >"${TMP1}"
 	==== fail ====
 	./fail
 	FAILED
@@ -191,7 +191,7 @@ if testcase "unexpected pass"; then
 	UNEXPECTED_PASS
 	EOF
 
-	robsd_regress_log - -- -P "$TMP1" <<-EOF
+	robsd_regress_log - -- -P "${TMP1}" <<-EOF
 	==== unexpected ====
 	./unexpected
 	UNEXPECTED_PASS
@@ -199,33 +199,33 @@ if testcase "unexpected pass"; then
 fi
 
 if testcase "no print"; then
-	cat <<-EOF >"$TMP1"
+	cat <<-EOF >"${TMP1}"
 	==== t1 ====
 	FAILED
 	EOF
 
-	robsd_regress_log - -- -Fn "$TMP1" </dev/null
+	robsd_regress_log - -- -Fn "${TMP1}" </dev/null
 fi
 
 if testcase "multiple paths"; then
 	_failed="${TSHDIR}/failed"
-	cat <<-EOF >"$_failed"
+	cat <<-EOF >"${_failed}"
 	==== test ====
 	FAILED
 	EOF
 
 	_skipped="${TSHDIR}/skipped"
-	cat <<-EOF >"$_skipped"
+	cat <<-EOF >"${_skipped}"
 	==== skip ====
 	SKIPPED
 	EOF
 
 	_empty="${TSHDIR}/empty"
-	: >"$_empty"
+	: >"${_empty}"
 
 	_absent="${TSHDIR}/absent"
 
-	robsd_regress_log - -- -FS "$_failed" "$_skipped" "$_empty" <<-EOF
+	robsd_regress_log - -- -FS "${_failed}" "${_skipped}" "${_empty}" <<-EOF
 	==== test ====
 	FAILED
 
@@ -234,13 +234,13 @@ if testcase "multiple paths"; then
 	EOF
 
 	robsd_regress_log -e -e - -- \
-		-F "$_failed" "$_skipped" "$_empty" "$_absent" </dev/null
+		-F "${_failed}" "${_skipped}" "${_empty}" "${_absent}" </dev/null
 
 fi
 
 if testcase "missing arguments"; then
-	robsd_regress_log -e >"$TMP1"
-	if ! grep -q usage "$TMP1"; then
-		fail - "expected usage" <"$TMP1"
+	robsd_regress_log -e >"${TMP1}"
+	if ! grep -q usage "${TMP1}"; then
+		fail - "expected usage" <"${TMP1}"
 	fi
 fi

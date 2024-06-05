@@ -9,8 +9,8 @@ if testcase "basic"; then
 	EOF
 	chmod u+x "${TSHDIR}/sysctl"
 
-	if ! PATH="${TSHDIR}:${PATH}" check_perf >"$TMP1" 2>&1; then
-		fail - "expected exit zero" <"$TMP1"
+	if ! PATH="${TSHDIR}:${PATH}" check_perf >"${TMP1}" 2>&1; then
+		fail - "expected exit zero" <"${TMP1}"
 	fi
 fi
 
@@ -20,7 +20,7 @@ if testcase "not available"; then
 	EOF
 	chmod u+x "${TSHDIR}/sysctl"
 
-	if ! PATH="${TSHDIR}:${PATH}" check_perf >"$TMP1" 2>&1; then
-		fail - "expected exit zero" <"$TMP1"
+	if ! PATH="${TSHDIR}:${PATH}" check_perf >"${TMP1}" 2>&1; then
+		fail - "expected exit zero" <"${TMP1}"
 	fi
 fi

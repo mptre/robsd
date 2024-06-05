@@ -10,16 +10,16 @@ EOF
 PATH="${PATH}:/usr/X11R6/bin"; export PATH
 
 DESTDIR="${DESTDIR}/xenocara"; export DESTDIR
-mkdir -p "$DESTDIR"
-cleandir "$DESTDIR"
+mkdir -p "${DESTDIR}"
+cleandir "${DESTDIR}"
 
-mkdir -p "$RELEASEDIR"
-cleandir "$RELEASEDIR"
-chown build "$RELEASEDIR"
-chmod 755 "$RELEASEDIR"
+mkdir -p "${RELEASEDIR}"
+cleandir "${RELEASEDIR}"
+chown build "${RELEASEDIR}"
+chmod 755 "${RELEASEDIR}"
 
 # Not suitable for parallelism.
 unset MAKEFLAGS
-cd "$XSRCDIR"
+cd "${XSRCDIR}"
 make release
 make checkdist

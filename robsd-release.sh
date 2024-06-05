@@ -6,17 +6,17 @@ BSDSRCDIR="${bsd-srcdir}"
 RELEASEDIR="${bsd-reldir}"; export RELEASEDIR
 EOF
 
-chown build "$DESTDIR"
-chmod 700 "$DESTDIR"
+chown build "${DESTDIR}"
+chmod 700 "${DESTDIR}"
 
 DESTDIR="${DESTDIR}/src"; export DESTDIR
-mkdir -p "$DESTDIR"
-cleandir "$DESTDIR"
+mkdir -p "${DESTDIR}"
+cleandir "${DESTDIR}"
 
-mkdir -p "$RELEASEDIR"
-cleandir "$RELEASEDIR"
-chown build "$RELEASEDIR"
-chmod 755 "$RELEASEDIR"
+mkdir -p "${RELEASEDIR}"
+cleandir "${RELEASEDIR}"
+chown build "${RELEASEDIR}"
+chmod 755 "${RELEASEDIR}"
 
 # Remove vnd devices in case of resuming. As some architectures does not support
 # this make target, ignore errors.

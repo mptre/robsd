@@ -1,10 +1,10 @@
 portable no
 
-robsd_mock >"$TMP1"; read -r _ BINDIR CANVASDIR <"$TMP1"
+robsd_mock >"${TMP1}"; read -r _ BINDIR CANVASDIR <"${TMP1}"
 
 setup() {
 	unset ROBSDCONF
-	mkdir "$CANVASDIR"
+	mkdir "${CANVASDIR}"
 }
 
 CANVAS="${EXECDIR}/canvas"
@@ -15,13 +15,13 @@ if testcase "basic"; then
 	step "first" command { "true" }
 	EOF
 
-	if ! PATH="${BINDIR}:${PATH}" sh "$CANVAS" -d -C "$ROBSDCONF" \
-	   >"$TMP1" 2>&1; then
-		fail - "expected exit zero" <"$TMP1"
+	if ! PATH="${BINDIR}:${PATH}" sh "${CANVAS}" -d -C "${ROBSDCONF}" \
+	   >"${TMP1}" 2>&1; then
+		fail - "expected exit zero" <"${TMP1}"
 	fi
 
-	if grep -q 'skipping steps' "$TMP1"; then
-		fail - "expected no steps to be skipped" <"$TMP1"
+	if grep -q 'skipping steps' "${TMP1}"; then
+		fail - "expected no steps to be skipped" <"${TMP1}"
 	fi
 fi
 
@@ -33,27 +33,27 @@ if testcase "skip"; then
 	step "second" command { "true" }
 	EOF
 
-	if ! sh "$CANVAS" -d -C "$ROBSDCONF" -s second >"$TMP1" 2>&1; then
-		fail - "expected exit zero" <"$TMP1"
+	if ! sh "${CANVAS}" -d -C "${ROBSDCONF}" -s second >"${TMP1}" 2>&1; then
+		fail - "expected exit zero" <"${TMP1}"
 	fi
 
 	_builddir="$(find "${ROBSDDIR}" -type d -mindepth 1 -maxdepth 1)"
-	_steps="$(step_path "$_builddir")"
-	step_eval -n first "$_steps"
+	_steps="$(step_path "${_builddir}")"
+	step_eval -n first "${_steps}"
 	if [ "$(step_value skip)" -ne 1 ]; then
 		fail "expected first to be skipped"
 	fi
-	step_eval -n second "$_steps"
+	step_eval -n second "${_steps}"
 	if [ "$(step_value skip)" -ne 1 ]; then
 		fail "expected second to be skipped"
 	fi
 fi
 
 if testcase "invalid: missing configuration argument"; then
-	if sh "$CANVAS" -d >"$TMP1" 2>&1; then
-		fail - "expected exit non-zero" <"$TMP1"
+	if sh "${CANVAS}" -d >"${TMP1}" 2>&1; then
+		fail - "expected exit non-zero" <"${TMP1}"
 	fi
-	if ! grep -q usage "$TMP1"; then
-		fail - "expected usage" <"$TMP1"
+	if ! grep -q usage "${TMP1}"; then
+		fail - "expected usage" <"${TMP1}"
 	fi
 fi

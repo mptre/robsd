@@ -1,29 +1,29 @@
 setup() {
-	export EXECDIR="$TSHDIR"
+	export EXECDIR="${TSHDIR}"
 
 	mkdir "${TSHDIR}/.conf"
 
 	robsd_config - <<-EOF
-	robsddir "$TSHDIR"
+	robsddir "${TSHDIR}"
 	EOF
-	mv "$ROBSDCONF" "${TSHDIR}/.conf/robsd.conf"
+	mv "${ROBSDCONF}" "${TSHDIR}/.conf/robsd.conf"
 
 	robsd_config -C - <<-EOF
-	robsddir "$TSHDIR"
+	robsddir "${TSHDIR}"
 	EOF
-	mv "$ROBSDCONF" "${TSHDIR}/.conf/robsd-cross.conf"
+	mv "${ROBSDCONF}" "${TSHDIR}/.conf/robsd-cross.conf"
 
 	robsd_config -P - <<-EOF
-	robsddir "$TSHDIR"
+	robsddir "${TSHDIR}"
 	ports { "devel/robsd" }
 	EOF
-	mv "$ROBSDCONF" "${TSHDIR}/.conf/robsd-ports.conf"
+	mv "${ROBSDCONF}" "${TSHDIR}/.conf/robsd-ports.conf"
 
 	robsd_config -R - <<-EOF
-	robsddir "$TSHDIR"
+	robsddir "${TSHDIR}"
 	regress "test/one"
 	EOF
-	mv "$ROBSDCONF" "${TSHDIR}/.conf/robsd-regress.conf"
+	mv "${ROBSDCONF}" "${TSHDIR}/.conf/robsd-regress.conf"
 }
 
 
@@ -47,17 +47,17 @@ robsd_exec() {
 	done
 	[ "${1:-}" = "--" ] && shift
 
-	${EXEC:-} "$ROBSDEXEC" \
-		-m "$_mode" -C "${TSHDIR}/.conf/${_mode}.conf" "$@" \
-		>"$_stdout" 2>&1 || _err1="$?"
-	if [ "$_err0" -ne "$_err1" ]; then
-		fail - "expected exit ${_err0}, got ${_err1}" <"$_stdout"
+	${EXEC:-} "${ROBSDEXEC}" \
+		-m "${_mode}" -C "${TSHDIR}/.conf/${_mode}.conf" "$@" \
+		>"${_stdout}" 2>&1 || _err1="$?"
+	if [ "${_err0}" -ne "${_err1}" ]; then
+		fail - "expected exit ${_err0}, got ${_err1}" <"${_stdout}"
 		return 0
 	fi
-	if [ "$_stdin" -eq 1 ]; then
-		assert_file - "$_stdout"
+	if [ "${_stdin}" -eq 1 ]; then
+		assert_file - "${_stdout}"
 	else
-		cat "$_stdout"
+		cat "${_stdout}"
 	fi
 }
 

@@ -23,7 +23,7 @@ BSDSRCDIR="${bsd-srcdir}"
 CROSSDIR="${crossdir}"
 EOF
 
-if ! [ -d "$CROSSDIR" ]; then
+if ! [ -d "${CROSSDIR}" ]; then
 	fatal "${CROSSDIR}: no such directory"
 fi
 

@@ -10,8 +10,8 @@ if testcase "basic"; then
 	cross-env:
 	EOF
 
-	if ! sh "$ROBSDCROSSENV" amd64 echo hello >"$TMP1" 2>&1; then
-		fail - "expected exit zero" <"$TMP1"
+	if ! sh "${ROBSDCROSSENV}" amd64 echo hello >"${TMP1}" 2>&1; then
+		fail - "expected exit zero" <"${TMP1}"
 	fi
-	echo hello | assert_file - "$TMP1"
+	echo hello | assert_file - "${TMP1}"
 fi

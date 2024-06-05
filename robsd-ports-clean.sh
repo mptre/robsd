@@ -11,7 +11,7 @@ _arch="$(arch -s)"
 
 # Take note of all packages before deletion.
 _packages="${CHROOT}${PORTSDIR}/packages/${_arch}/all"
-ls "$_packages" >"${TMPDIR}/packages.orig" 2>/dev/null || :
+ls "${_packages}" >"${TMPDIR}/packages.orig" 2>/dev/null || :
 
 cd "${CHROOT}${PORTSDIR}"
 rm -rf {bulk,distfiles,locks,logs,packages,plist,pobj,update}
