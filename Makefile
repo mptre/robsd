@@ -410,6 +410,7 @@ SHELLCHECKFLAGS+=	-e SC2164			# cd failure
 SHELLCHECKFLAGS+=	-o add-default-case
 SHELLCHECKFLAGS+=	-o avoid-nullary-conditions
 SHELLCHECKFLAGS+=	-o quote-safe-variables
+SHELLCHECKFLAGS+=	-o require-variable-braces
 
 all: ${PROG_robsd-config}
 all: ${PROG_robsd-exec}
