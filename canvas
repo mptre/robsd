@@ -87,7 +87,7 @@ if [ "${KEEP}" -gt 0 ]; then
 	/usr/local/sbin/robsd-clean -m "${_MODE}" "${KEEP}"
 fi
 
-"${ROBSDSTAT}" -i "${STATINTERVAL}" -u build >>"${BUILDDIR}/stat.csv" 2>&1 &
+"${ROBSDSTAT}" -i "${STATINTERVAL}" -u "$(whoami)" >>"${BUILDDIR}/stat.csv" 2>&1 &
 _statpid="$!"
 
 if [ "${DETACH}" -eq 1 ]; then
