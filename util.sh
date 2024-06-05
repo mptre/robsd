@@ -127,7 +127,7 @@ config_load() {
 
 	case "${_MODE}" in
 	robsd|robsd-cross)
-		MAKEFLAGS="-j$(sysctl -n hw.ncpuonline)"; export MAKEFLAGS
+		MAKEFLAGS="-j$(config_value ncpu)"; export MAKEFLAGS
 		;;
 	robsd-ports)
 		ports_config_load
@@ -898,7 +898,7 @@ robsd() {
 	: "${_builddir:?}"
 	: "${_step:?}"
 
-	_ncpu="$(sysctl -n hw.ncpuonline)"
+	_ncpu="$(config_value ncpu)"
 	_steps="$(step_path "${_builddir}")"
 
 	steps -o "${_step}" | while read -r _step _name _parallel; do

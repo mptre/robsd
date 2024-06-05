@@ -55,6 +55,7 @@ static struct variable	*config_default_build_dir(struct config *,
 static struct variable	*config_default_exec_dir(struct config *, const char *);
 static struct variable	*config_default_inet4(struct config *, const char *);
 static struct variable	*config_default_inet6(struct config *, const char *);
+static struct variable	*config_default_ncpu(struct config *, const char *);
 static struct variable	*config_default_trace(struct config *, const char *);
 
 static struct variable	*config_append_string(struct config *,
@@ -73,6 +74,7 @@ static const struct grammar common_grammar[] = {
 	{ "keep",		INTEGER,	config_parse_integer,	0,	{ NULL } },
 	{ "keep-dir",		STRING,		NULL,			0,	{ "${robsddir}/attic" } },
 	{ "machine",		STRING,		NULL,			0,	{ MACHINE } },
+	{ "ncpu",		INTEGER,	NULL,			FUN,	{ D_FUN(config_default_ncpu) } },
 	{ "robsddir",		DIRECTORY,	config_parse_directory,	REQ,	{ NULL } },
 	{ "skip",		LIST,		config_parse_list,	0,	{ NULL } },
 	{ "stat-interval",	INTEGER,	config_parse_integer,	0,	{ D_I32(10) } },
@@ -1070,6 +1072,20 @@ config_default_inet6(struct config *cf, const char *name)
 		addr = "";
 	variable_value_init(&val, STRING);
 	val.str = addr;
+	return config_append(cf, name, &val);
+}
+
+static struct variable *
+config_default_ncpu(struct config *cf, const char *name)
+{
+	struct variable_value val;
+	long ncpu;
+
+	ncpu = sysconf(_SC_NPROCESSORS_ONLN);
+	if (ncpu == -1)
+		ncpu = 1;
+	variable_value_init(&val, INTEGER);
+	val.integer = ncpu;
 	return config_append(cf, name, &val);
 }
 

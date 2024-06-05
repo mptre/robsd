@@ -511,6 +511,15 @@ if testcase "builddir lock file empty"; then
 	EOF
 fi
 
+if testcase "ncpu"; then
+	default_config >"${CONFIG}"
+	echo "\${ncpu}" >"${STDIN}"
+	_ncpu="$(robsd_config)"
+	if [ "${_ncpu}" -eq 0 ]; then
+		fail "expected ncpu to be non-zero"
+	fi
+fi
+
 if testcase "invalid missing file"; then
 	robsd_config -e -- -f /nein >/dev/null
 fi
