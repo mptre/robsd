@@ -156,22 +156,24 @@ report_cvs_log(struct report_context *r)
 	};
 	size_t npaths = sizeof(paths) / sizeof(paths[0]);
 	size_t i;
+	const char *tmpdir;
 	int ncvs = 0;
 
 	arena_scope(r->scratch, s);
+
+	tmpdir = config_interpolate_str(r->config, "${tmp-dir}");
+	if (tmpdir == NULL)
+		return STEP_LOG_ERROR;
 
 	buffer_putc(r->out, '\n');
 
 	for (i = 0; i < npaths; i++) {
 		struct stat st;
-		const char *path, *tmpdir;
+		const char *path;
 
 		if (paths[i].mode != r->mode)
 			continue;
 
-		tmpdir = config_interpolate_str(r->config, "${tmp-dir}");
-		if (tmpdir == NULL)
-			return STEP_LOG_ERROR;
 		path = arena_sprintf(&s, "%s/%s", tmpdir, paths[i].filename);
 		if (stat(path, &st) == 0 && st.st_size == 0)
 			continue;
