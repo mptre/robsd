@@ -12,12 +12,13 @@ usage() {
 . "${EXECDIR:-/usr/local/libexec/robsd}/util-regress.sh"
 
 setprogname "robsd-clean"
-[ "$(id -u)" -ne 0 ] && fatal "must be run as root"
 
 _mode=""
 
-while getopts "m:" opt; do
+while getopts "C:m:" opt; do
+	# shellcheck disable=SC2034
 	case "${opt}" in
+	C)	ROBSDCONF="${OPTARG}";;
 	m)	_mode="${OPTARG}";;
 	*)	usage;;
 	esac
@@ -26,6 +27,15 @@ shift $((OPTIND - 1))
 { [ -n "${_mode}" ] && [ $# -eq 1 ]; } || usage
 
 setmode "${_mode}"
+
+case "${_mode}" in
+canvas)
+	[ -n "${ROBSDCONF:-}" ] || usage
+	;;
+*)
+	[ "$(id -u)" -ne 0 ] && fatal "must be run as root"
+	;;
+esac
 
 config_load <<'EOF'
 ROBSDDIR="${robsddir}"

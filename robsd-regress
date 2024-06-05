@@ -82,7 +82,7 @@ if [ "${_step}" -eq 1 ]; then
 fi
 
 if [ "${KEEP}" -gt 0 ]; then
-	/usr/local/sbin/robsd-clean -m "${_MODE}" "${KEEP}"
+	"${ROBSDCLEAN}" -m "${_MODE}" ${ROBSDCONF:+"-C${ROBSDCONF}"} "${KEEP}"
 fi
 
 "${ROBSDSTAT}" -i "${STATINTERVAL}" -u "${REGRESSUSER}" -u root >>"${BUILDDIR}/stat.csv" 2>&1 &

@@ -5,6 +5,10 @@ robsd_mock >"${TMP1}"; read -r _ BINDIR CANVASDIR <"${TMP1}"
 setup() {
 	unset ROBSDCONF
 	mkdir "${CANVASDIR}"
+
+	ROBSDCLEAN="${BINDIR}/robsd-clean"; export ROBSDCLEAN
+	cp "${EXECDIR}/robsd-clean" "${ROBSDCLEAN}"
+	chmod u+x "${ROBSDCLEAN}"
 }
 
 CANVAS="${EXECDIR}/canvas"
@@ -12,6 +16,7 @@ CANVAS="${EXECDIR}/canvas"
 if testcase "basic"; then
 	robsd_config -c - <<-EOF
 	canvas-dir "${CANVASDIR}"
+	keep 7
 	step "first" command { "true" }
 	EOF
 

@@ -107,6 +107,7 @@ config_load() {
 	: "${BUILDDIR:=}"
 	: "${DETACH:=1}"
 	: "${EXECDIR:=/usr/local/libexec/robsd}"; export EXECDIR
+	: "${ROBSDCLEAN:=/usr/local/sbin/robsd-clean}"
 	: "${ROBSDCONFIG:=${EXECDIR}/robsd-config}"
 	: "${ROBSDEXEC:=${EXECDIR}/robsd-exec}"
 	: "${ROBSDHOOK:=${EXECDIR}/robsd-hook}"
