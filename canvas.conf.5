@@ -1,0 +1,75 @@
+.Dd $Mdocdate: June 3 2024$
+.Dt CANVAS.CONF 5
+.Os
+.Sh NAME
+.Nm canvas.conf
+.Nd canvas configuration file
+.Sh DESCRIPTION
+.Nm
+is the configuration file for
+.Xr canvas 1 .
+A string value type enclosed in
+.Dq double-quotes
+may refer to other configuration variables on the form
+.No \(Do Ns Brq Ar variable .
+Additional variables are also available, see
+.Xr robsd-config 8 .
+.Pp
+The following variables are recognized:
+.Bl -tag -width Ds
+.It Ic canvas-name Dq Ar path
+Name of the canvas.
+.It Ic canvas-dir Dq Ar path
+Directory used to store invocations.
+.It Xo
+.Ic step Dq Ar name
+.Op Ar options
+.Xc
+Step to execute, may be given multiple times.
+The following
+.Ar options
+are recognized:
+.Bl -tag -width Ds
+.It Ic command No { Do Ar argument Dc Ar ... No }
+Command to execute.
+.It Ic parallel
+Execute the step in parallel as opposed of the default of executing each step
+synchronously.
+.El
+.It Ic hook No { Do Ar path Dc Ar ... No }
+Command to invoke after each non-skipped step,
+see
+.Xr robsd-hook 5 .
+.It Ic stat-interval Ar number
+Interval expressed in seconds in which
+.Xr robsd-stat 8
+collects statistics.
+Defaults to 10.
+.It Ic keep Ar number
+Number of invocations to keep in
+.Ic canvas-dir ,
+see
+.Xr robsd-clean 8 .
+Defaults to keeping everything.
+.It Ic skip No { Do Ar step Dc Ar ... No }
+Steps to skip.
+.El
+.Sh EXAMPLES
+Example configuration which the knfmt utility is built from source and exercised
+on multiple projects in parallel.
+.Bd -literal
+canvas-name "knfmt"
+canvas-dir "/tmp"
+
+step "checkout"	command { "sh" "-x" "checkout.sh" }
+step "build"	command { "sh" "-x" "build.sh" }
+
+step "lint"	command { "sh" "-x" "lint.sh" "robsd" } parallel
+step "lint"	command { "sh" "-x" "lint.sh" "pick" } parallel
+step "lint"	command { "sh" "-x" "lint.sh" "yank" } parallel
+.Ed
+.Sh SEE ALSO
+.Xr canvas 1 ,
+.Xr robsd-config 8
+.Sh AUTHORS
+.An Anton Lindqvist Aq Mt anton@basename.se

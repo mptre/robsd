@@ -328,6 +328,8 @@ SCRIPTS+=	util-ports.sh
 SCRIPTS+=	util-regress.sh
 SCRIPTS+=	util.sh
 
+MANLINT+=	canvas.1
+MANLINT+=	canvas.conf.5
 MANLINT+=	robsd-clean.8
 MANLINT+=	robsd-config.8
 MANLINT+=	robsd-cross.8
@@ -494,6 +496,7 @@ ${PROG_fuzz-step}: ${OBJS_fuzz-step}
 install: all
 	@mkdir -p ${DESTDIR}${BINDIR}
 	@mkdir -p ${DESTDIR}${SBINDIR}
+	@mkdir -p ${DESTDIR}${MANDIR}/man1
 	@mkdir -p ${DESTDIR}${MANDIR}/man5
 	@mkdir -p ${DESTDIR}${MANDIR}/man8
 	@mkdir -p ${DESTDIR}${LIBEXECDIR}/robsd
@@ -554,6 +557,8 @@ install: all
 	${INSTALL} -m 0555 ${PROG_robsd-wait} ${DESTDIR}${LIBEXECDIR}/robsd
 # canvas
 	${INSTALL} -m 0555 ${.CURDIR}/canvas ${DESTDIR}${BINDIR}
+	${INSTALL_MAN} ${.CURDIR}/canvas.1 ${DESTDIR}${MANDIR}/man1
+	${INSTALL_MAN} ${.CURDIR}/canvas.conf.5 ${DESTDIR}${MANDIR}/man5
 .PHONY: install
 
 lint:

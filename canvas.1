@@ -1,0 +1,98 @@
+.Dd $Mdocdate: June 3 2024$
+.Dt CANVAS 1
+.Os
+.Sh NAME
+.Nm canvas
+.Nd task automation
+.Sh SYNOPSIS
+.Nm canvas
+.Op Fl d
+.Op Fl c Ar comment
+.Op Fl s Ar step
+.Op Fl t Ar tag
+.Fl C Ar path
+.Nm
+.Op Fl d
+.Fl r Ar path
+.Sh DESCRIPTION
+The
+.Nm
+utility exposes the generic parts of the
+.Xr robsd 8
+tooling.
+Providing an empty canvas for task automation, capable of handling both
+synchronous and asynchronous tasks.
+The steps to execute is defined using
+.Xr canvas.conf 5 .
+.Pp
+Each invocation is identified by a directory created by
+.Nm
+rooted in
+.Ic canvas-dir
+and is named after the current date.
+The directory contains the entries as follows.
+In addition, each executed step has a corresponding log file in the same
+directory.
+.Bl -tag -width robsd.log
+.It Pa comment
+File used to annotate the invocation which is included in
+.Pa report .
+.It Pa report
+A summary delivered as a mail to the invoking user while running in the
+background once
+.Nm
+exits.
+.It Pa robsd.log
+Standard output and error from
+.Nm
+while running in the background.
+.It Pa stat.csv
+Collected statistics, see
+.Xr robsd-stat 8 .
+.It Pa step.csv
+Internal representation of the executed steps, see
+.Xr robsd-step 8 .
+.It Pa tags
+Tags included in
+.Pa report .
+.El
+.Pp
+By default,
+.Nm
+runs in the background and must be killed using
+.Xr robsd-kill 8
+to ensure a clean exit.
+.Pp
+The options are as follows:
+.Bl -tag -width Ds
+.It Fl d
+Do not detach
+.Nm
+into the background.
+.It Fl C Ar path
+Path to configuration, see
+.Xr canvas.conf 5 .
+.It Fl c Ar comment
+Path to comment included in
+.Pa report .
+.It Fl r Ar path
+Resume an invocation located at
+.Ar path .
+If the last executed step failed or aborted, it will be executed again.
+Otherwise, the next step will be executed.
+.It Fl s Ar step
+Skip
+.Ar step ,
+see enumerated steps above.
+May be given multiple times.
+.It Fl t Ar tag
+Arbitrary tag used to annotate the invocation which is included in
+.Pa report .
+May be given multiple times.
+.El
+.Sh DIAGNOSTICS
+.Ex -std
+.Sh SEE ALSO
+.Xr canvas.conf 5
+.Sh AUTHORS
+.An Anton Lindqvist Aq Mt anton@basename.se
