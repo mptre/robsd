@@ -4,6 +4,7 @@ KNFMT		!(compat-*).c !(config).h -- \
 CLANGTIDY	!(config|compat-*).h !(compat-*).c -- \
 CPPCHECK	!(compat-*).c -- \
 SCRIPTS		!(mkls).sh -- \
+MANLINT		*.[0-9] -- \
 SHLINT		'${SCRIPTS}' canvas configure robsd robsd-!(*.*) tests/!(t).sh
 
 cd tests

@@ -336,6 +336,7 @@ MANLINT+=	robsd-cross.8
 MANLINT+=	robsd-cross.conf.5
 MANLINT+=	robsd-crossenv.8
 MANLINT+=	robsd-hook.5
+MANLINT+=	robsd-kill.8
 MANLINT+=	robsd-ls.8
 MANLINT+=	robsd-ports.8
 MANLINT+=	robsd-ports.conf.5
