@@ -1041,7 +1041,7 @@ step_write() {
 # step_eval -offset file
 # step_eval -n step-name file
 #
-# Read the given step using robsd-step into the _STEP array.
+# Read the given step using robsd-step into distinct variables for each field.
 step_eval() {
 	local _err=0
 	local _file
@@ -1061,11 +1061,24 @@ step_eval() {
 
 	_tmp="$(mktemp -t robsd.XXXXXX)"
 	{
-		printf 'set -A _STEP -- '
 		# shellcheck disable=SC2016
-		printf '"${step}" "${name}" "${exit}" "${duration}" "${log}" '
+		printf '_STEP_step=${step}\n'
 		# shellcheck disable=SC2016
-		printf '"${time}" "${user}" "${skip}" "${delta}"\n'
+		printf '_STEP_name=${name}\n'
+		# shellcheck disable=SC2016
+		printf '_STEP_exit=${exit}\n'
+		# shellcheck disable=SC2016
+		printf '_STEP_duration=${duration}\n'
+		# shellcheck disable=SC2016
+		printf '_STEP_log=${log}\n'
+		# shellcheck disable=SC2016
+		printf '_STEP_time=${time}\n'
+		# shellcheck disable=SC2016
+		printf '_STEP_user=${user}\n'
+		# shellcheck disable=SC2016
+		printf '_STEP_skip=${skip}\n'
+		# shellcheck disable=SC2016
+		printf '_STEP_delta=${delta}\n'
 	} | "${ROBSDSTEP}" -R -f "${_file}" "${_flag}" "${_step}" >"${_tmp}" || _err="$?"
 	[ "${_err}" -eq 0 ] && eval "$(<"${_tmp}")"
 	rm "${_tmp}"
@@ -1174,28 +1187,6 @@ step_exec_job() {
 	esac
 }
 
-# step_field step-name
-#
-# Get the corresponding _STEP array index for the given field name.
-step_field() {
-	local _name
-
-	_name="$1"; : "${_name:?}"
-
-	case "${_name}" in
-	step)		echo 0;;
-	name)		echo 1;;
-	exit)		echo 2;;
-	duration)	echo 3;;
-	log)		echo 4;;
-	time)		echo 5;;
-	user)		echo 6;;
-	skip)		echo 7;;
-	delta)		echo 8;;
-	*)		echo -1;;
-	esac
-}
-
 # step_id step-name
 #
 # Resolve the given step name to its corresponding numeric id.
@@ -1281,19 +1272,16 @@ step_skip() {
 
 # step_value field-name
 #
-# Get corresponding value for the given field name in the global _STEP array.
+# Get corresponding value for the given step field name.
 step_value() {
 	local _name
-	local _i
 
 	_name="$1"; : "${_name:?}"
 
-	_i="$(step_field "${_name}")"
-	if [ "${_i}" -lt 0 ] || [ -z "${_STEP[${_i}]:-}" ]; then
+	if ! eval "echo \${_STEP_${_name}}" 2>/dev/null; then
 		echo "step_value: ${_name}: unknown field" 1>&2
 		return 1
 	fi
-	echo "${_STEP[${_i}]}"
 }
 
 # trap_exit -r robsd-dir [-b build-dir] [-s stat-pid]
