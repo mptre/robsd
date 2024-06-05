@@ -53,6 +53,13 @@ which uses
 [examples/robsd-regress.conf](examples/robsd-regress.conf)
 as its configuration.
 
+### canvas
+
+[canvas(1)](https://www.basename.se/robsd/canvas.1.html)
+exposes the generic parts of the robsd tooling.
+Providing an empty canvas for task automation, capable of handling both
+synchronous and asynchronous tasks.
+
 ## Installation
 
 ### OpenBSD
