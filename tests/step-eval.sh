@@ -42,7 +42,7 @@ if testcase "invalid: unknown field"; then
 	default_steps >"${TMP1}"
 
 	step_eval -n one "${TMP1}"
-	if step_value nein; then
+	if step_value nein 2>/dev/null; then
 		fail "expected step field to not be recognized"
 	fi
 fi

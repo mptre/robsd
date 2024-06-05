@@ -1278,7 +1278,7 @@ step_value() {
 
 	_name="$1"; : "${_name:?}"
 
-	if ! eval "echo \${_STEP_${_name}}" 2>/dev/null; then
+	if ! (eval "echo \${_STEP_${_name}}") 2>/dev/null; then
 		echo "step_value: ${_name}: unknown field" 1>&2
 		return 1
 	fi
