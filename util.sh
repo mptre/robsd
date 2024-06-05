@@ -974,30 +974,13 @@ robsd_hook() {
 }
 
 # setmode mode
-# setmode -p path
 #
-# Set the execution mode or infer it from the given program name.
+# Set the execution mode.
 setmode() {
 	local _mode=""
-	local _path=""
 
-	while [ $# -gt 0 ]; do
-		case "$1" in
-		-p)	shift; _path="$1";;
-		*)	break;;
-		esac
-		shift
-	done
+	_mode="$1"; : "${_mode:?}"
 
-	if [ -n "$_path" ]; then
-		case "${_path##*/}" in
-		robsd-ports*)	_mode="robsd-ports";;
-		robsd-regress*)	_mode="robsd-regress";;
-		*)		_mode="robsd";;
-		esac
-	else
-		_mode="$1"
-	fi
 	_MODE="$_mode"; export _MODE
 }
 
