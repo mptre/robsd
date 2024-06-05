@@ -491,15 +491,12 @@ ${PROG_fuzz-step}: ${OBJS_fuzz-step}
 	${CC} ${DEBUG} -o ${PROG_fuzz-step} ${OBJS_fuzz-step} ${LDFLAGS}
 
 install: all
-	mkdir -p ${DESTDIR}${BINDIR}
-	mkdir -p ${DESTDIR}${SBINDIR}
-	${INSTALL} -m 0555 ${.CURDIR}/robsd ${DESTDIR}${SBINDIR}
-	mkdir -p ${DESTDIR}${LIBEXECDIR}/robsd
-	cd ${.CURDIR} && ${INSTALL} -m 0444 ${SCRIPTS} ${DESTDIR}${LIBEXECDIR}/robsd
+	@mkdir -p ${DESTDIR}${BINDIR}
+	@mkdir -p ${DESTDIR}${SBINDIR}
 	@mkdir -p ${DESTDIR}${MANDIR}/man5
-	${INSTALL_MAN} ${.CURDIR}/robsd.conf.5 ${DESTDIR}${MANDIR}/man5
 	@mkdir -p ${DESTDIR}${MANDIR}/man8
-	${INSTALL_MAN} ${.CURDIR}/robsd.8 ${DESTDIR}${MANDIR}/man8
+	@mkdir -p ${DESTDIR}${LIBEXECDIR}/robsd
+	cd ${.CURDIR} && ${INSTALL} -m 0444 ${SCRIPTS} ${DESTDIR}${LIBEXECDIR}/robsd
 # robsd-clean
 	${INSTALL} -m 0555 ${.CURDIR}/robsd-clean ${DESTDIR}${SBINDIR}
 	${INSTALL_MAN} ${.CURDIR}/robsd-clean.8 ${DESTDIR}${MANDIR}/man8
@@ -526,6 +523,10 @@ install: all
 # robsd-step
 	${INSTALL} -m 0555 ${PROG_robsd-step} ${DESTDIR}${LIBEXECDIR}/robsd
 	${INSTALL_MAN} ${.CURDIR}/robsd-step.8 ${DESTDIR}${MANDIR}/man8
+# robsd
+	${INSTALL} -m 0555 ${.CURDIR}/robsd ${DESTDIR}${SBINDIR}
+	${INSTALL_MAN} ${.CURDIR}/robsd.conf.5 ${DESTDIR}${MANDIR}/man5
+	${INSTALL_MAN} ${.CURDIR}/robsd.8 ${DESTDIR}${MANDIR}/man8
 # robsd-cross
 	${INSTALL} -m 0555 ${.CURDIR}/robsd-cross ${DESTDIR}${SBINDIR}
 	${INSTALL} -m 0555 ${.CURDIR}/robsd-crossenv ${DESTDIR}${SBINDIR}
