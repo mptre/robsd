@@ -33,7 +33,6 @@ setprogname "robsd-cross"
 _target="$(target "$@")"
 config_load -v "target=${_target}" <<'EOF'
 ROBSDDIR="${robsddir}"
-KEEP="${keep}"
 SKIP="${skip}"
 STATINTERVAL="${stat-interval}"
 EOF
@@ -92,9 +91,7 @@ if [ "${_step}" -eq 1 ]; then
 	"${ROBSDSTAT}" -H >"${BUILDDIR}/stat.csv"
 fi
 
-if [ "${KEEP}" -gt 0 ]; then
-	"${ROBSDCLEAN}" -m "${_MODE}" ${ROBSDCONF:+"-C${ROBSDCONF}"} "${KEEP}"
-fi
+"${ROBSDCLEAN}" -m "${_MODE}" ${ROBSDCONF:+"-C${ROBSDCONF}"}
 
 "${ROBSDSTAT}" -i "${STATINTERVAL}" -u root -u build >>"${BUILDDIR}/stat.csv" 2>&1 &
 _statpid="$!"

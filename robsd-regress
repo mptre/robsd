@@ -22,7 +22,6 @@ setprogname "robsd-regress"
 [ "$(id -u)" -ne 0 ] && fatal "must be run as root"
 config_load <<'EOF'
 ROBSDDIR="${robsddir}"
-KEEP="${keep}"
 STATINTERVAL="${stat-interval}"
 BSDDIFF="${bsd-diff}"
 BSDSRCDIR="${bsd-srcdir}"
@@ -81,9 +80,7 @@ if [ "${_step}" -eq 1 ]; then
 	"${ROBSDSTAT}" -H >"${BUILDDIR}/stat.csv"
 fi
 
-if [ "${KEEP}" -gt 0 ]; then
-	"${ROBSDCLEAN}" -m "${_MODE}" ${ROBSDCONF:+"-C${ROBSDCONF}"} "${KEEP}"
-fi
+"${ROBSDCLEAN}" -m "${_MODE}" ${ROBSDCONF:+"-C${ROBSDCONF}"}
 
 "${ROBSDSTAT}" -i "${STATINTERVAL}" -u "${REGRESSUSER}" -u root >>"${BUILDDIR}/stat.csv" 2>&1 &
 _statpid="$!"

@@ -2,6 +2,12 @@ portable no
 
 robsd_mock >"${TMP1}"; read -r WRKDIR BINDIR ROBSDDIR <"${TMP1}"
 
+setup() {
+	ROBSDCLEAN="${BINDIR}/robsd-clean"; export ROBSDCLEAN
+	cp "${EXECDIR}/robsd-clean" "${ROBSDCLEAN}"
+	chmod u+x "${ROBSDCLEAN}"
+}
+
 ROBSD="${EXECDIR}/robsd"
 
 # Create exec directory and stub some steps.

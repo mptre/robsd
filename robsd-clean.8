@@ -7,15 +7,11 @@
 .Sh SYNOPSIS
 .Nm robsd-clean
 .Fl m Ar mode
-.Ar count
+.Op Ar count
 .Sh DESCRIPTION
 The
 .Nm
-utility cleans out old invocations,
-keeping only the
-.Ar count
-number of latest ones.
-.Pp
+utility cleans out old invocations.
 Old invocations are moved to a directory named
 .Pa attic
 rooted in
@@ -27,6 +23,11 @@ The options are as follows:
 .Bl -tag -width Ds
 .It Fl m Ar mode
 Mode used to indicate the kind of configuration.
+.It Ar count
+Number of invocations to keep.
+If omitted, the
+.Ic keep
+configuration variable is used.
 .El
 .Sh DIAGNOSTICS
 .Ex -std

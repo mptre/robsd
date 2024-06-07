@@ -35,7 +35,37 @@ setup() {
 	unset ROBSDCONF
 }
 
-if testcase "robsd"; then
+if testcase "count argument"; then
+	echo "echo 0" >"${BINDIR}/id"
+	chmod u+x "${BINDIR}/id"
+
+	robsd_config - <<-EOF
+	robsddir "${TSHDIR}"
+	EOF
+	mkdir "${TSHDIR}/2024-06-07."{1,2,3}
+
+	robsd_clean - -- -m robsd 1 <<-EOF
+	robsd-clean: moving ${TSHDIR}/2024-06-07.2 to ${TSHDIR}/attic
+	robsd-clean: moving ${TSHDIR}/2024-06-07.1 to ${TSHDIR}/attic
+	EOF
+fi
+
+if testcase "no count argument"; then
+	echo "echo 0" >"${BINDIR}/id"
+	chmod u+x "${BINDIR}/id"
+
+	robsd_config - <<-EOF
+	robsddir "${TSHDIR}"
+	keep 2
+	EOF
+	mkdir "${TSHDIR}/2024-06-07."{1,2,3}
+
+	robsd_clean - -- -m robsd <<-EOF
+	robsd-clean: moving ${TSHDIR}/2024-06-07.1 to ${TSHDIR}/attic
+	EOF
+fi
+
+if testcase "robsd: requires root"; then
 	echo "echo 1337" >"${BINDIR}/id"
 	chmod u+x "${BINDIR}/id"
 

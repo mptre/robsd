@@ -2,12 +2,17 @@ portable no
 
 robsd_mock >"${TMP1}"; read -r _ BINDIR ROBSDDIR <"${TMP1}"
 
-cat <<'EOF' >"${BINDIR}/dpb"
-#!/bin/sh
+setup() {
+	cat <<-'EOF' >"${BINDIR}/dpb"
+	#!/bin/sh
+	echo "$@"
+	EOF
+	chmod u+x "${BINDIR}/dpb"
 
-echo "$@"
-EOF
-chmod u+x "${BINDIR}/dpb"
+	ROBSDCLEAN="${BINDIR}/robsd-clean"; export ROBSDCLEAN
+	cp "${EXECDIR}/robsd-clean" "${ROBSDCLEAN}"
+	chmod u+x "${ROBSDCLEAN}"
+}
 
 # robsd_ports [robsd-ports-argument ...]
 robsd_ports() (

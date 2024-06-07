@@ -13,6 +13,7 @@ usage() {
 
 setprogname "robsd-clean"
 
+_keep=
 _mode=""
 
 while getopts "C:m:" opt; do
@@ -24,7 +25,7 @@ while getopts "C:m:" opt; do
 	esac
 done
 shift $((OPTIND - 1))
-{ [ -n "${_mode}" ] && [ $# -eq 1 ]; } || usage
+{ [ -n "${_mode}" ] && [ $# -le 1 ]; } || usage
 
 setmode "${_mode}"
 
@@ -40,8 +41,17 @@ esac
 config_load <<'EOF'
 ROBSDDIR="${robsddir}"
 KEEPDIR="${keep-dir}"
+KEEP="${keep}"
 EOF
 
-purge "${ROBSDDIR}" "$1" | while read -r _d; do
+_keep="${1:-0}"
+if [ "${_keep}" -eq 0 ]; then
+	_keep="${KEEP}"
+fi
+if [ "${_keep}" -eq 0 ]; then
+	exit 0
+fi
+
+purge "${ROBSDDIR}" "${_keep}" | while read -r _d; do
 	info "moving ${_d} to ${KEEPDIR}"
 done

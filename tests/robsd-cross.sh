@@ -2,6 +2,12 @@ portable no
 
 robsd_mock >"${TMP1}"; read -r _ BINDIR ROBSDDIR <"${TMP1}"
 
+setup() {
+	ROBSDCLEAN="${BINDIR}/robsd-clean"; export ROBSDCLEAN
+	cp "${EXECDIR}/robsd-clean" "${ROBSDCLEAN}"
+	chmod u+x "${ROBSDCLEAN}"
+}
+
 ROBSDCROSS="${EXECDIR}/robsd-cross"
 
 if testcase "basic"; then
