@@ -520,6 +520,25 @@ if testcase "ncpu"; then
 	fi
 fi
 
+if testcase "keep-attic default value"; then
+	default_config >"${CONFIG}"
+	echo "\${keep-attic}" >"${STDIN}"
+	robsd_config - <<-EOF
+	1
+	EOF
+fi
+
+if testcase "keep-attic"; then
+	{
+		default_config
+		echo "keep-attic no"
+	} >"${CONFIG}"
+	echo "\${keep-attic}" >"${STDIN}"
+	robsd_config - <<-EOF
+	0
+	EOF
+fi
+
 if testcase "invalid missing file"; then
 	robsd_config -e -- -f /nein >/dev/null
 fi

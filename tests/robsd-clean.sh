@@ -65,6 +65,28 @@ if testcase "no count argument"; then
 	EOF
 fi
 
+if testcase "no attic"; then
+	echo "echo 0" >"${BINDIR}/id"
+	chmod u+x "${BINDIR}/id"
+
+	robsd_config - <<-EOF
+	robsddir "${TSHDIR}/robsd"
+	keep 2
+	keep-attic no
+	EOF
+	mkdir -p "${TSHDIR}/robsd/2024-06-07."{1,2,3}
+
+	robsd_clean - -- -m robsd <<-EOF
+	robsd-clean: removing ${TSHDIR}/robsd/2024-06-07.1
+	EOF
+
+	ls "${TSHDIR}/robsd" >"${TMP1}"
+	assert_file - "${TMP1}" <<-EOF
+	2024-06-07.2
+	2024-06-07.3
+	EOF
+fi
+
 if testcase "robsd: requires root"; then
 	echo "echo 1337" >"${BINDIR}/id"
 	chmod u+x "${BINDIR}/id"

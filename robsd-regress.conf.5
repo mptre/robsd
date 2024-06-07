@@ -34,6 +34,16 @@ Number of invocations to keep in
 see
 .Xr robsd-clean 8 .
 Defaults to keeping everything.
+.It Ic keep-attic yes | no
+Instruct
+.Xr robsd-clean 8
+to move old invocations to a directory named
+.Pa attic
+rooted in
+.Ic robsddir .
+Otherwise, old invocations completely removed.
+Defaults to
+.Ic yes .
 .It Ic parallel yes | no
 Run all configured regression tests in parallel.
 At most

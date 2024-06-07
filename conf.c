@@ -72,6 +72,7 @@ static const struct grammar common_grammar[] = {
 	{ "inet",		STRING,		NULL,			FUN,	{ D_FUN(config_default_inet4) } },
 	{ "inet6",		STRING,		NULL,			FUN,	{ D_FUN(config_default_inet6) } },
 	{ "keep",		INTEGER,	config_parse_integer,	0,	{ NULL } },
+	{ "keep-attic",		INTEGER,	config_parse_boolean,	0,	{ D_I32(1) } },
 	{ "keep-dir",		STRING,		NULL,			0,	{ "${robsddir}/attic" } },
 	{ "machine",		STRING,		NULL,			0,	{ MACHINE } },
 	{ "ncpu",		INTEGER,	NULL,			FUN,	{ D_FUN(config_default_ncpu) } },
