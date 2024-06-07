@@ -32,15 +32,17 @@ if testcase "basic"; then
 	[ -d "${TSHDIR}/2019-03-03" ] ||
 		fail "expected 2019-03-03 to be left"
 
-	for _f in 01-base.log 01-base.log.1 03-env.log dmesg tmp; do
-		_p="${TSHDIR}/attic/2019/03/01/${_f}"
-		[ -e "${_p}" ] && fail "expected ${_p} to be removed"
-	done
-
-	for _f in comment rel/index.txt report stat.csv src.diff.1 step.csv tags; do
-		_p="${TSHDIR}/attic/2019/03/01/${_f}"
-		[ -e "${_p}" ] || fail "expected ${_p} to be left"
-	done
+	(cd "${TSHDIR}/attic/2019/03/01" &&
+	 find . -type f | sed -e 's,^\./,,' | sort) >"${TMP1}"
+	assert_file - "${TMP1}" <<-EOF
+	comment
+	rel/index.txt
+	report
+	src.diff.1
+	stat.csv
+	step.csv
+	tags
+	EOF
 
 	assert_eq "Mar  1 22:33:44 2019" \
 		"$(stat -f '%Sm' "${TSHDIR}/attic/2019/03/01")"
