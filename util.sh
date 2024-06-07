@@ -799,7 +799,6 @@ purge() {
 		rm -rf "${_d}/tmp"
 		find "${_d}" -mindepth 1 -not \( \
 			-name '*.diff.*' -o \
-			-name '01-env.log' -o \
 			-name 'comment' -o \
 			-name 'index.txt' -o \
 			-name 'report' -o \
