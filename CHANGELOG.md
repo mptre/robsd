@@ -20,6 +20,10 @@
   (a54b81ca5008)
   (Anton Lindqvist)
 
+- robsd-clean: add support for optionally removing old invocations.
+  (8927022d19ab)
+  (Anton Lindqvist)
+
 # 19.0.0 - 2024-04-13
 
 ## Changes
