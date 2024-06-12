@@ -42,13 +42,14 @@ if testcase "count argument"; then
 	chmod u+x "${BINDIR}/id"
 
 	robsd_config - <<-EOF
-	robsddir "${TSHDIR}"
+	robsddir "${TSHDIR}/robsd"
 	EOF
-	mkdir "${TSHDIR}/2024-06-07."{1,2,3}
+	mkdir -p "${TSHDIR}/robsd/2024-06-07."{1,2,3}
+	echo "${TSHDIR}/robsd/2024-06-07.3" >"${TSHDIR}/robsd/.running"
 
 	robsd_clean - -- -m robsd 1 <<-EOF
-	robsd-clean: moving ${TSHDIR}/2024-06-07.2 to ${TSHDIR}/attic
-	robsd-clean: moving ${TSHDIR}/2024-06-07.1 to ${TSHDIR}/attic
+	robsd-clean: moving ${TSHDIR}/robsd/2024-06-07.2 to ${TSHDIR}/robsd/attic
+	robsd-clean: moving ${TSHDIR}/robsd/2024-06-07.1 to ${TSHDIR}/robsd/attic
 	EOF
 fi
 
@@ -57,13 +58,14 @@ if testcase "no count argument"; then
 	chmod u+x "${BINDIR}/id"
 
 	robsd_config - <<-EOF
-	robsddir "${TSHDIR}"
+	robsddir "${TSHDIR}/robsd"
 	keep 2
 	EOF
-	mkdir "${TSHDIR}/2024-06-07."{1,2,3}
+	mkdir -p "${TSHDIR}/robsd/2024-06-07."{1,2,3}
+	echo "${TSHDIR}/robsd/2024-06-07.3" >"${TSHDIR}/robsd/.running"
 
 	robsd_clean - -- -m robsd <<-EOF
-	robsd-clean: moving ${TSHDIR}/2024-06-07.1 to ${TSHDIR}/attic
+	robsd-clean: moving ${TSHDIR}/robsd/2024-06-07.1 to ${TSHDIR}/robsd/attic
 	EOF
 fi
 
