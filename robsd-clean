@@ -57,9 +57,7 @@ if [ "$(config_value keep-attic)" -eq 1 ]; then
 		info "moving ${_d} to ${KEEPDIR}"
 	done
 else
-	prev_release -B |
-	tail -n "+${_keep}" |
-	while read -r _d; do
+	purge -d "${ROBSDDIR}" "${_keep}" | while read -r _d; do
 		info "removing ${_d}"
 		rm -rf "${_d}"
 	done

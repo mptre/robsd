@@ -770,7 +770,7 @@ prev_release() {
 	"${ROBSDLS}" -m "${_MODE}" ${ROBSDCONF:+"-C${ROBSDCONF}"} "$@"
 }
 
-# purge dir count
+# purge [-d] dir count
 #
 # Keep the latest count number of release directories in dir.
 # The older ones will be moved to the keep-dir, preserving only the relevant
@@ -779,18 +779,37 @@ purge() {
 	local _attic
 	local _d
 	local _dir
+	local _dry=0
 	local _dst
 	local _n
 	local _tim
 
+	while [ $# -gt 0 ]; do
+		case "$1" in
+		-d)	_dry=1;;
+		*)	break;;
+		esac
+		shift
+	done
 	_dir="$1"; : "${_dir:?}"
 	_n="$2"; : "${_n:?}"
 
 	_attic="$(config_value keep-dir)"
 
+	# While not running, must compensate for current builddir not being
+	# excluded by robsd-ls.
+	if ! config_value builddir >/dev/null 2>&1; then
+		_n="$((_n + 1))"
+	fi
+
 	prev_release -B |
 	tail -n "+${_n}" |
 	while read -r _d; do
+		if [ "${_dry}" -eq 1 ]; then
+			echo "${_d}"
+			continue
+		fi
+
 		[ -d "${_attic}" ] || mkdir "${_attic}"
 
 		# Grab the modification time before removal of irrelevant files.

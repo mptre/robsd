@@ -37,7 +37,7 @@ setup() {
 	unset ROBSDCONF
 }
 
-if testcase "count argument"; then
+if testcase "count argument while running"; then
 	echo "echo 0" >"${BINDIR}/id"
 	chmod u+x "${BINDIR}/id"
 
@@ -53,7 +53,22 @@ if testcase "count argument"; then
 	EOF
 fi
 
-if testcase "no count argument"; then
+if testcase "count argument while not running"; then
+	echo "echo 0" >"${BINDIR}/id"
+	chmod u+x "${BINDIR}/id"
+
+	robsd_config - <<-EOF
+	robsddir "${TSHDIR}/robsd"
+	EOF
+	mkdir -p "${TSHDIR}/robsd/2024-06-07."{1,2,3}
+
+	robsd_clean - -- -m robsd 1 <<-EOF
+	robsd-clean: moving ${TSHDIR}/robsd/2024-06-07.2 to ${TSHDIR}/robsd/attic
+	robsd-clean: moving ${TSHDIR}/robsd/2024-06-07.1 to ${TSHDIR}/robsd/attic
+	EOF
+fi
+
+if testcase "no count argument while running"; then
 	echo "echo 0" >"${BINDIR}/id"
 	chmod u+x "${BINDIR}/id"
 
@@ -69,7 +84,22 @@ if testcase "no count argument"; then
 	EOF
 fi
 
-if testcase "no attic"; then
+if testcase "no count argument while not running"; then
+	echo "echo 0" >"${BINDIR}/id"
+	chmod u+x "${BINDIR}/id"
+
+	robsd_config - <<-EOF
+	robsddir "${TSHDIR}/robsd"
+	keep 2
+	EOF
+	mkdir -p "${TSHDIR}/robsd/2024-06-07."{1,2,3}
+
+	robsd_clean - -- -m robsd <<-EOF
+	robsd-clean: moving ${TSHDIR}/robsd/2024-06-07.1 to ${TSHDIR}/robsd/attic
+	EOF
+fi
+
+if testcase "no attic while running"; then
 	echo "echo 0" >"${BINDIR}/id"
 	chmod u+x "${BINDIR}/id"
 
@@ -91,6 +121,29 @@ if testcase "no attic"; then
 	2024-06-07.3
 	EOF
 fi
+
+if testcase "no attic while not running"; then
+	echo "echo 0" >"${BINDIR}/id"
+	chmod u+x "${BINDIR}/id"
+
+	robsd_config - <<-EOF
+	robsddir "${TSHDIR}/robsd"
+	keep 2
+	keep-attic no
+	EOF
+	mkdir -p "${TSHDIR}/robsd/2024-06-07."{1,2,3}
+
+	robsd_clean - -- -m robsd <<-EOF
+	robsd-clean: removing ${TSHDIR}/robsd/2024-06-07.1
+	EOF
+
+	ls "${TSHDIR}/robsd" >"${TMP1}"
+	assert_file - "${TMP1}" <<-EOF
+	2024-06-07.2
+	2024-06-07.3
+	EOF
+fi
+
 
 if testcase "robsd: requires root"; then
 	echo "echo 1337" >"${BINDIR}/id"
