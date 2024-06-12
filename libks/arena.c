@@ -46,6 +46,10 @@
 #  define POISON_SIZE 0
 #endif
 
+#if !defined(__CLANG_MAX_ALIGN_T_DEFINED) && !defined(_GCC_MAX_ALIGN_T)
+#define max_align_t void *
+#endif
+
 #define MAX_SOURCE_LOCATIONS 8
 
 struct source_location {
