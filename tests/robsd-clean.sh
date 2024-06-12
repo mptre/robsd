@@ -1,3 +1,5 @@
+portable no
+
 robsd_mock >"${TMP1}"; read -r _ BINDIR _ <"${TMP1}"
 
 # robsd_clean [-e] [-- robsd-clean-argument ...]
