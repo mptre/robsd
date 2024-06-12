@@ -1,3 +1,5 @@
+portable no
+
 # default_steps
 default_steps() {
 	step_serialize -s 1 -n one
