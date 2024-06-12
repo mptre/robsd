@@ -30,7 +30,8 @@ jobs:
       - name: test
         env:
           CC: gcc
-          DEBUG: -m32
+          CFLAGS: -m32
+          LDFLAGS: -m32
           PORTABLE: yes
         run: |
           ./configure --pedantic
