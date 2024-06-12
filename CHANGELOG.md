@@ -16,7 +16,7 @@
 
 - canvas: new utility exposing the generic parts of the robsd tooling.
   Providing an empty canvas for task automation, capable of handling both
-  synchronous and asynchronous.
+  synchronous and asynchronous tasks.
   (a54b81ca5008)
   (Anton Lindqvist)
 
