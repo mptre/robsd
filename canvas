@@ -63,7 +63,7 @@ lock_acquire "${ROBSDDIR}" "${BUILDDIR}"
 
 if [ "${_step}" -eq 1 ]; then
 	if [ -n "${_comment}" ]; then
-		cat "${_comment}" >"${BUILDDIR}/comment"
+		cat "${_comment}" >"$(config_value comment-path)"
 	fi
 
 	if [ -n "${SKIP}" ]; then
