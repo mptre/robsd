@@ -19,6 +19,7 @@ if testcase "basic"; then
 	robsd_config - <<-EOF
 	robsddir "${TSHDIR}"
 	EOF
+	echo "${TSHDIR}/2019-03-03" >"${TSHDIR}/.running"
 
 	purge "${TSHDIR}" 2 >"${TMP1}"
 	assert_file - "${TMP1}" <<-EOF
@@ -53,6 +54,7 @@ if testcase "missing log files"; then
 	robsd_config - <<-EOF
 	robsddir "${TSHDIR}"
 	EOF
+	echo "${TSHDIR}/2019-03-02" >"${TSHDIR}/.running"
 
 	assert_eq "${TSHDIR}/2019-03-01" "$(purge "${TSHDIR}" 1)"
 	assert_eq "" "$(find "${TSHDIR}/attic/2019/03/01" -type f)"
@@ -64,6 +66,7 @@ if testcase "attic already present"; then
 	robsd_config - <<-EOF
 	robsddir "${TSHDIR}"
 	EOF
+	echo "${TSHDIR}/2019-03-02" >"${TSHDIR}/.running"
 
 	assert_eq "${TSHDIR}/2019-03-01" "$(purge "${TSHDIR}" 1)"
 

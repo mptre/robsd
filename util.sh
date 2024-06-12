@@ -789,7 +789,7 @@ purge() {
 	_attic="$(config_value keep-dir)"
 
 	prev_release -B |
-	tail -n "+$((_n + 1))" |
+	tail -n "+${_n}" |
 	while read -r _d; do
 		[ -d "${_attic}" ] || mkdir "${_attic}"
 
