@@ -665,7 +665,9 @@ report_stats(struct report_context *r)
 	buffer_printf(r->out, "Duration: %s\n", report_stats_duration(r, &s));
 	buffer_printf(r->out, "Build: %s\n", r->builddir);
 
-	tags_path = arena_sprintf(&s, "%s/tags", r->builddir);
+	tags_path = config_interpolate_str(r->config, "${tags-path}");
+	if (tags_path == NULL)
+		return 1;
 	tags = arena_buffer_read(&s, tags_path);
 	if (tags != NULL) {
 		buffer_printf(r->out, "Tags: ");

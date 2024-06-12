@@ -79,6 +79,7 @@ static const struct grammar common_grammar[] = {
 	{ "robsddir",		DIRECTORY,	config_parse_directory,	REQ,	{ NULL } },
 	{ "skip",		LIST,		config_parse_list,	0,	{ NULL } },
 	{ "stat-interval",	INTEGER,	config_parse_integer,	0,	{ D_I32(10) } },
+	{ "tags-path",		STRING,		NULL,			0,	{ "${builddir}/tags" } },
 	{ "tmp-dir",		STRING,		NULL,			0,	{ "${builddir}/tmp" } },
 	{ "trace",		STRING,		NULL,			FUN,	{ D_FUN(config_default_trace) } },
 };

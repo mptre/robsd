@@ -74,7 +74,7 @@ if [ "${_step}" -eq 1 ]; then
 	diff_copy -d "${BSDSRCDIR}" "${BUILDDIR}/src.diff" ${BSDDIFF}
 
 	if [ -n "${_tags}" ]; then
-		echo "${_tags}" >"${BUILDDIR}/tags"
+		echo "${_tags}" >"$(config_value tags-path)"
 	fi
 
 	"${ROBSDSTAT}" -H >"${BUILDDIR}/stat.csv"

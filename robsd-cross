@@ -83,7 +83,7 @@ if [ "${_step}" -eq 1 ]; then
 	fi
 
 	if [ -n "${_tags}" ]; then
-		echo "${_tags}" >"${BUILDDIR}/tags"
+		echo "${_tags}" >"$(config_value tags-path)"
 	fi
 
 	echo "$1" >"${BUILDDIR}/target"

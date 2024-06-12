@@ -6,6 +6,7 @@ BUILDDIR="${builddir}"
 COMMENT="${comment-path}"
 RELDIR="${bsd-reldir}"
 RELXDIR="${x11-reldir}"
+TAGS="${tags-path}"
 TMPDIR="${tmp-dir}"
 EOF
 
@@ -37,9 +38,9 @@ done
 		break
 	done
 	echo "Build id: ${BUILDDIR##*/}"
-	if [ -e "${BUILDDIR}/tags" ]; then
+	if [ -e "${TAGS}" ]; then
 		echo -n "Build tags: "
-		xargs <"${BUILDDIR}/tags"
+		xargs <"${TAGS}"
 	fi
 
 	if [ -e "${COMMENT}" ]; then
