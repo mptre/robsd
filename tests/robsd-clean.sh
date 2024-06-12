@@ -77,6 +77,7 @@ if testcase "no attic"; then
 	keep-attic no
 	EOF
 	mkdir -p "${TSHDIR}/robsd/2024-06-07."{1,2,3}
+	echo "${TSHDIR}/robsd/2024-06-07.3" >"${TSHDIR}/robsd/.running"
 
 	robsd_clean - -- -m robsd <<-EOF
 	robsd-clean: removing ${TSHDIR}/robsd/2024-06-07.1
