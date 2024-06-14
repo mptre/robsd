@@ -24,6 +24,13 @@
   (8927022d19ab)
   (Anton Lindqvist)
 
+## Bug fixes
+
+- Do not send report emails during early failures while running in
+  detach mode.
+  (f4344f791d55)
+  (Anton Lindqvist)
+
 # 19.0.0 - 2024-04-13
 
 ## Changes
