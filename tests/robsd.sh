@@ -218,3 +218,31 @@ if testcase "early failure"; then
 	robsd: trap exit 1
 	EOF
 fi
+
+if testcase "early failure detach"; then
+	robsd_config - <<-EOF
+	robsddir "${ROBSDDIR}"
+	EOF
+	mkdir -p "${ROBSDDIR}"
+	cat <<-EOF >"${BINDIR}/robsd-clean"
+	exit 66
+	EOF
+	chmod u+x "${BINDIR}/robsd-clean"
+	cat <<-EOF >"${BINDIR}/sendmail"
+	: >"${TSHDIR}/sendmail"
+	EOF
+	chmod u+x "${BINDIR}/sendmail"
+
+	if env EXECDIR="${WRKDIR}/exec" PATH="${BINDIR}:${PATH}" \
+	   sh "${ROBSD}" -s cvs >"${TMP1}" 2>&1; then
+		fail - "expected exit non-zero" <"${TMP1}"
+	fi
+
+	if [ -e "${TSHDIR}/sendmail" ]; then
+		fail "did not expect sendmail to be invoked" <"${TMP1}"
+	fi
+
+	_invocations="${TSHDIR}/ls"
+	ls "${ROBSDDIR}" >"${_invocations}"
+	assert_file /dev/null "${_invocations}"
+fi

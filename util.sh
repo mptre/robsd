@@ -1055,6 +1055,28 @@ step_write() {
 		"skip=${_skip}"
 }
 
+# has_steps file
+#
+# Returns zero if the given step file is not empty.
+has_steps() {
+	local _file
+	local _i=1
+
+	_file="$1"; : "${_file:?}"
+
+	while step_eval "${_i}" "${_file}" 2>/dev/null; do
+		_i="$((_i + 1))"
+
+		if [ "$(step_value skip)" -eq 1 ]; then
+			continue
+		else
+			return 0
+		fi
+	done
+
+	return 1
+}
+
 # step_eval offset file
 # step_eval -offset file
 # step_eval -n step-name file
@@ -1333,8 +1355,8 @@ trap_exit() {
 	_steps="$(step_path "${_builddir}")"
 
 	# Generate the report if a step failed or the end step is reached.
-	if [ "${_err}" -ne 0 ] ||
-	   step_eval -n end "${_steps}" 2>/dev/null
+	if has_steps "${_steps}" &&
+	   { [ "${_err}" -ne 0 ] || step_eval -n end "${_steps}" 2>/dev/null; }
 	then
 		# Do not send mail during interactive invocations.
 		if report -b "${_builddir}" &&
@@ -1351,7 +1373,7 @@ trap_exit() {
 	lock_release "${_robsddir}" "${_builddir}" || :
 
 	# Do not leave an empty build around.
-	[ -s "${_steps}" ] || rm -r "${_builddir}"
+	has_steps "${_steps}" || rm -r "${_builddir}"
 
 	return "${_err}"
 }
