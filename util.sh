@@ -229,10 +229,20 @@ cvs_date() {
 	_log="${_builddir}/$(step_value log 2>/dev/null || :)"
 	_date="$(grep -m 1 '^Date:' "${_log}" | sed -e 's/^[^:]*: *//' || :)"
 	if [ -n "${_date}" ]; then
-		date -j -f '%Y/%m/%d %H:%M:%S' '+%s' "${_date}"
+		cvs_date_normalize "${_date}"
 	else
 		step_value time
 	fi
+}
+
+# cvs_date_normalize date
+#
+# Normalize CVS date to the corresponding Unix timestamp.
+cvs_date_normalize() {
+	local _date
+
+	_date="$1"; : "${_date:?}"
+	date -j -f '%Y/%m/%d %H:%M:%S' '+%s' "${_date}"
 }
 
 # cvs_log -t tmp-dir -c cvs-dir -h cvs-host -u cvs-user
