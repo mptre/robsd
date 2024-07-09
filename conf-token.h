@@ -14,19 +14,19 @@ struct arena_scope;
 	OP(LBRACE,		"{",		0)			\
 	OP(RBRACE,		"}",		0)			\
 	/* keywords */							\
-	OP(COMMAND,		"command",	0)			\
-	OP(ENV,			"env",		0)			\
-	OP(HOURS,		"h",		0)			\
-	OP(MINUTES,		"m",		0)			\
+	OP(COMMAND,		"command",	CANVAS)			\
+	OP(ENV,			"env",		ROBSD_REGRESS)		\
+	OP(HOURS,		"h",		ROBSD_REGRESS)		\
+	OP(MINUTES,		"m",		ROBSD_REGRESS)		\
 	OP(NO,			"no",		0)			\
-	OP(NO_PARALLEL,		"no-parallel",	0)			\
-	OP(OBJ,			"obj",		0)			\
-	OP(PACKAGES,		"packages",	0)			\
+	OP(NO_PARALLEL,		"no-parallel",	ROBSD_REGRESS)		\
+	OP(OBJ,			"obj",		ROBSD_REGRESS)		\
+	OP(PACKAGES,		"packages",	ROBSD_REGRESS)		\
 	OP(PARALLEL,		"parallel",	CANVAS)			\
-	OP(QUIET,		"quiet",	0)			\
-	OP(ROOT,		"root",		0)			\
+	OP(QUIET,		"quiet",	ROBSD_REGRESS)		\
+	OP(ROOT,		"root",		ROBSD_REGRESS)		\
 	OP(SECONDS,		"s",		0)			\
-	OP(TARGETS,		"targets",	0)			\
+	OP(TARGETS,		"targets",	ROBSD_REGRESS)		\
 	OP(YES,			"yes",		0)
 
 enum token_type {
