@@ -31,6 +31,6 @@ int			 step_init(struct step *);
 const char		*step_interpolate_lookup(const char *,
     struct arena_scope *, void *);
 const union step_value	*step_get_field(const struct step *, const char *);
-int			 step_set_keyval(struct step *, const char *);
+int			 step_set_keyval(struct step *, const char *, struct arena *);
 int			 step_set_field_integer(struct step *, const char *,
     int64_t);

@@ -437,12 +437,14 @@ step_get_field(const struct step *st, const char *name)
 }
 
 int
-step_set_keyval(struct step *st, const char *kv)
+step_set_keyval(struct step *st, const char *kv, struct arena *scratch)
 {
 	const char *val;
 	char *key;
 	size_t keylen;
 	int error = 0;
+
+	arena_scope(scratch, s);
 
 	val = strchr(kv, '=');
 	if (val == NULL) {
@@ -450,14 +452,13 @@ step_set_keyval(struct step *st, const char *kv)
 		return 1;
 	}
 	keylen = (size_t)(val - kv);
-	key = estrndup(kv, keylen);
+	key = arena_strndup(&s, kv, keylen);
 	val++; /* consume '=' */
 
 	if (step_set_field(st, key, val)) {
 		warnx("unknown key '%s'", key);
 		error = 1;
 	}
-	free(key);
 	return error;
 }
 

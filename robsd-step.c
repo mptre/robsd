@@ -279,7 +279,7 @@ action_write(struct step_context *c, int argc, char **argv)
 			return 1;
 	}
 	for (; argc > 0; argc--, argv++) {
-		if (step_set_keyval(st, *argv))
+		if (step_set_keyval(st, *argv, c->scratch))
 			return 1;
 	}
 	return steps_write(c->step_file, c->scratch);
