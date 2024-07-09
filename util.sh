@@ -301,15 +301,16 @@ cvs_log() {
 			_path="${_line#*: }"
 			;;
 		date:*)
-			_date="$(cvs_field date "${_line}")"
 			_cid="$(cvs_field commitid "${_line}")" || continue
 			if ! [ -d "${_tmp}/${_cid}" ]; then
 				mkdir "${_tmp}/${_cid}"
 				cvs_field author "${_line}" >"${_tmp}/${_cid}/author"
 				_message=1
 			fi
-			echo "${_date}" >>"${_tmp}/${_cid}/date"
 			echo "${_indent}${_path}" >>"${_tmp}/${_cid}/files"
+
+			_date="$(cvs_field date "${_line}")"
+			cvs_date_normalize "${_date}" >>"${_tmp}/${_cid}/date"
 			;;
 		-[-]*|=[=]*)
 			_message=0
@@ -329,12 +330,11 @@ cvs_log() {
 		echo "${_date} ${_p%/*}"
 	done |
 	sort -nr |
-	while read -r _date _time _path; do
+	while read -r _date _path; do
 		echo "commit ${_path##*/}"
 		echo -n "Author: "
 		cat "${_path}/author"
-		echo "Date: ${_date} ${_time}"
-		echo
+		date -u -r "${_date}" "+Date: %+%n"
 		cat "${_path}/message"
 		echo
 		cat "${_path}/files"
