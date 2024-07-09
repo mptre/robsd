@@ -62,4 +62,5 @@ token_type_str(enum token_type token_type)
 	FOR_TOKEN_TYPES(OP)
 #undef OP
 	}
+	return "UNKNOWN";
 }
