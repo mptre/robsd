@@ -25,6 +25,7 @@
 
 #include "alloc.h"
 #include "conf-priv.h"
+#include "conf-token.h"
 #include "if.h"
 #include "interpolate.h"
 #include "lexer.h"
@@ -605,7 +606,7 @@ again:
 		}
 
 		tk = lexer_emit(lx, &s, TOKEN_KEYWORD);
-		tk->tk_str = estrdup(buf);
+		tk->tk_str = arena_strdup(ctx->cf->arena.eternal_scope, buf);
 		return tk;
 	}
 
@@ -648,7 +649,8 @@ again:
 		buffer_putc(bf, '\0');
 
 		tk = lexer_emit(lx, &s, TOKEN_STRING);
-		tk->tk_str = estrdup(buffer_get_ptr(bf));
+		tk->tk_str = arena_strdup(ctx->cf->arena.eternal_scope,
+		    buffer_get_ptr(bf));
 		return tk;
 	}
 

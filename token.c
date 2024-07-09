@@ -21,7 +21,5 @@ token_free(struct token *tk)
 {
 	if (tk == NULL)
 		return;
-
-	free(tk->tk_str);
 	free(tk);
 }

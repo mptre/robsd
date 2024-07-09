@@ -9,6 +9,7 @@
 #include "libks/vector.h"
 
 #include "conf-priv.h"
+#include "conf-token.h"
 #include "conf.h"
 #include "lexer.h"
 #include "token.h"

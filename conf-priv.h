@@ -9,35 +9,6 @@
 #define CONFIG_NOP	2
 #define CONFIG_FATAL    3
 
-enum token_type {
-	/* sentinels */
-	TOKEN_UNKNOWN,
-
-	/* literals */
-	TOKEN_LBRACE,
-	TOKEN_RBRACE,
-
-	/* keywords */
-	TOKEN_KEYWORD,
-	TOKEN_COMMAND,
-	TOKEN_ENV,
-	TOKEN_HOURS,
-	TOKEN_MINUTES,
-	TOKEN_NO_PARALLEL,
-	TOKEN_OBJ,
-	TOKEN_PACKAGES,
-	TOKEN_PARALLEL,
-	TOKEN_QUIET,
-	TOKEN_ROOT,
-	TOKEN_SECONDS,
-	TOKEN_TARGETS,
-
-	/* types */
-	TOKEN_BOOLEAN,
-	TOKEN_INTEGER,
-	TOKEN_STRING,
-};
-
 struct config {
 	struct lexer			 *lx;
 	const char			 *path;
