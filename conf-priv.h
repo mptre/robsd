@@ -39,13 +39,16 @@ enum token_type {
 };
 
 struct config {
-	struct arena_scope		 *eternal;
-	struct arena			 *scratch;
 	struct lexer			 *lx;
 	const char			 *path;
 	const struct config_callbacks	 *callbacks;
 	const struct grammar		**grammar;	/* VECTOR(const struct grammar *) */
 	struct variable			 *variables;	/* VECTOR(struct variable) */
+
+	struct {
+		struct arena_scope	*eternal_scope;
+		struct arena		*scratch;
+	} arena;
 
 	struct {
 		const struct config_step	*ptr;

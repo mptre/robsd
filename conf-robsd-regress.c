@@ -105,7 +105,7 @@ is_parallel(struct config *cf, const char *step_name)
 {
 	const char *name;
 
-	arena_scope(cf->scratch, s);
+	arena_scope(cf->arena.scratch, s);
 
 	if (!config_value(cf, "parallel", integer, 1))
 		return 0;
@@ -206,7 +206,7 @@ config_parse_regress(struct config *cf, struct variable_value *UNUSED(val))
 	for (;;) {
 		const char *name;
 
-		arena_scope(cf->scratch, s);
+		arena_scope(cf->arena.scratch, s);
 
 		if (lexer_if(lx, TOKEN_ENV, &tk)) {
 			if (config_parse_regress_option_env(cf, path))
@@ -267,7 +267,7 @@ config_parse_regress(struct config *cf, struct variable_value *UNUSED(val))
 	dst = VECTOR_ALLOC(regress->va_val.list);
 	if (dst == NULL)
 		err(1, NULL);
-	*dst = arena_strdup(cf->eternal, path);
+	*dst = arena_strdup(cf->arena.eternal_scope, path);
 	return CONFIG_NOP;
 }
 
@@ -282,7 +282,7 @@ config_parse_regress_option_env(struct config *cf, const char *path)
 	if (config_parse_list(cf, &newval))
 		return 1;
 
-	arena_scope(cf->scratch, s);
+	arena_scope(cf->arena.scratch, s);
 
 	/* Prepend ${regress-env} for default enviroment. */
 	name = regressname(path, "env", &s);
@@ -290,7 +290,7 @@ config_parse_regress_option_env(struct config *cf, const char *path)
 	dst = VECTOR_ALLOC(defval.list);
 	if (dst == NULL)
 		err(1, NULL);
-	*dst = arena_strdup(cf->eternal, "${regress-env}");
+	*dst = arena_strdup(cf->arena.eternal_scope, "${regress-env}");
 	variable_value_concat(&defval, &newval);
 	va = config_append(cf, name, &defval);
 
@@ -389,6 +389,6 @@ config_default_regress_targets(struct config *cf, const char *name)
 	dst = VECTOR_ALLOC(val.list);
 	if (dst == NULL)
 		err(1, NULL);
-	*dst = arena_strdup(cf->eternal, "regress");
+	*dst = arena_strdup(cf->arena.eternal_scope, "regress");
 	return config_append(cf, name, &val);
 }

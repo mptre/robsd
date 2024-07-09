@@ -86,8 +86,8 @@ static const struct grammar common_grammar[] = {
 };
 
 struct config *
-config_alloc(const char *mode, const char *path, struct arena_scope *eternal,
-    struct arena *scratch)
+config_alloc(const char *mode, const char *path,
+    struct arena_scope *eternal_scope, struct arena *scratch)
 {
 	static const struct config_callbacks *(*callbacks[])(void) = {
 		[ROBSD]		= config_robsd_callbacks,
@@ -104,9 +104,9 @@ config_alloc(const char *mode, const char *path, struct arena_scope *eternal,
 		return NULL;
 	}
 
-	cf = arena_calloc(eternal, 1, sizeof(*cf));
-	cf->eternal = eternal;
-	cf->scratch = scratch;
+	cf = arena_calloc(eternal_scope, 1, sizeof(*cf));
+	cf->arena.eternal_scope = eternal_scope;
+	cf->arena.scratch = scratch;
 	cf->path = path;
 	cf->mode = m;
 	cf->callbacks = callbacks[cf->mode]();
@@ -152,7 +152,7 @@ config_parse(struct config *cf)
 	};
 	int error;
 
-	arena_scope(cf->scratch, s);
+	arena_scope(cf->arena.scratch, s);
 
 	ctx.bf = arena_buffer_alloc(&s, 1 << 10);
 	cf->lx = lexer_alloc(&(struct lexer_arg){
@@ -183,7 +183,7 @@ config_append_var(struct config *cf, const char *str)
 	char *name, *val;
 	size_t namelen;
 
-	arena_scope(cf->scratch, s);
+	arena_scope(cf->arena.scratch, s);
 
 	val = strchr(str, '=');
 	if (val == NULL) {
@@ -207,7 +207,7 @@ config_append_string(struct config *cf, const char *name, const char *str)
 	struct variable_value val;
 
 	variable_value_init(&val, STRING);
-	val.str = arena_strdup(cf->eternal, str);
+	val.str = arena_strdup(cf->arena.eternal_scope, str);
 	return config_append(cf, name, &val);
 }
 
@@ -268,7 +268,8 @@ config_find(struct config *cf, const char *name)
 	}
 
 	case LIST:
-		ARENA_VECTOR_INIT(cf->eternal, vadef.va_val.list, 0);
+		ARENA_VECTOR_INIT(cf->arena.eternal_scope, vadef.va_val.list,
+		    0);
 		break;
 	}
 
@@ -294,8 +295,8 @@ config_interpolate_file(struct config *cf, const char *path)
 	str = interpolate_file(path, &(struct interpolate_arg){
 	    .lookup	= config_interpolate_lookup,
 	    .arg	= cf,
-	    .eternal	= cf->eternal,
-	    .scratch	= cf->scratch,
+	    .eternal	= cf->arena.eternal_scope,
+	    .scratch	= cf->arena.scratch,
 	});
 	if (str == NULL)
 		return 1;
@@ -309,8 +310,8 @@ config_interpolate_str(struct config *cf, const char *str)
 	return interpolate_str(str, &(struct interpolate_arg){
 	    .lookup	= config_interpolate_lookup,
 	    .arg	= cf,
-	    .eternal	= cf->eternal,
-	    .scratch	= cf->scratch,
+	    .eternal	= cf->arena.eternal_scope,
+	    .scratch	= cf->arena.scratch,
 	});
 }
 
@@ -378,8 +379,8 @@ config_interpolate_early(struct config *cf, const char *template)
 	str = interpolate_str(template, &(struct interpolate_arg){
 	    .lookup	= config_interpolate_lookup,
 	    .arg	= cf,
-	    .eternal	= cf->eternal,
-	    .scratch	= cf->scratch,
+	    .eternal	= cf->arena.eternal_scope,
+	    .scratch	= cf->arena.scratch,
 	    .flags	= INTERPOLATE_IGNORE_LOOKUP_ERRORS,
 	});
 	cf->interpolate.early = 0;
@@ -900,7 +901,7 @@ config_parse_glob(struct config *cf, struct variable_value *val)
 		dst = VECTOR_ALLOC(val->list);
 		if (dst == NULL)
 			err(1, NULL);
-		*dst = arena_strdup(cf->eternal, g.gl_pathv[i]);
+		*dst = arena_strdup(cf->arena.eternal_scope, g.gl_pathv[i]);
 	}
 
 	globfree(&g);
@@ -925,7 +926,7 @@ config_parse_list(struct config *cf, struct variable_value *val)
 		dst = VECTOR_ALLOC(val->list);
 		if (dst == NULL)
 			err(1, NULL);
-		*dst = arena_strdup(cf->eternal, tk->tk_str);
+		*dst = arena_strdup(cf->arena.eternal_scope, tk->tk_str);
 	}
 	if (!lexer_expect(cf->lx, TOKEN_RBRACE, &tk))
 		goto err;
@@ -974,8 +975,8 @@ config_parse_directory(struct config *cf, struct variable_value *val)
 	path = interpolate_str(dir, &(struct interpolate_arg){
 	    .lookup	= config_interpolate_lookup,
 	    .arg	= cf,
-	    .eternal	= cf->eternal,
-	    .scratch	= cf->scratch,
+	    .eternal	= cf->arena.eternal_scope,
+	    .scratch	= cf->arena.scratch,
 	    .lno	= tk->tk_lno,
 	});
 	if (path == NULL) {
@@ -1004,13 +1005,13 @@ config_default_build_dir(struct config *cf, const char *name)
 	    &(struct interpolate_arg){
 		.lookup		= config_interpolate_lookup,
 		.arg		= cf,
-		.eternal	= cf->eternal,
-		.scratch	= cf->scratch,
+		.eternal	= cf->arena.eternal_scope,
+		.scratch	= cf->arena.scratch,
 	});
 	if (path == NULL)
 		return NULL;
 
-	arena_scope(cf->scratch, s);
+	arena_scope(cf->arena.scratch, s);
 
 	/*
 	 * The lock file is only expected to be present while robsd is running.
@@ -1056,7 +1057,7 @@ config_default_inet4(struct config *cf, const char *name)
 	struct variable_value val;
 	const char *addr;
 
-	addr = if_group_addr("egress", 4, cf->eternal);
+	addr = if_group_addr("egress", 4, cf->arena.eternal_scope);
 	if (addr == NULL)
 		addr = "";
 	variable_value_init(&val, STRING);
@@ -1070,7 +1071,7 @@ config_default_inet6(struct config *cf, const char *name)
 	struct variable_value val;
 	const char *addr;
 
-	addr = if_group_addr("egress", 6, cf->eternal);
+	addr = if_group_addr("egress", 6, cf->arena.eternal_scope);
 	if (addr == NULL)
 		addr = "";
 	variable_value_init(&val, STRING);
@@ -1111,7 +1112,7 @@ config_append(struct config *cf, const char *name,
 	va = VECTOR_CALLOC(cf->variables);
 	if (va == NULL)
 		err(1, NULL);
-	va->va_name = arena_strdup(cf->eternal, name);
+	va->va_name = arena_strdup(cf->arena.eternal_scope, name);
 	va->va_namelen = strlen(name);
 	va->va_val = *val;
 	return va;
