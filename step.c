@@ -59,8 +59,6 @@ struct step_field {
 };
 
 static int	step_field_is_empty(const struct step_field *);
-static int	step_field_set(struct step_field *, enum step_field_type,
-    const char *);
 
 static int	step_cmp(const struct step *, const struct step *);
 static int	step_set_field(struct step *, const char *, const char *);
@@ -477,36 +475,6 @@ step_field_is_empty(const struct step_field *sf)
 }
 
 static int
-step_field_set(struct step_field *sf, enum step_field_type type,
-    const char *val)
-{
-	switch (type) {
-	case STRING:
-		free(sf->sf_val.str);
-		sf->sf_val.str = estrdup(val);
-		break;
-
-	case INTEGER: {
-		const char *errstr;
-		int64_t v;
-
-		v = strtonum(val, LLONG_MIN, LLONG_MAX, &errstr);
-		if (errstr != NULL) {
-			warnx("value %s %s", val, errstr);
-			return 1;
-		}
-		sf->sf_val.integer = v;
-		break;
-	}
-
-	case UNKNOWN:
-		return 1;
-	}
-	sf->sf_type = type;
-	return 0;
-}
-
-static int
 steps_parse_header(struct step_file *sf, struct lexer *lx)
 {
 	if (lexer_peek(lx, LEXER_EOF))
@@ -650,11 +618,36 @@ static int
 step_set_field(struct step *st, const char *name, const char *val)
 {
 	const struct field_definition *fd;
+	struct step_field *sf;
 
 	fd = field_definition_find_by_name(name);
 	if (fd == NULL)
 		return 1;
-	return step_field_set(&st->st_fields[fd->fd_index], fd->fd_type, val);
+	sf = &st->st_fields[fd->fd_index];
+	sf->sf_type = fd->fd_type;
+	switch (sf->sf_type) {
+	case STRING:
+		free(sf->sf_val.str);
+		sf->sf_val.str = estrdup(val);
+		break;
+
+	case INTEGER: {
+		const char *errstr;
+		int64_t v;
+
+		v = strtonum(val, LLONG_MIN, LLONG_MAX, &errstr);
+		if (errstr != NULL) {
+			warnx("value %s %s", val, errstr);
+			return 1;
+		}
+		sf->sf_val.integer = v;
+		break;
+	}
+
+	case UNKNOWN:
+		return 1;
+	}
+	return 0;
 }
 
 int
