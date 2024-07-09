@@ -76,6 +76,7 @@ static const struct grammar common_grammar[] = {
 	{ "keep-dir",		STRING,		NULL,			0,	{ "${robsddir}/attic" } },
 	{ "machine",		STRING,		NULL,			0,	{ MACHINE } },
 	{ "ncpu",		INTEGER,	NULL,			FUN,	{ D_FUN(config_default_ncpu) } },
+	{ "report-path",	STRING,		NULL,			0,	{ "${builddir}/report" } },
 	{ "robsddir",		DIRECTORY,	config_parse_directory,	REQ,	{ NULL } },
 	{ "skip",		LIST,		config_parse_list,	0,	{ NULL } },
 	{ "stat-interval",	INTEGER,	config_parse_integer,	0,	{ D_I32(10) } },

@@ -852,7 +852,7 @@ report() {
 	done
 	: "${_builddir:?}"
 
-	_report="${_builddir}/report"
+	_report="$(config_value report-path)"
 
 	"${ROBSDREPORT}" -m "${_MODE}" ${ROBSDCONF:+-C ${ROBSDCONF}} "${_builddir}" >"${_report}"
 }
@@ -1356,7 +1356,7 @@ trap_exit() {
 		if report -b "${_builddir}" &&
 		   [ "${DETACH}" -ne 0 ]; then
 			_receiver="$(report_receiver -b "${_builddir}")"
-			sendmail "${_receiver}" <"${_builddir}/report"
+			sendmail "${_receiver}" <"$(config_value report-path)"
 		fi
 	fi
 
