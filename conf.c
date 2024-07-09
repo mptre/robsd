@@ -265,7 +265,7 @@ config_find(struct config *cf, const char *name)
 
 	case STRING:
 	case DIRECTORY: {
-		const char *str = gr->gr_default.ptr;
+		const char *str = gr->gr_default.s8;
 
 		vadef.va_val.str = (str == NULL ? "" : str);
 		break;

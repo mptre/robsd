@@ -61,7 +61,7 @@ struct grammar {
 #define EARLY	0x00000010u	/* interpolate early */
 
 	union {
-		const void	*ptr;
+		const char	*s8;
 		struct variable	*(*fun)(struct config *, const char *);
 		int		 i32;
 #define D_FUN(x)	.fun = (x)
