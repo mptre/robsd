@@ -47,7 +47,7 @@ static const struct grammar	*config_find_grammar_for_interpolation(
 static int			 grammar_equals(const struct grammar *,
     const char *);
 
-static int	config_parse1(struct config *);
+static int	config_parse_inner(struct config *);
 static int	config_parse_keyword(struct config *, struct token *);
 static int	config_validate(const struct config *);
 
@@ -171,7 +171,7 @@ config_parse(struct config *cf)
 		error = 1;
 		goto out;
 	}
-	error = config_parse1(cf);
+	error = config_parse_inner(cf);
 	if (error)
 		goto out;
 
@@ -691,12 +691,14 @@ grammar_equals(const struct grammar *gr, const char *needle)
 }
 
 static int
-config_parse1(struct config *cf)
+config_parse_inner(struct config *cf)
 {
 	struct token *tk;
 	int error = 0;
 
 	for (;;) {
+		int rv;
+
 		if (lexer_peek(cf->lx, LEXER_EOF))
 			break;
 		if (!lexer_expect(cf->lx, TOKEN_KEYWORD, &tk)) {
@@ -704,17 +706,15 @@ config_parse1(struct config *cf)
 			break;
 		}
 
-		switch (config_parse_keyword(cf, tk)) {
-		case CONFIG_ERROR:
+		rv = config_parse_keyword(cf, tk);
+		if (rv == CONFIG_ERROR) {
+			error = 1;
+		} else if (rv == CONFIG_FATAL) {
 			error = 1;
 			break;
-		case CONFIG_FATAL:
-			error = 1;
-			goto out;
 		}
 	}
 
-out:
 	if (lexer_get_error(cf->lx))
 		return 1;
 	if (config_validate(cf))
