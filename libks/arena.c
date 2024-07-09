@@ -38,16 +38,12 @@
 #if defined(HAVE_ASAN)
 #  include <sanitizer/asan_interface.h>
 #  define USED_IF_ASAN(x) x
-#  define POISON_SIZE _Alignof(max_align_t)
+#  define POISON_SIZE sizeof(void *)
 #else
 #  define ASAN_POISON_MEMORY_REGION(...) (void)0
 #  define ASAN_UNPOISON_MEMORY_REGION(...) (void)0
 #  define USED_IF_ASAN(x) UNUSED(x)
 #  define POISON_SIZE 0
-#endif
-
-#if !defined(__CLANG_MAX_ALIGN_T_DEFINED) && !defined(_GCC_MAX_ALIGN_T)
-#define max_align_t void *
 #endif
 
 #define MAX_SOURCE_LOCATIONS 8
@@ -87,7 +83,7 @@ union address {
 	size_t		 size;
 };
 
-static const size_t maxalign = _Alignof(max_align_t);
+static const size_t maxalign = sizeof(void *);
 
 static void
 frame_poison(const struct arena_frame *USED_IF_ASAN(frame))
@@ -148,17 +144,34 @@ arena_stats_frames(struct arena *a, size_t frames)
 		a->stats.frames.max = a->stats.frames.now;
 }
 
+static void
+arena_stats_scopes(struct arena *a)
+{
+	a->stats.scopes.now++;
+	a->stats.scopes.total++;
+	if (a->stats.scopes.now > a->stats.scopes.max)
+		a->stats.scopes.max = a->stats.scopes.now;
+}
+
+static void
+arena_stats_alignment(struct arena *a, size_t alignment)
+{
+	a->stats.alignment.now += alignment;
+	a->stats.alignment.total += alignment;
+	if (a->stats.alignment.now > a->stats.alignment.max)
+		a->stats.alignment.max = a->stats.alignment.now;
+}
+
 static void *
-arena_push(const struct arena *a, struct arena_frame *frame, size_t size)
+arena_push(struct arena *a, struct arena_frame *frame, size_t size)
 {
 	void *ptr;
-	size_t newlen;
+	size_t newlen, oldlen;
 
-	if (size > SIZE_MAX - frame->len) {
+	if (KS_size_add_overflow(frame->len, size, &newlen)) {
 		errno = EOVERFLOW;
 		return NULL;
 	}
-	newlen = frame->len + size;
 	if (newlen > frame->size) {
 		errno = ENOMEM;
 		return NULL;
@@ -166,7 +179,9 @@ arena_push(const struct arena *a, struct arena_frame *frame, size_t size)
 
 	frame_unpoison(frame, size);
 	ptr = &frame->ptr[frame->len];
+	oldlen = newlen;
 	newlen = align_address(a, (union address){.size = newlen}).size;
+	arena_stats_alignment(a, newlen - oldlen);
 	/*
 	 * Discard alignment if the frame is exhausted, the next allocation will
 	 * require a new frame anyway.
@@ -179,20 +194,12 @@ static int
 arena_frame_alloc(struct arena *a, size_t frame_size)
 {
 	struct arena_frame *frame;
-	size_t total_size;
 
-	/* Must account for first arena_push() representing the actual frame. */
-	if (KS_size_add_overflow(sizeof(*frame) + a->poison_size, frame_size,
-	    &total_size)) {
-		errno = EOVERFLOW;
-		return 0;
-	}
-
-	frame = malloc(total_size);
+	frame = malloc(frame_size);
 	if (frame == NULL)
 		return 0;
 	frame->ptr = (char *)frame;
-	frame->size = total_size;
+	frame->size = frame_size;
 	frame->len = 0;
 	frame->next = NULL;
 	if (arena_push(a, frame, sizeof(*frame)) == NULL) {
@@ -284,6 +291,8 @@ arena_scope_leave(struct arena_scope *s)
 
 	a->stats.bytes.now = s->bytes;
 	a->stats.frames.now = s->frames;
+	a->stats.scopes.now = s->scopes;
+	a->stats.alignment.now = s->alignment;
 
 	arena_rele(a);
 }
@@ -291,6 +300,7 @@ arena_scope_leave(struct arena_scope *s)
 struct arena_scope
 arena_scope_enter_impl(struct arena *a, const char *fun, int lno)
 {
+	struct arena_scope s;
 	int idx = a->refs;
 
 	if (idx < MAX_SOURCE_LOCATIONS) {
@@ -301,14 +311,18 @@ arena_scope_enter_impl(struct arena *a, const char *fun, int lno)
 	}
 
 	arena_ref(a);
-	return (struct arena_scope){
+	s = (struct arena_scope){
 	    .arena	= a,
 	    .frame	= a->frame,
 	    .frame_len	= a->frame->len,
 	    .bytes	= a->stats.bytes.now,
 	    .frames	= a->stats.frames.now,
+	    .scopes	= a->stats.scopes.now,
+	    .alignment	= a->stats.alignment.now,
 	    .id		= a->refs,
 	};
+	arena_stats_scopes(a);
+	return s;
 }
 
 static void
@@ -358,27 +372,25 @@ arena_malloc(struct arena_scope *s, size_t size)
 		return ptr;
 	}
 
-	if (sizeof(*frame) > SIZE_MAX - size)
+	/* Must account for first arena_push() representing the actual frame. */
+	if (KS_size_add_overflow(size, sizeof(*frame), &total_size) ||
+	    KS_size_add_overflow(a->poison_size, total_size, &total_size))
 		errx(1, "%s: Requested allocation too large", __func__);
-	total_size = size + sizeof(*frame);
 
 	frame_size = a->frame_size;
 	while (frame_size < total_size) {
-		if (frame_size > SIZE_MAX / 2) {
+		if (KS_size_mul_overflow(2, frame_size, &frame_size)) {
 			errx(1, "%s: Requested allocation exceeds frame size",
 			    __func__);
 		}
-		frame_size <<= 1;
 	}
 
 	if (!arena_frame_alloc(a, frame_size))
 		err(1, "%s", __func__);
 
 	ptr = arena_push(a, a->frame, size);
-	if (ptr == NULL) {
+	if (ptr == NULL)
 		err(1, "%s", __func__);
-		return NULL;
-	}
 	arena_stats_bytes(a, size);
 	return ptr;
 }
@@ -389,13 +401,10 @@ arena_calloc(struct arena_scope *s, size_t nmemb, size_t size)
 	void *ptr;
 	size_t total_size;
 
-	if (nmemb > SIZE_MAX / size)
+	if (KS_size_mul_overflow(nmemb, size, &total_size))
 		errx(1, "%s: Requested allocation too large", __func__);
-	total_size = nmemb * size;
 
 	ptr = arena_malloc(s, total_size);
-	if (ptr == NULL)
-		return NULL;
 	memset(ptr, 0, total_size);
 	return ptr;
 }
@@ -446,6 +455,8 @@ arena_realloc(struct arena_scope *s, void *ptr, size_t old_size,
 	}
 
 	a->stats.realloc.total++;
+	if (old_size == 0)
+		a->stats.realloc.zero++;
 
 	/* Fast path while reallocating last allocated object. */
 	if (ptr != NULL && arena_realloc_fast(s, ptr, old_size, new_size)) {
@@ -454,8 +465,6 @@ arena_realloc(struct arena_scope *s, void *ptr, size_t old_size,
 	}
 
 	new_ptr = arena_malloc(s, new_size);
-	if (new_ptr == NULL)
-		return NULL;
 	if (ptr != NULL)
 		memcpy(new_ptr, ptr, old_size);
 	a->stats.realloc.spill += old_size;
@@ -504,13 +513,10 @@ arena_strndup(struct arena_scope *s, const char *src, size_t len)
 	char *dst;
 	size_t total_size;
 
-	if (len > SIZE_MAX - 1)
+	if (KS_size_add_overflow(len, 1, &total_size))
 		errx(1, "%s: Requested allocation too large", __func__);
-	total_size = len + 1;
 
 	dst = arena_malloc(s, total_size);
-	if (dst == NULL)
-		return NULL;
 	memcpy(dst, src, total_size - 1);
 	dst[total_size - 1] = '\0';
 	return dst;
