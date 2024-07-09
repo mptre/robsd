@@ -41,6 +41,11 @@ struct step_file {
 	VECTOR(struct step)	 steps;
 };
 
+struct step_lexer_context {
+	struct step_file        *sf;
+	struct buffer           *bf;
+};
+
 static int	steps_parse_header(struct step_file *, struct lexer *);
 static int	steps_parse_row(struct step_file *, struct lexer *);
 static void	steps_sort(struct step *);
@@ -100,6 +105,7 @@ static const size_t nfields = sizeof(fields) / sizeof(fields[0]);
 struct step_file *
 steps_parse(const char *path, struct arena_scope *eternal_scope)
 {
+	struct step_lexer_context ctx;
 	struct buffer *bf;
 	struct step_file *sf;
 	struct lexer *lx = NULL;
@@ -126,6 +132,12 @@ steps_parse(const char *path, struct arena_scope *eternal_scope)
 	}
 
 	bf = buffer_alloc(512);
+	if (bf == NULL)
+		err(1, NULL);
+	ctx = (struct step_lexer_context){
+	    .sf     = sf,
+	    .bf     = bf,
+	};
 	lx = lexer_alloc(&(struct lexer_arg){
 	    .path	= path,
 	    .arena	= {
@@ -134,7 +146,7 @@ steps_parse(const char *path, struct arena_scope *eternal_scope)
 	    .callbacks	= {
 		.read		= step_lexer_read,
 		.serialize	= token_serialize,
-		.arg		= bf,
+		.arg		= &ctx,
 	    },
 	});
 	buffer_free(bf);
@@ -544,7 +556,8 @@ static struct token *
 step_lexer_read(struct lexer *lx, void *arg)
 {
 	struct lexer_state s;
-	struct buffer *bf = (struct buffer *)arg;
+	struct step_lexer_context *ctx = (struct step_lexer_context *)arg;
+	struct buffer *bf = ctx->bf;
 	struct token *tk;
 	char ch;
 
@@ -573,7 +586,8 @@ step_lexer_read(struct lexer *lx, void *arg)
 	}
 	lexer_ungetc(lx, ch);
 	tk = lexer_emit(lx, &s, TOKEN_VALUE);
-	tk->tk_str = buffer_str(bf);
+	tk->tk_str = arena_strndup(ctx->sf->arena.eternal_scope,
+	    buffer_get_ptr(bf), buffer_get_len(bf));
 	return tk;
 }
 

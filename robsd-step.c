@@ -22,6 +22,12 @@ enum step_action {
 	ACTION_LIST,
 };
 
+enum step_action_error {
+	ACTION_ERROR_NONE = 0,
+	ACTION_ERROR_GENERIC = 1,
+	ACTION_ERROR_USAGE = 2,
+};
+
 struct step_context {
 	const char		*path;
 	struct arena_scope	*eternal;
@@ -156,6 +162,8 @@ out:
 	steps_free(c.step_file);
 	arena_free(c.scratch);
 	arena_free(eternal);
+	if (error == ACTION_ERROR_USAGE)
+		usage();
 	return error;
 }
 
@@ -190,13 +198,13 @@ steps_read(struct step_context *c, int argc, char **argv)
 			name = optarg;
 			break;
 		default:
-			usage();
+			return ACTION_ERROR_USAGE;
 		}
 	}
 	argc -= optind;
 	argv += optind;
 	if (argc > 0)
-		usage();
+		return ACTION_ERROR_USAGE;
 	if (name != NULL && id != 0) {
 		warnx("-i and -n are mutually exclusive");
 		return 1;
@@ -251,13 +259,13 @@ action_write(struct step_context *c, int argc, char **argv)
 				return 1;
 			break;
 		default:
-			usage();
+			return ACTION_ERROR_USAGE;
 		}
 	}
 	argc -= optind;
 	argv += optind;
 	if (!doheader && (argc == 0 || id == 0))
-		usage();
+		return ACTION_ERROR_USAGE;
 
 	if (doheader) {
 		struct buffer *bf;
@@ -268,7 +276,7 @@ action_write(struct step_context *c, int argc, char **argv)
 		steps_header(bf);
 		buffer_putc(bf, '\0');
 		printf("%s", buffer_get_ptr(bf));
-		return 0;
+		return ACTION_ERROR_NONE;
 	}
 
 	st = steps_find_by_id(steps_get(c->step_file), id);
@@ -276,11 +284,11 @@ action_write(struct step_context *c, int argc, char **argv)
 		st = steps_alloc(c->step_file);
 		if (step_init(c->step_file, st) ||
 		    step_set_field_integer(st, "step", id))
-			return 1;
+			return ACTION_ERROR_GENERIC;
 	}
 	for (; argc > 0; argc--, argv++) {
 		if (step_set_keyval(c->step_file, st, *argv, c->scratch))
-			return 1;
+			return ACTION_ERROR_GENERIC;
 	}
 	return steps_write(c->step_file, c->scratch);
 }
@@ -318,13 +326,13 @@ steps_list(struct step_context *c, int argc, char **argv)
 			break;
 		}
 		default:
-			usage();
+			return ACTION_ERROR_USAGE;
 		}
 	}
 	argc -= optind;
 	argv += optind;
 	if (argc != 0 || config_mode == NULL)
-		usage();
+		return ACTION_ERROR_USAGE;
 
 	arena_scope(c->scratch, s);
 
