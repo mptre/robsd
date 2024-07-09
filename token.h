@@ -12,5 +12,4 @@ struct token {
 	TAILQ_ENTRY(token)	 tk_entry;
 };
 
-struct token	*token_alloc(int);
 void		 token_free(struct token *);

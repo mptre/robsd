@@ -36,6 +36,16 @@ struct lexer {
 	int				 lx_eof;
 };
 
+static struct token *
+token_alloc(int type)
+{
+	struct token *tk;
+
+	tk = ecalloc(1, sizeof(*tk));
+	tk->tk_type = type;
+	return tk;
+}
+
 struct lexer *
 lexer_alloc(const struct lexer_arg *arg)
 {
