@@ -822,16 +822,16 @@ config_parse_glob(struct config *cf, struct variable_value *val)
 	if (!lexer_expect(cf->lx, TOKEN_STRING, &tk))
 		return 1;
 
-	variable_value_init(val, LIST);
-
-	error = glob(tk->tk_str, 0, NULL, &g);
+	error = glob(tk->tk_str, GLOB_ERR, NULL, &g);
 	if (error) {
 		if (error == GLOB_NOMATCH)
-			return 0;
+			return CONFIG_NOP;
 
-		lexer_warn(cf->lx, tk->tk_lno, "glob: %d", error);
-		return error;
+		lexer_warn(cf->lx, tk->tk_lno, "glob");
+		return CONFIG_FATAL;
 	}
+
+	variable_value_init(val, LIST);
 
 	for (i = 0; i < g.gl_pathc; i++) {
 		char **dst;
@@ -843,7 +843,7 @@ config_parse_glob(struct config *cf, struct variable_value *val)
 	}
 
 	globfree(&g);
-	return 0;
+	return CONFIG_APPEND;
 }
 
 int
