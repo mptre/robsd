@@ -311,7 +311,7 @@ printf '#endif\n'
 exec 1>config.mk
 
 # Use echo to normalize whitespace.
-# shellcheck disable=all
+# shellcheck disable=SC1083,SC2086,SC2116
 cat <<EOF
 CC=		$(echo ${CC})
 CFLAGS=		$(rmdup ${CFLAGS})
