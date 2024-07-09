@@ -274,7 +274,7 @@ parse_invocation(struct regress_html *r, const char *arch,
 	arena_scope(r->scratch, s);
 
 	step_path = arena_sprintf(&s, "%s/step.csv", directory);
-	step_file = steps_parse(step_path);
+	step_file = steps_parse(step_path, &s);
 	if (step_file == NULL)
 		return 1;
 	steps = steps_get(step_file);

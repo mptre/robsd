@@ -159,8 +159,11 @@ config_parse(struct config *cf)
 
 	ctx.bf = arena_buffer_alloc(&s, 1 << 10);
 	cf->lx = lexer_alloc(&(struct lexer_arg){
-	    .path = cf->path,
-	    .callbacks = {
+	    .path	= cf->path,
+	    .arena	= {
+		.eternal_scope	= cf->arena.eternal_scope,
+	    },
+	    .callbacks	= {
 		.read		= config_lexer_read,
 		.serialize	= token_serialize,
 		.arg		= &ctx,

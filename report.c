@@ -884,7 +884,7 @@ report_generate(struct config *config, const char *builddir,
 	arena_scope(scratch, s);
 
 	steps_path = arena_sprintf(&s, "%s/step.csv", builddir);
-	step_file = steps_parse(steps_path);
+	step_file = steps_parse(steps_path, &s);
 	if (step_file == NULL)
 		goto out;
 

@@ -15,7 +15,7 @@ union step_value {
 	int64_t	 integer;
 };
 
-struct step_file	*steps_parse(const char *);
+struct step_file	*steps_parse(const char *, struct arena_scope *);
 void			 steps_free(struct step_file *);
 struct step		*steps_get(struct step_file *);
 struct step		*steps_alloc(struct step_file *);

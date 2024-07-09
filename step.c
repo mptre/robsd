@@ -95,7 +95,7 @@ static const struct field_definition fields[] = {
 static const size_t nfields = sizeof(fields) / sizeof(fields[0]);
 
 struct step_file *
-steps_parse(const char *path)
+steps_parse(const char *path, struct arena_scope *eternal_scope)
 {
 	struct buffer *bf;
 	struct step_file *sf;
@@ -124,6 +124,9 @@ steps_parse(const char *path)
 	bf = buffer_alloc(512);
 	lx = lexer_alloc(&(struct lexer_arg){
 	    .path	= path,
+	    .arena	= {
+		.eternal_scope	= eternal_scope,
+	    },
 	    .callbacks	= {
 		.read		= step_lexer_read,
 		.serialize	= token_serialize,

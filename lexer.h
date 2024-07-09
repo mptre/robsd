@@ -5,6 +5,11 @@ struct token;
 
 struct lexer_arg {
 	const char	*path;
+
+	struct {
+		struct arena_scope	*eternal_scope;
+	} arena;
+
 	struct {
 		/*
 		 * Read callback with the following semantics:

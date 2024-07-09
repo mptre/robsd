@@ -125,7 +125,7 @@ done:
 	switch (action) {
 	case ACTION_READ:
 	case ACTION_WRITE:
-		c.step_file = steps_parse(c.path);
+		c.step_file = steps_parse(c.path, &eternal_scope);
 		if (c.step_file == NULL) {
 			error = 1;
 			goto out;

@@ -8,6 +8,7 @@
 #include <stdarg.h>
 #include <stdlib.h>
 
+#include "libks/arena.h"
 #include "libks/buffer.h"
 #include "libks/compiler.h"
 
@@ -46,7 +47,7 @@ lexer_alloc(const struct lexer_arg *arg)
 		warn("%s", arg->path);
 		return NULL;
 	}
-	lx = ecalloc(1, sizeof(*lx));
+	lx = arena_calloc(arg->arena.eternal_scope, 1, sizeof(*lx));
 	lx->lx_input.len = buffer_get_len(bf);
 	lx->lx_input.buf = buffer_release(bf);
 	lx->lx_arg = *arg;
@@ -89,7 +90,6 @@ lexer_free(struct lexer *lx)
 		token_free(tk);
 	}
 	free(lx->lx_input.buf);
-	free(lx);
 }
 
 struct token *
