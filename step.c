@@ -153,7 +153,6 @@ steps_parse(const char *path, struct arena_scope *eternal_scope)
 	}
 
 out:
-	lexer_free(lx);
 	if (error) {
 		steps_free(sf);
 		sf = NULL;

@@ -39,7 +39,6 @@ struct lexer_state {
 };
 
 struct lexer	*lexer_alloc(const struct lexer_arg *);
-void		 lexer_free(struct lexer *);
 
 struct token	*lexer_emit(struct lexer *, const struct lexer_state *, int);
 int		 lexer_getc(struct lexer *, char *);

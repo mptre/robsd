@@ -23,7 +23,6 @@
 #include "libks/buffer.h"
 #include "libks/vector.h"
 
-#include "alloc.h"
 #include "conf-priv.h"
 #include "conf-token.h"
 #include "if.h"
@@ -144,8 +143,6 @@ config_free(struct config *cf)
 	VECTOR_FREE(cf->variables);
 
 	token_type_lookup_free(cf->lookup);
-
-	lexer_free(cf->lx);
 }
 
 int

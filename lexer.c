@@ -13,7 +13,6 @@
 #include "libks/buffer.h"
 #include "libks/compiler.h"
 
-#include "alloc.h"
 #include "log.h"
 #include "token.h"
 
@@ -23,6 +22,10 @@ static const char	*lexer_serialize(const struct lexer *,
 struct lexer {
 	TAILQ_HEAD(token_list, token)	 lx_tokens;
 	struct token			*lx_tk;
+
+	struct {
+		struct arena_scope	*eternal_scope;
+	} lx_arena;
 
 	struct {
 		const char	*buf;
@@ -37,11 +40,11 @@ struct lexer {
 };
 
 static struct token *
-token_alloc(int type)
+token_alloc(int type, struct arena_scope *s)
 {
 	struct token *tk;
 
-	tk = ecalloc(1, sizeof(*tk));
+	tk = arena_calloc(s, 1, sizeof(*tk));
 	tk->tk_type = type;
 	return tk;
 }
@@ -59,6 +62,7 @@ lexer_alloc(const struct lexer_arg *arg)
 		return NULL;
 	}
 	lx = arena_calloc(arg->arena.eternal_scope, 1, sizeof(*lx));
+	lx->lx_arena.eternal_scope = arg->arena.eternal_scope;
 	lx->lx_input.len = buffer_get_len(bf);
 	lx->lx_input.buf = buffer_get_ptr(bf);
 	lx->lx_arg = *arg;
@@ -80,33 +84,17 @@ lexer_alloc(const struct lexer_arg *arg)
 	}
 
 out:
-	if (error) {
-		lexer_free(lx);
+	if (error)
 		return NULL;
-	}
 	return lx;
 }
 
-void
-lexer_free(struct lexer *lx)
-{
-	struct token *tk;
-
-	if (lx == NULL)
-		return;
-
-	while ((tk = TAILQ_FIRST(&lx->lx_tokens)) != NULL) {
-		TAILQ_REMOVE(&lx->lx_tokens, tk, tk_entry);
-		token_free(tk);
-	}
-}
-
 struct token *
-lexer_emit(struct lexer *UNUSED(lx), const struct lexer_state *s, int type)
+lexer_emit(struct lexer *lx, const struct lexer_state *s, int type)
 {
 	struct token *tk;
 
-	tk = token_alloc(type);
+	tk = token_alloc(type, lx->lx_arena.eternal_scope);
 	tk->tk_lno = s->lno;
 	return tk;
 }
