@@ -355,11 +355,12 @@ steps_list(struct step_context *c, int argc, char **argv)
 		error = ACTION_ERROR_FATAL;
 		goto out;
 	}
-	for (i = offset - 1; i < VECTOR_LENGTH(steps); i++)
+	for (i = offset - 1; i < VECTOR_LENGTH(steps); i++) {
 		printf("%zu %s%s\n",
 		    i + 1,
 		    steps[i].name,
 		    steps[i].flags.parallel ? " parallel" : "");
+	}
 
 out:
 	config_free(config);
