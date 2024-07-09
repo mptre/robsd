@@ -4,10 +4,10 @@
 
 #include <sys/types.h>
 #include <sys/event.h>
-#include <sys/time.h>
 
 #include <err.h>
 #include <errno.h>
+#include <limits.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>

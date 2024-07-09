@@ -2,7 +2,6 @@
 
 #include "config.h"
 
-#include <sys/types.h>
 #include <sys/resource.h>
 #include <sys/sched.h>
 #include <sys/sysctl.h>
@@ -11,6 +10,7 @@
 #include <inttypes.h>
 #include <limits.h>
 #include <pwd.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
