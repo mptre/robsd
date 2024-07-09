@@ -102,7 +102,7 @@ steps_parse(const char *path, struct arena_scope *eternal_scope)
 	struct lexer *lx = NULL;
 	int error = 0;
 
-	sf = ecalloc(1, sizeof(*sf));
+	sf = arena_calloc(eternal_scope, 1, sizeof(*sf));
 	sf->path = path;
 	if (VECTOR_INIT(sf->columns))
 		err(1, NULL);
@@ -194,8 +194,6 @@ steps_free(struct step_file *sf)
 		flock(sf->flock, LOCK_UN);
 		close(sf->flock);
 	}
-
-	free(sf);
 }
 
 struct step *
