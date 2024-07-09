@@ -6,6 +6,14 @@
 #include <stdarg.h>
 #include <stdio.h>
 
+static int log_enable = 1;
+
+void
+log_disable(void)
+{
+	log_enable = 0;
+}
+
 void
 log_warnx(const char *path, int lno, const char *fmt, ...)
 {
@@ -25,6 +33,9 @@ logv(enum log_func fun, const char *path, int lno, const char *fmt,
 		[LOG_WARNX]	= warnx,
 	};
 	char msg[512], line[16];
+
+	if (!log_enable)
+		return;
 
 	if (lno == 0)
 		line[0] = '\0';

@@ -6,6 +6,7 @@
 #include "libks/fuzzer.h"
 
 #include "conf.h"
+#include "log.h"
 #include "mode.h"
 
 struct fuzzer_context {
@@ -18,6 +19,8 @@ static void *
 init(int argc, char *argv[])
 {
 	static struct fuzzer_context c;
+
+	log_disable();
 
 	c.mode = robsd_mode_str(ROBSD);
 	for (int i = 0; i < argc; i++) {
