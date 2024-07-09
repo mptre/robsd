@@ -574,9 +574,14 @@ if testcase "invalid not a directory"; then
 fi
 
 if testcase "invalid already defined"; then
-	{ default_config; echo 'robsddir "/tmp"'; } >"${CONFIG}"
+	{
+		default_config
+		echo 'robsddir "/tmp"'
+		echo 'robsddir "/tmp"'
+	} >"${CONFIG}"
 	robsd_config -e - <<-EOF
 	robsd-config: ${CONFIG}:7: variable 'robsddir' already defined
+	robsd-config: ${CONFIG}:8: variable 'robsddir' already defined
 	EOF
 fi
 

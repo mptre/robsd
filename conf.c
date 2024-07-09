@@ -727,7 +727,7 @@ config_parse_keyword(struct config *cf, struct token *tk)
 {
 	const struct grammar *gr;
 	struct variable_value val;
-	int rv;
+	int no_repeat, rv;
 
 	gr = config_find_grammar_for_keyword(cf, tk->tk_str);
 	if (gr == NULL) {
@@ -736,14 +736,15 @@ config_parse_keyword(struct config *cf, struct token *tk)
 		return CONFIG_FATAL;
 	}
 
-	if ((gr->gr_flags & REP) == 0 && config_present(cf, tk->tk_str)) {
-		lexer_warnx(cf->lx, tk->tk_lno,
-		    "variable '%s' already defined", tk->tk_str);
-		return CONFIG_FATAL;
-	}
+	no_repeat = (gr->gr_flags & REP) == 0 && config_present(cf, tk->tk_str);
 	rv = gr->gr_fn(cf, &val);
 	if (rv == CONFIG_APPEND)
 		config_append(cf, tk->tk_str, &val);
+	if (no_repeat) {
+		lexer_warnx(cf->lx, tk->tk_lno,
+		    "variable '%s' already defined", tk->tk_str);
+		return CONFIG_ERROR;
+	}
 
 	return rv;
 }
