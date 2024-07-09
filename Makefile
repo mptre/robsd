@@ -289,6 +289,12 @@ CPPCHECKFLAGS+=	--max-configs=2
 CPPCHECKFLAGS+=	--suppress-xml=cppcheck-suppressions.xml
 CPPCHECKFLAGS+=	${CPPFLAGS}
 
+IWYUFLAGS+=	-d config.h
+IWYUFLAGS+=	-a robsd-stat.c:uvm/uvmexp.h
+IWYUFLAGS+=	-d robsd-wait.c:sys/types.h
+IWYUFLAGS+=	-d step.c:sys/file.h
+IWYUFLAGS+=	${CPPFLAGS}
+
 SCRIPTS+=	robsd-base.sh
 SCRIPTS+=	robsd-checkflist.sh
 SCRIPTS+=	robsd-cross-dirs.sh
@@ -571,10 +577,8 @@ lint-cppcheck:
 	cd ${.CURDIR} && cppcheck ${CPPCHECKFLAGS} ${CPPCHECK}
 .PHONY: lint-cppcheck
 
-IWYU?=	include-what-you-use
 lint-include-what-you-use:
-	cd ${.CURDIR} && echo ${CPPCHECK} | xargs printf '%s\n' | \
-		xargs -I{} ${IWYU} ${CPPFLAGS} {}
+	cd ${.CURDIR} && iwyu-filter ${IWYUFLAGS} -- ${CPPCHECK}
 .PHONY: lint-include-what-you-use
 
 NCPU!!?=	sysctl -n hw.ncpuonline
