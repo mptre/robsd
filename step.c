@@ -18,7 +18,6 @@
 #include "libks/buffer.h"
 #include "libks/vector.h"
 
-#include "alloc.h"
 #include "interpolate.h"
 #include "lexer.h"
 #include "mode.h"
@@ -32,6 +31,11 @@ enum token_type {
 
 struct step_file {
 	const char		*path;
+
+	struct {
+		struct arena_scope	*eternal_scope;
+	} arena;
+
 	int			 flock;
 	VECTOR(const char *)	 columns;
 	VECTOR(struct step)	 steps;
@@ -61,7 +65,8 @@ struct step_field {
 static int	step_field_is_empty(const struct step_field *);
 
 static int	step_cmp(const struct step *, const struct step *);
-static int	step_set_field(struct step *, const char *, const char *);
+static int	step_set_field(struct step_file *, struct step *, const char *,
+    const char *);
 static int	step_validate(const struct step *, struct lexer *, int);
 
 struct field_definition {
@@ -102,6 +107,7 @@ steps_parse(const char *path, struct arena_scope *eternal_scope)
 
 	sf = arena_calloc(eternal_scope, 1, sizeof(*sf));
 	sf->path = path;
+	sf->arena.eternal_scope = eternal_scope;
 	if (VECTOR_INIT(sf->columns))
 		err(1, NULL);
 	if (VECTOR_INIT(sf->steps))
@@ -168,22 +174,8 @@ steps_free(struct step_file *sf)
 
 	while (!VECTOR_EMPTY(sf->steps)) {
 		struct step *st;
-		size_t i;
 
 		st = VECTOR_POP(sf->steps);
-		for (i = 0; i < VECTOR_LENGTH(st->st_fields); i++) {
-			struct step_field *field = &st->st_fields[i];
-
-			switch (field->sf_type) {
-			case UNKNOWN:
-			case INTEGER:
-				break;
-
-			case STRING:
-				free(field->sf_val.str);
-				break;
-			}
-		}
 		VECTOR_FREE(st->st_fields);
 	}
 	VECTOR_FREE(sf->steps);
@@ -346,7 +338,7 @@ steps_header(struct buffer *bf)
 }
 
 int
-step_init(struct step *st)
+step_init(struct step_file *sf, struct step *st)
 {
 	size_t i;
 
@@ -363,7 +355,7 @@ step_init(struct step *st)
 		if ((fd->fd_flags & OPTIONAL) == 0)
 			continue;
 
-		if (step_set_field(st, fd->fd_name, fd->fd_default.str))
+		if (step_set_field(sf, st, fd->fd_name, fd->fd_default.str))
 			return 1;
 	}
 	return 0;
@@ -437,7 +429,8 @@ step_get_field(const struct step *st, const char *name)
 }
 
 int
-step_set_keyval(struct step *st, const char *kv, struct arena *scratch)
+step_set_keyval(struct step_file *sf, struct step *st, const char *kv,
+    struct arena *scratch)
 {
 	const char *val;
 	char *key;
@@ -455,7 +448,7 @@ step_set_keyval(struct step *st, const char *kv, struct arena *scratch)
 	key = arena_strndup(&s, kv, keylen);
 	val++; /* consume '=' */
 
-	if (step_set_field(st, key, val)) {
+	if (step_set_field(sf, st, key, val)) {
 		warnx("unknown key '%s'", key);
 		error = 1;
 	}
@@ -510,7 +503,7 @@ steps_parse_row(struct step_file *sf, struct lexer *lx)
 	st = VECTOR_CALLOC(sf->steps);
 	if (st == NULL)
 		err(1, NULL);
-	if (step_init(st))
+	if (step_init(sf, st))
 		return 1;
 
 	for (;; col++) {
@@ -535,7 +528,7 @@ steps_parse_row(struct step_file *sf, struct lexer *lx)
 			lexer_warnx(lx, val->tk_lno, "unknown field '%s'", key);
 			return 1;
 		}
-		if (step_set_field(st, key, val->tk_str))
+		if (step_set_field(sf, st, key, val->tk_str))
 			return 1;
 
 		if (lexer_if(lx, TOKEN_NEWLINE, &discard))
@@ -616,20 +609,20 @@ step_cmp(const struct step *a, const struct step *b)
 }
 
 static int
-step_set_field(struct step *st, const char *name, const char *val)
+step_set_field(struct step_file *sf, struct step *st, const char *name,
+    const char *val)
 {
 	const struct field_definition *fd;
-	struct step_field *sf;
+	struct step_field *field;
 
 	fd = field_definition_find_by_name(name);
 	if (fd == NULL)
 		return 1;
-	sf = &st->st_fields[fd->fd_index];
-	sf->sf_type = fd->fd_type;
-	switch (sf->sf_type) {
+	field = &st->st_fields[fd->fd_index];
+	field->sf_type = fd->fd_type;
+	switch (field->sf_type) {
 	case STRING:
-		free(sf->sf_val.str);
-		sf->sf_val.str = estrdup(val);
+		field->sf_val.str = arena_strdup(sf->arena.eternal_scope, val);
 		break;
 
 	case INTEGER: {
@@ -641,7 +634,7 @@ step_set_field(struct step *st, const char *name, const char *val)
 			warnx("value %s %s", val, errstr);
 			return 1;
 		}
-		sf->sf_val.integer = v;
+		field->sf_val.integer = v;
 		break;
 	}
 

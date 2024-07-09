@@ -274,12 +274,12 @@ action_write(struct step_context *c, int argc, char **argv)
 	st = steps_find_by_id(steps_get(c->step_file), id);
 	if (st == NULL) {
 		st = steps_alloc(c->step_file);
-		if (step_init(st) ||
+		if (step_init(c->step_file, st) ||
 		    step_set_field_integer(st, "step", id))
 			return 1;
 	}
 	for (; argc > 0; argc--, argv++) {
-		if (step_set_keyval(st, *argv, c->scratch))
+		if (step_set_keyval(c->step_file, st, *argv, c->scratch))
 			return 1;
 	}
 	return steps_write(c->step_file, c->scratch);

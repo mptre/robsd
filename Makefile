@@ -6,7 +6,6 @@ COMPATS+=	compat-pledge.c
 COMPATS+=	compat-strtonum.c
 COMPATS+=	compat-unveil.c
 
-SRCS_config+=	alloc.c
 SRCS_config+=	arena-buffer.c
 SRCS_config+=	arena-vector.c
 SRCS_config+=	arena.c
@@ -59,7 +58,6 @@ DEPS_robsd-ls=		${SRCS_robsd-ls:.c=.d}
 PROG_robsd-ls=		robsd-ls
 
 SRCS_robsd-regress-html+=	${COMPATS}
-SRCS_robsd-regress-html+=	alloc.c
 SRCS_robsd-regress-html+=	arithmetic.c
 SRCS_robsd-regress-html+=	arena.c
 SRCS_robsd-regress-html+=	arena-buffer.c
@@ -136,7 +134,6 @@ DEPS_fuzz-config=	${SRCS_fuzz-config:.c=.d}
 PROG_fuzz-config=	fuzz-config
 
 SRCS_fuzz-step+=	${COMPATS}
-SRCS_fuzz-step+=	alloc.c
 SRCS_fuzz-step+=	arena-buffer.c
 SRCS_fuzz-step+=	arena.c
 SRCS_fuzz-step+=	buffer.c
@@ -151,8 +148,6 @@ OBJS_fuzz-step=	${SRCS_fuzz-step:.c=.o}
 DEPS_fuzz-step=	${SRCS_fuzz-step:.c=.d}
 PROG_fuzz-step=	fuzz-step
 
-KNFMT+=	alloc.c
-KNFMT+=	alloc.h
 KNFMT+=	conf-canvas.c
 KNFMT+=	conf-priv.h
 KNFMT+=	conf-robsd-cross.c
@@ -203,8 +198,6 @@ KNFMT+=	token.h
 KNFMT+=	variable-value.c
 KNFMT+=	variable-value.h
 
-CLANGTIDY+=	alloc.c
-CLANGTIDY+=	alloc.h
 CLANGTIDY+=	conf-canvas.c
 CLANGTIDY+=	conf-priv.h
 CLANGTIDY+=	conf-robsd-cross.c
@@ -255,7 +248,6 @@ CLANGTIDY+=	token.h
 CLANGTIDY+=	variable-value.c
 CLANGTIDY+=	variable-value.h
 
-CPPCHECK+=	alloc.c
 CPPCHECK+=	conf-canvas.c
 CPPCHECK+=	conf-robsd-cross.c
 CPPCHECK+=	conf-robsd-ports.c
