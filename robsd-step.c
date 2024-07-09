@@ -24,7 +24,7 @@ enum step_action {
 
 enum step_action_error {
 	ACTION_ERROR_NONE = 0,
-	ACTION_ERROR_GENERIC = 1,
+	ACTION_ERROR_FATAL = 1,
 	ACTION_ERROR_USAGE = 2,
 };
 
@@ -184,7 +184,7 @@ steps_read(struct step_context *c, int argc, char **argv)
 	const char *name = NULL;
 	const char *str;
 	size_t nsteps;
-	int error = 0;
+	int error = ACTION_ERROR_NONE;
 	int id = 0;
 	int ch;
 
@@ -192,7 +192,7 @@ steps_read(struct step_context *c, int argc, char **argv)
 		switch (ch) {
 		case 'i':
 			if (parse_id(optarg, &id))
-				return 1;
+				return ACTION_ERROR_FATAL;
 			break;
 		case 'n':
 			name = optarg;
@@ -207,7 +207,7 @@ steps_read(struct step_context *c, int argc, char **argv)
 		return ACTION_ERROR_USAGE;
 	if (name != NULL && id != 0) {
 		warnx("-i and -n are mutually exclusive");
-		return 1;
+		return ACTION_ERROR_FATAL;
 	}
 
 	steps = steps_get(c->step_file);
@@ -216,7 +216,7 @@ steps_read(struct step_context *c, int argc, char **argv)
 		st = steps_find_by_name(steps, name);
 		if (st == NULL) {
 			warnx("step with name '%s' not found", name);
-			return 1;
+			return ACTION_ERROR_FATAL;
 		}
 	} else if (id > 0 && (size_t)id - 1 < nsteps) {
 		st = &steps[id - 1];
@@ -224,7 +224,7 @@ steps_read(struct step_context *c, int argc, char **argv)
 		st = &steps[(int)nsteps + id];
 	} else {
 		warnx("step with id %d not found", id);
-		return 1;
+		return ACTION_ERROR_FATAL;
 	}
 
 	str = interpolate_file("/dev/stdin",
@@ -237,7 +237,7 @@ steps_read(struct step_context *c, int argc, char **argv)
 	if (str != NULL)
 		printf("%s", str);
 	else
-		error = 1;
+		error = ACTION_ERROR_FATAL;
 	return error;
 }
 
@@ -256,7 +256,7 @@ action_write(struct step_context *c, int argc, char **argv)
 			break;
 		case 'i':
 			if (parse_id(optarg, &id))
-				return 1;
+				return ACTION_ERROR_FATAL;
 			break;
 		default:
 			return ACTION_ERROR_USAGE;
@@ -284,13 +284,14 @@ action_write(struct step_context *c, int argc, char **argv)
 		st = steps_alloc(c->step_file);
 		if (step_init(c->step_file, st) ||
 		    step_set_field_integer(st, "step", id))
-			return ACTION_ERROR_GENERIC;
+			return ACTION_ERROR_FATAL;
 	}
 	for (; argc > 0; argc--, argv++) {
 		if (step_set_keyval(c->step_file, st, *argv, c->scratch))
-			return ACTION_ERROR_GENERIC;
+			return ACTION_ERROR_FATAL;
 	}
-	return steps_write(c->step_file, c->scratch);
+	return steps_write(c->step_file, c->scratch) ?
+	    ACTION_ERROR_FATAL : ACTION_ERROR_NONE;
 }
 
 static int
@@ -302,7 +303,7 @@ steps_list(struct step_context *c, int argc, char **argv)
 	VECTOR(const struct config_step) steps;
 	size_t i;
 	unsigned int offset = 1;
-	int error = 0;
+	int error = ACTION_ERROR_NONE;
 	int ch;
 
 	while ((ch = getopt(argc, argv, "C:m:o:")) != -1) {
@@ -320,7 +321,7 @@ steps_list(struct step_context *c, int argc, char **argv)
 			num = strtonum(optarg, 1, INT_MAX, &errstr);
 			if (num == 0) {
 				warnx("offset %s %s", optarg, errstr);
-				return 1;
+				return ACTION_ERROR_FATAL;
 			}
 			offset = (unsigned int)num;
 			break;
@@ -338,20 +339,20 @@ steps_list(struct step_context *c, int argc, char **argv)
 
 	config = config_alloc(config_mode, config_path, c->eternal, c->scratch);
 	if (config == NULL)
-		return 1;
+		return ACTION_ERROR_FATAL;
 	if (config_parse(config)) {
-		error = 1;
+		error = ACTION_ERROR_FATAL;
 		goto out;
 	}
 
 	steps = config_get_steps(config, 0, &s);
 	if (steps == NULL) {
-		error = 1;
+		error = ACTION_ERROR_FATAL;
 		goto out;
 	}
 	if (offset - 1 >= VECTOR_LENGTH(steps)) {
 		warnx("offset %u too large", offset);
-		error = 1;
+		error = ACTION_ERROR_FATAL;
 		goto out;
 	}
 	for (i = offset - 1; i < VECTOR_LENGTH(steps); i++)
