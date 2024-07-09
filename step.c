@@ -9,7 +9,7 @@
 #include <inttypes.h>
 #include <limits.h>	/* LLONG_MIN, LLONG_MAX */
 #include <stdio.h>
-#include <stdlib.h>
+#include <stdlib.h>	/* strtonum(3) */
 #include <string.h>
 #include <unistd.h>
 
