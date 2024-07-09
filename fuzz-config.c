@@ -21,12 +21,16 @@ init(int argc, char *argv[])
 
 	c.mode = robsd_mode_str(ROBSD);
 	for (int i = 0; i < argc; i++) {
-		if (strcmp(argv[i], "--mode") == 0 && i + 1 < argc) {
+		static const char key[] = "--mode=";
+		size_t keylen = sizeof(key) - 1;
+
+		if (strncmp(argv[i], key, keylen) == 0) {
+			const char *val = &argv[i][keylen];
 			enum robsd_mode mode;
 
-			if (robsd_mode_parse(argv[i + 1], &mode))
+			if (robsd_mode_parse(val, &mode))
 				__builtin_trap();
-			c.mode = argv[i + 1];
+			c.mode = val;
 		}
 	}
 
