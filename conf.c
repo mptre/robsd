@@ -115,6 +115,7 @@ config_alloc(const char *mode, const char *path,
 		err(1, NULL);
 	if (VECTOR_INIT(cf->variables))
 		err(1, NULL);
+	cf->lookup = token_type_lookup_alloc(cf->mode, eternal_scope);
 
 	if (cf->callbacks->init(cf)) {
 		config_free(cf);
@@ -141,6 +142,8 @@ config_free(struct config *cf)
 		variable_value_clear(&va->va_val);
 	}
 	VECTOR_FREE(cf->variables);
+
+	token_type_lookup_free(cf->lookup);
 
 	lexer_free(cf->lx);
 }
@@ -553,6 +556,7 @@ again:
 
 	if (islower((unsigned char)ch)) {
 		const char *buf;
+		enum token_type token_type;
 
 		while (islower((unsigned char)ch) ||
 		    isdigit((unsigned char)ch) || ch == '-') {
@@ -564,50 +568,24 @@ again:
 		buffer_putc(bf, '\0');
 
 		buf = buffer_get_ptr(bf);
-		if (strcmp("command", buf) == 0)
-			return lexer_emit(lx, &s, TOKEN_COMMAND);
-		if (strcmp("env", buf) == 0)
-			return lexer_emit(lx, &s, TOKEN_ENV);
-		if (strcmp("h", buf) == 0)
-			return lexer_emit(lx, &s, TOKEN_HOURS);
-		if (strcmp("m", buf) == 0)
-			return lexer_emit(lx, &s, TOKEN_MINUTES);
-		if (strcmp("no-parallel", buf) == 0)
-			return lexer_emit(lx, &s, TOKEN_NO_PARALLEL);
-		if (strcmp("obj", buf) == 0)
-			return lexer_emit(lx, &s, TOKEN_OBJ);
-		if (strcmp("packages", buf) == 0)
-			return lexer_emit(lx, &s, TOKEN_PACKAGES);
-		/*
-		 * Limited to canvas, necessary to avoid conflict with
-		 * robsd-regress parallel keyword.
-		 */
-		if (config_get_mode(ctx->cf) == CANVAS &&
-		    strcmp("parallel", buf) == 0)
-			return lexer_emit(lx, &s, TOKEN_PARALLEL);
-		if (strcmp("quiet", buf) == 0)
-			return lexer_emit(lx, &s, TOKEN_QUIET);
-		if (strcmp("root", buf) == 0)
-			return lexer_emit(lx, &s, TOKEN_ROOT);
-		if (strcmp("targets", buf) == 0)
-			return lexer_emit(lx, &s, TOKEN_TARGETS);
-		if (strcmp("s", buf) == 0)
-			return lexer_emit(lx, &s, TOKEN_SECONDS);
-
-		if (strcmp("yes", buf) == 0) {
+		token_type = token_type_lookup(ctx->cf->lookup, buf);
+		if (token_type == TOKEN_KEYWORD) {
+			tk = lexer_emit(lx, &s, TOKEN_KEYWORD);
+			tk->tk_str = arena_strdup(ctx->cf->arena.eternal_scope,
+			    buf);
+			return tk;
+		}
+		if (token_type == TOKEN_YES) {
 			tk = lexer_emit(lx, &s, TOKEN_BOOLEAN);
 			tk->tk_int = 1;
 			return tk;
 		}
-		if (strcmp("no", buf) == 0) {
+		if (token_type == TOKEN_NO) {
 			tk = lexer_emit(lx, &s, TOKEN_BOOLEAN);
 			tk->tk_int = 0;
 			return tk;
 		}
-
-		tk = lexer_emit(lx, &s, TOKEN_KEYWORD);
-		tk->tk_str = arena_strdup(ctx->cf->arena.eternal_scope, buf);
-		return tk;
+		return lexer_emit(lx, &s, (int)token_type);
 	}
 
 	if (isdigit((unsigned char)ch)) {

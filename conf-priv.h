@@ -15,6 +15,7 @@ struct config {
 	const struct config_callbacks	 *callbacks;
 	const struct grammar		**grammar;	/* VECTOR(const struct grammar *) */
 	struct variable			 *variables;	/* VECTOR(struct variable) */
+	struct token_type_lookup	 *lookup;
 
 	struct {
 		struct arena_scope	*eternal_scope;
