@@ -529,7 +529,7 @@ config_lexer_read(struct lexer *lx, void *arg)
 again:
 	do {
 		if (lexer_getc(lx, &ch))
-			return NULL;
+			break;
 	} while (isspace((unsigned char)ch));
 
 	s = lexer_get_state(lx);
@@ -542,7 +542,7 @@ again:
 			if (ch == '\n' || ch == 0)
 				break;
 			if (lexer_getc(lx, &ch))
-				return NULL;
+				break;
 		}
 		goto again;
 	}
@@ -556,7 +556,7 @@ again:
 		    isdigit((unsigned char)ch) || ch == '-') {
 			buffer_putc(bf, ch);
 			if (lexer_getc(lx, &ch))
-				return NULL;
+				break;
 		}
 		lexer_ungetc(lx, ch);
 		buffer_putc(bf, '\0');
@@ -619,7 +619,7 @@ again:
 			    KS_i32_add_overflow(val, x, &val))
 				error = 1;
 			if (lexer_getc(lx, &ch))
-				return NULL;
+				break;
 		}
 		lexer_ungetc(lx, ch);
 		if (error)
@@ -633,7 +633,7 @@ again:
 	if (ch == '"') {
 		for (;;) {
 			if (lexer_getc(lx, &ch))
-				return NULL;
+				break;
 			if (ch == 0) {
 				lexer_warnx(lx, s.lno, "unterminated string");
 				return NULL;

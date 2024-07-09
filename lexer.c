@@ -31,6 +31,7 @@ struct lexer {
 	struct lexer_arg		 lx_arg;
 	int				 lx_lno;
 	int				 lx_err;
+	int				 lx_eof;
 };
 
 struct lexer *
@@ -107,8 +108,11 @@ lexer_getc(struct lexer *lx, char *ch)
 	char c;
 
 	if (lx->lx_input.off == lx->lx_input.len) {
+		int eof;
+
 		*ch = 0;
-		return 0;
+		eof = lx->lx_eof++;
+		return eof ? 1 : 0;
 	}
 
 	c = lx->lx_input.buf[lx->lx_input.off++];
@@ -121,6 +125,8 @@ lexer_getc(struct lexer *lx, char *ch)
 void
 lexer_ungetc(struct lexer *lx, char ch)
 {
+	if (lx->lx_eof > 0)
+		return;
 	if (ch == '\n' && lx->lx_lno > 1)
 		lx->lx_lno--;
 	if (lx->lx_input.off > 0)

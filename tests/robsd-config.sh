@@ -733,9 +733,16 @@ if testcase "invalid read only assign"; then
 	EOF
 fi
 
-if testcase "invalid afl"; then
+if testcase "invalid afl 1"; then
 	printf 'robsddir \00"/tmp"\n' >"${CONFIG}"
 	robsd_config -e - <<-EOF
 	robsd-config: ${CONFIG}:1: want STRING, got EOF
+	EOF
+fi
+
+if testcase "invalid afl 2"; then
+	printf '0' >"${CONFIG}"
+	robsd_config -e - <<-EOF
+	robsd-config: ${CONFIG}:1: want KEYWORD, got INTEGER
 	EOF
 fi
