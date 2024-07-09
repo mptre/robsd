@@ -665,49 +665,7 @@ again:
 static const char *
 token_serialize(const struct token *tk)
 {
-	enum token_type type = (enum token_type)tk->tk_type;
-
-	switch (type) {
-	case TOKEN_UNKNOWN:
-		break;
-	case TOKEN_LBRACE:
-		return "LBRACE";
-	case TOKEN_RBRACE:
-		return "RBRACE";
-	case TOKEN_KEYWORD:
-		return "KEYWORD";
-	case TOKEN_COMMAND:
-		return "COMMAND";
-	case TOKEN_ENV:
-		return "ENV";
-	case TOKEN_NO_PARALLEL:
-		return "NO-PARALLEL";
-	case TOKEN_OBJ:
-		return "OBJ";
-	case TOKEN_PACKAGES:
-		return "PACKAGES";
-	case TOKEN_PARALLEL:
-		return "PARALLEL";
-	case TOKEN_QUIET:
-		return "QUIET";
-	case TOKEN_ROOT:
-		return "ROOT";
-	case TOKEN_TARGETS:
-		return "TARGETS";
-	case TOKEN_HOURS:
-		return "HOURS";
-	case TOKEN_MINUTES:
-		return "MINUTES";
-	case TOKEN_SECONDS:
-		return "SECONDS";
-	case TOKEN_BOOLEAN:
-		return "BOOLEAN";
-	case TOKEN_INTEGER:
-		return "INTEGER";
-	case TOKEN_STRING:
-		return "STRING";
-	}
-	return "UNKNOWN";
+	return token_type_str((enum token_type)tk->tk_type);
 }
 
 static const struct grammar *
