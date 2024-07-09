@@ -154,7 +154,6 @@ config_parse(struct config *cf)
 	struct config_lexer_context ctx = {
 		.cf	= cf,
 	};
-	int error;
 
 	arena_scope(cf->arena.scratch, s);
 
@@ -167,18 +166,13 @@ config_parse(struct config *cf)
 		.arg		= &ctx,
 	    },
 	});
-	if (cf->lx == NULL) {
-		error = 1;
-		goto out;
-	}
-	error = config_parse_inner(cf);
-	if (error)
-		goto out;
+	if (cf->lx == NULL)
+		return 1;
 
+	if (config_parse_inner(cf))
+		return 1;
 	cf->callbacks->after_parse(cf);
-
-out:
-	return error;
+	return 0;
 }
 
 int
