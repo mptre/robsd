@@ -28,7 +28,7 @@ token_type_lookup_alloc(enum robsd_mode mode, struct arena_scope *s)
 	if (MAP_INIT(lookup->token_types))
 		err(1, NULL);
 #define OP(name, key, m) do {						\
-	if ((key) != NULL && ((m) == 0 || (m) == mode))			\
+	if ((key)[0] != '\0' && ((m) == 0 || (m) == mode))		\
 		token_type_lookup_insert(lookup, (key), TOKEN_ ## name);\
 } while (0);
 	FOR_TOKEN_TYPES(OP)

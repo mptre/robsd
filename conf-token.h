@@ -4,12 +4,12 @@ struct arena_scope;
 
 #define FOR_TOKEN_TYPES(OP)						\
 	/* sentinels */							\
-	OP(UNKNOWN,		NULL,		0)			\
+	OP(UNKNOWN,		"",		0)			\
 	/* types */							\
-	OP(BOOLEAN,		NULL,		0)			\
-	OP(INTEGER,		NULL,		0)			\
-	OP(STRING,		NULL,		0)			\
-	OP(KEYWORD,		NULL,		0)			\
+	OP(BOOLEAN,		"",		0)			\
+	OP(INTEGER,		"",		0)			\
+	OP(STRING,		"",		0)			\
+	OP(KEYWORD,		"",		0)			\
 	/* literals */							\
 	OP(LBRACE,		"{",		0)			\
 	OP(RBRACE,		"}",		0)			\
