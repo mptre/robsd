@@ -842,7 +842,6 @@ purge() {
 report() {
 	local _builddir
 	local _report
-	local _steps
 
 	while [ $# -gt 0 ]; do
 		case "$1" in
@@ -854,11 +853,6 @@ report() {
 	: "${_builddir:?}"
 
 	_report="${_builddir}/report"
-	_steps="$(step_path "${_builddir}")"
-
-	# The steps file could be empty when a build fails to start due to
-	# another already running build.
-	[ -s "${_steps}" ] || return 1
 
 	"${ROBSDREPORT}" -m "${_MODE}" ${ROBSDCONF:+-C ${ROBSDCONF}} "${_builddir}" >"${_report}"
 }
