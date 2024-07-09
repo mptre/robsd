@@ -24,6 +24,10 @@
   (8927022d19ab)
   (Anton Lindqvist)
 
+- robsd: normalize all dates in CVS log.
+  (fdb966ddb0e9)
+  (Anton Lindqvist)
+
 ## Bug fixes
 
 - Do not send report emails during early failures while running in
