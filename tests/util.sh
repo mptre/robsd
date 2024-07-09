@@ -239,6 +239,10 @@ PATH="/bin:/sbin:/usr/bin:/usr/sbin:/usr/X11R6/bin"; export PATH
 TMP1="${TSHDIR}/tmp1"; export TMP1
 TZ=""; export TZ
 
+# Use a distinct sanitizer exit code.
+ASAN_OPTIONS="exitcode=66"; export ASAN_OPTIONS
+UBSAN_OPTIONS="exitcode=66"; export UBSAN_OPTIONS
+
 . "${EXECDIR}/util.sh"
 
 setmode "robsd"
