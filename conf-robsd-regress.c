@@ -201,7 +201,7 @@ config_parse_regress(struct config *cf, struct variable_value *UNUSED(val))
 	char **dst;
 
 	if (!lexer_expect(lx, TOKEN_STRING, &tk))
-		return 1;
+		return CONFIG_ERROR;
 	path = tk->tk_str;
 
 	for (;;) {
@@ -211,7 +211,7 @@ config_parse_regress(struct config *cf, struct variable_value *UNUSED(val))
 
 		if (lexer_if(lx, TOKEN_ENV, &tk)) {
 			if (config_parse_regress_option_env(cf, path))
-				return 1;
+				return CONFIG_ERROR;
 		} else if (lexer_if(lx, TOKEN_NO_PARALLEL, &tk)) {
 			struct variable_value newval;
 
@@ -224,7 +224,7 @@ config_parse_regress(struct config *cf, struct variable_value *UNUSED(val))
 			struct variable *obj;
 
 			if (config_parse_list(cf, &newval))
-				return 1;
+				return CONFIG_ERROR;
 			obj = config_find_or_create_list(cf, "regress-obj");
 			variable_value_concat(&obj->va_val, &newval);
 		} else if (lexer_if(lx, TOKEN_PACKAGES, &tk)) {
@@ -232,7 +232,7 @@ config_parse_regress(struct config *cf, struct variable_value *UNUSED(val))
 			struct variable *packages;
 
 			if (config_parse_list(cf, &newval))
-				return 1;
+				return CONFIG_ERROR;
 			packages = config_find_or_create_list(cf,
 			    "regress-packages");
 			variable_value_concat(&packages->va_val, &newval);
@@ -255,7 +255,7 @@ config_parse_regress(struct config *cf, struct variable_value *UNUSED(val))
 			struct variable *targets;
 
 			if (config_parse_list(cf, &newval))
-				return 1;
+				return CONFIG_ERROR;
 			name = regressname(path, "targets", &s);
 			targets = config_find_or_create_list(cf, name);
 			variable_value_concat(&targets->va_val, &newval);
@@ -281,7 +281,7 @@ config_parse_regress_option_env(struct config *cf, const char *path)
 	char **dst;
 
 	if (config_parse_list(cf, &newval))
-		return 1;
+		return CONFIG_ERROR;
 
 	arena_scope(cf->arena.scratch, s);
 
@@ -299,13 +299,13 @@ config_parse_regress_option_env(struct config *cf, const char *path)
 	template = arena_sprintf(&s, "${%s}", name);
 	str = config_interpolate_early(cf, template);
 	if (str == NULL)
-		return 1;
+		return CONFIG_ERROR;
 	variable_value_init(&intval, STRING);
 	intval.str = str;
 	variable_value_clear(&va->va_val);
 	va->va_val = intval;
 
-	return 0;
+	return CONFIG_APPEND;
 }
 
 static int
@@ -314,7 +314,7 @@ config_parse_regress_env(struct config *cf, struct variable_value *val)
 	struct variable *env;
 
 	if (config_parse_list(cf, val))
-		return 1;
+		return CONFIG_ERROR;
 
 	if (!config_present(cf, "regress-env")) {
 		struct variable_value def;

@@ -727,7 +727,6 @@ config_parse_keyword(struct config *cf, struct token *tk)
 {
 	const struct grammar *gr;
 	struct variable_value val;
-	int error = 0;
 	int rv;
 
 	gr = config_find_grammar_for_keyword(cf, tk->tk_str);
@@ -740,18 +739,13 @@ config_parse_keyword(struct config *cf, struct token *tk)
 	if ((gr->gr_flags & REP) == 0 && config_present(cf, tk->tk_str)) {
 		lexer_warnx(cf->lx, tk->tk_lno,
 		    "variable '%s' already defined", tk->tk_str);
-		error = 1;
+		return CONFIG_FATAL;
 	}
 	rv = gr->gr_fn(cf, &val);
-	if (rv == CONFIG_APPEND) {
+	if (rv == CONFIG_APPEND)
 		config_append(cf, tk->tk_str, &val);
-	} else if (rv == CONFIG_NOP) {
-		/* Configuration variable already inserted. */
-	} else {
-		error = 1;
-	}
 
-	return error;
+	return rv;
 }
 
 static int
@@ -781,10 +775,10 @@ config_parse_boolean(struct config *cf, struct variable_value *val)
 	struct token *tk;
 
 	if (!lexer_expect(cf->lx, TOKEN_BOOLEAN, &tk))
-		return 1;
+		return CONFIG_ERROR;
 	variable_value_init(val, INTEGER);
 	val->integer = tk->tk_int;
-	return 0;
+	return CONFIG_APPEND;
 }
 
 int
@@ -793,10 +787,10 @@ config_parse_string(struct config *cf, struct variable_value *val)
 	struct token *tk;
 
 	if (!lexer_expect(cf->lx, TOKEN_STRING, &tk))
-		return 1;
+		return CONFIG_ERROR;
 	variable_value_init(val, STRING);
 	val->str = tk->tk_str;
-	return 0;
+	return CONFIG_APPEND;
 }
 
 int
@@ -805,10 +799,10 @@ config_parse_integer(struct config *cf, struct variable_value *val)
 	struct token *tk;
 
 	if (!lexer_expect(cf->lx, TOKEN_INTEGER, &tk))
-		return 1;
+		return CONFIG_ERROR;
 	variable_value_init(val, INTEGER);
 	val->integer = tk->tk_int;
-	return 0;
+	return CONFIG_APPEND;
 }
 
 int
@@ -820,7 +814,7 @@ config_parse_glob(struct config *cf, struct variable_value *val)
 	int error;
 
 	if (!lexer_expect(cf->lx, TOKEN_STRING, &tk))
-		return 1;
+		return CONFIG_ERROR;
 
 	error = glob(tk->tk_str, GLOB_ERR, NULL, &g);
 	if (error) {
@@ -852,7 +846,7 @@ config_parse_list(struct config *cf, struct variable_value *val)
 	struct token *tk;
 
 	if (!lexer_expect(cf->lx, TOKEN_LBRACE, &tk))
-		return 1;
+		return CONFIG_ERROR;
 	variable_value_init(val, LIST);
 	for (;;) {
 		char **dst;
@@ -869,11 +863,11 @@ config_parse_list(struct config *cf, struct variable_value *val)
 	if (!lexer_expect(cf->lx, TOKEN_RBRACE, &tk))
 		goto err;
 
-	return 0;
+	return CONFIG_APPEND;
 
 err:
 	variable_value_clear(val);
-	return 1;
+	return CONFIG_FATAL;
 }
 
 int
@@ -883,15 +877,15 @@ config_parse_user(struct config *cf, struct variable_value *val)
 	const char *user;
 
 	if (!lexer_expect(cf->lx, TOKEN_STRING, &tk))
-		return 1;
+		return CONFIG_ERROR;
 	variable_value_init(val, STRING);
 	user = val->str = tk->tk_str;
 	if (getpwnam(user) == NULL) {
 		lexer_warnx(cf->lx, tk->tk_lno, "user '%s' not found",
 		    user);
-		return 1;
+		return CONFIG_ERROR;
 	}
-	return 0;
+	return CONFIG_APPEND;
 }
 
 int
@@ -900,15 +894,14 @@ config_parse_directory(struct config *cf, struct variable_value *val)
 	struct stat st;
 	struct token *tk;
 	const char *dir, *path;
-	int error = 0;
 
 	if (!lexer_expect(cf->lx, TOKEN_STRING, &tk))
-		return 1;
+		return CONFIG_ERROR;
 	variable_value_init(val, STRING);
 	dir = val->str = tk->tk_str;
 	/* Empty string error already reported by the lexer. */
 	if (dir[0] == '\0')
-		return 1;
+		return CONFIG_ERROR;
 
 	path = interpolate_str(dir, &(struct interpolate_arg){
 	    .lookup	= config_interpolate_lookup,
@@ -918,16 +911,16 @@ config_parse_directory(struct config *cf, struct variable_value *val)
 	    .lno	= tk->tk_lno,
 	});
 	if (path == NULL) {
-		error = 1;
+		return CONFIG_ERROR;
 	} else if (stat(path, &st) == -1) {
 		lexer_warn(cf->lx, tk->tk_lno, "%s", path);
-		error = 1;
+		return CONFIG_ERROR;
 	} else if (!S_ISDIR(st.st_mode)) {
 		lexer_warnx(cf->lx, tk->tk_lno, "%s: is not a directory",
 		    path);
-		error = 1;
+		return CONFIG_ERROR;
 	}
-	return error;
+	return CONFIG_APPEND;
 }
 
 static struct variable *
