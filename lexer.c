@@ -8,6 +8,7 @@
 #include <stdarg.h>
 #include <stdlib.h>
 
+#include "libks/arena-buffer.h"
 #include "libks/arena.h"
 #include "libks/buffer.h"
 #include "libks/compiler.h"
@@ -24,9 +25,9 @@ struct lexer {
 	struct token			*lx_tk;
 
 	struct {
-		char	*buf;
-		size_t	 len;
-		size_t	 off;
+		const char	*buf;
+		size_t		 len;
+		size_t		 off;
 	} lx_input;
 
 	struct lexer_arg		 lx_arg;
@@ -42,14 +43,14 @@ lexer_alloc(const struct lexer_arg *arg)
 	struct lexer *lx;
 	int error = 0;
 
-	bf = buffer_read(arg->path);
+	bf = arena_buffer_read(arg->arena.eternal_scope, arg->path);
 	if (bf == NULL) {
 		warn("%s", arg->path);
 		return NULL;
 	}
 	lx = arena_calloc(arg->arena.eternal_scope, 1, sizeof(*lx));
 	lx->lx_input.len = buffer_get_len(bf);
-	lx->lx_input.buf = buffer_release(bf);
+	lx->lx_input.buf = buffer_get_ptr(bf);
 	lx->lx_arg = *arg;
 	lx->lx_lno = 1;
 	lx->lx_tk = NULL;
@@ -69,7 +70,6 @@ lexer_alloc(const struct lexer_arg *arg)
 	}
 
 out:
-	buffer_free(bf);
 	if (error) {
 		lexer_free(lx);
 		return NULL;
@@ -89,7 +89,6 @@ lexer_free(struct lexer *lx)
 		TAILQ_REMOVE(&lx->lx_tokens, tk, tk_entry);
 		token_free(tk);
 	}
-	free(lx->lx_input.buf);
 }
 
 struct token *
