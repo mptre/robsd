@@ -1,6 +1,8 @@
-#include <sys/queue.h>
-
 #include <stdint.h>	/* int64_t */
+
+#include "libks/list.h"
+
+LIST(token_list, token);
 
 struct token {
 	int			 tk_type;
@@ -9,5 +11,5 @@ struct token {
 	char			*tk_str;
 	int64_t			 tk_int;
 
-	TAILQ_ENTRY(token)	 tk_entry;
+	LIST_ENTRY(token_list, token);
 };

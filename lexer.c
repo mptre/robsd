@@ -2,8 +2,6 @@
 
 #include "config.h"
 
-#include <sys/queue.h>
-
 #include <err.h>
 #include <stdarg.h>
 #include <stdlib.h>
@@ -11,6 +9,7 @@
 #include "libks/arena-buffer.h"
 #include "libks/arena.h"
 #include "libks/buffer.h"
+#include "libks/list.h"
 
 #include "log.h"
 #include "token.h"
@@ -19,7 +18,7 @@ static const char	*lexer_serialize(const struct lexer *,
     const struct token *);
 
 struct lexer {
-	TAILQ_HEAD(token_list, token)	 lx_tokens;
+	struct token_list		 lx_tokens;
 	struct token			*lx_tk;
 
 	struct {
@@ -67,7 +66,7 @@ lexer_alloc(const struct lexer_arg *arg)
 	lx->lx_arg = *arg;
 	lx->lx_lno = 1;
 	lx->lx_tk = NULL;
-	TAILQ_INIT(&lx->lx_tokens);
+	LIST_INIT(&lx->lx_tokens);
 
 	for (;;) {
 		struct token *tk;
@@ -77,7 +76,7 @@ lexer_alloc(const struct lexer_arg *arg)
 			error = 1;
 			goto out;
 		}
-		TAILQ_INSERT_TAIL(&lx->lx_tokens, tk, tk_entry);
+		LIST_INSERT_TAIL(&lx->lx_tokens, tk);
 		if (tk->tk_type == LEXER_EOF)
 			break;
 	}
@@ -142,9 +141,9 @@ int
 lexer_next(struct lexer *lx, struct token **tk)
 {
 	if (lx->lx_tk == NULL)
-		lx->lx_tk = TAILQ_FIRST(&lx->lx_tokens);
+		lx->lx_tk = LIST_FIRST(&lx->lx_tokens);
 	else if (lx->lx_tk->tk_type != LEXER_EOF)
-		lx->lx_tk = TAILQ_NEXT(lx->lx_tk, tk_entry);
+		lx->lx_tk = LIST_NEXT(lx->lx_tk);
 	if (lx->lx_tk == NULL)
 		return 0;
 	*tk = lx->lx_tk;
@@ -177,7 +176,7 @@ lexer_peek(struct lexer *lx, int type)
 	if (!lexer_next(lx, &tk))
 		return 0;
 	peek = tk->tk_type == type;
-	lx->lx_tk = TAILQ_PREV(tk, token_list, tk_entry);
+	lx->lx_tk = LIST_PREV(tk);
 	return peek;
 }
 
@@ -187,7 +186,7 @@ lexer_if(struct lexer *lx, int type, struct token **tk)
 	if (!lexer_next(lx, tk))
 		return 0;
 	if ((*tk)->tk_type != type) {
-		lx->lx_tk = TAILQ_PREV(*tk, token_list, tk_entry);
+		lx->lx_tk = LIST_PREV(*tk);
 		return 0;
 	}
 	return 1;
