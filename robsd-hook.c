@@ -58,6 +58,7 @@ main(int argc, char *argv[])
 			break;
 		}
 		default:
+			VECTOR_FREE(vars);
 			usage();
 		}
 	}
