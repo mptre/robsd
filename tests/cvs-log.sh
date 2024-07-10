@@ -94,7 +94,7 @@ if testcase "basic"; then
 	cat <<-EOF >"${TSHDIR}/exp"
 	commit 0LuRz4KlqQVuu9kQ
 	Author: schwarze
-	Date: Mon Nov 13 20:35:36 UTC 2023
+	Date: 2023/11/13 20:35:36
 
 	  reduce the man(7) global indentation from 7n to 5n, see man_term.c rev. 1.197
 
@@ -103,7 +103,7 @@ if testcase "basic"; then
 
 	commit GsUu9lB5EDnr7xWy
 	Author: anton
-	Date: Mon Jul 15 06:00:00 UTC 2019
+	Date: 2019/07/15 06:00:00
 
 	  3. latest commit for dhclient
 
@@ -113,7 +113,7 @@ if testcase "basic"; then
 
 	commit PmubCouD66EW1LlW
 	Author: anton
-	Date: Mon Jul 15 05:00:00 UTC 2019
+	Date: 2019/07/15 05:00:00
 
 	  2. oldest commit for dhclient
 
@@ -121,7 +121,7 @@ if testcase "basic"; then
 
 	commit chEXfDinAk4DzfHQ
 	Author: anton
-	Date: Mon Jul 15 04:00:00 UTC 2019
+	Date: 2019/07/15 04:00:00
 
 	  1. single commit for ed
 

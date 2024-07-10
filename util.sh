@@ -229,20 +229,10 @@ cvs_date() {
 	_log="${_builddir}/$(step_value log 2>/dev/null || :)"
 	_date="$(grep -m 1 '^Date:' "${_log}" | sed -e 's/^[^:]*: *//' || :)"
 	if [ -n "${_date}" ]; then
-		cvs_date_normalize "${_date}"
+		date -j -f '%Y/%m/%d %H:%M:%S' '+%s' "${_date}"
 	else
 		step_value time
 	fi
-}
-
-# cvs_date_normalize date
-#
-# Normalize CVS date to the corresponding Unix timestamp.
-cvs_date_normalize() {
-	local _date
-
-	_date="$1"; : "${_date:?}"
-	date -j -f '%Y/%m/%d %H:%M:%S' '+%s' "${_date}"
 }
 
 # cvs_log -t tmp-dir -c cvs-dir -h cvs-host -u cvs-user
@@ -301,16 +291,15 @@ cvs_log() {
 			_path="${_line#*: }"
 			;;
 		date:*)
+			_date="$(cvs_field date "${_line}")"
 			_cid="$(cvs_field commitid "${_line}")" || continue
 			if ! [ -d "${_tmp}/${_cid}" ]; then
 				mkdir "${_tmp}/${_cid}"
 				cvs_field author "${_line}" >"${_tmp}/${_cid}/author"
 				_message=1
 			fi
+			echo "${_date}" >>"${_tmp}/${_cid}/date"
 			echo "${_indent}${_path}" >>"${_tmp}/${_cid}/files"
-
-			_date="$(cvs_field date "${_line}")"
-			cvs_date_normalize "${_date}" >>"${_tmp}/${_cid}/date"
 			;;
 		-[-]*|=[=]*)
 			_message=0
@@ -330,11 +319,12 @@ cvs_log() {
 		echo "${_date} ${_p%/*}"
 	done |
 	sort -nr |
-	while read -r _date _path; do
+	while read -r _date _time _path; do
 		echo "commit ${_path##*/}"
 		echo -n "Author: "
 		cat "${_path}/author"
-		date -u -r "${_date}" "+Date: %+%n"
+		echo "Date: ${_date} ${_time}"
+		echo
 		cat "${_path}/message"
 		echo
 		cat "${_path}/files"
