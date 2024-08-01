@@ -233,19 +233,18 @@ ports_report_step_log(struct report_context *r, const struct step *step)
 	name = step_get_field(step, "name")->str;
 	if (strcmp(name, "cvs") == 0)
 		return report_cvs_log(r);
-	if (strcmp(name, "dpb") == 0) {
+	if (strcmp(name, "dpb") == 0 &&
+	    step_get_field(step, "exit")->integer == 0) {
 		const char *path, *tmpdir;
 
 		tmpdir = config_interpolate_str(r->config, "${tmp-dir}");
 		if (tmpdir == NULL)
 			return STEP_LOG_ERROR;
 		path = arena_sprintf(&s, "%s/packages.diff", tmpdir);
-		if (step_get_field(step, "exit")->integer == 0) {
-			buffer_putc(r->out, '\n');
-			if (format_file(r, path))
-				return STEP_LOG_ERROR;
-			return STEP_LOG_HANDLED;
-		}
+		buffer_putc(r->out, '\n');
+		if (format_file(r, path))
+			return STEP_LOG_ERROR;
+		return STEP_LOG_HANDLED;
 	}
 	return STEP_LOG_UNHANDLED;
 }
