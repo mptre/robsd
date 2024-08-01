@@ -90,8 +90,15 @@ main(int argc, char *argv[])
 		}
 	}
 
-	if (dointerpolate)
-		error = config_interpolate_file(config, "/dev/stdin");
+	if (dointerpolate) {
+		const char *str;
+
+		str = config_interpolate_file(config, "/dev/stdin");
+		if (str != NULL)
+			printf("%s", str);
+		else
+			error = 1;
+	}
 
 out:
 	config_free(config);

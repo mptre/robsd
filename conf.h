@@ -35,7 +35,7 @@ struct config	*config_alloc(const char *, const char *, struct arena_scope *,
 void		 config_free(struct config *);
 int		 config_parse(struct config *);
 int		 config_append_var(struct config *, const char *);
-int		 config_interpolate_file(struct config *, const char *);
+const char	*config_interpolate_file(struct config *, const char *);
 const char	*config_interpolate_str(struct config *, const char *);
 const char	*config_interpolate_lookup(const char *, struct arena_scope *,
     void *);

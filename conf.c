@@ -11,7 +11,6 @@
 #include <fnmatch.h>
 #include <glob.h>
 #include <pwd.h>
-#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
@@ -285,21 +284,15 @@ config_get_value(struct config *cf, const char *name)
 	return &va->va_val;
 }
 
-int
+const char *
 config_interpolate_file(struct config *cf, const char *path)
 {
-	const char *str;
-
-	str = interpolate_file(path, &(struct interpolate_arg){
+	return interpolate_file(path, &(struct interpolate_arg){
 	    .lookup	= config_interpolate_lookup,
 	    .arg	= cf,
 	    .eternal	= cf->arena.eternal_scope,
 	    .scratch	= cf->arena.scratch,
 	});
-	if (str == NULL)
-		return 1;
-	printf("%s", str);
-	return 0;
 }
 
 const char *
