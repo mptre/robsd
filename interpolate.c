@@ -74,10 +74,8 @@ interpolate_buffer(const char *str, struct buffer *bf,
 		.lno	= arg->lno,
 		.flags	= arg->flags,
 	};
-	int error;
 
-	error = interpolate(&c, bf, str);
-	return error;
+	return interpolate(&c, bf, str);
 }
 
 static int
