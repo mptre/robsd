@@ -29,7 +29,6 @@ logv(enum log_func fun, const char *path, int lno, const char *fmt,
     va_list ap)
 {
 	void (*functions[])(const char *, ...) = {
-		[LOG_WARN]	= warn,
 		[LOG_WARNX]	= warnx,
 	};
 	char msg[512], line[16];

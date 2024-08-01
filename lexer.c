@@ -205,18 +205,6 @@ lexer_get_state(const struct lexer *lx)
 }
 
 void
-lexer_warn(struct lexer *lx, int lno, const char *fmt, ...)
-{
-	va_list ap;
-
-	lx->lx_err++;
-
-	va_start(ap, fmt);
-	logv(LOG_WARN, lx->lx_arg.path, lno, fmt, ap);
-	va_end(ap);
-}
-
-void
 lexer_warnx(struct lexer *lx, int lno, const char *fmt, ...)
 {
 	va_list ap;

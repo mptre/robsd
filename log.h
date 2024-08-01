@@ -1,7 +1,6 @@
 #include <stdarg.h>
 
 enum log_func {
-	LOG_WARN,
 	LOG_WARNX,
 };
 

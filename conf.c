@@ -7,6 +7,7 @@
 
 #include <ctype.h>
 #include <err.h>
+#include <errno.h>
 #include <fcntl.h>
 #include <fnmatch.h>
 #include <glob.h>
@@ -807,7 +808,7 @@ config_parse_glob(struct config *cf, struct variable_value *val)
 		if (error == GLOB_NOMATCH)
 			return CONFIG_NOP;
 
-		lexer_warn(cf->lx, tk->tk_lno, "glob");
+		lexer_warnx(cf->lx, tk->tk_lno, "glob: %s", strerror(errno));
 		return CONFIG_FATAL;
 	}
 
@@ -899,7 +900,8 @@ config_parse_directory(struct config *cf, struct variable_value *val)
 	if (path == NULL) {
 		return CONFIG_ERROR;
 	} else if (stat(path, &st) == -1) {
-		lexer_warn(cf->lx, tk->tk_lno, "%s", path);
+		lexer_warnx(cf->lx, tk->tk_lno, "%s: %s",
+		    path, strerror(errno));
 		return CONFIG_ERROR;
 	} else if (!S_ISDIR(st.st_mode)) {
 		lexer_warnx(cf->lx, tk->tk_lno, "%s: is not a directory",
