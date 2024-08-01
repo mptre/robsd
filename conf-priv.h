@@ -57,7 +57,7 @@ struct grammar {
 #define REQ	0x00000001u	/* required */
 #define REP	0x00000002u	/* may be repeated */
 #define PAT	0x00000004u	/* fnmatch(3) keyword fallback */
-#define FUN	0x00000008u	/* default obtain through function call */
+#define FUN	0x00000008u	/* default obtain through gr_default.fun */
 #define EARLY	0x00000010u	/* interpolate early */
 
 	union {
