@@ -21,6 +21,8 @@ struct interpolate_context {
 
 static int	interpolate(struct interpolate_context *, struct buffer *,
     const char *);
+static int	interpolate_inner(struct interpolate_context *, struct buffer *,
+    const char *);
 
 const char *
 interpolate_file(const char *path, const struct interpolate_arg *arg)
@@ -82,13 +84,23 @@ static int
 interpolate(struct interpolate_context *c, struct buffer *bf,
     const char *str)
 {
-	int error = 0;
+	int error;
 
 	if (++c->depth == 5) {
 		log_warnx(c->path, c->lno,
 		    "invalid substitution, recursion too deep");
 		return 1;
 	}
+	error = interpolate_inner(c, bf, str);
+	c->depth--;
+	return error;
+}
+
+static int
+interpolate_inner(struct interpolate_context *c, struct buffer *bf,
+    const char *str)
+{
+	int error = 0;
 
 	arena_scope(c->arg->scratch, s);
 
@@ -104,23 +116,20 @@ interpolate(struct interpolate_context *c, struct buffer *bf,
 		if (*vs != '{') {
 			log_warnx(c->path, c->lno,
 			    "invalid substitution, expected '{'");
-			error = 1;
-			break;
+			return 1;
 		}
 		vs += 1;
 		ve = strchr(vs, '}');
 		if (ve == NULL) {
 			log_warnx(c->path, c->lno,
 			    "invalid substitution, expected '}'");
-			error = 1;
-			break;
+			return 1;
 		}
 		len = (size_t)(ve - vs);
 		if (len == 0) {
 			log_warnx(c->path, c->lno,
 			    "invalid substitution, empty variable name");
-			error = 1;
-			break;
+			return 1;
 		}
 
 		name = arena_strndup(&s, vs, len);
@@ -134,18 +143,16 @@ interpolate(struct interpolate_context *c, struct buffer *bf,
 			log_warnx(c->path, c->lno,
 			    "invalid substitution, unknown variable '%.*s'",
 			    (int)len, vs);
-			error = 1;
-			break;
+			return 1;
 		}
 		error = interpolate(c, bf, lookup);
 		if (error)
-			break;
+			return 1;
 
 next:
 		str = &ve[1];
 	}
-	c->depth--;
 	/* Output any remaining tail. */
 	buffer_puts(bf, str, strlen(str));
-	return error;
+	return 0;
 }
