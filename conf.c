@@ -27,7 +27,6 @@
 #include "if.h"
 #include "interpolate.h"
 #include "lexer.h"
-#include "log.h"
 #include "token.h"
 
 struct config_lexer_context {
@@ -747,7 +746,7 @@ config_validate(const struct config *cf)
 		const char *str = gr->gr_kw;
 
 		if ((gr->gr_flags & REQ) && !config_present(cf, str)) {
-			log_warnx(cf->path, 0,
+			lexer_warnx(cf->lx, 0,
 			    "mandatory variable '%s' missing", str);
 			error = 1;
 		}
