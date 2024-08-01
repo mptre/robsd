@@ -111,6 +111,11 @@ exits.
 Standard output and error from
 .Nm
 while running in the background.
+.It Pa snapshots/$(machine)
+Symlink to the
+.Pa rel
+directory, making the invocation directory compatible with
+.Xr sysupgrade 8 .
 .It Pa stat.csv
 Collected statistics, see
 .Xr robsd-stat 8 .

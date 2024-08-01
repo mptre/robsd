@@ -71,3 +71,7 @@ mv SHA256 SHA256.orig
 	xargs -rt sha256
 } | sort >SHA256
 rm SHA256.orig
+
+cd "${BUILDDIR}"
+mkdir -p snapshots
+(cd snapshots && ln -fs ../rel "$(machine)")

@@ -62,3 +62,15 @@ if testcase "cvs step skipped"; then
 		fail "expected CHANGELOG to be absent"
 	fi
 fi
+
+if testcase "sysupgrade symlink"; then
+	{
+		step_serialize -s 1 -n env -t 1666666666
+	} >"$(step_path "${_builddir}")"
+
+	robsd_step_exec -m robsd "${_step}"
+
+	if ! [ -e "${_builddir}/snapshots/$(machine)/BUILDINFO" ]; then
+		fail "expected sysupgrade symlink"
+	fi
+fi
