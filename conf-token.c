@@ -44,13 +44,14 @@ token_type_lookup_free(struct token_type_lookup *lookup)
 }
 
 enum token_type
-token_type_lookup(const struct token_type_lookup *lookup, const char *str)
+token_type_lookup(const struct token_type_lookup *lookup, const char *str,
+    enum token_type fallback)
 {
 	const enum token_type *token_type;
 
 	token_type = MAP_FIND(lookup->token_types, str);
 	if (token_type == NULL)
-		return TOKEN_KEYWORD;
+		return fallback;
 	return *token_type;
 }
 

@@ -40,6 +40,6 @@ struct token_type_lookup	*token_type_lookup_alloc(enum robsd_mode,
 void				 token_type_lookup_free(
     struct token_type_lookup *);
 enum token_type			 token_type_lookup(
-    const struct token_type_lookup *, const char *);
+    const struct token_type_lookup *, const char *, enum token_type);
 
 const char	*token_type_str(enum token_type);

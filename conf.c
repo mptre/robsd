@@ -516,6 +516,7 @@ config_lexer_read(struct lexer *lx, void *arg)
 	struct lexer_state s;
 	struct buffer *bf = ctx->bf;
 	struct token *tk;
+	enum token_type token_type;
 	char ch;
 
 again:
@@ -543,7 +544,6 @@ again:
 
 	if (islower((unsigned char)ch)) {
 		const char *buf;
-		enum token_type token_type;
 
 		while (islower((unsigned char)ch) ||
 		    isdigit((unsigned char)ch) || ch == '-') {
@@ -555,7 +555,8 @@ again:
 		buffer_putc(bf, '\0');
 
 		buf = buffer_get_ptr(bf);
-		token_type = token_type_lookup(ctx->cf->lookup, buf);
+		token_type = token_type_lookup(ctx->cf->lookup, buf,
+		    TOKEN_KEYWORD);
 		if (token_type == TOKEN_KEYWORD) {
 			tk = lexer_emit(lx, &s, TOKEN_KEYWORD);
 			tk->tk_str = arena_strdup(ctx->cf->arena.eternal_scope,
@@ -619,12 +620,10 @@ again:
 		return tk;
 	}
 
-	if (ch == '{')
-		return lexer_emit(lx, &s, TOKEN_LBRACE);
-	if (ch == '}')
-		return lexer_emit(lx, &s, TOKEN_RBRACE);
-
-	return lexer_emit(lx, &s, TOKEN_UNKNOWN);
+	buffer_putc(bf, ch);
+	token_type = token_type_lookup(ctx->cf->lookup, buffer_str(bf),
+	    TOKEN_UNKNOWN);
+	return lexer_emit(lx, &s, (int)token_type);
 }
 
 static const char *
