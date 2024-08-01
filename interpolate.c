@@ -34,7 +34,6 @@ interpolate_file(const char *path, const struct interpolate_arg *arg)
 	struct buffer_getline it = {0};
 	struct buffer *bf, *out;
 	const char *line;
-	int error = 0;
 
 	arena_scope(arg->scratch, s);
 
@@ -47,15 +46,12 @@ interpolate_file(const char *path, const struct interpolate_arg *arg)
 	out = arena_buffer_alloc(c.arg->eternal, 1 << 10);
 	while ((line = buffer_getline(bf, &it)) != NULL) {
 		c.lno++;
-		if (interpolate(&c, out, line)) {
-			error = 1;
-			break;
-		}
+		if (interpolate(&c, out, line))
+			return NULL;
 		buffer_putc(out, '\n');
 	}
-	buffer_getline_free(&it);
 
-	return error == 0 ? buffer_str(out) : NULL;
+	return buffer_str(out);
 }
 
 const char *
