@@ -24,6 +24,10 @@
   (8927022d19ab)
   (Anton Lindqvist)
 
+- robsd: make invocation directories compatible with sysupgrade(8)
+  (cc9bbca984db)
+  (Anton Lindqvist)
+
 ## Bug fixes
 
 - Do not send report emails during early failures while running in
