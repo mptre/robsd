@@ -591,7 +591,7 @@ again:
 		}
 		lexer_ungetc(lx, ch);
 		if (error)
-			lexer_warnx(lx, s.lno, "integer too big");
+			lexer_error(lx, s.lno, "integer too big");
 
 		tk = lexer_emit(lx, &s, TOKEN_INTEGER);
 		tk->tk_int = val;
@@ -603,7 +603,7 @@ again:
 			if (lexer_getc(lx, &ch))
 				break;
 			if (ch == 0) {
-				lexer_warnx(lx, s.lno, "unterminated string");
+				lexer_error(lx, s.lno, "unterminated string");
 				return NULL;
 			}
 			if (ch == '"')
@@ -611,7 +611,7 @@ again:
 			buffer_putc(bf, ch);
 		}
 		if (buffer_get_len(bf) == 0)
-			lexer_warnx(lx, s.lno, "empty string");
+			lexer_error(lx, s.lno, "empty string");
 		buffer_putc(bf, '\0');
 
 		tk = lexer_emit(lx, &s, TOKEN_STRING);
@@ -717,7 +717,7 @@ config_parse_keyword(struct config *cf, struct token *tk)
 
 	gr = config_find_grammar_for_keyword(cf, tk->tk_str);
 	if (gr == NULL) {
-		lexer_warnx(cf->lx, tk->tk_lno, "unknown keyword '%s'",
+		lexer_error(cf->lx, tk->tk_lno, "unknown keyword '%s'",
 		    tk->tk_str);
 		return CONFIG_FATAL;
 	}
@@ -727,7 +727,7 @@ config_parse_keyword(struct config *cf, struct token *tk)
 	if (rv == CONFIG_APPEND)
 		config_append(cf, tk->tk_str, &val);
 	if (no_repeat) {
-		lexer_warnx(cf->lx, tk->tk_lno,
+		lexer_error(cf->lx, tk->tk_lno,
 		    "variable '%s' already defined", tk->tk_str);
 		return CONFIG_ERROR;
 	}
@@ -747,7 +747,7 @@ config_validate(const struct config *cf)
 		const char *str = gr->gr_kw;
 
 		if ((gr->gr_flags & REQ) && !config_present(cf, str)) {
-			lexer_warnx(cf->lx, 0,
+			lexer_error(cf->lx, 0,
 			    "mandatory variable '%s' missing", str);
 			error = 1;
 		}
@@ -808,7 +808,7 @@ config_parse_glob(struct config *cf, struct variable_value *val)
 		if (error == GLOB_NOMATCH)
 			return CONFIG_NOP;
 
-		lexer_warnx(cf->lx, tk->tk_lno, "glob: %s", strerror(errno));
+		lexer_error(cf->lx, tk->tk_lno, "glob: %s", strerror(errno));
 		return CONFIG_FATAL;
 	}
 
@@ -868,7 +868,7 @@ config_parse_user(struct config *cf, struct variable_value *val)
 	variable_value_init(val, STRING);
 	user = val->str = tk->tk_str;
 	if (getpwnam(user) == NULL) {
-		lexer_warnx(cf->lx, tk->tk_lno, "user '%s' not found",
+		lexer_error(cf->lx, tk->tk_lno, "user '%s' not found",
 		    user);
 		return CONFIG_ERROR;
 	}
@@ -900,11 +900,11 @@ config_parse_directory(struct config *cf, struct variable_value *val)
 	if (path == NULL) {
 		return CONFIG_ERROR;
 	} else if (stat(path, &st) == -1) {
-		lexer_warnx(cf->lx, tk->tk_lno, "%s: %s",
+		lexer_error(cf->lx, tk->tk_lno, "%s: %s",
 		    path, strerror(errno));
 		return CONFIG_ERROR;
 	} else if (!S_ISDIR(st.st_mode)) {
-		lexer_warnx(cf->lx, tk->tk_lno, "%s: is not a directory",
+		lexer_error(cf->lx, tk->tk_lno, "%s: is not a directory",
 		    path);
 		return CONFIG_ERROR;
 	}

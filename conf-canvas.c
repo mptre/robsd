@@ -119,7 +119,7 @@ config_parse_canvas_step(struct config *cf, struct variable_value *UNUSED(val))
 	}
 
 	if (!is_variable_value_valid(&command) || VECTOR_EMPTY(command.list)) {
-		lexer_warnx(cf->lx, lexer_back(cf->lx, &tk) ? tk->tk_lno : 0,
+		lexer_error(cf->lx, lexer_back(cf->lx, &tk) ? tk->tk_lno : 0,
 		    "mandatory step option 'command' missing");
 		goto err;
 	}

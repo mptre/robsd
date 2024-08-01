@@ -346,12 +346,12 @@ config_parse_regress_timeout(struct config *cf, struct variable_value *val)
 		struct token *nx;
 
 		if (lexer_next(cf->lx, &nx))
-			lexer_warnx(cf->lx, nx->tk_lno, "unknown timeout unit");
+			lexer_error(cf->lx, nx->tk_lno, "unknown timeout unit");
 		return CONFIG_ERROR;
 	}
 
 	if (KS_i32_mul_overflow(scalar, timeout.integer, &timeout.integer)) {
-		lexer_warnx(cf->lx, tk->tk_lno, "timeout too large");
+		lexer_error(cf->lx, tk->tk_lno, "timeout too large");
 		return CONFIG_ERROR;
 	}
 

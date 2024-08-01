@@ -531,13 +531,13 @@ steps_parse_row(struct step_file *sf, struct lexer *lx)
 			lno = val->tk_lno;
 
 		if (col >= VECTOR_LENGTH(sf->columns)) {
-			lexer_warnx(lx, val->tk_lno, "unknown column %zu", col);
+			lexer_error(lx, val->tk_lno, "unknown column %zu", col);
 			return 1;
 		}
 
 		key = sf->columns[col];
 		if (field_definition_find_by_name(key) == NULL) {
-			lexer_warnx(lx, val->tk_lno, "unknown field '%s'", key);
+			lexer_error(lx, val->tk_lno, "unknown field '%s'", key);
 			return 1;
 		}
 		if (step_set_field(sf, st, key, val->tk_str))
@@ -578,7 +578,7 @@ step_lexer_read(struct lexer *lx, void *arg)
 		if (lexer_getc(lx, &ch))
 			return NULL;
 		if (ch == 0) {
-			lexer_warnx(lx, s.lno, "unterminated value");
+			lexer_error(lx, s.lno, "unterminated value");
 			return NULL;
 		}
 		if (ch == ',' || ch == '\n')
@@ -684,7 +684,7 @@ step_validate(const struct step *st, struct lexer *lx, int lno)
 			continue;
 
 		if (step_field_is_empty(&st->st_fields[fd->fd_index])) {
-			lexer_warnx(lx, lno, "missing field '%s'",
+			lexer_error(lx, lno, "missing field '%s'",
 			    fd->fd_name);
 			error = 1;
 		}

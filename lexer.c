@@ -159,7 +159,7 @@ lexer_expect(struct lexer *lx, int exp, struct token **tk)
 		return 0;
 	act = (*tk)->tk_type;
 	if (exp != act) {
-		lexer_warnx(lx, (*tk)->tk_lno, "want %s, got %s",
+		lexer_error(lx, (*tk)->tk_lno, "want %s, got %s",
 		    lexer_serialize(lx, &(struct token){.tk_type = exp}),
 		    lexer_serialize(lx, *tk));
 		return 0;
@@ -205,7 +205,7 @@ lexer_get_state(const struct lexer *lx)
 }
 
 void
-lexer_warnx(struct lexer *lx, int lno, const char *fmt, ...)
+lexer_error(struct lexer *lx, int lno, const char *fmt, ...)
 {
 	va_list ap;
 

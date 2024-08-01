@@ -53,5 +53,5 @@ int	lexer_if(struct lexer *, int, struct token **);
 int			lexer_get_error(const struct lexer *);
 struct lexer_state	lexer_get_state(const struct lexer *);
 
-void	lexer_warnx(struct lexer *, int, const char *, ...)
+void	lexer_error(struct lexer *, int, const char *, ...)
 	__attribute__((format(printf, 3, 4)));
