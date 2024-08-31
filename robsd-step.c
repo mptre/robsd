@@ -100,6 +100,10 @@ done:
 	c.eternal = &eternal_scope;
 	c.scratch = arena_alloc();
 
+	/* Pave the way for action specific options. */
+	opterr = 1;
+	optind = 0;
+
 	switch (action) {
 	case ACTION_READ:
 		if (c.path == NULL)
@@ -110,6 +114,12 @@ done:
 			err(1, "unveil: %s", c.path);
 		if (pledge("stdio rpath flock", NULL) == -1)
 			err(1, "pledge");
+		c.step_file = steps_parse(c.path, &eternal_scope);
+		if (c.step_file == NULL) {
+			error = 1;
+			goto out;
+		}
+		error = steps_read(&c, argc, argv);
 		break;
 	case ACTION_WRITE:
 		if (c.path == NULL)
@@ -118,39 +128,16 @@ done:
 			err(1, "unveil: %s", c.path);
 		if (pledge("stdio rpath wpath cpath flock", NULL) == -1)
 			err(1, "pledge");
-		break;
-	case ACTION_LIST:
-		if (pledge("stdio rpath", NULL) == -1)
-			err(1, "pledge");
-		break;
-	case ACTION_INVALID:
-		__builtin_trap();
-		/* UNREACHABLE */
-	}
-
-	switch (action) {
-	case ACTION_READ:
-	case ACTION_WRITE:
 		c.step_file = steps_parse(c.path, &eternal_scope);
 		if (c.step_file == NULL) {
 			error = 1;
 			goto out;
 		}
-		break;
-	default:
-		break;
-	}
-
-	opterr = 1;
-	optind = 0;
-	switch (action) {
-	case ACTION_READ:
-		error = steps_read(&c, argc, argv);
-		break;
-	case ACTION_WRITE:
 		error = action_write(&c, argc, argv);
 		break;
 	case ACTION_LIST:
+		if (pledge("stdio rpath", NULL) == -1)
+			err(1, "pledge");
 		error = steps_list(&c, argc, argv);
 		break;
 	case ACTION_INVALID:
