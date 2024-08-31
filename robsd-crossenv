@@ -12,7 +12,7 @@ usage() {
 . "${EXECDIR:-/usr/local/libexec/robsd}/util.sh"
 
 setmode "robsd-cross"
-setprogname "robsd-cross"
+setprogname "robsd-crossenv"
 
 [ $# -lt 2 ] && usage
 
