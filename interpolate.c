@@ -46,7 +46,7 @@ interpolate_file(const char *path, const struct interpolate_arg *arg)
 	}
 
 	out = arena_buffer_alloc(c.arg->eternal, 1 << 10);
-	while ((line = buffer_getline(bf, &it)) != NULL) {
+	while ((line = arena_buffer_getline(&s, bf, &it)) != NULL) {
 		c.lno++;
 		if (interpolate(&c, out, line))
 			return NULL;
