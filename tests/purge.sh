@@ -12,7 +12,7 @@ if testcase "basic"; then
 			(cd "${_d}" && echo "${_f}" >"${_f}")
 		done
 		: >"$(step_path "${_d}")"
-		touch "${_d}/snapshots"
+		mkdir "${_d}/snapshots"
 		mkdir "${_d}/tmp"
 		touch "${_d}/tmp/cvs.log"
 	done
