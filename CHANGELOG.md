@@ -24,7 +24,7 @@
   (8927022d19ab)
   (Anton Lindqvist)
 
-- robsd: make invocation directories compatible with sysupgrade(8)
+- robsd: make invocation directories compatible with sysupgrade(8).
   (cc9bbca984db)
   (Anton Lindqvist)
 
