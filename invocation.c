@@ -21,27 +21,80 @@ struct invocation_state {
 	VECTOR(struct invocation_entry)	 directories;
 };
 
-static int	invocation_read(struct invocation_state *, DIR *);
-
 static int	directory_asc_cmp(const struct invocation_entry *,
     const struct invocation_entry *);
 static int	directory_desc_cmp(const struct invocation_entry *,
     const struct invocation_entry *);
 
+static int
+invocation_read(struct invocation_state *is, const char *directory,
+    int (*match)(const struct dirent *, void *), void *arg)
+{
+	char path[PATH_MAX];
+	DIR *dir;
+	int error = 0;
+
+	dir = opendir(directory);
+	if (dir == NULL) {
+		warn("opendir: %s", directory);
+		return 1;
+	}
+
+	for (;;) {
+		const struct dirent *de;
+		struct invocation_entry *entry;
+
+		errno = 0;
+		de = readdir(dir);
+		if (de == NULL) {
+			if (errno != 0) {
+				warn("readdir: %s", directory);
+				error = 1;
+			}
+			break;
+		}
+		if (de->d_name[0] == '.')
+			continue;
+		if (!match(de, arg))
+			continue;
+
+		entry = VECTOR_ALLOC(is->directories);
+		if (entry == NULL)
+			err(1, NULL);
+		(void)snprintf(path, sizeof(path), "%s/%s",
+		    directory, de->d_name);
+		(void)snprintf(entry->path, sizeof(entry->path), "%s", path);
+		(void)snprintf(entry->basename, sizeof(entry->basename), "%s",
+		    de->d_name);
+	}
+
+	closedir(dir);
+	return error;
+}
+
+static int
+match_directory(const struct dirent *de, void *arg)
+{
+	char path[PATH_MAX];
+	const struct invocation_state *is = arg;
+
+	if (de->d_type != DT_DIR)
+		return 0;
+
+	(void)snprintf(path, sizeof(path), "%s/%s",
+	    is->robsdir, de->d_name);
+	if (strcmp(path, is->keepdir) == 0)
+		return 0;
+
+	return 1;
+}
+
 struct invocation_state *
 invocation_alloc(const char *robsddir, const char *keepdir,
     struct arena_scope *s, unsigned int flags)
 {
-	DIR *dir = NULL;
 	struct invocation_state *is = NULL;
 	int error = 0;
-
-	dir = opendir(robsddir);
-	if (dir == NULL) {
-		warn("opendir: %s", robsddir);
-		error = 1;
-		goto out;
-	}
 
 	is = arena_calloc(s, 1, sizeof(*is));
 	is->robsdir = robsddir;
@@ -49,7 +102,7 @@ invocation_alloc(const char *robsddir, const char *keepdir,
 	if (VECTOR_INIT(is->directories))
 		err(1, NULL);
 
-	if (invocation_read(is, dir)) {
+	if (invocation_read(is, robsddir, match_directory, is)) {
 		error = 1;
 		goto out;
 	}
@@ -59,8 +112,6 @@ invocation_alloc(const char *robsddir, const char *keepdir,
 		VECTOR_SORT(is->directories, directory_desc_cmp);
 
 out:
-	if (dir != NULL)
-		closedir(dir);
 	if (error) {
 		invocation_free(is);
 		return NULL;
@@ -82,54 +133,26 @@ invocation_walk(struct invocation_state *is)
 	return VECTOR_POP(is->directories);
 }
 
+static int
+match_glob(const struct dirent *de, void *arg)
+{
+	const char *pattern = arg;
+
+	return fnmatch(pattern, de->d_name, 0) != FNM_NOMATCH;
+}
+
 struct invocation_state *
 invocation_find(const char *directory, const char *pattern,
     struct arena_scope *s)
 {
-	DIR *dir = NULL;
 	struct invocation_state *is = NULL;
 	int error = 0;
 
-	dir = opendir(directory);
-	if (dir == NULL) {
-		warn("opendir: %s", directory);
-		error = 1;
-		goto out;
-	}
 	is = arena_calloc(s, 1, sizeof(*is));
 	if (VECTOR_INIT(is->directories))
 		err(1, NULL);
-
-	for (;;) {
-		struct dirent *de;
-		struct invocation_entry *entry;
-
-		errno = 0;
-		de = readdir(dir);
-		if (de == NULL) {
-			if (errno != 0) {
-				warn("readdir: %s", directory);
-				error = 1;
-				goto out;
-			}
-			break;
-		}
-		if (fnmatch(pattern, de->d_name, 0) == FNM_NOMATCH ||
-		    de->d_name[0] == '.')
-			continue;
-
-		entry = VECTOR_ALLOC(is->directories);
-		if (entry == NULL)
-			err(1, NULL);
-		(void)snprintf(entry->path, sizeof(entry->path), "%s/%s",
-		    directory, de->d_name);
-		(void)snprintf(entry->basename, sizeof(entry->basename), "%s",
-		    de->d_name);
-	}
-
-out:
-	if (dir != NULL)
-		closedir(dir);
+	if (invocation_read(is, directory, match_glob, (void *)pattern))
+		error = 1;
 	if (error) {
 		invocation_free(is);
 		return NULL;
@@ -164,42 +187,6 @@ invocation_has_tag(const char *directory, const char *tag,
 			found = 1;
 	}
 	return found;
-}
-
-static int
-invocation_read(struct invocation_state *is, DIR *dir)
-{
-	char path[PATH_MAX];
-
-	for (;;) {
-		const struct dirent *de;
-		struct invocation_entry *entry;
-
-		errno = 0;
-		de = readdir(dir);
-		if (de == NULL) {
-			if (errno != 0) {
-				warn("readdir: %s", is->robsdir);
-				return 1;
-			}
-			break;
-		}
-		if (de->d_type != DT_DIR || de->d_name[0] == '.')
-			continue;
-
-		(void)snprintf(path, sizeof(path), "%s/%s",
-		    is->robsdir, de->d_name);
-		if (strcmp(path, is->keepdir) == 0)
-			continue;
-
-		entry = VECTOR_ALLOC(is->directories);
-		if (entry == NULL)
-			err(1, NULL);
-		(void)snprintf(entry->path, sizeof(entry->path), "%s", path);
-		(void)snprintf(entry->basename, sizeof(entry->basename), "%s",
-		    de->d_name);
-	}
-	return 0;
 }
 
 static int
