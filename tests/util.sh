@@ -243,6 +243,12 @@ TZ=""; export TZ
 ASAN_OPTIONS="exitcode=66"; export ASAN_OPTIONS
 UBSAN_OPTIONS="exitcode=66"; export UBSAN_OPTIONS
 
+# Enable hardening malloc(3) options on OpenBSD.
+case "$(uname -s)" in
+OpenBSD)	export MALLOC_OPTIONS="RS";;
+*)		;;
+esac
+
 . "${EXECDIR}/util.sh"
 
 setmode "robsd"
