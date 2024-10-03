@@ -9,6 +9,10 @@
 #define CONFIG_NOP	2
 #define CONFIG_FATAL    3
 
+struct config_steps {
+	struct config_step      *v; /* VECTOR(struct config_step) */
+};
+
 struct config {
 	struct lexer			 *lx;
 	const char			 *path;
@@ -28,7 +32,7 @@ struct config {
 	} steps;
 
 	struct {
-		struct config_step	*steps;
+		struct config_steps     steps;
 	} canvas;
 
 	struct {
@@ -95,7 +99,7 @@ const char		*config_interpolate_early(struct config *,
     const char *);
 int			 config_present(const struct config *, const char *);
 
-struct config_step	*config_steps_add_script(struct config_step *,
+struct config_step	*config_steps_add_script(struct config_steps *,
     const char *, const char *);
 void			 config_steps_free(void *);
 

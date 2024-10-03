@@ -29,7 +29,7 @@ config_canvas_init(struct config *cf)
 	config_copy_grammar(cf, canvas_grammar,
 	    sizeof(canvas_grammar) / sizeof(canvas_grammar[0]));
 
-	if (VECTOR_INIT(cf->canvas.steps))
+	if (VECTOR_INIT(cf->canvas.steps.v))
 		err(1, NULL);
 
 	if (cf->path == NULL) {
@@ -43,26 +43,26 @@ config_canvas_init(struct config *cf)
 static void
 config_canvas_free(struct config *cf)
 {
-	while (!VECTOR_EMPTY(cf->canvas.steps)) {
+	while (!VECTOR_EMPTY(cf->canvas.steps.v)) {
 		struct config_step *cs;
 
-		cs = VECTOR_POP(cf->canvas.steps);
+		cs = VECTOR_POP(cf->canvas.steps.v);
 		variable_value_clear(&cs->command.val);
 	}
 
-	VECTOR_FREE(cf->canvas.steps);
+	VECTOR_FREE(cf->canvas.steps.v);
 }
 
 static void
 config_canvas_after_parse(struct config *cf)
 {
-	config_steps_add_script(cf->canvas.steps, "/dev/null", "end");
+	config_steps_add_script(&cf->canvas.steps, "/dev/null", "end");
 }
 
 static struct config_step *
 config_canvas_get_steps(struct config *cf, struct arena_scope *UNUSED(s))
 {
-	return cf->canvas.steps;
+	return cf->canvas.steps.v;
 }
 
 const struct config_callbacks *
@@ -125,13 +125,13 @@ config_parse_canvas_step(struct config *cf, struct variable_value *UNUSED(val))
 	}
 
 	/* Add required variable sentinel. */
-	if (VECTOR_EMPTY(cf->canvas.steps)) {
+	if (VECTOR_EMPTY(cf->canvas.steps.v)) {
 		struct variable_value empty = {0};
 
 		config_append(cf, "step", &empty);
 	}
 
-	cs = VECTOR_CALLOC(cf->canvas.steps);
+	cs = VECTOR_CALLOC(cf->canvas.steps.v);
 	if (cs == NULL)
 		err(1, NULL);
 	cs->name = name.str;

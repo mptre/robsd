@@ -415,13 +415,13 @@ config_copy_grammar(struct config *cf, const struct grammar *grammar,
 }
 
 struct config_step *
-config_steps_add_script(struct config_step *steps, const char *script,
+config_steps_add_script(struct config_steps *steps, const char *script,
     const char *step_name)
 {
 	struct config_step *dst;
 	struct variable_value *val;
 
-	dst = VECTOR_CALLOC(steps);
+	dst = VECTOR_CALLOC(steps->v);
 	if (dst == NULL)
 		err(1, NULL);
 	dst->name = step_name;
@@ -450,19 +450,19 @@ config_steps_free(void *arg)
 struct config_step *
 config_default_get_steps(struct config *cf, struct arena_scope *s)
 {
-	VECTOR(struct config_step) steps;
+	struct config_steps steps;
 	size_t i;
 
-	ARENA_VECTOR_INIT(s, steps, cf->steps.len);
-	arena_cleanup(s, config_steps_free, steps);
+	ARENA_VECTOR_INIT(s, steps.v, cf->steps.len);
+	arena_cleanup(s, config_steps_free, steps.v);
 
 	for (i = 0; i < cf->steps.len; i++) {
 		const struct config_step *cs = &cf->steps.ptr[i];
 
-		config_steps_add_script(steps, cs->command.path, cs->name);
+		config_steps_add_script(&steps, cs->command.path, cs->name);
 	}
 
-	return steps;
+	return steps.v;
 }
 
 const struct config_step *

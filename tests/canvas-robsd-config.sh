@@ -47,7 +47,22 @@ STDIN="${TSHDIR}/stdin"
 if testcase "basic"; then
 	{
 		default_canvas_config
-		echo 'step "first" command { "true" }'
+		echo 'step "1" command { "true" }'
+		echo 'step "2" command { "true" }'
+		echo 'step "3" command { "true" }'
+		echo 'step "4" command { "true" }'
+		echo 'step "5" command { "true" }'
+		echo 'step "6" command { "true" }'
+		echo 'step "7" command { "true" }'
+		echo 'step "8" command { "true" }'
+		echo 'step "9" command { "true" }'
+		echo 'step "10" command { "true" }'
+		echo 'step "11" command { "true" }'
+		echo 'step "12" command { "true" }'
+		echo 'step "13" command { "true" }'
+		echo 'step "14" command { "true" }'
+		echo 'step "15" command { "true" }'
+		echo 'step "16" command { "true" }'
 	} >"${CONFIG}"
 	robsd_config
 fi

@@ -118,15 +118,15 @@ static struct config_step *
 config_robsd_regress_get_steps(struct config *cf, struct arena_scope *s)
 {
 	VECTOR(const char *) regress_no_parallel;
-	VECTOR(struct config_step) steps;
+	struct config_steps steps;
 	VECTOR(char *) regress;
 	size_t i, nregress, r;
 
 	regress = config_value(cf, "regress", list, NULL);
 	nregress = VECTOR_LENGTH(regress);
 
-	ARENA_VECTOR_INIT(s, steps, cf->steps.len + nregress);
-	arena_cleanup(s, config_steps_free, steps);
+	ARENA_VECTOR_INIT(s, steps.v, cf->steps.len + nregress);
+	arena_cleanup(s, config_steps_free, steps.v);
 
 	ARENA_VECTOR_INIT(s, regress_no_parallel, 0);
 
@@ -137,7 +137,7 @@ config_robsd_regress_get_steps(struct config *cf, struct arena_scope *s)
 		if (cs->name == NULL)
 			break;
 
-		config_steps_add_script(steps, cs->command.path, cs->name);
+		config_steps_add_script(&steps, cs->command.path, cs->name);
 	}
 
 	/* Include parallel ${regress} steps. */
@@ -148,7 +148,7 @@ config_robsd_regress_get_steps(struct config *cf, struct arena_scope *s)
 		if (parallel) {
 			struct config_step *cs;
 
-			cs = config_steps_add_script(steps,
+			cs = config_steps_add_script(&steps,
 			    "${exec-dir}/robsd-regress-exec.sh", regress[r]);
 			cs->flags.parallel = 1;
 		} else {
@@ -163,7 +163,7 @@ config_robsd_regress_get_steps(struct config *cf, struct arena_scope *s)
 
 	/* Include non-parallel ${regress} steps. */
 	for (r = 0; r < VECTOR_LENGTH(regress_no_parallel); r++) {
-		config_steps_add_script(steps,
+		config_steps_add_script(&steps,
 		    "${exec-dir}/robsd-regress-exec.sh",
 		    regress_no_parallel[r]);
 	}
@@ -172,10 +172,10 @@ config_robsd_regress_get_steps(struct config *cf, struct arena_scope *s)
 	for (i++; i < cf->steps.len; i++) {
 		const struct config_step *cs = &cf->steps.ptr[i];
 
-		config_steps_add_script(steps, cs->command.path, cs->name);
+		config_steps_add_script(&steps, cs->command.path, cs->name);
 	}
 
-	return steps;
+	return steps.v;
 }
 
 const struct config_callbacks *
