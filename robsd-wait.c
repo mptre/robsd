@@ -24,7 +24,7 @@ struct wait_context {
 	} kqueue;
 };
 
-static void	usage(void) __attribute__((__noreturn__));
+static void	usage(void) __attribute__((noreturn));
 
 static void	context_free(struct wait_context *);
 static void	kqueue_setup(struct wait_context *);

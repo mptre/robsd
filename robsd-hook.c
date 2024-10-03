@@ -12,7 +12,7 @@
 #include "interpolate.h"
 #include "variable-value.h"
 
-static void	usage(void) __attribute__((__noreturn__));
+static void	usage(void) __attribute__((noreturn));
 
 static int	hook_to_argv(struct config *, struct arena_scope *,
     struct arena *, char ***);

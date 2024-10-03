@@ -33,7 +33,7 @@ struct stat_context {
 	} cpu;
 };
 
-static void	usage(void) __attribute__((__noreturn__));
+static void	usage(void) __attribute__((noreturn));
 
 /* stat collect routines */
 static int	stat_cpu(struct stat_context *);

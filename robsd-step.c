@@ -35,7 +35,7 @@ struct step_context {
 	struct step_file	*step_file;
 };
 
-static void	usage(void) __attribute__((__noreturn__));
+static void	usage(void) __attribute__((noreturn));
 
 static int	steps_read(struct step_context *, int, char **);
 static int	action_write(struct step_context *, int, char **);

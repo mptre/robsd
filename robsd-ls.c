@@ -12,7 +12,7 @@
 #include "invocation.h"
 #include "variable-value.h"
 
-static void	usage(void) __attribute__((__noreturn__));
+static void	usage(void) __attribute__((noreturn));
 
 int
 main(int argc, char *argv[])
