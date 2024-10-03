@@ -1,3 +1,11 @@
+# 20.0.1 - 2024-10-03
+
+## Bug fixes
+
+- robsd-config: fix use after free.
+  (70beb53aea3a)
+  (Anton Lindqvist)
+
 # 20.0.0 - 2024-09-01
 
 ## Changes
