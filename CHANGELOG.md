@@ -1,3 +1,12 @@
+# 20.0.2 - 2024-10-18
+
+## Bug fixes
+
+- robsd-regress: signal failure during timeout, allowing
+  robsd-report and robsd-regress-html to include the timed out regress target.
+  (7b9214c9c0b7)
+  (Anton Lindqvist)
+
 # 20.0.1 - 2024-10-03
 
 ## Bug fixes
