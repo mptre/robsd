@@ -8,6 +8,7 @@
 #include <errno.h>
 #include <fcntl.h>
 #include <signal.h>
+#include <stdio.h>
 #include <string.h>
 #include <unistd.h>
 
@@ -76,6 +77,12 @@ step_exec(const char *step_name, struct config *config, struct arena *scratch,
 	error = exitstatus(status, gotsig);
 	if (error)
 		warnx("process group exited %d", error);
+	/*
+	 * In case of robsd-regress timeout, signal failure in order for
+	 * robsd-report/robsd-regress-html to include the failing target.
+	 */
+	if (error == EX_TIMEOUT && config_get_mode(config) == ROBSD_REGRESS)
+		printf("FAILED\n");
 	return error;
 }
 
