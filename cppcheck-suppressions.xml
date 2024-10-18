@@ -29,6 +29,12 @@
     <id>unusedFunction</id>
   </suppress>
 
+  <!-- libks/vector.h -->
+  <suppress>
+    <fileName>libks/vector.h</fileName>
+    <id>unusedFunction</id>
+  </suppress>
+
   <!-- robsd-step.c -->
   <suppress>
     <fileName>robsd-step.c</fileName>
