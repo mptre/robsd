@@ -1,3 +1,11 @@
+# 20.0.3 - YYYY-MM-DD
+
+## Bug fixes
+
+- robsd-regress: give timeout exits higher precedence than failure.
+  (1c02da453a4b)
+  (Anton Lindqvist)
+
 # 20.0.2 - 2024-10-18
 
 ## Bug fixes
