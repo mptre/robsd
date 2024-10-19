@@ -1124,11 +1124,9 @@ step_eval() {
 # Execute the given script and redirect any output to log.
 step_exec() (
 	local _err=0
-	local _fail
 	local _log
 	local _step
 	local _trace="yes"
-	local _tmpdir
 
 	while [ $# -gt 0 ]; do
 		case "$1" in
@@ -1142,29 +1140,23 @@ step_exec() (
 	: "${_log:?}"
 	: "${_step:?}"
 
-	_tmpdir="$(config_value tmp-dir)"
-	_fail="$(mktemp -p "${_tmpdir}" step-exec.XXXXXX)"
-	echo 0 >"${_fail}"
+	set -o pipefail
 
 	[ "${DETACH}" -eq 0 ] || exec >/dev/null 2>&1
 
-	{
-		${ROBSDEXEC} -m "${_MODE}" ${ROBSDCONF:+"-C${ROBSDCONF}"} \
-			${_trace:+-x} "${_step}" || _err="$?"
+	${ROBSDEXEC} -m "${_MODE}" ${ROBSDCONF:+"-C${ROBSDCONF}"} \
+		${_trace:+-x} "${_step}" </dev/null 2>&1 |
+	tee "${_log}" || _err="$?"
 
-		echo "${_err}" >"${_fail}"
+	# Regress tests can fail but still exit zero, check the log for
+	# failures. However, give timeouts higher precedence.
+	if [ "${_MODE}" = "robsd-regress" ] &&
+	   [ "${_err}" -ne 124 ] &&
+	   regress_failed "${_log}"
+	then
+		_err=1
+	fi
 
-		# Regress tests can fail but still exit zero, check the log for
-		# failures. However, give timeouts higher precedence.
-		if [ "${_MODE}" = "robsd-regress" ] &&
-		   [ "${_err}" -ne 124 ] &&
-		   regress_failed "${_log}"
-		then
-			echo 1 >"${_fail}"
-		fi
-	} </dev/null 2>&1 | tee "${_log}"
-	_err="$(<"${_fail}")"
-	rm -f "${_fail}"
 	return "${_err}"
 )
 
