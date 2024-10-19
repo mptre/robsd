@@ -397,6 +397,7 @@ SHLINT+=	tests/robsd-step.sh
 SHLINT+=	tests/robsd-wait.sh
 SHLINT+=	tests/robsd.sh
 SHLINT+=	tests/step-eval.sh
+SHLINT+=	tests/step-exec.sh
 SHLINT+=	tests/step-id.sh
 SHLINT+=	tests/step-next.sh
 SHLINT+=	tests/step-time.sh

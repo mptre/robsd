@@ -1123,7 +1123,7 @@ step_eval() {
 #
 # Execute the given script and redirect any output to log.
 step_exec() (
-	local _err
+	local _err=0
 	local _fail
 	local _log
 	local _step
@@ -1149,13 +1149,18 @@ step_exec() (
 	[ "${DETACH}" -eq 0 ] || exec >/dev/null 2>&1
 
 	{
-		"${ROBSDEXEC}" -m "${_MODE}" ${ROBSDCONF:+"-C${ROBSDCONF}"} \
-			${_trace:+-x} "${_step}" || echo "$?" >"${_fail}"
+		${ROBSDEXEC} -m "${_MODE}" ${ROBSDCONF:+"-C${ROBSDCONF}"} \
+			${_trace:+-x} "${_step}" || _err="$?"
 
-		if [ "${_MODE}" = "robsd-regress" ]; then
-			# Regress tests can fail but still exit zero, check the
-			# log for failures.
-			regress_failed "${_log}" && echo 1 >"${_fail}"
+		echo "${_err}" >"${_fail}"
+
+		# Regress tests can fail but still exit zero, check the log for
+		# failures. However, give timeouts higher precedence.
+		if [ "${_MODE}" = "robsd-regress" ] &&
+		   [ "${_err}" -ne 124 ] &&
+		   regress_failed "${_log}"
+		then
+			echo 1 >"${_fail}"
 		fi
 	} </dev/null 2>&1 | tee "${_log}"
 	_err="$(<"${_fail}")"

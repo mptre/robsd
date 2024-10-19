@@ -35,6 +35,7 @@ TESTS+=	robsd-step.sh
 TESTS+=	robsd-wait.sh
 TESTS+=	robsd.sh
 TESTS+=	step-eval.sh
+TESTS+=	step-exec.sh
 TESTS+=	step-id.sh
 TESTS+=	step-next.sh
 TESTS+=	step-time.sh
