@@ -35,6 +35,7 @@ static void	sighandler(int);
 
 static int	step_fork(struct step_context *, char *const *, pid_t *);
 static int	step_timeout(struct step_context *);
+static int	step_timeout_backdoor(struct step_context *);
 
 static char *const	*resolve_step_command(struct step_context *,
     const char *, struct arena_scope *);
@@ -64,7 +65,7 @@ step_exec(const char *step_name, struct config *config, struct arena *scratch,
 	error = step_fork(&c, command, &pid);
 	if (error)
 		return error;
-	if (waitpid(-pid, &status, 0) == -1) {
+	if (step_timeout_backdoor(&c) || waitpid(-pid, &status, 0) == -1) {
 		if (gotsig) {
 			warnx("caught signal %d, kill process group",
 			    gotsig);
@@ -249,6 +250,16 @@ step_timeout(struct step_context *c)
 	if (config_get_mode(c->config) != ROBSD_REGRESS)
 		return 0;
 	return config_value(c->config, "regress-timeout", integer, 0);
+}
+
+static int
+step_timeout_backdoor(struct step_context *c)
+{
+	if ((c->flags & STEP_EXEC_TIMEOUT) == 0)
+		return 0;
+
+	gotsig = SIGALRM;
+	return 1;
 }
 
 static const struct config_step *

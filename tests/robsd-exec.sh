@@ -27,17 +27,19 @@ setup() {
 }
 
 
-# robsd_exec -m mode [-E exit] [-e] [-] [-- robsd-exec-argument ...]
+# robsd_exec -m mode [-T] [-E exit] [-e] [-] [-- robsd-exec-argument ...]
 robsd_exec() {
 	local _err0=0
 	local _err1=0
 	local _mode="robsd"
 	local _stdin=0
 	local _stdout="${TSHDIR}/stdout"
+	local _timeout=""
 
 	while [ $# -gt 0 ]; do
 		case "$1" in
 		-E)	shift; _err0="$1";;
+		-T)	_timeout="yes";;
 		-e)	_err0="1";;
 		-m)	shift; _mode="$1";;
 		-)	_stdin=1;;
@@ -48,7 +50,8 @@ robsd_exec() {
 	[ "${1:-}" = "--" ] && shift
 
 	${EXEC:-} "${ROBSDEXEC}" \
-		-m "${_mode}" -C "${TSHDIR}/.conf/${_mode}.conf" "$@" \
+		-m "${_mode}" ${_timeout:+-T} \
+		-C "${TSHDIR}/.conf/${_mode}.conf" "$@" \
 		>"${_stdout}" 2>&1 || _err1="$?"
 	if [ "${_err0}" -ne "${_err1}" ]; then
 		fail - "expected exit ${_err0}, got ${_err1}" <"${_stdout}"
@@ -97,7 +100,7 @@ if testcase "robsd-regress: timeout"; then
 	sleep 60
 	EOF
 
-	robsd_exec -E 124 -m robsd-regress -- test/one | tail -n 1 >"${TMP1}"
+	robsd_exec -T -E 124 -m robsd-regress -- test/one | tail -n 1 >"${TMP1}"
 	assert_file - "${TMP1}" <<-EOF
 	FAILED
 	EOF

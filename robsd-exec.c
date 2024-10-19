@@ -22,13 +22,16 @@ main(int argc, char *argv[])
 	unsigned int flags = 0;
 	int ch, error;
 
-	while ((ch = getopt(argc, argv, "C:m:x")) != -1) {
+	while ((ch = getopt(argc, argv, "C:m:Tx")) != -1) {
 		switch (ch) {
 		case 'C':
 			config_path = optarg;
 			break;
 		case 'm':
 			config_mode = optarg;
+			break;
+		case 'T':
+			flags |= STEP_EXEC_TIMEOUT;
 			break;
 		case 'x':
 			flags |= STEP_EXEC_TRACE;
