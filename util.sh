@@ -1144,6 +1144,8 @@ step_exec() (
 
 	[ "${DETACH}" -eq 0 ] || exec >/dev/null 2>&1
 
+	# Caution, ROBSDEXEC is intentionally not quoted as some tests injects
+	# arguments.
 	${ROBSDEXEC} -m "${_MODE}" ${ROBSDCONF:+"-C${ROBSDCONF}"} \
 		${_trace:+-x} "${_step}" </dev/null 2>&1 |
 	tee "${_log}" || _err="$?"

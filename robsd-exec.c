@@ -31,6 +31,7 @@ main(int argc, char *argv[])
 			config_mode = optarg;
 			break;
 		case 'T':
+			/* Testing backdoor, intentionally undocumented. */
 			flags |= STEP_EXEC_TIMEOUT;
 			break;
 		case 'x':
