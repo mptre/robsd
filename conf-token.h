@@ -27,6 +27,7 @@ struct arena_scope;
 	OP(ROOT,		"root",		ROBSD_REGRESS)		\
 	OP(SECONDS,		"s",		0)			\
 	OP(TARGETS,		"targets",	ROBSD_REGRESS)		\
+	OP(TIMEOUT,		"timeout",	ROBSD_REGRESS)		\
 	OP(YES,			"yes",		0)
 
 enum token_type {

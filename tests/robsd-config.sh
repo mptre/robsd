@@ -305,6 +305,31 @@ if testcase "regress rdomain wrap around"; then
 	} | robsd_config -R -
 fi
 
+if testcase "regress timeout"; then
+	{
+		default_regress_config
+		echo 'regress-timeout 1h'
+		echo 'regress "one" timeout 60s'
+		echo 'regress "two"'
+	} >"${CONFIG}"
+	echo "TIMEOUT=\${regress-two-timeout} \${regress-one-timeout}" >"${STDIN}"
+	robsd_config -R - <<-EOF
+	TIMEOUT=3600 60
+	EOF
+fi
+
+if testcase "regress timeout default"; then
+	{
+		default_regress_config
+		echo 'regress "one" timeout 60s'
+		echo 'regress "two"'
+	} >"${CONFIG}"
+	echo "TIMEOUT=\${regress-two-timeout} \${regress-one-timeout}" >"${STDIN}"
+	robsd_config -R - <<-EOF
+	TIMEOUT=0 60
+	EOF
+fi
+
 if testcase "regress timeout hours"; then
 	{
 		default_regress_config

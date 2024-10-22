@@ -30,6 +30,8 @@ static struct variable	*config_default_parallel(struct config *, const char *);
 static struct variable	*config_default_rdomain(struct config *, const char *);
 static struct variable	*config_default_regress_targets(struct config *,
     const char *);
+static struct variable	*config_default_regress_timeout(struct config *,
+    const char *);
 
 static const struct grammar robsd_regress_grammar[] = {
 	{ "parallel",		INTEGER,	config_parse_boolean,		0,		{ D_I32(1) } },
@@ -47,6 +49,7 @@ static const struct grammar robsd_regress_grammar[] = {
 	{ "regress-*-env",	STRING,		NULL,				PAT|EARLY,	{ "${regress-env}" } },
 	{ "regress-*-targets",	LIST,		NULL,				PAT|FUN,	{ D_FUN(config_default_regress_targets) } },
 	{ "regress-*-parallel",	INTEGER,	NULL,				PAT|FUN,	{ D_FUN(config_default_parallel) } },
+	{ "regress-*-timeout",	INTEGER,	NULL,				PAT|FUN,	{ D_FUN(config_default_regress_timeout) } },
 };
 
 static struct config_step robsd_regress_steps[] = {
@@ -256,6 +259,13 @@ config_parse_regress(struct config *cf, struct variable_value *UNUSED(val))
 			name = regressname(path, "targets", &s);
 			targets = config_find_or_create_list(cf, name);
 			variable_value_concat(&targets->va_val, &newval);
+		} else if (lexer_if(lx, TOKEN_TIMEOUT, &tk)) {
+			struct variable_value newval;
+
+			if (config_parse_timeout(cf, &newval))
+				return CONFIG_ERROR;
+			name = regressname(path, "timeout", &s);
+			config_append(cf, name, &newval);
 		} else {
 			break;
 		}
@@ -356,4 +366,10 @@ config_default_regress_targets(struct config *cf, const char *name)
 		err(1, NULL);
 	*dst = arena_strdup(cf->arena.eternal_scope, "regress");
 	return config_append(cf, name, &val);
+}
+
+static struct variable *
+config_default_regress_timeout(struct config *cf, const char *UNUSED(name))
+{
+	return config_find(cf, "regress-timeout");
 }

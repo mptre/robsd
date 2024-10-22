@@ -127,6 +127,14 @@ The
 .Xr make 1
 target to build.
 Defaults to regress.
+.It Ic timeout Ar timeout unit
+Timeout with higher precedence than
+.Ic regress-timeout .
+See below for how
+.Ar timeout
+and
+.Ar unit
+is interpreted.
 .El
 .It Ic regress-env No { Do Ar key=val Dc Ar ... No }
 Environment variables added to all regression tests.
