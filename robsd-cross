@@ -64,6 +64,7 @@ else
 	_step="$(step_next "$(step_path "${BUILDDIR}")")"
 fi
 build_init "${BUILDDIR}"
+cd "${BUILDDIR}"
 info "using directory ${BUILDDIR} at step ${_step}"
 
 lock_acquire "${ROBSDDIR}" "${BUILDDIR}"
