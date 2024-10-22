@@ -1,4 +1,10 @@
-# 20.0.3 - YYYY-MM-DD
+# 20.1.0 - 2024-10-22
+
+## Changes
+
+- robsd-regress: allow timeout to be overridden on a per regress test basis
+  (b6435d9ce719)
+  (Anton Lindqvist)
 
 ## Bug fixes
 
