@@ -109,4 +109,5 @@ int	config_parse_glob(struct config *, struct variable_value *);
 int	config_parse_integer(struct config *, struct variable_value *);
 int	config_parse_list(struct config *, struct variable_value *);
 int	config_parse_string(struct config *, struct variable_value *);
+int	config_parse_timeout(struct config *, struct variable_value *);
 int	config_parse_user(struct config *, struct variable_value *);

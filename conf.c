@@ -876,6 +876,39 @@ config_parse_user(struct config *cf, struct variable_value *val)
 }
 
 int
+config_parse_timeout(struct config *cf, struct variable_value *val)
+{
+	struct token *tk;
+	struct variable_value timeout;
+	int scalar = 0;
+
+	if (config_parse_integer(cf, &timeout) == CONFIG_ERROR)
+		return CONFIG_ERROR;
+	if (lexer_if(cf->lx, TOKEN_SECONDS, &tk)) {
+		scalar = 1;
+	} else if (lexer_if(cf->lx, TOKEN_MINUTES, &tk)) {
+		scalar = 60;
+	} else if (lexer_if(cf->lx, TOKEN_HOURS, &tk)) {
+		scalar = 3600;
+	} else {
+		struct token *nx;
+
+		if (lexer_next(cf->lx, &nx))
+			lexer_error(cf->lx, nx->tk_lno, "unknown timeout unit");
+		return CONFIG_ERROR;
+	}
+
+	if (KS_i32_mul_overflow(scalar, timeout.integer, &timeout.integer)) {
+		lexer_error(cf->lx, tk->tk_lno, "timeout too large");
+		return CONFIG_ERROR;
+	}
+
+	variable_value_init(val, INTEGER);
+	val->integer = timeout.integer;
+	return CONFIG_APPEND;
+}
+
+int
 config_parse_directory(struct config *cf, struct variable_value *val)
 {
 	struct stat st;

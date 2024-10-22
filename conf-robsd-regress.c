@@ -4,7 +4,6 @@
 
 #include "libks/arena-vector.h"
 #include "libks/arena.h"
-#include "libks/arithmetic.h"
 #include "libks/compiler.h"
 #include "libks/vector.h"
 
@@ -26,8 +25,6 @@ static int	config_parse_regress(struct config *, struct variable_value *);
 static int	config_parse_regress_option_env(struct config *, const char *);
 static int	config_parse_regress_env(struct config *,
     struct variable_value *);
-static int	config_parse_regress_timeout(struct config *,
-    struct variable_value *);
 
 static struct variable	*config_default_parallel(struct config *, const char *);
 static struct variable	*config_default_rdomain(struct config *, const char *);
@@ -46,7 +43,7 @@ static const struct grammar robsd_regress_grammar[] = {
 	{ "regress",		LIST,		config_parse_regress,		REQ|REP,	{ NULL } },
 	{ "regress-env",	LIST,		config_parse_regress_env,	REP,		{ NULL } },
 	{ "regress-user",	STRING,		config_parse_user,		0,		{ "${build-user}" } },
-	{ "regress-timeout",	INTEGER,	config_parse_regress_timeout,	0,		{ NULL } },
+	{ "regress-timeout",	INTEGER,	config_parse_timeout,		0,		{ NULL } },
 	{ "regress-*-env",	STRING,		NULL,				PAT|EARLY,	{ "${regress-env}" } },
 	{ "regress-*-targets",	LIST,		NULL,				PAT|FUN,	{ D_FUN(config_default_regress_targets) } },
 	{ "regress-*-parallel",	INTEGER,	NULL,				PAT|FUN,	{ D_FUN(config_default_parallel) } },
@@ -325,39 +322,6 @@ config_parse_regress_env(struct config *cf, struct variable_value *val)
 	env = config_find(cf, "regress-env");
 	variable_value_concat(&env->va_val, val);
 	return CONFIG_NOP;
-}
-
-static int
-config_parse_regress_timeout(struct config *cf, struct variable_value *val)
-{
-	struct token *tk;
-	struct variable_value timeout;
-	int scalar = 0;
-
-	if (config_parse_integer(cf, &timeout) == CONFIG_ERROR)
-		return CONFIG_ERROR;
-	if (lexer_if(cf->lx, TOKEN_SECONDS, &tk)) {
-		scalar = 1;
-	} else if (lexer_if(cf->lx, TOKEN_MINUTES, &tk)) {
-		scalar = 60;
-	} else if (lexer_if(cf->lx, TOKEN_HOURS, &tk)) {
-		scalar = 3600;
-	} else {
-		struct token *nx;
-
-		if (lexer_next(cf->lx, &nx))
-			lexer_error(cf->lx, nx->tk_lno, "unknown timeout unit");
-		return CONFIG_ERROR;
-	}
-
-	if (KS_i32_mul_overflow(scalar, timeout.integer, &timeout.integer)) {
-		lexer_error(cf->lx, tk->tk_lno, "timeout too large");
-		return CONFIG_ERROR;
-	}
-
-	variable_value_init(val, INTEGER);
-	val->integer = timeout.integer;
-	return CONFIG_APPEND;
 }
 
 static struct variable *
