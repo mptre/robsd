@@ -6,6 +6,10 @@
   (1cac6d6710e0)
   (Anton Lindqvist)
 
+- robsd-regress: honor timeout overrides.
+  (63d008f1ba9f)
+  (Anton Lindqvist)
+
 # 20.1.0 - 2024-10-22
 
 ## Changes
