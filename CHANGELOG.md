@@ -1,3 +1,11 @@
+# 20.1.1 - YYYY-MM-DD
+
+## Bug fixes
+
+- Revert change of current working directory to the build-dir.
+  (1cac6d6710e0)
+  (Anton Lindqvist)
+
 # 20.1.0 - 2024-10-22
 
 ## Changes
