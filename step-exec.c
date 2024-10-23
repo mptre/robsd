@@ -23,7 +23,11 @@
 
 struct step_context {
 	struct config		*config;
+	const char		*step_name;
 	unsigned int		 flags;
+	struct {
+		struct arena	*scratch;
+	} arena;
 };
 
 static int	exitstatus(int, int);
@@ -48,7 +52,11 @@ step_exec(const char *step_name, struct config *config, struct arena *scratch,
 {
 	struct step_context c = {
 		.config		= config,
+		.step_name	= step_name,
 		.flags		= flags,
+		.arena		= {
+			.scratch	= scratch,
+		},
 	};
 	char *const *command;
 	pid_t pid;
@@ -236,6 +244,7 @@ step_fork(struct step_context *c, char *const *command, pid_t *out)
 
 	timeout = step_timeout(c);
 	if (timeout > 0) {
+		warnx("timeout %ds", timeout);
 		siginstall(SIGALRM, sighandler, 0);
 		alarm((unsigned int)timeout);
 	}
@@ -247,9 +256,15 @@ step_fork(struct step_context *c, char *const *command, pid_t *out)
 static int
 step_timeout(struct step_context *c)
 {
+	const char *name;
+
 	if (config_get_mode(c->config) != ROBSD_REGRESS)
 		return 0;
-	return config_value(c->config, "regress-timeout", integer, 0);
+
+	arena_scope(c->arena.scratch, s);
+
+	name = arena_sprintf(&s, "regress-%s-timeout", c->step_name);
+	return config_value(c->config, name, integer, 0);
 }
 
 static int
