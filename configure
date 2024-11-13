@@ -102,6 +102,8 @@ check_gnu99() {
 	EOF
 }
 
+# check_gnu_source path
+#
 # Check if the given header rooted in /usr/include depends on _GNU_SOURCE.
 check_gnu_source() {
 	local _header
