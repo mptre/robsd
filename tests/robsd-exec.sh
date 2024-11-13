@@ -114,7 +114,7 @@ if testcase "robsd-regress: timeout override"; then
 	echo 'regress "test/timeout" timeout 1h' >>"${TSHDIR}/.conf/robsd-regress.conf"
 	: >"${TSHDIR}/robsd-regress-exec.sh"
 
-	robsd_exec -m robsd-regress -- test/timeout >"${TMP1}"
+	robsd_exec -T -E 124 -m robsd-regress -- test/timeout >"${TMP1}"
 
 	if ! grep -q 'timeout 3600s' "${TMP1}"; then
 		fail - "expected timeout output" <"${TMP1}"

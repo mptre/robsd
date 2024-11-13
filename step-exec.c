@@ -244,7 +244,8 @@ step_fork(struct step_context *c, char *const *command, pid_t *out)
 
 	timeout = step_timeout(c);
 	if (timeout > 0) {
-		warnx("timeout %ds", timeout);
+		if (c->flags & STEP_EXEC_TIMEOUT)
+			warnx("timeout %ds", timeout);
 		siginstall(SIGALRM, sighandler, 0);
 		alarm((unsigned int)timeout);
 	}
