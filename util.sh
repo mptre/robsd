@@ -233,7 +233,7 @@ cvs_date() {
 	_log="${_builddir}/$(step_value log 2>/dev/null || :)"
 	_date="$(grep -m 1 '^Date:' "${_log}" | sed -e 's/^[^:]*: *//' || :)"
 	if [ -n "${_date}" ]; then
-		date -j -f '%Y/%m/%d %H:%M:%S' '+%s' "${_date}"
+		date -u -j -f '%Y/%m/%d %H:%M:%S' '+%s' "${_date}"
 	else
 		step_value time
 	fi

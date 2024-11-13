@@ -33,6 +33,22 @@ if testcase "basic"; then
 	EOF
 fi
 
+if testcase "cvs date"; then
+	step_serialize -s 1 -n cvs -l cvs.log -t 1666666666 \
+		>"$(step_path "${_builddir}")"
+	cat <<-EOF >>"${_builddir}/cvs.log"
+	Date: 2024/11/12 20:52:35
+	EOF
+
+	(TZ="Europe/Stockholm" robsd_step_exec -m robsd "${_step}")
+
+	assert_file - "${_builddir}/rel/BUILDINFO" <<-EOF
+	Build date: 1666666666 - Tue Oct 25 02:57:46 UTC 2022
+	Build cvs date: 1731444755 - Tue Nov 12 20:52:35 UTC 2024
+	Build id: 2022-11-21
+	EOF
+fi
+
 if testcase "previous cvs date"; then
 	step_serialize -s 1 -n env -t 1666666666 \
 		>"$(step_path "${_builddir}")"
