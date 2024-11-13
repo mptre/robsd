@@ -40,9 +40,13 @@ build_date() {
 build_id() {
 	local _c
 	local _d
+	local _robsddir
+
+	_robsddir="$1"; : "${_robsddir:?}"
 
 	_d="$(date '+%Y-%m-%d')"
-	_c="$(find "$1" -type d -name "${_d}*" | wc -l)"
+	_c="$(cd "${_robsddir}" && find . -type d -name "${_d}*" |
+	      sort -nr | head -1 | cut -d '.' -f 3)"
 	printf '%s.%d\n' "${_d}" "$((_c + 1))"
 }
 

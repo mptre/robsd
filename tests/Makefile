@@ -1,3 +1,4 @@
+TESTS+=	build-id.sh
 TESTS+=	canvas-robsd-config.sh
 TESTS+=	canvas.sh
 TESTS+=	check-perf.sh
