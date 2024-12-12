@@ -474,6 +474,41 @@ if testcase "canvas: basic"; then
 	EOF
 fi
 
+if testcase "canvas: regress log"; then
+	{
+		step_serialize -s 1 -n first -l first.log -e 1
+		cat <<-EOF >"${_builddir}/first.log"
+		==== first ====
+		first must be included
+		FAILED
+
+		==== second ====
+		second must not be included
+		SUCCESS
+		EOF
+
+		step_serialize -H -s 2 -n end -d 60
+	} >"$(step_path "${_builddir}")"
+
+	robsd_report -m canvas - -- "${_builddir}" <<-EOF
+	Subject: canvas: test: 1 failure
+
+	> stats
+	Status: 1 failure
+	Duration: 00:01:00
+	Build: ${_builddir}
+
+	> first
+	Exit: 1
+	Duration: 00:00:01
+	Log: first.log
+
+	==== first ====
+	first must be included
+	FAILED
+	EOF
+fi
+
 if testcase "robsd-regress: invalid: missing log in non-regress step"; then
 	{
 		step_serialize -s 1 -n test/unstable -e 1

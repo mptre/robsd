@@ -371,10 +371,14 @@ canvas_report_step_log(struct report_context *r, const struct step *step)
 	log_path = step_get_log_path(r, step, &s);
 	if (log_path == NULL)
 		return STEP_LOG_UNHANDLED;
-	bf = arena_buffer_read(&s, log_path);
-	if (bf == NULL) {
-		warn("%s", log_path);
-		return STEP_LOG_ERROR;
+
+	bf = arena_buffer_alloc(&s, 1 << 8);
+	if (regress_log_parse(log_path, bf, REGRESS_LOG_FAILED) <= 0) {
+		bf = arena_buffer_read(&s, log_path);
+		if (bf == NULL) {
+			warn("%s", log_path);
+			return STEP_LOG_ERROR;
+		}
 	}
 	buffer_printf(r->out, "\n%s", buffer_str(bf));
 	return STEP_LOG_HANDLED;
