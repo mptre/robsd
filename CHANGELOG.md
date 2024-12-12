@@ -10,7 +10,7 @@
   (63d008f1ba9f)
   (Anton Lindqvist)
 
-- robsd: fix cvs date timezone in BUILDINFO
+- robsd: fix cvs date timezone in BUILDINFO.
   (37737a705aff)
   (Anton Lindqvist)
 
