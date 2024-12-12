@@ -364,7 +364,7 @@ static int
 canvas_report_step_log(struct report_context *r, const struct step *step)
 {
 	struct buffer *bf;
-	const char *log_path, *str;
+	const char *log_path;
 
 	arena_scope(r->scratch, s);
 
@@ -376,8 +376,7 @@ canvas_report_step_log(struct report_context *r, const struct step *step)
 		warn("%s", log_path);
 		return STEP_LOG_ERROR;
 	}
-	str = buffer_str(bf);
-	buffer_printf(r->out, "\n%s", str);
+	buffer_printf(r->out, "\n%s", buffer_str(bf));
 	return STEP_LOG_HANDLED;
 }
 
