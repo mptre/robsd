@@ -1,4 +1,10 @@
-# 20.1.1 - YYYY-MM-DD
+# 20.2.0rc1 - YYYY-MM-DD
+
+## News
+
+- canvas: honor bsd.regress.mk markers step logs.
+  (a1d10ff4ac4a)
+  (Anton Lindqvist)
 
 ## Bug fixes
 
