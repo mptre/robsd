@@ -6,6 +6,10 @@
   (a1d10ff4ac4a)
   (Anton Lindqvist)
 
+- robsd-regress: add missing skip step(s) support.
+  (ed120ac0ce30)
+  (Anton Lindqvist)
+
 ## Bug fixes
 
 - Revert change of current working directory to the build-dir.
