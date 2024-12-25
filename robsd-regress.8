@@ -9,6 +9,7 @@
 .Op Fl d
 .Op Fl S Ar src-patch
 .Op Fl c Ar comment
+.Op Fl s Ar step
 .Op Fl t Ar tag
 .Nm
 .Op Fl d
@@ -128,6 +129,11 @@ in the invocation directory where N is incremented for every given patch.
 .It Fl c Ar comment
 Path to comment included in
 .Pa report .
+.It Fl s Ar step
+Skip
+.Ar step ,
+see enumerated steps above.
+May be given multiple times.
 .It Fl r Ar path
 Resume an invocation located at
 .Ar path .
