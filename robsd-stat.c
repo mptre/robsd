@@ -4,6 +4,7 @@
 
 #include <sys/resource.h>
 #include <sys/sched.h>
+#include <sys/swap.h>
 #include <sys/sysctl.h>
 
 #include <err.h>
@@ -27,10 +28,17 @@ struct stat_context {
 	double		 loadavg;
 	int		 nprocs;
 	int		 nthreads;
+
 	struct {
 		long	c_abs[CPUSTATES];
 		double	c_rel[CPUSTATES];
 	} cpu;
+
+	struct {
+		struct swapent	*entries;
+		int		 nentries;
+		double		 used;
+	} swap;
 };
 
 static void	usage(void) __attribute__((noreturn));
@@ -41,6 +49,7 @@ static int	stat_directory(struct stat_context *, char **);
 static int	stat_directory1(struct stat_context *, const char *);
 static int	stat_loadavg(struct stat_context *);
 static int	stat_procs_and_threads(struct stat_context *);
+static int	stat_swap(struct stat_context *);
 static int	stat_time(struct stat_context *);
 
 static void	stat_print(const struct stat_context *, FILE *);
@@ -94,8 +103,8 @@ main(int argc, char *argv[])
 
 	if (doheader) {
 		/* Keep in sync with the robsd-stat.8 manual. */
-		fprintf(fh, "time,load,user,sys,spin,intr,idle,nprocs,"
-		    "nthreads,directory\n");
+		fprintf(fh, "time,load,user,sys,spin,intr,idle,swap,"
+		    "nprocs,nthreads,directory\n");
 		VECTOR_FREE(users);
 		return 0;
 	}
@@ -114,7 +123,8 @@ main(int argc, char *argv[])
 		    stat_cpu(&c) ||
 		    stat_loadavg(&c) ||
 		    stat_procs_and_threads(&c) ||
-		    stat_directory(&c, users)) {
+		    stat_directory(&c, users) ||
+		    stat_swap(&c)) {
 			error = 1;
 			break;
 		}
@@ -123,6 +133,7 @@ main(int argc, char *argv[])
 		usleep(interval_s * 1000 * 1000);
 	}
 
+	free(c.swap.entries);
 	arena_free(c.scratch);
 	VECTOR_FREE(users);
 
@@ -326,6 +337,49 @@ stat_procs_and_threads(struct stat_context *c)
 }
 
 static int
+stat_swap(struct stat_context *c)
+{
+	static int first = 1;
+	int used = 0;
+	int total = 0;
+	int i;
+
+	if (first) {
+		int n;
+
+		n = swapctl(SWAP_NSWAP, 0, 0);
+		if (n == -1) {
+			warn("swapctl: SWAP_NSWAP");
+			return 1;
+		}
+		c->swap.nentries = n;
+
+		c->swap.entries = calloc((size_t)c->swap.nentries,
+		    sizeof(c->swap.entries[0]));
+		if (c->swap.entries == NULL)
+			err(1, NULL);
+
+		first = 0;
+	}
+
+	if (swapctl(SWAP_STATS, c->swap.entries, c->swap.nentries) == -1) {
+		warn("swapctl: SWAP_STATS");
+		return 1;
+	}
+
+	for (i = 0; i < c->swap.nentries; i++) {
+		const struct swapent *se = &c->swap.entries[i];
+
+		used += se->se_inuse;
+		total += se->se_nblks;
+	}
+	if (total > 0)
+		c->swap.used = (double)used/total;
+
+	return 0;
+}
+
+static int
 stat_time(struct stat_context *c)
 {
 	struct timespec ts;
@@ -342,7 +396,7 @@ stat_time(struct stat_context *c)
 static void
 stat_print(const struct stat_context *c, FILE *fh)
 {
-	fprintf(fh, "%" PRIu64 ",%.2f,%.2f,%.2f,%.2f,%.2f,%.2f,%d,%d,%s\n",
+	fprintf(fh, "%" PRIu64 ",%.2f,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f,%d,%d,%s\n",
 	    c->time,
 	    c->loadavg,
 	    c->cpu.c_rel[CP_USER],
@@ -350,6 +404,7 @@ stat_print(const struct stat_context *c, FILE *fh)
 	    c->cpu.c_rel[CP_SPIN],
 	    c->cpu.c_rel[CP_INTR],
 	    c->cpu.c_rel[CP_IDLE],
+	    c->swap.used,
 	    c->nprocs,
 	    c->nthreads,
 	    c->directory);
