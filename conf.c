@@ -46,6 +46,7 @@ static int			 grammar_equals(const struct grammar *,
     const char *);
 
 static int	config_parse_inner(struct config *);
+static int	config_parse_integer(struct config *, struct variable_value *);
 static int	config_parse_keyword(struct config *, struct token *);
 static int	config_validate(const struct config *);
 
@@ -780,7 +781,7 @@ config_parse_string(struct config *cf, struct variable_value *val)
 	return CONFIG_APPEND;
 }
 
-int
+static int
 config_parse_integer(struct config *cf, struct variable_value *val)
 {
 	struct token *tk;
