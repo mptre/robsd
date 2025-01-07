@@ -815,7 +815,7 @@ config_parse_glob(struct config *cf, struct variable_value *val)
 	variable_value_init(val, LIST);
 
 	for (i = 0; i < g.gl_pathc; i++) {
-		char **dst;
+		const char **dst;
 
 		dst = VECTOR_ALLOC(val->list);
 		if (dst == NULL)
@@ -836,7 +836,7 @@ config_parse_list(struct config *cf, struct variable_value *val)
 		return CONFIG_ERROR;
 	variable_value_init(val, LIST);
 	for (;;) {
-		char **dst;
+		const char **dst;
 
 		if (lexer_peek(cf->lx, TOKEN_RBRACE))
 			break;

@@ -119,7 +119,7 @@ config_robsd_regress_get_steps(struct config *cf, struct arena_scope *s)
 {
 	VECTOR(const char *) regress_no_parallel;
 	struct config_steps steps;
-	VECTOR(char *) regress;
+	VECTOR(const char *) regress;
 	size_t i, nregress, r;
 
 	regress = config_value(cf, "regress", list, NULL);
@@ -198,7 +198,7 @@ config_parse_regress(struct config *cf, struct variable_value *UNUSED(val))
 	struct token *tk;
 	struct variable *regress;
 	const char *path;
-	char **dst;
+	const char **dst;
 
 	if (!lexer_expect(lx, TOKEN_STRING, &tk))
 		return CONFIG_ERROR;
@@ -285,7 +285,7 @@ config_parse_regress_option_env(struct config *cf, const char *path)
 	struct variable_value defval, intval, newval;
 	struct variable *va;
 	const char *name, *str, *template;
-	char **dst;
+	const char **dst;
 
 	if (config_parse_list(cf, &newval))
 		return CONFIG_ERROR;
@@ -358,7 +358,7 @@ static struct variable *
 config_default_regress_targets(struct config *cf, const char *name)
 {
 	struct variable_value val;
-	char **dst;
+	const char **dst;
 
 	variable_value_init(&val, LIST);
 	dst = VECTOR_ALLOC(val.list);

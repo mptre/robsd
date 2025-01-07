@@ -13,7 +13,7 @@ struct variable_value {
 	union {
 		const void	 *ptr;
 		const char	 *str;
-		char		**list;
+		const char	**list;
 		int		  integer;
 	};
 };

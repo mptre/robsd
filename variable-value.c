@@ -47,14 +47,14 @@ variable_value_clear(struct variable_value *val)
 void
 variable_value_append(struct variable_value *val, const char *str)
 {
-	char **dst;
+	const char **dst;
 
 	assert(val->type == LIST);
 
 	dst = VECTOR_ALLOC(val->list);
 	if (dst == NULL)
 		err(1, NULL);
-	*dst = (char *)str;
+	*dst = str;
 }
 
 void
@@ -65,7 +65,7 @@ variable_value_concat(struct variable_value *dst, struct variable_value *src)
 	assert(dst->type == LIST && src->type == LIST);
 
 	for (i = 0; i < VECTOR_LENGTH(src->list); i++) {
-		char **str;
+		const char **str;
 
 		str = VECTOR_ALLOC(dst->list);
 		if (str == NULL)

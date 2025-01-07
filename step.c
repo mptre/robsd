@@ -403,6 +403,10 @@ step_interpolate_lookup(const char *name, struct arena_scope *s, void *arg)
 static int
 step_serialize(const struct step *st, struct buffer *out, struct arena *scratch)
 {
+	union {
+		const struct step	*src;
+		void			*dst;
+	} u = {.src = st};
 	struct buffer *bf;
 	const char *template;
 	size_t i;
@@ -422,7 +426,7 @@ step_serialize(const struct step *st, struct buffer *out, struct arena *scratch)
 	error = interpolate_buffer(template, out,
 	    &(struct interpolate_arg){
 		.lookup		= step_interpolate_lookup,
-		.arg		= (void *)st,
+		.arg		= u.dst,
 		.scratch	= scratch,
 	});
 	/* coverity[leaked_storage: FALSE] */

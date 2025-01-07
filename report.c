@@ -269,7 +269,7 @@ is_regress_quiet(struct report_context *r, const char *name)
 static void
 regress_suites(struct report_context *r)
 {
-	VECTOR(char *) suites;
+	VECTOR(const char *) suites;
 	size_t i, nsuites;
 
 	if (MAP_INIT(r->regress.suites))

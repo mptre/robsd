@@ -15,13 +15,13 @@
 static void	usage(void) __attribute__((noreturn));
 
 static int	hook_to_argv(struct config *, struct arena_scope *,
-    struct arena *, char ***);
+    struct arena *, const char ***);
 
 int
 main(int argc, char *argv[])
 {
 	VECTOR(const char *) vars;
-	VECTOR(char *) args = NULL;
+	VECTOR(const char *) args = NULL;
 	struct arena *eternal, *scratch;
 	struct config *config = NULL;
 	const char *mode = NULL;
@@ -107,7 +107,11 @@ main(int argc, char *argv[])
 		fflush(stdout);
 	}
 
-	if (execvp(args[0], args) == -1) {
+	union {
+		const char	**src;
+		char *const	 *dst;
+	} u = {.src = args};
+	if (execvp(args[0], u.dst) == -1) {
 		warn("%s", args[0]);
 		error = 1;
 	}
@@ -130,10 +134,10 @@ usage(void)
 
 static int
 hook_to_argv(struct config *config, struct arena_scope *eternal,
-    struct arena *scratch, char ***out)
+    struct arena *scratch, const char ***out)
 {
-	VECTOR(char *) args;
-	VECTOR(char *) hook;
+	VECTOR(const char *) args;
+	VECTOR(const char *) hook;
 	size_t i, nargs;
 	int error = 0;
 
@@ -150,7 +154,7 @@ hook_to_argv(struct config *config, struct arena_scope *eternal,
 		err(1, NULL);
 	args[nargs] = NULL;
 	for (i = 0; i < VECTOR_LENGTH(hook); i++) {
-		char **dst;
+		const char **dst;
 		const char *str = hook[i];
 		const char *arg;
 
@@ -167,7 +171,7 @@ hook_to_argv(struct config *config, struct arena_scope *eternal,
 		dst = VECTOR_ALLOC(args);
 		if (dst == NULL)
 			err(1, NULL);
-		*dst = (char *)arg;
+		*dst = arg;
 	}
 
 	if (error) {

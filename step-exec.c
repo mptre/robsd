@@ -37,11 +37,11 @@ static int	killwaitpg1(int, int, int, int *);
 static void	siginstall(int, void (*)(int), int);
 static void	sighandler(int);
 
-static int	step_fork(struct step_context *, char *const *, pid_t *);
+static int	step_fork(struct step_context *, const char **, pid_t *);
 static int	step_timeout(struct step_context *);
 static int	step_timeout_backdoor(struct step_context *);
 
-static char *const	*resolve_step_command(struct step_context *,
+static const char	**resolve_step_command(struct step_context *,
     const char *, struct arena_scope *);
 
 static volatile sig_atomic_t	gotsig;
@@ -58,7 +58,7 @@ step_exec(const char *step_name, struct config *config, struct arena *scratch,
 			.scratch	= scratch,
 		},
 	};
-	char *const *command;
+	const char **command;
 	pid_t pid;
 	int error, status;
 
@@ -197,7 +197,7 @@ sighandler(int signo)
 }
 
 static int
-step_fork(struct step_context *c, char *const *command, pid_t *out)
+step_fork(struct step_context *c, const char **command, pid_t *out)
 {
 	int proc_pipe[2];
 	int status, timeout;
@@ -211,6 +211,11 @@ step_fork(struct step_context *c, char *const *command, pid_t *out)
 	if (pid == -1)
 		err(1, "fork");
 	if (pid == 0) {
+		union {
+			const char	**src;
+			char *const	 *dst;
+		} u = {.src = command};
+
 		close(proc_pipe[0]);
 		if (setsid() == -1)
 			err(1, "setsid");
@@ -222,7 +227,7 @@ step_fork(struct step_context *c, char *const *command, pid_t *out)
 
 		/* Signal to the parent that the process group is present. */
 		close(proc_pipe[1]);
-		execvp(command[0], command);
+		execvp(command[0], u.dst);
 		err(1, "%s", command[0]);
 	}
 
@@ -296,7 +301,7 @@ find_step(struct step_context *c, const char *step_name, struct arena_scope *s)
 	return NULL;
 }
 
-static char *const *
+static const char **
 resolve_step_command(struct step_context *c, const char *step_name,
     struct arena_scope *s)
 {

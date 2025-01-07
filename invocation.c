@@ -145,13 +145,17 @@ struct invocation_state *
 invocation_find(const char *directory, const char *pattern,
     struct arena_scope *s)
 {
+	union {
+		const char	*src;
+		void		*dst;
+	} u = {.src = pattern};
 	struct invocation_state *is = NULL;
 	int error = 0;
 
 	is = arena_calloc(s, 1, sizeof(*is));
 	if (VECTOR_INIT(is->directories))
 		err(1, NULL);
-	if (invocation_read(is, directory, match_glob, (void *)pattern))
+	if (invocation_read(is, directory, match_glob, u.dst))
 		error = 1;
 	if (error) {
 		invocation_free(is);
