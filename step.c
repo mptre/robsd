@@ -16,6 +16,7 @@
 #include "libks/arena-buffer.h"
 #include "libks/arena.h"
 #include "libks/buffer.h"
+#include "libks/compiler.h"
 #include "libks/vector.h"
 
 #include "interpolate.h"
@@ -403,10 +404,6 @@ step_interpolate_lookup(const char *name, struct arena_scope *s, void *arg)
 static int
 step_serialize(const struct step *st, struct buffer *out, struct arena *scratch)
 {
-	union {
-		const struct step	*src;
-		void			*dst;
-	} u = {.src = st};
 	struct buffer *bf;
 	const char *template;
 	size_t i;
@@ -426,7 +423,7 @@ step_serialize(const struct step *st, struct buffer *out, struct arena *scratch)
 	error = interpolate_buffer(template, out,
 	    &(struct interpolate_arg){
 		.lookup		= step_interpolate_lookup,
-		.arg		= u.dst,
+		.arg		= UNSAFE_CAST(void *, st),
 		.scratch	= scratch,
 	});
 	/* coverity[leaked_storage: FALSE] */

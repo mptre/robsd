@@ -13,6 +13,7 @@
 #include <unistd.h>
 
 #include "libks/arena.h"
+#include "libks/compiler.h"
 #include "libks/vector.h"
 
 #include "conf.h"
@@ -211,11 +212,6 @@ step_fork(struct step_context *c, const char **command, pid_t *out)
 	if (pid == -1)
 		err(1, "fork");
 	if (pid == 0) {
-		union {
-			const char	**src;
-			char *const	 *dst;
-		} u = {.src = command};
-
 		close(proc_pipe[0]);
 		if (setsid() == -1)
 			err(1, "setsid");
@@ -227,7 +223,7 @@ step_fork(struct step_context *c, const char **command, pid_t *out)
 
 		/* Signal to the parent that the process group is present. */
 		close(proc_pipe[1]);
-		execvp(command[0], u.dst);
+		execvp(command[0], UNSAFE_CAST(char *const *, command));
 		err(1, "%s", command[0]);
 	}
 

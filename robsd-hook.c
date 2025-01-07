@@ -6,6 +6,7 @@
 #include <unistd.h>
 
 #include "libks/arena.h"
+#include "libks/compiler.h"
 #include "libks/vector.h"
 
 #include "conf.h"
@@ -107,11 +108,7 @@ main(int argc, char *argv[])
 		fflush(stdout);
 	}
 
-	union {
-		const char	**src;
-		char *const	 *dst;
-	} u = {.src = args};
-	if (execvp(args[0], u.dst) == -1) {
+	if (execvp(args[0], UNSAFE_CAST(char *const *, args)) == -1) {
 		warn("%s", args[0]);
 		error = 1;
 	}
