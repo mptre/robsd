@@ -1,4 +1,4 @@
-# 20.2.0rc1 - YYYY-MM-DD
+# 20.2.0 - YYYY-MM-DD
 
 ## News
 
@@ -8,6 +8,10 @@
 
 - robsd-regress: add missing skip step(s) support.
   (ed120ac0ce30)
+  (Anton Lindqvist)
+
+- robsd-stat: collect swap usage ratio.
+  (7691a692a06e)
   (Anton Lindqvist)
 
 ## Bug fixes
