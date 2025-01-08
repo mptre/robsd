@@ -21,6 +21,7 @@
 #include "libks/arena.h"
 #include "libks/arithmetic.h"
 #include "libks/buffer.h"
+#include "libks/compiler.h"
 #include "libks/vector.h"
 
 #include "conf-priv.h"
@@ -45,10 +46,12 @@ static const struct grammar	*config_find_grammar_for_interpolation(
 static int			 grammar_equals(const struct grammar *,
     const char *);
 
-static int	config_parse_inner(struct config *);
-static int	config_parse_integer(struct config *, struct variable_value *);
-static int	config_parse_keyword(struct config *, struct token *);
-static int	config_validate(const struct config *);
+static int	config_parse_inner(struct config *, struct lexer *);
+static int	config_parse_integer(struct config *, struct lexer *,
+    struct variable_value *);
+static int	config_parse_keyword(struct config *, struct lexer *,
+    struct token *);
+static int	config_validate(const struct config *, struct lexer *);
 
 static struct variable	*config_default_build_dir(struct config *,
     const char *);
@@ -151,11 +154,12 @@ config_parse(struct config *cf)
 	struct config_lexer_context ctx = {
 		.cf	= cf,
 	};
+	struct lexer *lx;
 
 	arena_scope(cf->arena.scratch, s);
 
 	ctx.bf = arena_buffer_alloc(&s, 1 << 10);
-	cf->lx = lexer_alloc(&(struct lexer_arg){
+	lx = lexer_alloc(&(struct lexer_arg){
 	    .path	= cf->path,
 	    .arena	= {
 		.eternal_scope	= cf->arena.eternal_scope,
@@ -166,10 +170,10 @@ config_parse(struct config *cf)
 		.arg		= &ctx,
 	    },
 	});
-	if (cf->lx == NULL)
+	if (lx == NULL)
 		return 1;
 
-	if (config_parse_inner(cf))
+	if (config_parse_inner(cf, lx))
 		return 1;
 	cf->callbacks->after_parse(cf);
 	return 0;
@@ -678,7 +682,7 @@ grammar_equals(const struct grammar *gr, const char *needle)
 }
 
 static int
-config_parse_inner(struct config *cf)
+config_parse_inner(struct config *cf, struct lexer *lx)
 {
 	struct token *tk;
 	int error = 0;
@@ -686,14 +690,14 @@ config_parse_inner(struct config *cf)
 	for (;;) {
 		int rv;
 
-		if (lexer_peek(cf->lx, LEXER_EOF))
+		if (lexer_peek(lx, LEXER_EOF))
 			break;
-		if (!lexer_expect(cf->lx, TOKEN_KEYWORD, &tk)) {
+		if (!lexer_expect(lx, TOKEN_KEYWORD, &tk)) {
 			error = 1;
 			break;
 		}
 
-		rv = config_parse_keyword(cf, tk);
+		rv = config_parse_keyword(cf, lx, tk);
 		if (rv == CONFIG_ERROR) {
 			error = 1;
 		} else if (rv == CONFIG_FATAL) {
@@ -702,15 +706,15 @@ config_parse_inner(struct config *cf)
 		}
 	}
 
-	if (lexer_get_error(cf->lx))
+	if (lexer_get_error(lx))
 		return 1;
-	if (config_validate(cf))
+	if (config_validate(cf, lx))
 		return 1;
 	return error;
 }
 
 static int
-config_parse_keyword(struct config *cf, struct token *tk)
+config_parse_keyword(struct config *cf, struct lexer *lx, struct token *tk)
 {
 	const struct grammar *gr;
 	struct variable_value val;
@@ -718,17 +722,17 @@ config_parse_keyword(struct config *cf, struct token *tk)
 
 	gr = config_find_grammar_for_keyword(cf, tk->tk_str);
 	if (gr == NULL) {
-		lexer_error(cf->lx, tk->tk_lno, "unknown keyword '%s'",
+		lexer_error(lx, tk->tk_lno, "unknown keyword '%s'",
 		    tk->tk_str);
 		return CONFIG_FATAL;
 	}
 
 	no_repeat = (gr->gr_flags & REP) == 0 && config_present(cf, tk->tk_str);
-	rv = gr->gr_fn(cf, &val);
+	rv = gr->gr_fn(cf, lx, &val);
 	if (rv == CONFIG_APPEND)
 		config_append(cf, tk->tk_str, &val);
 	if (no_repeat) {
-		lexer_error(cf->lx, tk->tk_lno,
+		lexer_error(lx, tk->tk_lno,
 		    "variable '%s' already defined", tk->tk_str);
 		return CONFIG_ERROR;
 	}
@@ -737,7 +741,7 @@ config_parse_keyword(struct config *cf, struct token *tk)
 }
 
 static int
-config_validate(const struct config *cf)
+config_validate(const struct config *cf, struct lexer *lx)
 {
 	size_t i, n;
 	int error = 0;
@@ -748,7 +752,7 @@ config_validate(const struct config *cf)
 		const char *str = gr->gr_kw;
 
 		if ((gr->gr_flags & REQ) && !config_present(cf, str)) {
-			lexer_error(cf->lx, 0,
+			lexer_error(lx, 0,
 			    "mandatory variable '%s' missing", str);
 			error = 1;
 		}
@@ -758,11 +762,12 @@ config_validate(const struct config *cf)
 }
 
 int
-config_parse_boolean(struct config *cf, struct variable_value *val)
+config_parse_boolean(struct config *UNUSED(cf), struct lexer *lx,
+    struct variable_value *val)
 {
 	struct token *tk;
 
-	if (!lexer_expect(cf->lx, TOKEN_BOOLEAN, &tk))
+	if (!lexer_expect(lx, TOKEN_BOOLEAN, &tk))
 		return CONFIG_ERROR;
 	variable_value_init(val, INTEGER);
 	val->integer = tk->tk_int;
@@ -770,11 +775,12 @@ config_parse_boolean(struct config *cf, struct variable_value *val)
 }
 
 int
-config_parse_string(struct config *cf, struct variable_value *val)
+config_parse_string(struct config *UNUSED(cf), struct lexer *lx,
+    struct variable_value *val)
 {
 	struct token *tk;
 
-	if (!lexer_expect(cf->lx, TOKEN_STRING, &tk))
+	if (!lexer_expect(lx, TOKEN_STRING, &tk))
 		return CONFIG_ERROR;
 	variable_value_init(val, STRING);
 	val->str = tk->tk_str;
@@ -782,11 +788,12 @@ config_parse_string(struct config *cf, struct variable_value *val)
 }
 
 static int
-config_parse_integer(struct config *cf, struct variable_value *val)
+config_parse_integer(struct config *UNUSED(cf), struct lexer *lx,
+    struct variable_value *val)
 {
 	struct token *tk;
 
-	if (!lexer_expect(cf->lx, TOKEN_INTEGER, &tk))
+	if (!lexer_expect(lx, TOKEN_INTEGER, &tk))
 		return CONFIG_ERROR;
 	variable_value_init(val, INTEGER);
 	val->integer = tk->tk_int;
@@ -794,14 +801,15 @@ config_parse_integer(struct config *cf, struct variable_value *val)
 }
 
 int
-config_parse_glob(struct config *cf, struct variable_value *val)
+config_parse_glob(struct config *cf, struct lexer *lx,
+    struct variable_value *val)
 {
 	glob_t g;
 	struct token *tk;
 	size_t i;
 	int error;
 
-	if (!lexer_expect(cf->lx, TOKEN_STRING, &tk))
+	if (!lexer_expect(lx, TOKEN_STRING, &tk))
 		return CONFIG_ERROR;
 
 	error = glob(tk->tk_str, GLOB_ERR, NULL, &g);
@@ -809,7 +817,7 @@ config_parse_glob(struct config *cf, struct variable_value *val)
 		if (error == GLOB_NOMATCH)
 			return CONFIG_NOP;
 
-		lexer_error(cf->lx, tk->tk_lno, "glob: %s", strerror(errno));
+		lexer_error(lx, tk->tk_lno, "glob: %s", strerror(errno));
 		return CONFIG_FATAL;
 	}
 
@@ -829,26 +837,27 @@ config_parse_glob(struct config *cf, struct variable_value *val)
 }
 
 int
-config_parse_list(struct config *cf, struct variable_value *val)
+config_parse_list(struct config *cf, struct lexer *lx,
+    struct variable_value *val)
 {
 	struct token *tk;
 
-	if (!lexer_expect(cf->lx, TOKEN_LBRACE, &tk))
+	if (!lexer_expect(lx, TOKEN_LBRACE, &tk))
 		return CONFIG_ERROR;
 	variable_value_init(val, LIST);
 	for (;;) {
 		const char **dst;
 
-		if (lexer_peek(cf->lx, TOKEN_RBRACE))
+		if (lexer_peek(lx, TOKEN_RBRACE))
 			break;
-		if (!lexer_expect(cf->lx, TOKEN_STRING, &tk))
+		if (!lexer_expect(lx, TOKEN_STRING, &tk))
 			goto err;
 		dst = VECTOR_ALLOC(val->list);
 		if (dst == NULL)
 			err(1, NULL);
 		*dst = arena_strdup(cf->arena.eternal_scope, tk->tk_str);
 	}
-	if (!lexer_expect(cf->lx, TOKEN_RBRACE, &tk))
+	if (!lexer_expect(lx, TOKEN_RBRACE, &tk))
 		goto err;
 
 	return CONFIG_APPEND;
@@ -859,17 +868,18 @@ err:
 }
 
 int
-config_parse_user(struct config *cf, struct variable_value *val)
+config_parse_user(struct config *UNUSED(cf), struct lexer *lx,
+    struct variable_value *val)
 {
 	struct token *tk;
 	const char *user;
 
-	if (!lexer_expect(cf->lx, TOKEN_STRING, &tk))
+	if (!lexer_expect(lx, TOKEN_STRING, &tk))
 		return CONFIG_ERROR;
 	variable_value_init(val, STRING);
 	user = val->str = tk->tk_str;
 	if (getpwnam(user) == NULL) {
-		lexer_error(cf->lx, tk->tk_lno, "user '%s' not found",
+		lexer_error(lx, tk->tk_lno, "user '%s' not found",
 		    user);
 		return CONFIG_ERROR;
 	}
@@ -877,30 +887,31 @@ config_parse_user(struct config *cf, struct variable_value *val)
 }
 
 int
-config_parse_timeout(struct config *cf, struct variable_value *val)
+config_parse_timeout(struct config *cf, struct lexer *lx,
+    struct variable_value *val)
 {
 	struct token *tk;
 	struct variable_value timeout;
 	int scalar = 0;
 
-	if (config_parse_integer(cf, &timeout) == CONFIG_ERROR)
+	if (config_parse_integer(cf, lx, &timeout) == CONFIG_ERROR)
 		return CONFIG_ERROR;
-	if (lexer_if(cf->lx, TOKEN_SECONDS, &tk)) {
+	if (lexer_if(lx, TOKEN_SECONDS, &tk)) {
 		scalar = 1;
-	} else if (lexer_if(cf->lx, TOKEN_MINUTES, &tk)) {
+	} else if (lexer_if(lx, TOKEN_MINUTES, &tk)) {
 		scalar = 60;
-	} else if (lexer_if(cf->lx, TOKEN_HOURS, &tk)) {
+	} else if (lexer_if(lx, TOKEN_HOURS, &tk)) {
 		scalar = 3600;
 	} else {
 		struct token *nx;
 
-		if (lexer_next(cf->lx, &nx))
-			lexer_error(cf->lx, nx->tk_lno, "unknown timeout unit");
+		if (lexer_next(lx, &nx))
+			lexer_error(lx, nx->tk_lno, "unknown timeout unit");
 		return CONFIG_ERROR;
 	}
 
 	if (KS_i32_mul_overflow(scalar, timeout.integer, &timeout.integer)) {
-		lexer_error(cf->lx, tk->tk_lno, "timeout too large");
+		lexer_error(lx, tk->tk_lno, "timeout too large");
 		return CONFIG_ERROR;
 	}
 
@@ -910,13 +921,14 @@ config_parse_timeout(struct config *cf, struct variable_value *val)
 }
 
 int
-config_parse_directory(struct config *cf, struct variable_value *val)
+config_parse_directory(struct config *cf, struct lexer *lx,
+    struct variable_value *val)
 {
 	struct stat st;
 	struct token *tk;
 	const char *dir, *path;
 
-	if (!lexer_expect(cf->lx, TOKEN_STRING, &tk))
+	if (!lexer_expect(lx, TOKEN_STRING, &tk))
 		return CONFIG_ERROR;
 	variable_value_init(val, STRING);
 	dir = val->str = tk->tk_str;
@@ -934,11 +946,11 @@ config_parse_directory(struct config *cf, struct variable_value *val)
 	if (path == NULL) {
 		return CONFIG_ERROR;
 	} else if (stat(path, &st) == -1) {
-		lexer_error(cf->lx, tk->tk_lno, "%s: %s",
+		lexer_error(lx, tk->tk_lno, "%s: %s",
 		    path, strerror(errno));
 		return CONFIG_ERROR;
 	} else if (!S_ISDIR(st.st_mode)) {
-		lexer_error(cf->lx, tk->tk_lno, "%s: is not a directory",
+		lexer_error(lx, tk->tk_lno, "%s: is not a directory",
 		    path);
 		return CONFIG_ERROR;
 	}

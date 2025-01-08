@@ -13,9 +13,9 @@
 #include "variable-value.h"
 
 static int	config_parse_canvas_directory(struct config *,
-    struct variable_value *);
+    struct lexer *, struct variable_value *);
 static int	config_parse_canvas_step(struct config *,
-    struct variable_value *);
+    struct lexer *, struct variable_value *);
 
 static const struct grammar canvas_grammar[] = {
 	{ "canvas-name",	STRING,		config_parse_string,		REQ,		{ NULL } },
@@ -79,11 +79,12 @@ config_canvas_callbacks(void)
 }
 
 static int
-config_parse_canvas_directory(struct config *cf, struct variable_value *val)
+config_parse_canvas_directory(struct config *cf, struct lexer *lx,
+    struct variable_value *val)
 {
 	int error;
 
-	error = config_parse_directory(cf, val);
+	error = config_parse_directory(cf, lx, val);
 	if (error)
 		return error;
 	config_append(cf, "canvas-dir", val);
@@ -93,7 +94,8 @@ config_parse_canvas_directory(struct config *cf, struct variable_value *val)
 }
 
 static int
-config_parse_canvas_step(struct config *cf, struct variable_value *UNUSED(val))
+config_parse_canvas_step(struct config *cf, struct lexer *lx,
+    struct variable_value *UNUSED(val))
 {
 	struct variable_value name = {0};
 	struct variable_value command = {0};
@@ -102,16 +104,16 @@ config_parse_canvas_step(struct config *cf, struct variable_value *UNUSED(val))
 	unsigned int parallel = 0;
 	int error;
 
-	error = config_parse_string(cf, &name);
+	error = config_parse_string(cf, lx, &name);
 	if (error)
 		return error;
 
 	for (;;) {
-		if (lexer_if(cf->lx, TOKEN_COMMAND, &tk)) {
-			error = config_parse_list(cf, &command);
+		if (lexer_if(lx, TOKEN_COMMAND, &tk)) {
+			error = config_parse_list(cf, lx, &command);
 			if (error)
 				goto err;
-		} else if (lexer_if(cf->lx, TOKEN_PARALLEL, &tk)) {
+		} else if (lexer_if(lx, TOKEN_PARALLEL, &tk)) {
 			parallel = 1;
 		} else {
 			break;
@@ -119,7 +121,7 @@ config_parse_canvas_step(struct config *cf, struct variable_value *UNUSED(val))
 	}
 
 	if (!is_variable_value_valid(&command) || VECTOR_EMPTY(command.list)) {
-		lexer_error(cf->lx, lexer_back(cf->lx, &tk) ? tk->tk_lno : 0,
+		lexer_error(lx, lexer_back(lx, &tk) ? tk->tk_lno : 0,
 		    "mandatory step option 'command' missing");
 		goto err;
 	}

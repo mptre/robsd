@@ -3,6 +3,8 @@
 #include "mode.h"
 #include "variable-value.h"
 
+struct lexer;
+
 /* Return values for config parser routines. */
 #define CONFIG_APPEND	0
 #define CONFIG_ERROR	1
@@ -14,7 +16,6 @@ struct config_steps {
 };
 
 struct config {
-	struct lexer			 *lx;
 	const char			 *path;
 	const struct config_callbacks	 *callbacks;
 	const struct grammar		**grammar;	/* VECTOR(const struct grammar *) */
@@ -56,7 +57,7 @@ struct grammar {
 	const char		*gr_kw;
 	enum variable_type	 gr_type;
 	int			 (*gr_fn)(struct config *,
-	    struct variable_value *);
+	    struct lexer *, struct variable_value *);
 	unsigned int		 gr_flags;
 #define REQ	0x00000001u	/* required */
 #define REP	0x00000002u	/* may be repeated */
@@ -103,10 +104,17 @@ struct config_step	*config_steps_add_script(struct config_steps *,
     const char *, const char *);
 void			 config_steps_free(void *);
 
-int	config_parse_boolean(struct config *, struct variable_value *);
-int	config_parse_directory(struct config *, struct variable_value *);
-int	config_parse_glob(struct config *, struct variable_value *);
-int	config_parse_list(struct config *, struct variable_value *);
-int	config_parse_string(struct config *, struct variable_value *);
-int	config_parse_timeout(struct config *, struct variable_value *);
-int	config_parse_user(struct config *, struct variable_value *);
+int	config_parse_boolean(struct config *, struct lexer *,
+    struct variable_value *);
+int	config_parse_directory(struct config *, struct lexer *,
+    struct variable_value *);
+int	config_parse_glob(struct config *, struct lexer *,
+    struct variable_value *);
+int	config_parse_list(struct config *, struct lexer *,
+    struct variable_value *);
+int	config_parse_string(struct config *, struct lexer *,
+    struct variable_value *);
+int	config_parse_timeout(struct config *, struct lexer *,
+    struct variable_value *);
+int	config_parse_user(struct config *, struct lexer *,
+    struct variable_value *);

@@ -21,9 +21,11 @@
 #define RDOMAIN_MIN	11
 #define RDOMAIN_MAX	256
 
-static int	config_parse_regress(struct config *, struct variable_value *);
-static int	config_parse_regress_option_env(struct config *, const char *);
-static int	config_parse_regress_env(struct config *,
+static int	config_parse_regress(struct config *, struct lexer *,
+    struct variable_value *);
+static int	config_parse_regress_option_env(struct config *,
+    struct lexer *, const char *);
+static int	config_parse_regress_env(struct config *, struct lexer *,
     struct variable_value *);
 
 static struct variable	*config_default_parallel(struct config *, const char *);
@@ -192,9 +194,9 @@ config_robsd_regress_callbacks(void)
 }
 
 static int
-config_parse_regress(struct config *cf, struct variable_value *UNUSED(val))
+config_parse_regress(struct config *cf, struct lexer *lx,
+    struct variable_value *UNUSED(val))
 {
-	struct lexer *lx = cf->lx;
 	struct token *tk;
 	struct variable *regress;
 	const char *path;
@@ -210,7 +212,7 @@ config_parse_regress(struct config *cf, struct variable_value *UNUSED(val))
 		arena_scope(cf->arena.scratch, s);
 
 		if (lexer_if(lx, TOKEN_ENV, &tk)) {
-			if (config_parse_regress_option_env(cf, path))
+			if (config_parse_regress_option_env(cf, lx, path))
 				return CONFIG_ERROR;
 		} else if (lexer_if(lx, TOKEN_NO_PARALLEL, &tk)) {
 			struct variable_value newval;
@@ -223,7 +225,7 @@ config_parse_regress(struct config *cf, struct variable_value *UNUSED(val))
 			struct variable_value newval;
 			struct variable *obj;
 
-			if (config_parse_list(cf, &newval))
+			if (config_parse_list(cf, lx, &newval))
 				return CONFIG_ERROR;
 			obj = config_find_or_create_list(cf, "regress-obj");
 			variable_value_concat(&obj->va_val, &newval);
@@ -231,7 +233,7 @@ config_parse_regress(struct config *cf, struct variable_value *UNUSED(val))
 			struct variable_value newval;
 			struct variable *packages;
 
-			if (config_parse_list(cf, &newval))
+			if (config_parse_list(cf, lx, &newval))
 				return CONFIG_ERROR;
 			packages = config_find_or_create_list(cf,
 			    "regress-packages");
@@ -254,7 +256,7 @@ config_parse_regress(struct config *cf, struct variable_value *UNUSED(val))
 			struct variable_value newval;
 			struct variable *targets;
 
-			if (config_parse_list(cf, &newval))
+			if (config_parse_list(cf, lx, &newval))
 				return CONFIG_ERROR;
 			name = regressname(path, "targets", &s);
 			targets = config_find_or_create_list(cf, name);
@@ -262,7 +264,7 @@ config_parse_regress(struct config *cf, struct variable_value *UNUSED(val))
 		} else if (lexer_if(lx, TOKEN_TIMEOUT, &tk)) {
 			struct variable_value newval;
 
-			if (config_parse_timeout(cf, &newval))
+			if (config_parse_timeout(cf, lx, &newval))
 				return CONFIG_ERROR;
 			name = regressname(path, "timeout", &s);
 			config_append(cf, name, &newval);
@@ -280,14 +282,15 @@ config_parse_regress(struct config *cf, struct variable_value *UNUSED(val))
 }
 
 static int
-config_parse_regress_option_env(struct config *cf, const char *path)
+config_parse_regress_option_env(struct config *cf, struct lexer *lx,
+    const char *path)
 {
 	struct variable_value defval, intval, newval;
 	struct variable *va;
 	const char *name, *str, *template;
 	const char **dst;
 
-	if (config_parse_list(cf, &newval))
+	if (config_parse_list(cf, lx, &newval))
 		return CONFIG_ERROR;
 
 	arena_scope(cf->arena.scratch, s);
@@ -316,11 +319,12 @@ config_parse_regress_option_env(struct config *cf, const char *path)
 }
 
 static int
-config_parse_regress_env(struct config *cf, struct variable_value *val)
+config_parse_regress_env(struct config *cf, struct lexer *lx,
+    struct variable_value *val)
 {
 	struct variable *env;
 
-	if (config_parse_list(cf, val))
+	if (config_parse_list(cf, lx, val))
 		return CONFIG_ERROR;
 
 	if (!config_present(cf, "regress-env")) {
