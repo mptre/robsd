@@ -1,3 +1,11 @@
+# 20.3.0 - YYYY-MM-DD
+
+## News
+
+- canvas: add global env support to configuration.
+  (18e869172107)
+  (Anton Lindqvist)
+
 # 20.2.0 - 2025-01-08
 
 ## News
