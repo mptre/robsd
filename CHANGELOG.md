@@ -2,7 +2,7 @@
 
 ## News
 
-- canvas: honor bsd.regress.mk markers step logs.
+- canvas: honor bsd.regress.mk markers in step logs.
   (a1d10ff4ac4a)
   (Anton Lindqvist)
 
