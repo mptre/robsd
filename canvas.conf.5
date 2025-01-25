@@ -21,6 +21,8 @@ The following variables are recognized:
 Name of the canvas.
 .It Ic canvas-dir Dq Ar path
 Directory used to store invocations.
+.It Ic env No { Do Ar key=val Dc Ar ... No }
+Environment variables added to all steps.
 .It Xo
 .Ic step Dq Ar name
 .Op Ar options
@@ -68,8 +70,9 @@ Steps to skip.
 Example configuration in which the knfmt utility is built from source and
 exercised on multiple projects in parallel.
 .Bd -literal
-canvas-name "knfmt"
-canvas-dir "/tmp"
+canvas-name	"knfmt"
+canvas-dir	"/tmp"
+env		{ "TMPDIR=${tmp-dir}" }
 
 step "checkout"	command { "sh" "-x" "checkout.sh" }
 step "build"	command { "sh" "-x" "build.sh" }

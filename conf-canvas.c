@@ -20,6 +20,7 @@ static int	config_parse_canvas_step(struct config *,
 static const struct grammar canvas_grammar[] = {
 	{ "canvas-dir",		STRING,		config_parse_canvas_directory,	REQ,		{ NULL } },
 	{ "canvas-name",	STRING,		config_parse_string,		REQ,		{ NULL } },
+	{ "env",		LIST,		config_parse_list,		0,		{ NULL } },
 	{ "step",		INVALID,	config_parse_canvas_step,	REQ|REP,	{ NULL } },
 };
 
@@ -110,9 +111,20 @@ config_parse_canvas_step(struct config *cf, struct lexer *lx,
 
 	for (;;) {
 		if (lexer_if(lx, TOKEN_COMMAND, &tk)) {
+			struct variable_value env;
+
 			error = config_parse_list(cf, lx, &command);
 			if (error)
 				goto err;
+			if (VECTOR_EMPTY(command.list))
+				continue;
+
+			/* Prepend environment. */
+			variable_value_init(&env, LIST);
+			variable_value_append(&env, "env");
+			variable_value_append(&env, "${env}");
+			variable_value_concat(&env, &command);
+			command = env;
 		} else if (lexer_if(lx, TOKEN_PARALLEL, &tk)) {
 			parallel = 1;
 		} else {

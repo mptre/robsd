@@ -17,7 +17,8 @@ if testcase "basic"; then
 	robsd_config -c - <<-EOF
 	canvas-dir "${CANVASDIR}"
 	keep 7
-	step "first" command { "true" }
+	env { "FOO=hello" }
+	step "first" command { "sh" "-c" "env | grep -w FOO" }
 	EOF
 
 	if ! PATH="${BINDIR}:${PATH}" sh "${CANVAS}" -d -C "${ROBSDCONF}" \
@@ -28,6 +29,14 @@ if testcase "basic"; then
 	if grep -q 'skipping steps' "${TMP1}"; then
 		fail - "expected no steps to be skipped" <"${TMP1}"
 	fi
+
+	_builddir="$(find "${ROBSDDIR}" -type d -mindepth 1 -maxdepth 1)"
+	_steps="$(step_path "${_builddir}")"
+	step_eval -n first "${_steps}"
+	_log="${_builddir}/$(step_value log)"
+	assert_file - "${_log}" <<-EOF
+	FOO=hello
+	EOF
 fi
 
 if testcase "skip"; then
