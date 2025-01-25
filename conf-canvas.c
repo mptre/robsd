@@ -18,8 +18,8 @@ static int	config_parse_canvas_step(struct config *,
     struct lexer *, struct variable_value *);
 
 static const struct grammar canvas_grammar[] = {
-	{ "canvas-name",	STRING,		config_parse_string,		REQ,		{ NULL } },
 	{ "canvas-dir",		STRING,		config_parse_canvas_directory,	REQ,		{ NULL } },
+	{ "canvas-name",	STRING,		config_parse_string,		REQ,		{ NULL } },
 	{ "step",		INVALID,	config_parse_canvas_step,	REQ|REP,	{ NULL } },
 };
 
