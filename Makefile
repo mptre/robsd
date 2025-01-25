@@ -600,6 +600,7 @@ test: all
 		"ROBSDSTAT=${.OBJDIR}/${PROG_robsd-stat}" \
 		"ROBSDSTEP=${.OBJDIR}/${PROG_robsd-step}" \
 		"ROBSDWAIT=${.OBJDIR}/${PROG_robsd-wait}" \
+		"VALGRINDRC=${.CURDIR}/.valgrindrc" \
 		"TESTFLAGS=${TESTFLAGS}"
 .PHONY: test
 

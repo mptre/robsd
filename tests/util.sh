@@ -249,6 +249,8 @@ OpenBSD)	export MALLOC_OPTIONS="RS";;
 *)		;;
 esac
 
+[ -z "${VALGRINDRC:-}" ] || export "VALGRIND_OPTS=$(xargs <"${VALGRINDRC}")"
+
 . "${EXECDIR}/util.sh"
 
 setmode "robsd"

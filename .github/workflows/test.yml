@@ -65,7 +65,6 @@ jobs:
           EXEC: valgrind
           PORTABLE: yes
           TESTFLAGS: -Tmemleak
-          VALGRIND_OPTS: --quiet --error-exitcode=1 --leak-check=full --errors-for-leak-kinds=all --show-leak-kinds=all
         run: |
           ./configure --pedantic
           make -j`nproc` test
