@@ -6,6 +6,11 @@
   (18e869172107)
   (Anton Lindqvist)
 
+- canvas: make configuration path optional, use canvas.conf in the current
+  working directory as the default.
+  (1c55ff67facc)
+  (Anton Lindqvist)
+
 # 20.2.0 - 2025-01-08
 
 ## News
