@@ -7,10 +7,10 @@
 .Sh SYNOPSIS
 .Nm canvas
 .Op Fl d
+.Op Fl C Ar path
 .Op Fl c Ar comment
 .Op Fl s Ar step
 .Op Fl t Ar tag
-.Fl C Ar path
 .Nm
 .Op Fl d
 .Fl r Ar path
@@ -57,6 +57,12 @@ Tags included in
 .Pa report .
 .El
 .Pp
+.Nm
+is configured using
+.Xr canvas.conf 5
+and the default configuration file is expected to reside in
+.Pa canvas.conf
+in the current working directory.
 By default,
 .Nm
 runs in the background and must be killed using

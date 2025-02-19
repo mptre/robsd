@@ -6,11 +6,11 @@ usage() {
 	xargs 1>&2 <<-EOF
 	usage: canvas
 	[-d]
+	[-C path]
 	[-c comment]
 	[-r path]
 	[-s step]
 	[-t tag]
-	-C path
 	EOF
 	exit 1
 }
@@ -19,6 +19,8 @@ usage() {
 
 setmode "canvas"
 setprogname "canvas"
+
+ROBSDCONF="canvas.conf"
 
 _comment=""
 _statpid=""

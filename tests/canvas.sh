@@ -62,12 +62,3 @@ if testcase "skip"; then
 		fail "expected second to be skipped"
 	fi
 fi
-
-if testcase "invalid: missing configuration argument"; then
-	if sh "${CANVAS}" -d >"${TMP1}" 2>&1; then
-		fail - "expected exit non-zero" <"${TMP1}"
-	fi
-	if ! grep -q usage "${TMP1}"; then
-		fail - "expected usage" <"${TMP1}"
-	fi
-fi
