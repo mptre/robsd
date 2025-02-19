@@ -289,6 +289,56 @@ CPPCHECKFLAGS+=	--max-configs=2
 CPPCHECKFLAGS+=	--suppress-xml=cppcheck-suppressions.xml
 CPPCHECKFLAGS+=	${CPPFLAGS}
 
+IWYU+=	conf-canvas.c
+IWYU+=	conf-priv.h
+IWYU+=	conf-robsd-cross.c
+IWYU+=	conf-robsd-ports.c
+IWYU+=	conf-robsd-regress.c
+IWYU+=	conf-robsd.c
+IWYU+=	conf-token.c
+IWYU+=	conf-token.h
+IWYU+=	conf.c
+IWYU+=	conf.h
+IWYU+=	fuzz-config.c
+IWYU+=	fuzz-step.c
+IWYU+=	html.c
+IWYU+=	html.h
+IWYU+=	if.c
+IWYU+=	if.h
+IWYU+=	interpolate.c
+IWYU+=	interpolate.h
+IWYU+=	invocation.c
+IWYU+=	invocation.h
+IWYU+=	lexer.c
+IWYU+=	lexer.h
+IWYU+=	log.c
+IWYU+=	log.h
+IWYU+=	mode.c
+IWYU+=	mode.h
+IWYU+=	regress-html.c
+IWYU+=	regress-html.h
+IWYU+=	regress-log.c
+IWYU+=	regress-log.h
+IWYU+=	report.c
+IWYU+=	report.h
+IWYU+=	robsd-config.c
+IWYU+=	robsd-exec.c
+IWYU+=	robsd-hook.c
+IWYU+=	robsd-ls.c
+IWYU+=	robsd-regress-html.c
+IWYU+=	robsd-regress-log.c
+IWYU+=	robsd-report.c
+IWYU+=	robsd-stat.c
+IWYU+=	robsd-step.c
+IWYU+=	robsd-wait.c
+IWYU+=	step-exec.c
+IWYU+=	step-exec.h
+IWYU+=	step.c
+IWYU+=	step.h
+IWYU+=	token.h
+IWYU+=	variable-value.c
+IWYU+=	variable-value.h
+
 IWYUFLAGS+=	-d config.h
 IWYUFLAGS+=	-a robsd-stat.c:uvm/uvmexp.h
 IWYUFLAGS+=	-d robsd-wait.c:sys/types.h
@@ -578,7 +628,7 @@ lint-cppcheck:
 .PHONY: lint-cppcheck
 
 lint-include-what-you-use:
-	cd ${.CURDIR} && iwyu-filter ${IWYUFLAGS} -- ${CPPCHECK}
+	cd ${.CURDIR} && iwyu-filter ${IWYUFLAGS} -- ${IWYU}
 .PHONY: lint-include-what-you-use
 
 NCPU!!?=	sysctl -n hw.ncpuonline
