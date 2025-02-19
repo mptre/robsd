@@ -51,6 +51,9 @@ esac
 		cd ${_d}/..
 		exec cvs -qd ${CVSROOT} checkout -P -d ${_d##*/} ${_m}
 		EOF
+
+		# Cannot compute CVS delta on checkout.
+		: >"${_ci}"
 	else
 		unpriv "${CVSUSER}" "cd ${_d} && exec cvs -qd ${CVSROOT} update -Pd" 2>&1 |
 		tee "${_up}" |
