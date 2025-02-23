@@ -3,6 +3,7 @@
 
 config_load <<-'EOF'
 TMPDIR="${tmp-dir}"
+ENV="${regress-env}"
 EOF
 
 { config_value regress-packages 2>/dev/null || :; } |
@@ -14,4 +15,4 @@ while read -r _p; do
 done
 
 [ -e "${TMPDIR}/packages" ] || exit 0
-xargs pkg_add -Dsnapshot <"${TMPDIR}/packages" || :
+${ENV:+env ${ENV}} xargs pkg_add -Dsnapshot <"${TMPDIR}/packages" || :

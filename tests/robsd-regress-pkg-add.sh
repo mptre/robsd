@@ -9,8 +9,8 @@ if testcase "basic"; then
 	regress "two" packages { "dup" }
 	EOF
 	_builddir="${TSHDIR}/2022-11-21"
-	echo "${_builddir}" >"${TSHDIR}/.running"
 	mkdir -p "${_builddir}/tmp"
+	echo "${_builddir}" >"${TSHDIR}/.running"
 
 	cat <<-EOF >"${TSHDIR}/pkg_add"
 	exit 0
@@ -27,4 +27,30 @@ if testcase "basic"; then
 	dup
 	uniq
 	EOF
+fi
+
+if testcase "env present"; then
+	robsd_config -R - <<-EOF
+	robsddir "${TSHDIR}"
+	regress-env { "FOO=1" "BAR=2" }
+	regress "one" packages { "one" }
+	EOF
+	_builddir="${TSHDIR}/2022-11-21"
+	mkdir -p "${_builddir}/tmp"
+	echo "${_builddir}" >"${TSHDIR}/.running"
+
+	cat <<-EOF >"${TSHDIR}/pkg_add"
+	env
+	EOF
+	chmod u+x "${TSHDIR}/pkg_add"
+
+	if ! (setmode "robsd-regress" &&
+	      env PATH="${TSHDIR}:${PATH}" sh -eux -o pipefail "${_step}") \
+	     >"${TMP1}" 2>&1; then
+		fail - "expected exit zero" <"${TMP1}"
+	fi
+
+	if ! grep -q 'FOO=1' "${TMP1}" || ! grep -q 'BAR=2' "${TMP1}"; then
+		fail - "expected env to be honored" <"${TMP1}"
+	fi
 fi
