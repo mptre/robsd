@@ -11,6 +11,10 @@
   (1c55ff67facc)
   (Anton Lindqvist)
 
+- robsd-regress: honor regress-env in pkg-add step.
+  (f59f882699ff)
+  (Anton Lindqvist)
+
 # 20.2.0 - 2025-01-08
 
 ## News
