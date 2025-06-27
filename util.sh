@@ -329,7 +329,7 @@ cvs_log() {
 		cat "${_path}/author"
 		echo "Date: ${_date} ${_time}"
 		echo
-		cat "${_path}/message"
+		vis "${_path}/message"
 		echo
 		cat "${_path}/files"
 		echo

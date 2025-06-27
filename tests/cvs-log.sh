@@ -19,7 +19,7 @@ su() {
 			----------------------------
 			revision 1.1
 			date: 2019/07/15 04:00:00;  author: anton;  commitid: chEXfDinAk4DzfHQ;
-			1. single commit for ed
+			1. single commit for ed $(printf '\x12')
 			============================
 			EOF
 			;;
@@ -123,7 +123,7 @@ if testcase "basic"; then
 	Author: anton
 	Date: 2019/07/15 04:00:00
 
-	  1. single commit for ed
+	  1. single commit for ed \^R
 
 	  bin/ed/ed.1
 	  bin/ed/ed.c
