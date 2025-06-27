@@ -15,4 +15,7 @@ IncludeCategories:
     Priority: 4
   - Regex: '^"'
     Priority: 5
+IncludeGuards:
+  - Regex: 'mode\.h'
+  - Regex: 'variable-value.h'
 ...

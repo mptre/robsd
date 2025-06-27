@@ -29,4 +29,4 @@ is_variable_value_valid(const struct variable_value *val)
 	return val->type != INVALID;
 }
 
-#endif
+#endif /* !VARIABLE_VALUE_H */

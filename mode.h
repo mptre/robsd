@@ -17,4 +17,4 @@ enum robsd_mode {
 int		 robsd_mode_parse(const char *, enum robsd_mode *);
 const char	*robsd_mode_str(enum robsd_mode);
 
-#endif
+#endif /* !MODE_H */
