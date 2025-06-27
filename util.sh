@@ -630,7 +630,7 @@ duration_total() {
 	: "${_steps:?}"
 
 	case "${_MODE}" in
-	robsd-regress)
+	canvas|robsd-regress)
 		duration_total_parallel -s "${_steps}"
 		return 0
 		;;
