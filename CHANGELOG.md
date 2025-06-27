@@ -25,7 +25,7 @@
   (636ecd91a456)
   (Anton Lindqvist)
 
-- canvas: cope with parallel steps while calculation total duration.
+- canvas: cope with parallel steps while calculating the total duration.
   (86087f96b1bf)
   (Anton Lindqvist)
 
