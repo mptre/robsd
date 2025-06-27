@@ -974,6 +974,12 @@ robsd() {
 			fi
 
 			if [ "${_name}" = "end" ]; then
+				# Write back the time for the end step after the
+				# barrier above in order to support accurate
+				# duration total calculations.
+				step_write -t -s "${_step}" -n "${_name}" \
+					-e -1 -d -1 "${_steps}"
+
 				# The duration of the end step is the
 				# accumulated duration.
 				_d1="$(duration_total -s "${_steps}")"
