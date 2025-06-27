@@ -396,6 +396,7 @@ MANLINT+=	robsd-regress.conf.5
 MANLINT+=	robsd-rescue.8
 MANLINT+=	robsd-stat.8
 MANLINT+=	robsd-step.8
+MANLINT+=	robsd-wait.8
 MANLINT+=	robsd.8
 MANLINT+=	robsd.conf.5
 
@@ -608,6 +609,7 @@ install: all
 	${INSTALL} -m 0555 ${PROG_robsd-report} ${DESTDIR}${LIBEXECDIR}/robsd
 # robsd-wait
 	${INSTALL} -m 0555 ${PROG_robsd-wait} ${DESTDIR}${LIBEXECDIR}/robsd
+	${INSTALL_MAN} ${.CURDIR}/robsd-wait.8 ${DESTDIR}${MANDIR}/man8
 # canvas
 	${INSTALL} -m 0555 ${.CURDIR}/canvas ${DESTDIR}${BINDIR}
 	${INSTALL_MAN} ${.CURDIR}/canvas.1 ${DESTDIR}${MANDIR}/man1

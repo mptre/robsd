@@ -1,0 +1,28 @@
+.Dd $Mdocdate: Jun 27 2025$
+.Dt ROBSD-WAIT 8
+.Os
+.Sh NAME
+.Nm robsd-wait
+.Nd robsd wait utility
+.Sh SYNOPSIS
+.Nm robsd-wait
+.Op Fl a
+.Ar pid ...
+.Sh DESCRIPTION
+The
+.Nm
+utility waits for at least one process as identified by
+.Ar pid
+to terminate.
+Any remaining pid(s) still alive are printed to standard output.
+The options are as follows:
+.Bl -tag -width Ds
+.It Fl a
+Wait for all
+.Ar pid
+to terminate.
+.El
+.Sh DIAGNOSTICS
+.Ex -std
+.Sh AUTHORS
+.An Anton Lindqvist Aq Mt anton@basename.se
