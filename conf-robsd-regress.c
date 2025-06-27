@@ -87,7 +87,7 @@ config_robsd_regress_init(struct config *cf)
 		cf->path = "/etc/robsd-regress.conf";
 
 	config_copy_grammar(cf, robsd_regress_grammar,
-	    sizeof(robsd_regress_grammar) / sizeof(robsd_regress_grammar[0]));
+	    countof(robsd_regress_grammar));
 
 	cf->steps.ptr = robsd_regress_steps;
 	cf->steps.len = sizeof(robsd_regress_steps) /

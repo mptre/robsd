@@ -154,7 +154,6 @@ report_cvs_log(struct report_context *r)
 		{ ROBSD_PORTS,	"cvs-ports-up.log" },
 		{ ROBSD_PORTS,	"cvs-ports-ci.log" },
 	};
-	size_t npaths = sizeof(paths) / sizeof(paths[0]);
 	size_t i;
 	const char *tmpdir;
 	int ncvs = 0;
@@ -167,7 +166,7 @@ report_cvs_log(struct report_context *r)
 
 	buffer_putc(r->out, '\n');
 
-	for (i = 0; i < npaths; i++) {
+	for (i = 0; i < countof(paths); i++) {
 		struct stat st;
 		const char *path;
 

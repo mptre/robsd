@@ -52,11 +52,10 @@ config_robsd_init(struct config *cf)
 	if (cf->path == NULL)
 		cf->path = "/etc/robsd.conf";
 
-	config_copy_grammar(cf, robsd_grammar,
-	    sizeof(robsd_grammar) / sizeof(robsd_grammar[0]));
+	config_copy_grammar(cf, robsd_grammar, countof(robsd_grammar));
 
 	cf->steps.ptr = robsd_steps;
-	cf->steps.len = sizeof(robsd_steps) / sizeof(robsd_steps[0]);
+	cf->steps.len = countof(robsd_steps);
 
 	return 0;
 }

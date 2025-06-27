@@ -101,7 +101,7 @@ static const struct field_definition fields[] = {
 	{ "time",	INTEGER,	7, 0,		{ 0 } },
 	{ "skip",	INTEGER,	8, OPTIONAL,	{ "0" } },
 };
-static const size_t nfields = sizeof(fields) / sizeof(fields[0]);
+static const size_t nfields = countof(fields);
 
 struct step_file *
 steps_parse(const char *path, struct arena_scope *eternal_scope)

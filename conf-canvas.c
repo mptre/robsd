@@ -27,8 +27,7 @@ static const struct grammar canvas_grammar[] = {
 static int
 config_canvas_init(struct config *cf)
 {
-	config_copy_grammar(cf, canvas_grammar,
-	    sizeof(canvas_grammar) / sizeof(canvas_grammar[0]));
+	config_copy_grammar(cf, canvas_grammar, countof(canvas_grammar));
 
 	if (VECTOR_INIT(cf->canvas.steps.v))
 		err(1, NULL);

@@ -27,7 +27,7 @@ config_robsd_cross_init(struct config *cf)
 		cf->path = "/etc/robsd-cross.conf";
 
 	config_copy_grammar(cf, robsd_cross_grammar,
-	    sizeof(robsd_cross_grammar) / sizeof(robsd_cross_grammar[0]));
+	    countof(robsd_cross_grammar));
 
 	cf->steps.ptr = robsd_cross_steps;
 	cf->steps.len = sizeof(robsd_cross_steps) /

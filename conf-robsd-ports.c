@@ -40,7 +40,7 @@ config_robsd_ports_init(struct config *cf)
 		cf->path = "/etc/robsd-ports.conf";
 
 	config_copy_grammar(cf, robsd_ports_grammar,
-	    sizeof(robsd_ports_grammar) / sizeof(robsd_ports_grammar[0]));
+	    countof(robsd_ports_grammar));
 
 	cf->steps.ptr = robsd_ports_steps;
 	cf->steps.len = sizeof(robsd_ports_steps) /
