@@ -18,7 +18,7 @@
  * Bounds for rdomain, favor something large enough to not conflict with
  * existing ones.
  */
-#define RDOMAIN_MIN	11
+#define RDOMAIN_MIN	32
 #define RDOMAIN_MAX	256
 
 static int	config_parse_regress(struct config *, struct lexer *,

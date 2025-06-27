@@ -252,7 +252,7 @@ if testcase "regress rdomain w/o regress-env"; then
 	} >"${CONFIG}"
 	echo "\${regress-foo-env},\${regress-baz-env}" >"${STDIN}"
 	robsd_config -R - <<-EOF
-	 11 12, 13 14
+	 32 33, 34 35
 	EOF
 fi
 
@@ -266,7 +266,7 @@ if testcase "regress rdomain w/ regress-env"; then
 	} >"${CONFIG}"
 	echo "\${regress-foo-env},\${regress-baz-env}" >"${STDIN}"
 	robsd_config -R - <<-EOF
-	FOO=1 11 12,FOO=1 13 14
+	FOO=1 32 33,FOO=1 34 35
 	EOF
 fi
 
@@ -278,7 +278,7 @@ if testcase "regress rdomain in regress-env"; then
 	} >"${CONFIG}"
 	echo "\${regress-bin/ls-env},\${regress-bin/ls-env},\${regress-foo-env}" >"${STDIN}"
 	robsd_config -R - <<-EOF
-	12,13,14 11
+	33,34,35 32
 	EOF
 fi
 
@@ -288,7 +288,7 @@ if testcase "regress rdomain wrap around"; then
 		printf 'regress-env { "${rdomain}" }\n'
 	} >"${CONFIG}"
 	{
-		_i=11
+		_i=32
 		while [ "${_i}" -lt 256 ]; do
 			printf '${rdomain} '
 			_i=$((_i + 1))
@@ -296,7 +296,7 @@ if testcase "regress rdomain wrap around"; then
 		printf '\n'
 	} >"${STDIN}"
 	{
-		_i=11
+		_i=32
 		while [ "${_i}" -lt 256 ]; do
 			printf '%d ' "${_i}"
 			_i=$((_i + 1))
