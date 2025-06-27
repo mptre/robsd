@@ -583,6 +583,34 @@ duration_prev() {
 	return 1
 }
 
+# duration_total_parallel -s steps
+#
+# Calculate the total duration. Since some robsd utilities runs steps in
+# parallel, the accumulated step duration cannot be used. Instead, favor the
+# wall clock delta between the last and first step.
+duration_total_parallel () {
+	local _t0=0
+	local _t1=0
+	local _steps
+
+	while [ $# -gt 0 ]; do
+		case "$1" in
+		-s)	shift; _steps="$1";;
+		*)	break;;
+		esac
+		shift
+	done
+	: "${_steps:?}"
+
+	if step_eval 1 "${_steps}" 2>/dev/null; then
+		_t0="$(step_value time)"
+	fi
+	if step_eval -1 "${_steps}" 2>/dev/null; then
+		_t1="$(step_value time)"
+	fi
+	echo "$((_t1 - _t0))"
+}
+
 # duration_total -s steps
 #
 # Calculate the accumulated build duration.
@@ -603,7 +631,7 @@ duration_total() {
 
 	case "${_MODE}" in
 	robsd-regress)
-		regress_duration_total -s "${_steps}"
+		duration_total_parallel -s "${_steps}"
 		return 0
 		;;
 	*)

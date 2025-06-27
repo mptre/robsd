@@ -6,34 +6,6 @@ regress_config_load() {
 	unset MAKEFLAGS
 }
 
-# regress_duration_total -s steps
-#
-# Calculate the total duration. Since robsd-regress runs steps in parallel, the
-# accumulated step duration cannot be used. Instead, favor the wall clock delta
-# between the last and first step.
-regress_duration_total() {
-	local _t0=0
-	local _t1=0
-	local _steps
-
-	while [ $# -gt 0 ]; do
-		case "$1" in
-		-s)	shift; _steps="$1";;
-		*)	break;;
-		esac
-		shift
-	done
-	: "${_steps:?}"
-
-	if step_eval 1 "${_steps}" 2>/dev/null; then
-		_t0="$(step_value time)"
-	fi
-	if step_eval -1 "${_steps}" 2>/dev/null; then
-		_t1="$(step_value time)"
-	fi
-	echo "$((_t1 - _t0))"
-}
-
 # regress_failed step-log
 #
 # Exits zero if the given regress step log indicates failure.
