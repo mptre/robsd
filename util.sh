@@ -945,7 +945,8 @@ robsd() {
 	_ncpu="$(config_value ncpu)"
 	_steps="$(step_path "${_builddir}")"
 
-	steps -o "${_step}" | while read -r _step _name _parallel; do
+	steps -o "${_step}" |
+	while read -r _step _name _parallel; do
 		if step_eval -n "${_name}" "${_steps}" 2>/dev/null &&
 		   step_skip; then
 			info "step ${_name} skipped"
