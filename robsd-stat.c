@@ -116,7 +116,7 @@ main(int argc, char *argv[])
 	close(0);
 
 	memset(&c, 0, sizeof(c));
-	c.scratch = arena_alloc();
+	c.scratch = arena_alloc("scratch");
 
 	for (;;) {
 		if (stat_time(&c) ||

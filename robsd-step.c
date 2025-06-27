@@ -95,10 +95,10 @@ done:
 	if (action == 0)
 		usage();
 
-	eternal = arena_alloc();
+	eternal = arena_alloc("eternal");
 	arena_scope(eternal, eternal_scope);
 	c.eternal = &eternal_scope;
-	c.scratch = arena_alloc();
+	c.scratch = arena_alloc("scratch");
 
 	/* Pave the way for action specific options. */
 	opterr = 1;

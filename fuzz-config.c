@@ -37,8 +37,8 @@ init(int argc, char *argv[])
 		}
 	}
 
-	c.eternal = arena_alloc();
-	c.scratch = arena_alloc();
+	c.eternal = arena_alloc("eternal");
+	c.scratch = arena_alloc("scratch");
 
 	return &c;
 }

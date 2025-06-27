@@ -15,7 +15,7 @@ init(int UNUSED(argc), char **UNUSED(argv))
 {
 	static struct fuzzer_context c;
 
-	c.eternal = arena_alloc();
+	c.eternal = arena_alloc("eternal");
 
 	return &c;
 }
