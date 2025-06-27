@@ -985,8 +985,9 @@ robsd() {
 				fi
 				step_write -t -s "${_step}" -n "${_name}" -e 0 \
 					-d "${_d1}" -a "${_delta}" "${_steps}"
-				# The hook is invoked as late as possible in the
-				# exit trap handler.
+				# Intentionally not calling robsd-hook here as
+				# its invoked as late as possible in the exit
+				# trap handler.
 				return 0
 			fi
 
