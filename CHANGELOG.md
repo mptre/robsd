@@ -15,6 +15,20 @@
   (f59f882699ff)
   (Anton Lindqvist)
 
+## Bug fixes
+
+- robsd-regress: increase rdomain lower bound.
+  (5d1caffc0fac)
+  (Anton Lindqvist)
+
+- robsd: sanitize cvs log using vis(1).
+  (636ecd91a456)
+  (Anton Lindqvist)
+
+- canvas: cope with parallel steps while calculation total duration.
+  (86087f96b1bf)
+  (Anton Lindqvist)
+
 # 20.2.0 - 2025-01-08
 
 ## News
