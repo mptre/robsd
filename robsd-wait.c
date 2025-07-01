@@ -8,10 +8,12 @@
 #include <err.h>
 #include <errno.h>
 #include <limits.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
 
+#include "libks/compiler.h"
 #include "libks/map.h"
 #include "libks/vector.h"
 
@@ -134,7 +136,8 @@ kqueue_setup(struct wait_context *c)
 		err(1, NULL);
 
 	while (MAP_ITERATE(c->pids, &it)) {
-		EV_SET(&c->kqueue.changes[i++], *it.val, EVFILT_PROC, EV_ADD,
+		EV_SET(&c->kqueue.changes[i++],
+		    UNSAFE_CAST(uintptr_t, *it.val), EVFILT_PROC, EV_ADD,
 		    NOTE_EXIT, 0, NULL);
 	}
 }
@@ -160,7 +163,7 @@ kqueue_handle_events(struct wait_context *c, int nevents)
 		} else if (kev->fflags & NOTE_EXIT) {
 			MAP_REMOVE(c->pids, pid);
 		} else {
-			warnx("unknown kevent: ident %lu, filter %x, "
+			warnx("unknown kevent: ident %lu, filter %d, "
 			    "flags %x, fflags %x, data %lld",
 			    kev->ident, kev->filter, kev->flags, kev->fflags,
 			    kev->data);
