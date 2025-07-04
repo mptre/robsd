@@ -15,6 +15,10 @@
   (f59f882699ff)
   (Anton Lindqvist)
 
+- robsd-regress: annotate pkg-add step as skipped on failure.
+  (270d2f4f3ea1)
+  (Anton Lindqvist)
+
 ## Bug fixes
 
 - robsd-regress: increase rdomain lower bound.
