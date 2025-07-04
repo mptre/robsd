@@ -15,7 +15,6 @@
 #include "libks/arena.h"
 #include "libks/buffer.h"
 #include "libks/compiler.h"
-#include "libks/map.h"
 #include "libks/vector.h"
 
 #include "conf.h"
@@ -37,10 +36,6 @@ struct report_context {
 	struct step_file	*step_file;
 	struct buffer		*out;
 	enum robsd_mode		 mode;
-
-	struct {
-		MAP(const char, *, int) suites;
-	} regress;
 };
 
 static const char	*report_status(struct report_context *,
@@ -249,12 +244,6 @@ ports_report_step_log(struct report_context *r, const struct step *step)
 }
 
 static int
-is_regress_step(struct report_context *r, const char *name)
-{
-	return MAP_FIND(r->regress.suites, name) != NULL;
-}
-
-static int
 is_regress_quiet(struct report_context *r, const char *name)
 {
 	const char *quiet;
@@ -265,23 +254,6 @@ is_regress_quiet(struct report_context *r, const char *name)
 	return config_value(r->config, quiet, integer, 0) == 1;
 }
 
-static void
-regress_suites(struct report_context *r)
-{
-	VECTOR(const char *) suites;
-	size_t i, nsuites;
-
-	if (MAP_INIT(r->regress.suites))
-		err(1, NULL);
-
-	suites = config_value(r->config, "regress", list, NULL);
-	nsuites = VECTOR_LENGTH(suites);
-	for (i = 0; i < nsuites; i++) {
-		if (MAP_INSERT_VALUE(r->regress.suites, suites[i], 0) == NULL)
-			err(1, NULL);
-	}
-}
-
 static int
 regress_report_skip_step(struct report_context *r, const struct step *step)
 {
@@ -290,7 +262,7 @@ regress_report_skip_step(struct report_context *r, const struct step *step)
 	arena_scope(r->scratch, s);
 
 	name = step_get_field(step, "name")->str;
-	if (!is_regress_step(r, name) || is_regress_quiet(r, name))
+	if (strcmp(name, "end") == 0 || is_regress_quiet(r, name))
 		return 1;
 
 	log_path = step_get_log_path(r, step, &s);
@@ -866,7 +838,6 @@ static void
 report_context_free(struct report_context *r)
 {
 	steps_free(r->step_file);
-	MAP_FREE(r->regress.suites);
 }
 
 int
@@ -899,8 +870,6 @@ report_generate(struct config *config, const char *builddir,
 	    .out		= out,
 	    .mode		= mode,
 	};
-	if (mode == ROBSD_REGRESS)
-		regress_suites(&r);
 	error = report_subject(&r) ||
 	    report_stats(&r) ||
 	    report_comment(&r) ||

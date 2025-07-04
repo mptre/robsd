@@ -428,10 +428,11 @@ fi
 
 if testcase "robsd-regress: failure in non-regress step"; then
 	{
-		step_serialize -s 1 -n foo
+		step_serialize -s 1 -n foo -l foo.log
 		step_serialize -H -s 2 -n env -e 1 -l env.log -t $((1666666666 + 30))
-		printf 'env failure\n' >"${_builddir}/env.log"
 	} >"$(step_path "${_builddir}")"
+	: >"${_builddir}/foo.log"
+	printf 'env failure\n' >"${_builddir}/env.log"
 
 	robsd_report -m robsd-regress -- "${_builddir}" | sed -n -e '/^> stats/,$p' >"${TMP1}"
 	assert_file - "${TMP1}" <<-EOF
@@ -448,6 +449,28 @@ if testcase "robsd-regress: failure in non-regress step"; then
 	env failure
 	EOF
 fi
+
+if testcase "robsd-regress: pkg-add failure"; then
+	{
+		step_serialize -s 1 -n pkg-add -l pkg-add.log -d 1
+	} >"$(step_path "${_builddir}")"
+	cat <<-EOF >"${_builddir}/pkg-add.log"
+	==== packages ====
+	SKIPPED
+	EOF
+
+	robsd_report -m robsd-regress -- "${_builddir}" | sed -n -e '/^> pkg-add/,$p' >"${TMP1}"
+	assert_file - "${TMP1}" <<-EOF
+	> pkg-add
+	Exit: 0
+	Duration: 00:00:01
+	Log: pkg-add.log
+
+	==== packages ====
+	SKIPPED
+	EOF
+fi
+
 
 if testcase "canvas: basic"; then
 	{
