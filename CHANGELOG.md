@@ -33,6 +33,10 @@
   (86087f96b1bf)
   (Anton Lindqvist)
 
+- Do not abort cvs step if cvs_log() cannot find a previous CVS date.
+  (9ef25beb8c41)
+  (Anton Lindqvist)
+
 # 20.2.0 - 2025-01-08
 
 ## News
