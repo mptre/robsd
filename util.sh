@@ -281,7 +281,7 @@ cvs_log() {
 	done
 	if [ -z "${_date}" ]; then
 		echo "cvs_log: previous date not found" 1>&2
-		return 0
+		return 1
 	fi
 	_date="$(date -r "${_date}" '+%F %T')"
 

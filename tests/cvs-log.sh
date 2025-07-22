@@ -136,10 +136,10 @@ if testcase "basic"; then
 fi
 
 if testcase "previous build absent"; then
-	if ! cvs_log -t "${TSHDIR}/.cvs" -c "${TSHDIR}" -h example.com:/cvs \
+	if cvs_log -t "${TSHDIR}/.cvs" -c "${TSHDIR}" -h example.com:/cvs \
 	   -u nobody >"${TMP1}" 2>&1
 	then
-		fail - "expected exit zero" <"${TMP1}"
+		fail - "expected exit non-zero" <"${TMP1}"
 	fi
 fi
 

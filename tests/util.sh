@@ -156,7 +156,7 @@ robsd_step_exec() {
 	: "${_mode:?}"
 	_step="$1"; : "${_step:?}"
 
-	(setmode "${_mode}" && sh -eux -o pipefail "${_step}") >"${_out}" 2>&1 || _err1="$?"
+	(setmode "${_mode}" && sh -eux "${_step}") >"${_out}" 2>&1 || _err1="$?"
 	if [ "${_err0}" -ne "${_err1}" ]; then
 		fail - "expected exit ${_err0}, got ${_err1}" <"${_out}"
 	fi

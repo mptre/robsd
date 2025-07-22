@@ -55,9 +55,11 @@ esac
 		# Cannot compute CVS delta on checkout.
 		: >"${_ci}"
 	else
+		# Keep the pipe alive even if cvs_log() aborts prematurely,
+		# otherwise cvs(1) will also abort prematurely.
 		unpriv "${CVSUSER}" "cd ${_d} && exec cvs -qd ${CVSROOT} update -Pd" 2>&1 |
 		tee "${_up}" |
-		cvs_log -t "${TMPDIR}/cvs-${_m}" -c "${_d}" -h "${CVSROOT}" -u "${CVSUSER}" |
+		{ cvs_log -t "${TMPDIR}/cvs-${_m}" -c "${_d}" -h "${CVSROOT}" -u "${CVSUSER}" || cat >/dev/null; } |
 		tee "${_ci}"
 	fi
 
