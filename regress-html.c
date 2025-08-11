@@ -130,7 +130,7 @@ static void	render_changelog(struct regress_html *);
 static void	render_patches(struct regress_html *);
 static void	render_arches(struct regress_html *);
 static void	render_suite(struct regress_html *,
-    struct suite *);
+    const struct suite *);
 static void	render_run(struct regress_html *,
     const struct run *);
 
@@ -209,6 +209,14 @@ regress_html_parse(struct regress_html *r, const char *arch,
 		}
 	}
 
+	VECTOR_SORT(r->invocations, regress_invocation_cmp);
+
+	MAP_ITERATOR(r->suites) it = {0};
+	while (MAP_ITERATE(r->suites, &it)) {
+		struct suite *suite = it.val;
+		VECTOR_SORT(suite->runs, run_cmp);
+	}
+
 out:
 	invocation_free(is);
 	return error;
@@ -222,8 +230,6 @@ regress_html_render(struct regress_html *r)
 	const char *path;
 
 	arena_scope(r->arena.scratch, s);
-
-	VECTOR_SORT(r->invocations, regress_invocation_cmp);
 
 	HTML_HEAD(html) {
 		HTML_NODE(html, "title")
@@ -851,7 +857,7 @@ render_arches(struct regress_html *r)
 }
 
 static void
-render_suite(struct regress_html *r, struct suite *suite)
+render_suite(struct regress_html *r, const struct suite *suite)
 {
 	struct html *html = r->html;
 
@@ -870,8 +876,6 @@ render_suite(struct regress_html *r, struct suite *suite)
 			    HTML_ATTR("href", href))
 				HTML_TEXT(html, suite->name);
 		}
-
-		VECTOR_SORT(runs, run_cmp);
 
 		for (i = 0; i < VECTOR_LENGTH(runs); i++) {
 			const struct run *run = &runs[i];
