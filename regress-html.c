@@ -13,6 +13,7 @@
 #include <unistd.h>
 
 #include "libks/arena-buffer.h"
+#include "libks/arena-vector.h"
 #include "libks/arena.h"
 #include "libks/buffer.h"
 #include "libks/map.h"
@@ -106,7 +107,8 @@ static int				  copy_patches(struct regress_html *,
     struct regress_invocation *, const char *);
 static struct suite			 *find_suite(struct regress_html *,
     const char *);
-static struct suite			**sort_suites(struct regress_html *);
+static struct suite			**sort_suites(struct regress_html *,
+    struct arena_scope *);
 static const char			 *render_duration(
     const struct regress_invocation *, struct arena_scope *);
 static const char			 *render_rate(
@@ -219,6 +221,8 @@ regress_html_render(struct regress_html *r)
 	struct html *html = r->html;
 	const char *path;
 
+	arena_scope(r->arena.scratch, s);
+
 	VECTOR_SORT(r->invocations, regress_invocation_cmp);
 
 	HTML_HEAD(html) {
@@ -229,7 +233,7 @@ regress_html_render(struct regress_html *r)
 	HTML_NODE(html, "h1")
 		HTML_TEXT(html, "OpenBSD regress latest test results");
 
-	suites = sort_suites(r);
+	suites = sort_suites(r, &s);
 	HTML_NODE(html, "table") {
 		size_t i;
 
@@ -249,7 +253,6 @@ regress_html_render(struct regress_html *r)
 	}
 	VECTOR_FREE(suites);
 
-	arena_scope(r->arena.scratch, s);
 	path = arena_sprintf(&s, "%s/index.html", r->output);
 	/* coverity[leaked_storage: FALSE] */
 	return html_write(r->html, path);
@@ -561,52 +564,35 @@ find_suite(struct regress_html *r, const char *name)
 }
 
 static struct suite **
-sort_suites(struct regress_html *r)
+sort_suites(struct regress_html *r, struct arena_scope *s)
 {
 	VECTOR(struct suite *) all;
+	ARENA_VECTOR_INIT(s, all, 1 << 8);
 	VECTOR(struct suite *) pass;
+	ARENA_VECTOR_INIT(s, pass, 1 << 8);
 	VECTOR(struct suite *) nonregress;
+	ARENA_VECTOR_INIT(s, nonregress, 1 << 2);
+
 	MAP_ITERATOR(r->suites) it = {0};
-	struct suite **dst;
-	size_t i;
-
-	if (VECTOR_INIT(all))
-		err(1, NULL);
-	if (VECTOR_INIT(pass))
-		err(1, NULL);
-	if (VECTOR_INIT(nonregress))
-		err(1, NULL);
-
 	while (MAP_ITERATE(r->suites, &it)) {
 		struct suite *suite = it.val;
-
 		if (suite->fail > 0)
-			dst = VECTOR_ALLOC(all);
+			*ARENA_VECTOR_ALLOC(all) = suite;
 		else if (suite_categorize(suite->name) == SUITE_NON_REGRESS)
-			dst = VECTOR_ALLOC(nonregress);
+			*ARENA_VECTOR_ALLOC(nonregress) = suite;
 		else
-			dst = VECTOR_ALLOC(pass);
-		if (dst == NULL)
-			err(1, NULL);
-		*dst = suite;
+			*ARENA_VECTOR_ALLOC(pass) = suite;
 	}
+
 	VECTOR_SORT(all, suite_cmp);
 	VECTOR_SORT(pass, suite_cmp);
 	VECTOR_SORT(nonregress, suite_cmp);
-	for (i = 0; i < VECTOR_LENGTH(pass); i++) {
-		dst = VECTOR_ALLOC(all);
-		if (dst == NULL)
-			err(1, NULL);
-		*dst = pass[i];
-	}
-	for (i = 0; i < VECTOR_LENGTH(nonregress); i++) {
-		dst = VECTOR_ALLOC(all);
-		if (dst == NULL)
-			err(1, NULL);
-		*dst = nonregress[i];
-	}
-	VECTOR_FREE(pass);
-	VECTOR_FREE(nonregress);
+
+	for (uint32_t i = 0; i < VECTOR_LENGTH(pass); i++)
+		*ARENA_VECTOR_ALLOC(all) = pass[i];
+	for (uint32_t i = 0; i < VECTOR_LENGTH(nonregress); i++)
+		*ARENA_VECTOR_ALLOC(all) = nonregress[i];
+
 	return all;
 }
 
