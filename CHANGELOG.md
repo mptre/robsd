@@ -19,6 +19,11 @@
   (270d2f4f3ea1)
   (Anton Lindqvist)
 
+- robsd-regress-html: include pkg-add step, allowing one to observe why packages
+  where not successfully installed.
+  (ed1eeff742cb)
+  (Anton Lindqvist)
+
 ## Bug fixes
 
 - robsd-regress: increase rdomain lower bound.
