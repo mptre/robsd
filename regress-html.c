@@ -267,6 +267,12 @@ suite_categorize(const char *name)
 		 * are not that interesting.
 		 */
 		return SUITE_NON_REGRESS;
+	} else if (strcmp(name, "pkg-add") == 0) {
+		/*
+		 * Included since its outcome affects regress suites requiring
+		 * certain packages.
+		 */
+		return SUITE_NON_REGRESS;
 	} else if (strchr(name, '/') != NULL) {
 		/*
 		 * Note, the regress configuration cannot be used here as we

@@ -401,7 +401,10 @@ if testcase "non-regress suites"; then
 		step_serialize -H -s 3 -n ../a -l b.log -t "${_time}"
 		step_log PASSED >"${_builddir}/a.log"
 
-		step_serialize -H -s 4 -n end -t "$((_time + 3600))"
+		step_serialize -H -s 4 -n pkg-add -l pkg-add.log -t "${_time}"
+		step_log SKIPPED >"${_builddir}/pkg-add.log"
+
+		step_serialize -H -s 5 -n end -t "$((_time + 3600))"
 	} >"$(step_path "${_builddir}")"
 
 	robsd_regress_html - -- -o "${TSHDIR}/html" "amd64:${TSHDIR}/amd64" </dev/null
@@ -411,9 +414,9 @@ if testcase "non-regress suites"; then
 	test/first
 	../a
 	../b
+	pkg-add
 	EOF
 fi
-
 
 if testcase "missing runs"; then
 	_builddir="${TSHDIR}/amd64/2022-10-25.1"
