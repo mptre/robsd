@@ -72,6 +72,7 @@ struct regress_invocation {
 
 enum suite_type {
 	SUITE_UNKNOWN,
+	SUITE_INFORMATIVE,
 	SUITE_NON_REGRESS,
 	SUITE_REGRESS,
 };
@@ -91,6 +92,7 @@ struct run {
 
 struct suite {
 	const char		*name;
+	enum suite_type		 type;
 	int			 fail;
 	VECTOR(struct run)	 runs;
 };
@@ -105,8 +107,6 @@ static int				  copy_files(struct regress_html *,
     const struct regress_invocation *, const char *);
 static int				  copy_patches(struct regress_html *,
     struct regress_invocation *, const char *);
-static struct suite			 *find_suite(struct regress_html *,
-    const char *);
 static struct suite			**sort_suites(struct regress_html *,
     struct arena_scope *);
 static const char			 *render_duration(
@@ -134,10 +134,25 @@ static void	render_suite(struct regress_html *,
 static void	render_run(struct regress_html *,
     const struct run *);
 
-static const char		*cvsweb_url(const char *, struct arena_scope *);
 static enum duration_delta	 duration_delta(int64_t, int64_t);
 static int			 is_run_status_failure(enum run_status);
 static const char		*run_status_str(enum run_status);
+
+static struct suite *
+find_suite(struct regress_html *r, const char *name, enum suite_type type)
+{
+	struct suite *suite;
+
+	suite = MAP_FIND(r->suites, name);
+	if (suite == NULL) {
+		suite = MAP_INSERT(r->suites, name);
+		suite->name = MAP_KEY(r->suites, suite);
+		suite->type = type;
+		if (VECTOR_INIT(suite->runs))
+			err(1, NULL);
+	}
+	return suite;
+}
 
 struct regress_html *
 regress_html_alloc(const char *directory, struct arena_scope *eternal,
@@ -278,7 +293,7 @@ suite_categorize(const char *name)
 		 * Included since its outcome affects regress suites requiring
 		 * certain packages.
 		 */
-		return SUITE_NON_REGRESS;
+		return SUITE_INFORMATIVE;
 	} else if (strchr(name, '/') != NULL) {
 		/*
 		 * Note, the regress configuration cannot be used here as we
@@ -346,16 +361,17 @@ parse_invocation(struct regress_html *r, const char *arch,
 	for (i = 0; i < VECTOR_LENGTH(steps); i++) {
 		struct suite *suite;
 		struct run *run;
-		const char *log_path, *name;
+		const char *log_path;
 		enum run_status status;
 
-		name = step_get_field(&steps[i], "name")->str;
-		if (suite_categorize(name) == SUITE_UNKNOWN)
+		const char *name = step_get_field(&steps[i], "name")->str;
+		enum suite_type type = suite_categorize(name);
+		if (type == SUITE_UNKNOWN)
 			continue;
 
 		ri->total++;
 
-		suite = find_suite(r, name);
+		suite = find_suite(r, name, type);
 		run = VECTOR_CALLOC(suite->runs);
 		if (run == NULL)
 			err(1, NULL);
@@ -560,21 +576,6 @@ out:
 	return error ? -1 : npatches;
 }
 
-static struct suite *
-find_suite(struct regress_html *r, const char *name)
-{
-	struct suite *suite;
-
-	suite = MAP_FIND(r->suites, name);
-	if (suite == NULL) {
-		suite = MAP_INSERT(r->suites, name);
-		suite->name = MAP_KEY(r->suites, suite);
-		if (VECTOR_INIT(suite->runs))
-			err(1, NULL);
-	}
-	return suite;
-}
-
 static struct suite **
 sort_suites(struct regress_html *r, struct arena_scope *s)
 {
@@ -590,7 +591,8 @@ sort_suites(struct regress_html *r, struct arena_scope *s)
 		struct suite *suite = it.val;
 		if (suite->fail > 0)
 			*ARENA_VECTOR_ALLOC(all) = suite;
-		else if (suite_categorize(suite->name) == SUITE_NON_REGRESS)
+		else if (suite->type == SUITE_INFORMATIVE ||
+		    suite->type == SUITE_NON_REGRESS)
 			*ARENA_VECTOR_ALLOC(nonregress) = suite;
 		else
 			*ARENA_VECTOR_ALLOC(pass) = suite;
@@ -856,6 +858,13 @@ render_arches(struct regress_html *r)
 	}
 }
 
+static const char *
+cvsweb_url(const char *path, struct arena_scope *s)
+{
+	return arena_sprintf(s,
+	    "https://cvsweb.openbsd.org/cgi-bin/cvsweb/src/regress/%s", path);
+}
+
 static void
 render_suite(struct regress_html *r, const struct suite *suite)
 {
@@ -869,12 +878,17 @@ render_suite(struct regress_html *r, const struct suite *suite)
 		size_t i;
 
 		HTML_NODE(html, "td") {
-			const char *href;
-
-			href = cvsweb_url(suite->name, &s);
-			HTML_NODE_ATTR(html, "a", HTML_ATTR("class", "suite"),
-			    HTML_ATTR("href", href))
-				HTML_TEXT(html, suite->name);
+			if (suite->type == SUITE_INFORMATIVE) {
+				HTML_NODE_ATTR(html, "span",
+				    HTML_ATTR("class", "suite"))
+					HTML_TEXT(html, suite->name);
+			} else {
+				const char *href = cvsweb_url(suite->name, &s);
+				HTML_NODE_ATTR(html, "a",
+				    HTML_ATTR("class", "suite"),
+				    HTML_ATTR("href", href))
+					HTML_TEXT(html, suite->name);
+			}
 		}
 
 		for (i = 0; i < VECTOR_LENGTH(runs); i++) {
@@ -904,13 +918,6 @@ render_run(struct regress_html *r, const struct run *run)
 		    HTML_ATTR("class", "status"), HTML_ATTR("href", run->log))
 			HTML_TEXT(html, status);
 	}
-}
-
-static const char *
-cvsweb_url(const char *path, struct arena_scope *s)
-{
-	return arena_sprintf(s,
-	    "https://cvsweb.openbsd.org/cgi-bin/cvsweb/src/regress/%s", path);
 }
 
 static enum duration_delta

@@ -409,11 +409,16 @@ if testcase "non-regress suites"; then
 
 	robsd_regress_html - -- -o "${TSHDIR}/html" "amd64:${TSHDIR}/amd64" </dev/null
 
-	xpath '//a[@class="suite"]/text()' "${TSHDIR}/html/index.html" >"${TMP1}"
+	xpath '//*[@class="suite"]/text()' "${TSHDIR}/html/index.html" >"${TMP1}"
 	assert_file - "${TMP1}" <<-EOF
 	test/first
 	../a
 	../b
+	pkg-add
+	EOF
+
+	xpath '//span[@class="suite"]/text()' "${TSHDIR}/html/index.html" >"${TMP1}"
+	assert_file - "${TMP1}" <<-EOF
 	pkg-add
 	EOF
 fi
