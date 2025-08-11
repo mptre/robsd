@@ -5,7 +5,7 @@ on:
   - pull_request
 
 jobs:
-  linux-gcc-sanitize:
+  linux-clang-sanitize:
     runs-on: ubuntu-22.04
     steps:
       - name: checkout
@@ -14,11 +14,25 @@ jobs:
         run: sudo apt-get update && sudo apt-get install libxml2-utils
       - name: test
         env:
-          CC: gcc
+          CC: clang
           PORTABLE: yes
         run: |
           ./configure --pedantic --sanitize
           make -j`nproc` test
+
+  linux-gcc-fuzz:
+    runs-on: ubuntu-22.04
+    steps:
+      - name: checkout
+        uses: actions/checkout@v2
+      - name: dependenices
+        run: sudo apt-get update && sudo apt-get install afl
+      - name: test
+        env:
+          CC: afl-gcc
+        run: |
+          ./configure --pedantic --fuzz afl
+          make -j`nproc` fuzz
 
   linux-gcc-i386:
     runs-on: ubuntu-22.04
@@ -37,39 +51,7 @@ jobs:
           ./configure --pedantic
           make -j`nproc` test
 
-  linux-clang-sanitize:
-    runs-on: ubuntu-22.04
-    steps:
-      - name: checkout
-        uses: actions/checkout@v2
-      - name: dependenices
-        run: sudo apt-get update && sudo apt-get install libxml2-utils
-      - name: test
-        env:
-          CC: clang
-          PORTABLE: yes
-        run: |
-          ./configure --pedantic --sanitize
-          make -j`nproc` test
-
-  valgrind:
-    runs-on: ubuntu-22.04
-    steps:
-      - name: checkout
-        uses: actions/checkout@v2
-      - name: dependenices
-        run: sudo apt-get update && sudo apt-get install libxml2-utils valgrind
-      - name: test
-        env:
-          CC: gcc
-          EXEC: valgrind
-          PORTABLE: yes
-          TESTFLAGS: -Tmemleak
-        run: |
-          ./configure --pedantic
-          make -j`nproc` test
-
-  ndebug:
+  linux-gcc-ndebug:
     runs-on: ubuntu-22.04
     steps:
       - name: checkout
@@ -85,16 +67,34 @@ jobs:
           ./configure --pedantic
           make -j`nproc` test
 
-  fuzz:
+  linux-gcc-sanitize:
     runs-on: ubuntu-22.04
     steps:
       - name: checkout
         uses: actions/checkout@v2
       - name: dependenices
-        run: sudo apt-get update && sudo apt-get install afl
+        run: sudo apt-get update && sudo apt-get install libxml2-utils
       - name: test
         env:
-          CC: afl-gcc
+          CC: gcc
+          PORTABLE: yes
         run: |
-          ./configure --pedantic --fuzz afl
-          make -j`nproc` fuzz
+          ./configure --pedantic --sanitize
+          make -j`nproc` test
+
+  linux-gcc-valgrind:
+    runs-on: ubuntu-22.04
+    steps:
+      - name: checkout
+        uses: actions/checkout@v2
+      - name: dependenices
+        run: sudo apt-get update && sudo apt-get install libxml2-utils valgrind
+      - name: test
+        env:
+          CC: gcc
+          EXEC: valgrind
+          PORTABLE: yes
+          TESTFLAGS: -Tmemleak
+        run: |
+          ./configure --pedantic
+          make -j`nproc` test
