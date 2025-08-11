@@ -66,6 +66,12 @@ struct regress_invocation {
 #define REGRESS_INVOCATION_CVS		0x00000001u
 };
 
+enum suite_type {
+	SUITE_UNKNOWN,
+	SUITE_NON_REGRESS,
+	SUITE_REGRESS,
+};
+
 #define OP(s, ...) s,
 enum run_status {
 	FOR_RUN_STATUSES(OP)
@@ -246,15 +252,25 @@ regress_html_render(struct regress_html *r)
 	return html_write(r->html, path);
 }
 
-/*
- * Returns non-zero if the given step name represents a regress suite. The
- * regress configuration cannot be used here as we might render runs referring
- * to suites deleted from the configuration by now.
- */
-static int
-is_regress_step(const char *name)
+static enum suite_type
+suite_categorize(const char *name)
 {
-	return strchr(name, '/') != NULL;
+	if (strncmp(name, "../", 3) == 0) {
+		/*
+		 * Suite outside the regress directory, often dependencies that
+		 * are not that interesting.
+		 */
+		return SUITE_NON_REGRESS;
+	} else if (strchr(name, '/') != NULL) {
+		/*
+		 * Note, the regress configuration cannot be used here as we
+		 * might render runs referring to suites deleted from the
+		 * configuration by now.
+		 */
+		return SUITE_REGRESS;
+	} else {
+		return SUITE_UNKNOWN;
+	}
 }
 
 static int
@@ -316,7 +332,7 @@ parse_invocation(struct regress_html *r, const char *arch,
 		enum run_status status;
 
 		name = step_get_field(&steps[i], "name")->str;
-		if (!is_regress_step(name))
+		if (suite_categorize(name) == SUITE_UNKNOWN)
 			continue;
 
 		ri->total++;
@@ -558,18 +574,12 @@ sort_suites(struct regress_html *r)
 	while (MAP_ITERATE(r->suites, &it)) {
 		struct suite *suite = it.val;
 
-		if (suite->fail > 0) {
+		if (suite->fail > 0)
 			dst = VECTOR_ALLOC(all);
-		} else if (strncmp(suite->name, "../", 3) == 0) {
-			/*
-			 * Place step(s) outside of the regress directory last
-			 * as they are often dependencies that are not that
-			 * interesting.
-			 */
+		else if (suite_categorize(suite->name) == SUITE_NON_REGRESS)
 			dst = VECTOR_ALLOC(nonregress);
-		} else {
+		else
 			dst = VECTOR_ALLOC(pass);
-		}
 		if (dst == NULL)
 			err(1, NULL);
 		*dst = suite;
