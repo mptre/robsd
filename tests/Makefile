@@ -20,6 +20,7 @@ TESTS+=	robsd-clean.sh
 TESTS+=	robsd-config.sh
 TESTS+=	robsd-cross.sh
 TESTS+=	robsd-crossenv.sh
+TESTS+=	robsd-cvs.sh
 TESTS+=	robsd-exec.sh
 TESTS+=	robsd-hash.sh
 TESTS+=	robsd-hook.sh

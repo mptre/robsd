@@ -433,6 +433,7 @@ SHLINT+=	tests/robsd-clean.sh
 SHLINT+=	tests/robsd-config.sh
 SHLINT+=	tests/robsd-cross.sh
 SHLINT+=	tests/robsd-crossenv.sh
+SHLINT+=	tests/robsd-cvs.sh
 SHLINT+=	tests/robsd-exec.sh
 SHLINT+=	tests/robsd-hash.sh
 SHLINT+=	tests/robsd-hook.sh
