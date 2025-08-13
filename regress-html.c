@@ -874,7 +874,6 @@ regress_html_render(struct regress_html *r)
 				render_suite(r, suites[i]);
 		}
 	}
-	VECTOR_FREE(suites);
 
 	const char *path = arena_sprintf(&s, "%s/index.html", r->output);
 	return html_write(r->html, path);
