@@ -10,7 +10,12 @@
 
 #include "regress-html.h"
 
-static void	usage(void) __attribute__((noreturn));
+static void __attribute__((noreturn))
+usage(void)
+{
+	fprintf(stderr, "usage: robsd-regress-html -o output arch:path ...\n");
+	exit(1);
+}
 
 int
 main(int argc, char *argv[])
@@ -67,11 +72,4 @@ out:
 	arena_free(scratch);
 	arena_free(eternal);
 	return error;
-}
-
-static void
-usage(void)
-{
-	fprintf(stderr, "usage: robsd-regress-html -o output arch:path ...\n");
-	exit(1);
 }
