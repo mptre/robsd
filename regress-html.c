@@ -569,9 +569,7 @@ regress_html_parse(struct regress_html *r, const char *arch,
 		}
 
 		if (++ninvocations >= 2) {
-			size_t n;
-
-			n = VECTOR_LENGTH(r->invocations);
+			uint32_t n = VECTOR_LENGTH(r->invocations);
 			r->invocations[n - 1].duration.delta = duration_delta(
 			    r->invocations[n - 1].duration.seconds,
 			    r->invocations[n - 2].duration.seconds);
@@ -659,11 +657,9 @@ render_pass_rates(struct regress_html *r)
 	arena_scope(r->arena.scratch, s);
 
 	HTML_NODE(html, "tr") {
-		size_t i;
-
 		HTML_NODE(html, "th")
 			HTML_TEXT(html, "pass rate");
-		for (i = 0; i < VECTOR_LENGTH(r->invocations); i++) {
+		for (uint32_t i = 0; i < VECTOR_LENGTH(r->invocations); i++) {
 			const struct regress_invocation *ri = &r->invocations[i];
 
 			HTML_NODE_ATTR(html, "th", HTML_ATTR("class", "pass"))
@@ -678,11 +674,9 @@ render_dates(struct regress_html *r)
 	struct html *html = r->html;
 
 	HTML_NODE(html, "tr") {
-		size_t i;
-
 		HTML_NODE(html, "th")
 			HTML_TEXT(html, "date");
-		for (i = 0; i < VECTOR_LENGTH(r->invocations); i++) {
+		for (uint32_t i = 0; i < VECTOR_LENGTH(r->invocations); i++) {
 			const struct regress_invocation *ri = &r->invocations[i];
 
 			HTML_NODE_ATTR(html, "th", HTML_ATTR("class", "date"))
@@ -699,11 +693,9 @@ render_durations(struct regress_html *r)
 	arena_scope(r->arena.scratch, s);
 
 	HTML_NODE(html, "tr") {
-		size_t i;
-
 		HTML_NODE(html, "th")
 			HTML_TEXT(html, "duration");
-		for (i = 0; i < VECTOR_LENGTH(r->invocations); i++) {
+		for (uint32_t i = 0; i < VECTOR_LENGTH(r->invocations); i++) {
 			const struct regress_invocation *ri = &r->invocations[i];
 
 			HTML_NODE_ATTR(html, "th",
@@ -719,11 +711,9 @@ render_changelog(struct regress_html *r)
 	struct html *html = r->html;
 
 	HTML_NODE(html, "tr") {
-		size_t i;
-
 		HTML_NODE(html, "th")
 			HTML_TEXT(html, "changelog");
-		for (i = 0; i < VECTOR_LENGTH(r->invocations); i++) {
+		for (uint32_t i = 0; i < VECTOR_LENGTH(r->invocations); i++) {
 			const struct regress_invocation *ri = &r->invocations[i];
 
 			HTML_NODE_ATTR(html, "th", HTML_ATTR("class", "cvs")) {
@@ -747,11 +737,9 @@ render_patches(struct regress_html *r)
 	arena_scope(r->arena.scratch, s);
 
 	HTML_NODE(h, "tr") {
-		size_t i;
-
 		HTML_NODE(h, "th")
 			HTML_TEXT(h, "patches");
-		for (i = 0; i < VECTOR_LENGTH(r->invocations); i++) {
+		for (uint32_t i = 0; i < VECTOR_LENGTH(r->invocations); i++) {
 			const struct regress_invocation *ri = &r->invocations[i];
 
 			HTML_NODE_ATTR(h, "th", HTML_ATTR("class", "patch")) {
@@ -777,11 +765,9 @@ render_arches(struct regress_html *r)
 	struct html *html = r->html;
 
 	HTML_NODE(html, "tr") {
-		size_t i;
-
 		HTML_NODE(html, "th")
 			HTML_TEXT(html, "architecture");
-		for (i = 0; i < VECTOR_LENGTH(r->invocations); i++) {
+		for (uint32_t i = 0; i < VECTOR_LENGTH(r->invocations); i++) {
 			const struct regress_invocation *ri = &r->invocations[i];
 
 			HTML_NODE_ATTR(html, "th", HTML_ATTR("class", "arch")) {
@@ -829,10 +815,6 @@ render_suite(struct regress_html *r, const struct suite *suite)
 	arena_scope(r->arena.scratch, s);
 
 	HTML_NODE(html, "tr") {
-		VECTOR(struct run) runs = suite->runs;
-		const struct regress_invocation *ri = r->invocations;
-		size_t i;
-
 		HTML_NODE(html, "td") {
 			const char *href = suite->type == SUITE_INFORMATIVE ?
 			    github_url(suite->name, &s) :
@@ -843,7 +825,9 @@ render_suite(struct regress_html *r, const struct suite *suite)
 				HTML_TEXT(html, suite->name);
 		}
 
-		for (i = 0; i < VECTOR_LENGTH(runs); i++) {
+		const struct regress_invocation *ri = r->invocations;
+		VECTOR(const struct run) runs = suite->runs;
+		for (uint32_t i = 0; i < VECTOR_LENGTH(runs); i++) {
 			const struct run *run = &runs[i];
 
 			/* Compensate for missing run(s). */
@@ -862,9 +846,7 @@ render_suite(struct regress_html *r, const struct suite *suite)
 int
 regress_html_render(struct regress_html *r)
 {
-	struct suite **suites;
 	struct html *html = r->html;
-	const char *path;
 
 	arena_scope(r->arena.scratch, s);
 
@@ -876,10 +858,8 @@ regress_html_render(struct regress_html *r)
 	HTML_NODE(html, "h1")
 		HTML_TEXT(html, "OpenBSD regress latest test results");
 
-	suites = sort_suites(r, &s);
+	VECTOR(struct suite *) suites = sort_suites(r, &s);
 	HTML_NODE(html, "table") {
-		size_t i;
-
 		HTML_NODE(html, "thead") {
 			render_pass_rates(r);
 			render_dates(r);
@@ -890,12 +870,12 @@ regress_html_render(struct regress_html *r)
 		}
 
 		HTML_NODE(html, "tbody") {
-			for (i = 0; i < VECTOR_LENGTH(suites); i++)
+			for (uint32_t i = 0; i < VECTOR_LENGTH(suites); i++)
 				render_suite(r, suites[i]);
 		}
 	}
 	VECTOR_FREE(suites);
 
-	path = arena_sprintf(&s, "%s/index.html", r->output);
+	const char *path = arena_sprintf(&s, "%s/index.html", r->output);
 	return html_write(r->html, path);
 }
