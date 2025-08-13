@@ -20,8 +20,6 @@ usage(void)
 int
 main(int argc, char *argv[])
 {
-	struct arena *eternal, *scratch;
-	struct regress_html *rh;
 	const char *output = NULL;
 	int error = 0;
 	int ch;
@@ -43,11 +41,12 @@ main(int argc, char *argv[])
 	if (pledge("stdio rpath wpath cpath flock", NULL) == -1)
 		err(1, "pledge");
 
-	eternal = arena_alloc("eternal");
+	struct arena *eternal = arena_alloc("eternal");
 	arena_scope(eternal, eternal_scope);
-	scratch = arena_alloc("scratch");
+	struct arena *scratch = arena_alloc("scratch");
 
-	rh = regress_html_alloc(output, scratch, &eternal_scope);
+	struct regress_html *rh = regress_html_alloc(output, scratch,
+	    &eternal_scope);
 
 	for (; argc > 0; argc--, argv++) {
 		const char *arch, *colon, *path;
