@@ -64,7 +64,6 @@ main(int argc, char *argv[])
 	error = regress_html_render(rh);
 
 out:
-	regress_html_free(rh);
 	arena_free(scratch);
 	arena_free(eternal);
 	return error;

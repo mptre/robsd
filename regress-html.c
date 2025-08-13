@@ -154,6 +154,23 @@ find_suite(struct regress_html *r, const char *name, enum suite_type type)
 	return suite;
 }
 
+static void
+regress_html_free(void *arg)
+{
+	struct regress_html *r = arg;
+
+	VECTOR_FREE(r->invocations);
+
+	MAP_ITERATOR(r->suites) it = {0};
+	while (MAP_ITERATE(r->suites, &it)) {
+		struct suite *suite = it.val;
+		VECTOR_FREE(suite->runs);
+		MAP_REMOVE(r->suites, it.key);
+	}
+
+	MAP_FREE(r->suites);
+}
+
 struct regress_html *
 regress_html_alloc(const char *directory, struct arena *scratch,
     struct arena_scope *s)
@@ -169,25 +186,8 @@ regress_html_alloc(const char *directory, struct arena *scratch,
 	r->arena.eternal_scope = s;
 	r->arena.scratch = scratch;
 	r->html = html_alloc(s);
+	arena_cleanup(s, regress_html_free, r);
 	return r;
-}
-
-void
-regress_html_free(struct regress_html *r)
-{
-	MAP_ITERATOR(r->suites) it = {0};
-
-	if (r == NULL)
-		return;
-
-	VECTOR_FREE(r->invocations);
-	while (MAP_ITERATE(r->suites, &it)) {
-		struct suite *suite = it.val;
-
-		VECTOR_FREE(suite->runs);
-		MAP_REMOVE(r->suites, it.key);
-	}
-	MAP_FREE(r->suites);
 }
 
 int
