@@ -415,7 +415,6 @@ copy_patches(struct regress_html *r, struct regress_invocation *ri,
 
 out:
 	invocation_free(is);
-	/* coverity[leaked_storage: FALSE] */
 	return error ? -1 : npatches;
 }
 
@@ -910,6 +909,5 @@ regress_html_render(struct regress_html *r)
 	VECTOR_FREE(suites);
 
 	path = arena_sprintf(&s, "%s/index.html", r->output);
-	/* coverity[leaked_storage: FALSE] */
 	return html_write(r->html, path);
 }
