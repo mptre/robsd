@@ -42,7 +42,7 @@ main(int argc, char *argv[])
 	arena_scope(eternal, eternal_scope);
 	scratch = arena_alloc("scratch");
 
-	rh = regress_html_alloc(output, &eternal_scope, scratch);
+	rh = regress_html_alloc(output, scratch, &eternal_scope);
 
 	for (; argc > 0; argc--, argv++) {
 		const char *arch, *colon, *path;

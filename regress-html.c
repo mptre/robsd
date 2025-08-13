@@ -155,20 +155,20 @@ find_suite(struct regress_html *r, const char *name, enum suite_type type)
 }
 
 struct regress_html *
-regress_html_alloc(const char *directory, struct arena_scope *eternal,
-    struct arena *scratch)
+regress_html_alloc(const char *directory, struct arena *scratch,
+    struct arena_scope *s)
 {
 	struct regress_html *r;
 
-	r = arena_calloc(eternal, 1, sizeof(*r));
+	r = arena_calloc(s, 1, sizeof(*r));
 	if (VECTOR_INIT(r->invocations))
 		err(1, NULL);
 	if (MAP_INIT(r->suites))
 		err(1, NULL);
 	r->output = directory;
-	r->arena.eternal_scope = eternal;
+	r->arena.eternal_scope = s;
 	r->arena.scratch = scratch;
-	r->html = html_alloc(eternal);
+	r->html = html_alloc(s);
 	return r;
 }
 
