@@ -203,8 +203,7 @@ find_suite(struct regress_html *r, const char *name, enum suite_type type)
 		suite = MAP_INSERT(r->suites, name);
 		suite->name = MAP_KEY(r->suites, suite);
 		suite->type = type;
-		if (VECTOR_INIT(suite->runs))
-			err(1, NULL);
+		ARENA_VECTOR_INIT(r->arena.eternal_scope, suite->runs, 1 << 8);
 	}
 	return suite;
 }
@@ -213,16 +212,6 @@ static void
 regress_html_free(void *arg)
 {
 	struct regress_html *r = arg;
-
-	VECTOR_FREE(r->invocations);
-
-	MAP_ITERATOR(r->suites) it = {0};
-	while (MAP_ITERATE(r->suites, &it)) {
-		struct suite *suite = it.val;
-		VECTOR_FREE(suite->runs);
-		MAP_REMOVE(r->suites, it.key);
-	}
-
 	MAP_FREE(r->suites);
 }
 
@@ -233,8 +222,7 @@ regress_html_alloc(const char *directory, struct arena *scratch,
 	struct regress_html *r;
 
 	r = arena_calloc(s, 1, sizeof(*r));
-	if (VECTOR_INIT(r->invocations))
-		err(1, NULL);
+	ARENA_VECTOR_INIT(s, r->invocations, 1 << 5);
 	if (MAP_INIT(r->suites))
 		err(1, NULL);
 	r->output = directory;
@@ -270,9 +258,7 @@ create_regress_invocation(struct regress_html *r, const char *arch,
 		return NULL;
 	}
 
-	ri = VECTOR_CALLOC(r->invocations);
-	if (ri == NULL)
-		err(1, NULL);
+	ri = ARENA_VECTOR_CALLOC(r->invocations);
 	ri->arch = arena_strdup(r->arena.eternal_scope, arch);
 	ri->date = arena_strdup(r->arena.eternal_scope, date);
 	ri->time = time;
@@ -534,9 +520,7 @@ parse_invocation(struct regress_html *r, const char *arch,
 		ri->total++;
 
 		suite = find_suite(r, name, type);
-		run = VECTOR_CALLOC(suite->runs);
-		if (run == NULL)
-			err(1, NULL);
+		run = ARENA_VECTOR_CALLOC(suite->runs);
 		run->log = arena_sprintf(r->arena.eternal_scope, "%s/%s/%s",
 		    arch, ri->date, step_get_field(&steps[i], "log")->str);
 		run->time = time;
