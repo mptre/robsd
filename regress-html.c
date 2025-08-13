@@ -816,6 +816,14 @@ cvsweb_url(const char *path, struct arena_scope *s)
 	    "https://cvsweb.openbsd.org/cgi-bin/cvsweb/src/regress/%s", path);
 }
 
+static const char *
+github_url(const char *step_name, struct arena_scope *s)
+{
+	return arena_sprintf(s,
+	    "https://github.com/mptre/robsd/blob/master/robsd-regress-%s.sh",
+	    step_name);
+}
+
 static void
 render_run(struct regress_html *r, const struct run *run)
 {
@@ -842,17 +850,13 @@ render_suite(struct regress_html *r, const struct suite *suite)
 		size_t i;
 
 		HTML_NODE(html, "td") {
-			if (suite->type == SUITE_INFORMATIVE) {
-				HTML_NODE_ATTR(html, "span",
-				    HTML_ATTR("class", "suite"))
-					HTML_TEXT(html, suite->name);
-			} else {
-				const char *href = cvsweb_url(suite->name, &s);
-				HTML_NODE_ATTR(html, "a",
-				    HTML_ATTR("class", "suite"),
-				    HTML_ATTR("href", href))
-					HTML_TEXT(html, suite->name);
-			}
+			const char *href = suite->type == SUITE_INFORMATIVE ?
+			    github_url(suite->name, &s) :
+			    cvsweb_url(suite->name, &s);
+			HTML_NODE_ATTR(html, "a",
+			    HTML_ATTR("class", "suite"),
+			    HTML_ATTR("href", href))
+				HTML_TEXT(html, suite->name);
 		}
 
 		for (i = 0; i < VECTOR_LENGTH(runs); i++) {

@@ -417,9 +417,10 @@ if testcase "non-regress suites"; then
 	pkg-add
 	EOF
 
-	xpath '//span[@class="suite"]/text()' "${TSHDIR}/html/index.html" >"${TMP1}"
+	xpath '//a[@class="suite"]/@href' "${TSHDIR}/html/index.html" |
+	grep -F 'github.com' >"${TMP1}"
 	assert_file - "${TMP1}" <<-EOF
-	pkg-add
+	href=https://github.com/mptre/robsd/blob/master/robsd-regress-pkg-add.sh
 	EOF
 fi
 
