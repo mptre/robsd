@@ -6,11 +6,6 @@ COMPATS+=	compat-pledge.c
 COMPATS+=	compat-strtonum.c
 COMPATS+=	compat-unveil.c
 
-SRCS_config+=	arena-buffer.c
-SRCS_config+=	arena-vector.c
-SRCS_config+=	arena.c
-SRCS_config+=	arithmetic.c
-SRCS_config+=	buffer.c
 SRCS_config+=	conf-canvas.c
 SRCS_config+=	conf-robsd-cross.c
 SRCS_config+=	conf-robsd-ports.c
@@ -21,11 +16,16 @@ SRCS_config+=	conf.c
 SRCS_config+=	if.c
 SRCS_config+=	interpolate.c
 SRCS_config+=	lexer.c
+SRCS_config+=	libks/arena-buffer.c
+SRCS_config+=	libks/arena-vector.c
+SRCS_config+=	libks/arena.c
+SRCS_config+=	libks/arithmetic.c
+SRCS_config+=	libks/buffer.c
+SRCS_config+=	libks/map.c
+SRCS_config+=	libks/vector.c
 SRCS_config+=	log.c
-SRCS_config+=	map.c
 SRCS_config+=	mode.c
 SRCS_config+=	variable-value.c
-SRCS_config+=	vector.c
 
 SRCS_robsd-config+=	${COMPATS}
 SRCS_robsd-config+=	${SRCS_config}
@@ -58,30 +58,30 @@ DEPS_robsd-ls=		${SRCS_robsd-ls:.c=.d}
 PROG_robsd-ls=		robsd-ls
 
 SRCS_robsd-regress-html+=	${COMPATS}
-SRCS_robsd-regress-html+=	arithmetic.c
-SRCS_robsd-regress-html+=	arena.c
-SRCS_robsd-regress-html+=	arena-buffer.c
-SRCS_robsd-regress-html+=	arena-vector.c
-SRCS_robsd-regress-html+=	buffer.c
-SRCS_robsd-regress-html+=	consistency.c
 SRCS_robsd-regress-html+=	html.c
 SRCS_robsd-regress-html+=	interpolate.c
 SRCS_robsd-regress-html+=	invocation.c
 SRCS_robsd-regress-html+=	lexer.c
+SRCS_robsd-regress-html+=	libks/arena-buffer.c
+SRCS_robsd-regress-html+=	libks/arena-vector.c
+SRCS_robsd-regress-html+=	libks/arena.c
+SRCS_robsd-regress-html+=	libks/arithmetic.c
+SRCS_robsd-regress-html+=	libks/buffer.c
+SRCS_robsd-regress-html+=	libks/consistency.c
+SRCS_robsd-regress-html+=	libks/map.c
+SRCS_robsd-regress-html+=	libks/vector.c
 SRCS_robsd-regress-html+=	log.c
-SRCS_robsd-regress-html+=	map.c
 SRCS_robsd-regress-html+=	regress-html.c
 SRCS_robsd-regress-html+=	regress-log.c
 SRCS_robsd-regress-html+=	step.c
-SRCS_robsd-regress-html+=	vector.c
 SRCS_robsd-regress-html+=	robsd-regress-html.c
 OBJS_robsd-regress-html=	${SRCS_robsd-regress-html:.c=.o}
 DEPS_robsd-regress-html=	${SRCS_robsd-regress-html:.c=.d}
 PROG_robsd-regress-html=	robsd-regress-html
 
 SRCS_robsd-regress-log+=	${COMPATS}
-SRCS_robsd-regress-log+=	buffer.c
-SRCS_robsd-regress-log+=	consistency.c
+SRCS_robsd-regress-log+=	libks/buffer.c
+SRCS_robsd-regress-log+=	libks/consistency.c
 SRCS_robsd-regress-log+=	regress-log.c
 SRCS_robsd-regress-log+=	robsd-regress-log.c
 OBJS_robsd-regress-log=		${SRCS_robsd-regress-log:.c=.o}
@@ -90,8 +90,8 @@ PROG_robsd-regress-log=		robsd-regress-log
 
 SRCS_robsd-report+=	${COMPATS}
 SRCS_robsd-report+=	${SRCS_config}
-SRCS_robsd-report+=	consistency.c
 SRCS_robsd-report+=	invocation.c
+SRCS_robsd-report+=	libks/consistency.c
 SRCS_robsd-report+=	regress-log.c
 SRCS_robsd-report+=	report.c
 SRCS_robsd-report+=	step.c
@@ -101,9 +101,9 @@ DEPS_robsd-report=	${SRCS_robsd-report:.c=.d}
 PROG_robsd-report=	robsd-report
 
 SRCS_robsd-stat+=	${COMPATS}
-SRCS_robsd-stat+=	arena.c
-SRCS_robsd-stat+=	arithmetic.c
-SRCS_robsd-stat+=	vector.c
+SRCS_robsd-stat+=	libks/arena.c
+SRCS_robsd-stat+=	libks/arithmetic.c
+SRCS_robsd-stat+=	libks/vector.c
 SRCS_robsd-stat+=	robsd-stat.c
 OBJS_robsd-stat=	${SRCS_robsd-stat:.c=.o}
 DEPS_robsd-stat=	${SRCS_robsd-stat:.c=.d}
@@ -118,9 +118,9 @@ DEPS_robsd-step=	${SRCS_robsd-step:.c=.d}
 PROG_robsd-step=	robsd-step
 
 SRCS_robsd-wait+=	${COMPATS}
-SRCS_robsd-wait+=	arithmetic.c
-SRCS_robsd-wait+=	map.c
-SRCS_robsd-wait+=	vector.c
+SRCS_robsd-wait+=	libks/arithmetic.c
+SRCS_robsd-wait+=	libks/map.c
+SRCS_robsd-wait+=	libks/vector.c
 SRCS_robsd-wait+=	robsd-wait.c
 OBJS_robsd-wait=	${SRCS_robsd-wait:.c=.o}
 DEPS_robsd-wait=	${SRCS_robsd-wait:.c=.d}
@@ -128,26 +128,26 @@ PROG_robsd-wait=	robsd-wait
 
 SRCS_fuzz-config+=	${COMPATS}
 SRCS_fuzz-config+=	${SRCS_config}
-SRCS_fuzz-config+=	fs.c
+SRCS_fuzz-config+=	libks/fs.c
 SRCS_fuzz-config+=	fuzz-config.c
 OBJS_fuzz-config=	${SRCS_fuzz-config:.c=.o}
 DEPS_fuzz-config=	${SRCS_fuzz-config:.c=.d}
 PROG_fuzz-config=	fuzz-config
 
 SRCS_fuzz-step+=	${COMPATS}
-SRCS_fuzz-step+=	arena-buffer.c
-SRCS_fuzz-step+=	arena.c
-SRCS_fuzz-step+=	buffer.c
 SRCS_fuzz-step+=	interpolate.c
 SRCS_fuzz-step+=	lexer.c
+SRCS_fuzz-step+=	libks/arena-buffer.c
+SRCS_fuzz-step+=	libks/arena.c
+SRCS_fuzz-step+=	libks/buffer.c
+SRCS_fuzz-step+=	libks/fs.c
+SRCS_fuzz-step+=	libks/vector.c
 SRCS_fuzz-step+=	log.c
-SRCS_fuzz-step+=	vector.c
 SRCS_fuzz-step+=	step.c
-SRCS_fuzz-step+=	fs.c
 SRCS_fuzz-step+=	fuzz-step.c
-OBJS_fuzz-step=	${SRCS_fuzz-step:.c=.o}
-DEPS_fuzz-step=	${SRCS_fuzz-step:.c=.d}
-PROG_fuzz-step=	fuzz-step
+OBJS_fuzz-step=		${SRCS_fuzz-step:.c=.o}
+DEPS_fuzz-step=		${SRCS_fuzz-step:.c=.d}
+PROG_fuzz-step=		fuzz-step
 
 KNFMT+=	conf-canvas.c
 KNFMT+=	conf-priv.h
