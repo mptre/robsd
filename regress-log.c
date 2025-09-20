@@ -3,7 +3,6 @@
 #include "config.h"
 
 #include <err.h>
-#include <stdio.h>
 #include <string.h>
 
 #include "libks/buffer.h"
