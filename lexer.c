@@ -212,7 +212,7 @@ lexer_error(struct lexer *lx, int lno, const char *fmt, ...)
 	lx->lx_err++;
 
 	va_start(ap, fmt);
-	logv(LOG_WARNX, lx->lx_arg.path, lno, fmt, ap);
+	log_vwarnx(lx->lx_arg.path, lno, fmt, ap);
 	va_end(ap);
 }
 

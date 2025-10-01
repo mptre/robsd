@@ -20,17 +20,13 @@ log_warnx(const char *path, int lno, const char *fmt, ...)
 	va_list ap;
 
 	va_start(ap, fmt);
-	logv(LOG_WARNX, path, lno, fmt, ap);
+	log_vwarnx(path, lno, fmt, ap);
 	va_end(ap);
 }
 
 void
-logv(enum log_func fun, const char *path, int lno, const char *fmt,
-    va_list ap)
+log_vwarnx(const char *path, int lno, const char *fmt, va_list ap)
 {
-	void (*functions[])(const char *, ...) = {
-		[LOG_WARNX]	= warnx,
-	};
 	char msg[512], line[16];
 
 	if (!log_enable)
@@ -42,7 +38,7 @@ logv(enum log_func fun, const char *path, int lno, const char *fmt,
 		(void)snprintf(line, sizeof(line), "%d:", lno);
 
 	(void)vsnprintf(msg, sizeof(msg), fmt, ap);
-	(functions[fun])("%s%s%s%s%s",
+	warnx("%s%s%s%s%s",
 	    path ? path : "",
 	    path ? ":" : "",
 	    line,
