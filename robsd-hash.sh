@@ -72,6 +72,9 @@ mv SHA256 SHA256.orig
 } | sort >SHA256
 rm SHA256.orig
 
+_machine="$(machine)"
 cd "${BUILDDIR}"
 mkdir -p snapshots
-(cd snapshots && ln -fs ../rel "$(machine)")
+cd snapshots
+rm -f "${_machine}"
+ln -fs ../rel "${_machine}"
