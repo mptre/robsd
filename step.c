@@ -87,8 +87,7 @@ struct field_definition {
 	} fd_default;
 };
 
-static const struct field_definition	*field_definition_find_by_name(
-    const char *);
+static const struct field_definition	*field_definition_find_by_name(const char *);
 
 static const struct field_definition fields[] = {
 	{ "step",	INTEGER,	0, 0,		{ 0 } },

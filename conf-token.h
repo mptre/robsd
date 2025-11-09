@@ -38,8 +38,7 @@ enum token_type {
 
 struct token_type_lookup	*token_type_lookup_alloc(enum robsd_mode,
     struct arena_scope *);
-void				 token_type_lookup_free(
-    struct token_type_lookup *);
+void				 token_type_lookup_free(struct token_type_lookup *);
 enum token_type			 token_type_lookup(
     const struct token_type_lookup *, const char *, enum token_type);
 
