@@ -1,6 +1,7 @@
 #include "config.h"
 
 #include <err.h>
+#include <stdint.h>
 
 #include "libks/compiler.h"
 #include "libks/vector.h"
@@ -110,7 +111,7 @@ config_parse_canvas_step(struct config *cf, struct lexer *lx,
 
 	for (;;) {
 		if (lexer_if(lx, TOKEN_COMMAND, &tk)) {
-			struct variable_value env;
+			struct variable_value command_with_env;
 
 			error = config_parse_list(cf, lx, &command);
 			if (error)
@@ -119,11 +120,17 @@ config_parse_canvas_step(struct config *cf, struct lexer *lx,
 				continue;
 
 			/* Prepend environment. */
-			variable_value_init(&env, LIST);
-			variable_value_append(&env, "env");
-			variable_value_append(&env, "${env}");
-			variable_value_concat(&env, &command);
-			command = env;
+			variable_value_init(&command_with_env, LIST);
+			const struct variable *env = config_find(cf, "env");
+			if (env != NULL) {
+				variable_value_append(&command_with_env, "env");
+				VECTOR(const char *) v = env->va_val.list;
+				for (uint32_t i = 0; i < VECTOR_LENGTH(v); i++)
+					variable_value_append(&command_with_env, v[i]);
+			}
+
+			variable_value_concat(&command_with_env, &command);
+			command = command_with_env;
 		} else if (lexer_if(lx, TOKEN_PARALLEL, &tk)) {
 			parallel = 1;
 		} else {

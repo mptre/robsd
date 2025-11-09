@@ -17,8 +17,8 @@ if testcase "basic"; then
 	robsd_config -c - <<-EOF
 	canvas-dir "${CANVASDIR}"
 	keep 7
-	env { "FOO=hello" }
-	step "first" command { "sh" "-c" "env | grep -w FOO" }
+	env { "FOO=foo" "BAR=bar" }
+	step "first" command { "sh" "-c" "env | grep -w -e FOO -e BAR" }
 	EOF
 
 	if ! PATH="${BINDIR}:${PATH}" sh "${CANVAS}" -d -C "${ROBSDCONF}" \
@@ -35,7 +35,8 @@ if testcase "basic"; then
 	step_eval -n first "${_steps}"
 	_log="${_builddir}/$(step_value log)"
 	assert_file - "${_log}" <<-EOF
-	FOO=hello
+	FOO=foo
+	BAR=bar
 	EOF
 fi
 
