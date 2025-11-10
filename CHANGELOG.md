@@ -1,3 +1,15 @@
+# 20.3.1 - 2025-11-10
+
+## Bug fixes
+
+- robsd: avoid creation of bogus snapshots symlinks.
+  (2a757b976eb3)
+  (Anton Lindqvist)
+
+- canvas: honor multiple env variables in configuration
+  (fbe56190be98)
+  (Anton Lindqvist)
+
 # 20.3.0 - 2025-08-13
 
 ## News
