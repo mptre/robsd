@@ -1,6 +1,6 @@
 include ${.CURDIR}/config.mk
 
-VERSION=	20.3.1
+VERSION=	20.3.2rc1
 
 COMPATS+=	compat-pledge.c
 COMPATS+=	compat-strtonum.c
