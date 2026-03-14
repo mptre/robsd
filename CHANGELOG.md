@@ -1,3 +1,12 @@
+# 20.3.2 - YYYY-MM-DD
+
+## Bug fixes
+
+- robsd-ports: stop removing dpb logs, keeping build-stats around has a positive
+  effect on build time.
+  (8c8dab207d3a)
+  (Anton Lindqvist)
+
 # 20.3.1 - 2025-11-10
 
 ## Bug fixes
