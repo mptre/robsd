@@ -11,6 +11,8 @@ PATH="${CHROOT}${PORTSDIR}/infrastructure/bin:${PATH}"
 
 _arch="$(arch -s)"
 
+rm -rf "${CHROOT}${PORTSDIR}/logs/${_arch}"
+
 # Could already be present if the clean step was not skipped.
 _packages="${CHROOT}${PORTSDIR}/packages/${_arch}/all"
 if ! [ -e "${TMPDIR}/packages.orig" ]; then
