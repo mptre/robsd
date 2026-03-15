@@ -4,7 +4,7 @@
 
 - robsd-ports: stop removing dpb logs, keeping build-stats around has a positive
   effect on build time.
-  (8c8dab207d3a)
+  (8c8dab207d3a, 3e2558cb4aeb)
   (Anton Lindqvist)
 
 # 20.3.1 - 2025-11-10
