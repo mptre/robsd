@@ -26,8 +26,8 @@ exit code of the step
 name of the step
 .El
 .Pp
-The exit code of the hook is ignored in the sense that a non-zero exit does not
-abort the corresponding robsd utility.
+Exiting with code 125 from a hook signals that the step should be retried again.
+All other exit codes are ignored.
 .Sh EXAMPLES
 .Bd -literal
 hook { "echo" "step ${step-name} done" }

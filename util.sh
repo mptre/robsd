@@ -918,10 +918,9 @@ report_receiver() {
 	esac
 }
 
-# robsd -b build-dir -s step-id
-#
-# Main loop shared between utilities.
-robsd() {
+# robsd_exec_steps -b build-dir -s step-id
+robsd_exec_steps() {
+	local _builddir
 	local _d0
 	local _d1
 	local _jobs=""
@@ -998,9 +997,10 @@ robsd() {
 				return 0
 			fi
 
-			# Execute job synchronously.
+			# Execute job synchronously. Need to explicitly rely
+			# failures while being part of a pipe.
 			step_exec_job -b "${_builddir}" -s "${_steps}" \
-				-i "${_step}" -n "${_name}"
+				-i "${_step}" -n "${_name}" || return "$?"
 		fi
 
 		# Reboot in progress?
@@ -1017,12 +1017,46 @@ robsd() {
 	done
 }
 
+# robsd -b build-dir -s step-id
+#
+# Main loop shared between utilities.
+robsd() {
+	local _builddir
+	local _err=0
+	local _step
+	local _steps
+
+	while [ $# -gt 0 ]; do
+		case "$1" in
+		-b)	shift; _builddir="$1";;
+		-s)	shift; _step="$1";;
+		*)	break;;
+		esac
+		shift
+	done
+	: "${_builddir:?}"
+	: "${_step:?}"
+
+	_steps="$(step_path "${_builddir}")"
+
+	while :; do
+		robsd_exec_steps -b "${_builddir}" -s "${_step}" || _err="$?"
+		if [ "${_err}" -eq 125 ]; then
+			_step="$(step_next "${_steps}")"
+			_err=0
+		else
+			break
+		fi
+	done
+
+	return "${_err}"
+}
+
 # robsd_hook [robsd-hook-argument ...]
 #
 # Invoke robsd hook.
 robsd_hook() {
-	# Ignore non-zero exit.
-	"${ROBSDHOOK}" -m "${_MODE}" -V ${ROBSDCONF:+"-C${ROBSDCONF}"} "$@" || :
+	"${ROBSDHOOK}" -m "${_MODE}" -V ${ROBSDCONF:+"-C${ROBSDCONF}"} "$@"
 }
 
 # setmode mode
@@ -1210,6 +1244,7 @@ step_exec_job() {
 	local _d0
 	local _d1
 	local _delta
+	local _err=0
 	local _exit=0
 	local _id
 	local _log
@@ -1248,14 +1283,17 @@ step_exec_job() {
 	step_write -l "${_log}" -s "${_id}" -n "${_name}" -e "${_exit}" -d "${_d1}" \
 		-a "${_delta}" "${_steps}"
 
-	robsd_hook -v "step-exit=${_exit}" -v "step-name=${_name}"
+	robsd_hook -v "step-exit=${_exit}" -v "step-name=${_name}" || _err="$?"
+	if [ "${_err}" -eq 125 ]; then
+		_exit="${_err}"
+	fi
 
 	case "${_MODE}" in
 	robsd-regress)
-		regress_step_after -b "${_builddir}" -e "${_exit}" -n "${_name}" || return 1
+		regress_step_after -b "${_builddir}" -e "${_exit}" -n "${_name}"
 		;;
 	*)
-		[ "${_exit}" -eq 0 ] || return 1
+		[ "${_exit}" -eq 0 ] || return "${_exit}"
 		;;
 	esac
 }
@@ -1298,8 +1336,8 @@ steps() {
 # step_next file
 #
 # Get the next step to execute. If the last step failed or aborted, it will be
-# executed again. The exception also applies to the end step, this is useful
-# since it allows the report to be regenerated for a finished release.
+# executed again. The retry behavior also applies to the end step which is
+# useful since it allows the report to be regenerated for a finished build.
 step_next() {
 	local _exit
 	local _file
@@ -1401,7 +1439,7 @@ trap_exit() {
 	fi
 
 	if step_eval -n end "${_steps}" 2>/dev/null; then
-		robsd_hook -v "step-exit=0" -v "step-name=end"
+		robsd_hook -v "step-exit=0" -v "step-name=end" || :
 	fi
 
 	lock_release "${_robsddir}" "${_builddir}" || :

@@ -88,3 +88,36 @@ if testcase "oneshot"; then
 	devel/favored
 	EOF
 fi
+
+if testcase "retry"; then
+	robsd_config -P - <<-EOF
+	robsddir "${ROBSDDIR}"
+	hook { "sh" "-x" "${TSHDIR}/robsd-ports-hook" "\${step-exit}" }
+	ports { "devel/robsd" }
+	EOF
+	mkdir "${ROBSDDIR}"
+	mkdir -p "${TSHDIR}/ports/packages/$(machine)/all"
+	cat <<-EOF >"${BINDIR}/dpb"
+	#!/bin/sh
+	if [ -e "${TSHDIR}/dpb" ]; then
+		echo dpb >>"${TSHDIR}/dpb"
+	else
+		echo dpb >>"${TSHDIR}/dpb"
+		exit 1
+	fi
+	EOF
+	cat <<-EOF >"${TSHDIR}/robsd-ports-hook"
+	#!/bin/sh
+	echo hook >>"${TSHDIR}/hook"
+	if [ "\${1}" -eq 1 ]; then
+		exit 125
+	fi
+	EOF
+
+	if ! robsd_ports -d -s env -s cvs -s clean -s proot -s patch >"${TMP1}" 2>&1; then
+		fail - "expected exit zero" <"${TMP1}"
+	fi
+
+	_dpb_count="$(awk 'END {print NR}' <"${TSHDIR}/dpb")"
+	assert_eq 2 "${_dpb_count}"
+fi
