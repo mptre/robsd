@@ -1,3 +1,17 @@
+# 21.0.0 - YYYY-MM-DD
+
+## Changes
+
+- robsd-ports: remove support for building a single package.
+  (5126579532ab)
+  (Anton Lindqvist)
+
+## News
+
+- Allow hooks to signal step retry.
+  (0328e120d0d2)
+  (Anton Lindqvist)
+
 # 20.3.2 - YYYY-MM-DD
 
 ## Bug fixes
