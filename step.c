@@ -22,6 +22,7 @@
 #include "interpolate.h"
 #include "lexer.h"
 #include "mode.h"
+#include "step-exec.h"
 #include "token.h"
 
 enum token_type {
@@ -322,17 +323,19 @@ steps_find_by_name(struct step *steps, const char *name)
 struct step *
 steps_find_by_id(struct step *steps, int id)
 {
-	const struct field_definition *fd;
-	size_t i;
+	const struct field_definition *step_field = field_definition_find_by_name("step");
+	const struct field_definition *exit_field = field_definition_find_by_name("exit");
 
-	fd = field_definition_find_by_name("step");
-	for (i = 0; i < VECTOR_LENGTH(steps); i++) {
+	for (size_t i = 0; i < VECTOR_LENGTH(steps); i++) {
 		struct step *st = &steps[i];
-		const struct step_field *sf = &st->st_fields[fd->fd_index];
+		const struct step_field *step = &st->st_fields[step_field->fd_index];
+		const struct step_field *exit = &st->st_fields[exit_field->fd_index];
 
-		if (!step_field_is_empty(sf) && sf->sf_val.integer == id)
+		if (!step_field_is_empty(step) &&
+		    step->sf_val.integer == id && exit->sf_val.integer != EX_RETRY)
 			return st;
 	}
+
 	return NULL;
 }
 

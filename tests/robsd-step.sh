@@ -233,6 +233,19 @@ if testcase "write: optional fields"; then
 	fi
 fi
 
+if testcase "write: retry"; then
+	: >"${TMP1}"
+	robsd_step -- -W -f "${TMP1}" -i 1 -- name=one exit=125 duration=3 \
+		user=root time=1666666666
+	robsd_step -- -W -f "${TMP1}" -i 1 -- name=one exit=0 duration=4 \
+		user=root time=1666666666
+	assert_file - "${TMP1}" <<-EOF
+	$(step_header)
+	1,one,125,3,0,,root,1666666666,0
+	1,one,0,4,0,,root,1666666666,0
+	EOF
+fi
+
 if testcase "write: invalid name missing"; then
 	: >"${TMP1}"
 	robsd_step -e -- -W -f "${TMP1}" >"${OUT}"
