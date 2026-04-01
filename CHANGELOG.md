@@ -1,4 +1,13 @@
-# 21.0.0 - YYYY-MM-DD
+# 21.0.1 - YYYY-MM-DD
+
+## Bug fixes
+
+- Preserve retried steps in step.csv, increasing accuracy of accumulated step
+  duration.
+  (aca741793214, 2e8c6d428bc9)
+  (Anton Lindqvist)
+
+# 21.0.0 - 2026-03-22
 
 ## Changes
 
