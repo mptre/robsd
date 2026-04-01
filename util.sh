@@ -1280,13 +1280,14 @@ step_exec_job() {
 	else
 		_delta=0
 	fi
-	step_write -l "${_log}" -s "${_id}" -n "${_name}" -e "${_exit}" -d "${_d1}" \
-		-a "${_delta}" "${_steps}"
 
 	robsd_hook -v "step-exit=${_exit}" -v "step-name=${_name}" || _err="$?"
 	if [ "${_err}" -eq 125 ]; then
-		_exit="${_err}"
+		_exit="125"
 	fi
+
+	step_write -l "${_log}" -s "${_id}" -n "${_name}" -e "${_exit}" -d "${_d1}" \
+		-a "${_delta}" "${_steps}"
 
 	case "${_MODE}" in
 	robsd-regress)
