@@ -4,7 +4,7 @@
 
 - Preserve retried steps in step.csv, increasing accuracy of accumulated step
   duration.
-  (aca741793214, 2e8c6d428bc9)
+  (aca741793214, 2e8c6d428bc9, c4aa84603fb7)
   (Anton Lindqvist)
 
 # 21.0.0 - 2026-03-22
