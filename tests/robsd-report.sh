@@ -348,6 +348,32 @@ if testcase "robsd-ports: dpb failure"; then
 	EOF
 fi
 
+if testcase "robsd-ports: dpb retry"; then
+	{
+		step_serialize -s 1 -n dpb -e 125 -l dpb.log -d 1
+		echo retry >"${_builddir}/dpb.log"
+		step_serialize -H -s 1 -n dpb -e 0 -l dpb.log.1 -d 2
+		echo ok >"${_builddir}/dpb.log.1"
+	} >"$(step_path "${_builddir}")"
+	printf 'diff' >"${_builddir}/tmp/packages.diff"
+
+	robsd_report -m robsd-ports - -- "${_builddir}" <<-EOF
+	Subject: robsd-ports: $(hostname -s): ok
+
+	> stats
+	Status: ok
+	Duration: 00:00:03
+	Build: ${_builddir}
+
+	> dpb
+	Exit: 0
+	Duration: 00:00:03
+	Log: dpb.log.1
+
+	diff
+	EOF
+fi
+
 if testcase "robsd-regress: basic"; then
 	{
 		step_serialize -s 1 -n test/pass -l pass.log

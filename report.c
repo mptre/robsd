@@ -21,6 +21,7 @@
 #include "invocation.h"
 #include "mode.h"
 #include "regress-log.h"
+#include "step-exec.h"
 #include "step.h"
 #include "variable-value.h"
 
@@ -751,6 +752,19 @@ report_step_log(struct report_context *r, const struct step *step)
 	return 0;
 }
 
+static int64_t
+accumulated_duration(const struct step *steps, uint64_t idx)
+{
+	int64_t duration = 0;
+	int64_t id = step_get_field(&steps[idx], "step")->integer;
+	for (; step_get_field(&steps[idx], "step")->integer == id; idx--) {
+		duration += step_get_field(&steps[idx], "duration")->integer;
+		if (idx == 0)
+			break;
+	}
+	return duration;
+}
+
 static int
 report_steps(struct report_context *r)
 {
@@ -761,20 +775,22 @@ report_steps(struct report_context *r)
 	nsteps = VECTOR_LENGTH(steps);
 	for (i = 0; i < nsteps; i++) {
 		const struct step *step = &steps[i];
-		const char *duration;
 
 		arena_scope(r->scratch, s);
 
 		if (step_get_field(step, "skip")->integer == 1)
 			continue;
 
-		if (step_get_field(step, "exit")->integer == 0) {
+		int64_t exit_code = step_get_field(step, "exit")->integer;
+		if (exit_code == 0) {
 			switch (report_skip_step(r, step)) {
 			case 1:
 				continue;
 			case -1:
 				return 1;
 			}
+		} else if (exit_code == EX_RETRY) {
+			continue;
 		}
 
 		buffer_printf(r->out, "\n> %s\n",
@@ -783,11 +799,10 @@ report_steps(struct report_context *r)
 		buffer_printf(r->out, "Exit: %d\n",
 		    (int)step_get_field(step, "exit")->integer);
 
-		duration = format_duration_and_delta(
-		    step_get_field(step, "duration")->integer,
-		    step_get_field(step, "delta")->integer,
-		    0, &s);
-		buffer_printf(r->out, "Duration: %s\n", duration);
+		int64_t duration = accumulated_duration(steps, i);
+		int64_t delta = step_get_field(step, "delta")->integer;
+		buffer_printf(r->out, "Duration: %s\n",
+		    format_duration_and_delta(duration, delta, 0, &s));
 
 		buffer_printf(r->out, "Log: %s\n",
 		    step_get_field(step, "log")->str);
