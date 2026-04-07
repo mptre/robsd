@@ -1,7 +1,5 @@
 #include "invocation.h"
-
 #include "config.h"
-
 #include <dirent.h>
 #include <err.h>
 #include <errno.h>
@@ -9,7 +7,6 @@
 #include <limits.h>
 #include <stdio.h>
 #include <string.h>
-
 #include "libks/arena-buffer.h"
 #include "libks/arena.h"
 #include "libks/buffer.h"

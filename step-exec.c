@@ -1,9 +1,6 @@
 #include "step-exec.h"
-
 #include "config.h"
-
 #include <sys/wait.h>
-
 #include <err.h>
 #include <errno.h>
 #include <fcntl.h>
@@ -11,11 +8,9 @@
 #include <stdio.h>
 #include <string.h>
 #include <unistd.h>
-
 #include "libks/arena.h"
 #include "libks/compiler.h"
 #include "libks/vector.h"
-
 #include "conf.h"
 #include "mode.h"
 #include "variable-value.h"

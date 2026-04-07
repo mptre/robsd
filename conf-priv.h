@@ -1,5 +1,4 @@
 #include <stddef.h>	/* size_t */
-
 #include "mode.h"
 #include "variable-value.h"
 

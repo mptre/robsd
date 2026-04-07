@@ -1,10 +1,7 @@
 #include "config.h"
-
 #include <string.h>
-
 #include "libks/arena.h"
 #include "libks/fuzzer.h"
-
 #include "conf.h"
 #include "log.h"
 #include "mode.h"

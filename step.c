@@ -1,9 +1,6 @@
 #include "step.h"
-
 #include "config.h"
-
 #include <sys/file.h>	/* flock(2) on Linux */
-
 #include <err.h>
 #include <fcntl.h>
 #include <inttypes.h>
@@ -12,13 +9,11 @@
 #include <stdlib.h>	/* strtonum(3) */
 #include <string.h>
 #include <unistd.h>
-
 #include "libks/arena-buffer.h"
 #include "libks/arena.h"
 #include "libks/buffer.h"
 #include "libks/compiler.h"
 #include "libks/vector.h"
-
 #include "interpolate.h"
 #include "lexer.h"
 #include "mode.h"

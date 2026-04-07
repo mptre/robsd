@@ -1,10 +1,7 @@
 #include "regress-log.h"
-
 #include "config.h"
-
 #include <err.h>
 #include <string.h>
-
 #include "libks/buffer.h"
 #include "libks/consistency.h"
 

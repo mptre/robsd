@@ -1,10 +1,7 @@
 #include "conf.h"
-
 #include "config.h"
-
 #include <sys/param.h>	/* MACHINE, MACHINE_ARCH */
 #include <sys/stat.h>
-
 #include <ctype.h>
 #include <err.h>
 #include <errno.h>
@@ -15,7 +12,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
-
 #include "libks/arena-buffer.h"
 #include "libks/arena-vector.h"
 #include "libks/arena.h"
@@ -23,7 +19,6 @@
 #include "libks/buffer.h"
 #include "libks/compiler.h"
 #include "libks/vector.h"
-
 #include "conf-priv.h"
 #include "conf-token.h"
 #include "if.h"

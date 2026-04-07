@@ -1,12 +1,9 @@
 #include "config.h"
-
 #include <err.h>
-
 #include "libks/arena-vector.h"
 #include "libks/arena.h"
 #include "libks/compiler.h"
 #include "libks/vector.h"
-
 #include "conf-priv.h"
 #include "conf-token.h"
 #include "conf.h"

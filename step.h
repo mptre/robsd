@@ -1,5 +1,4 @@
 #include <stdint.h>	/* int64_t */
-
 #include "mode.h"
 
 struct arena;

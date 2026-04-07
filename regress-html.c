@@ -1,9 +1,6 @@
 #include "regress-html.h"
-
 #include "config.h"
-
 #include <sys/stat.h>
-
 #include <err.h>
 #include <errno.h>
 #include <fcntl.h>
@@ -11,14 +8,12 @@
 #include <stdio.h>
 #include <string.h>
 #include <unistd.h>
-
 #include "libks/arena-buffer.h"
 #include "libks/arena-vector.h"
 #include "libks/arena.h"
 #include "libks/buffer.h"
 #include "libks/map.h"
 #include "libks/vector.h"
-
 #include "html.h"
 #include "invocation.h"
 #include "regress-log.h"

@@ -1,7 +1,5 @@
 #include "config.h"
-
 #include "libks/compiler.h"
-
 #include "conf-priv.h"
 #include "conf.h"
 #include "variable-value.h"

@@ -1,13 +1,10 @@
 #include "config.h"
-
 #include <err.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
-
 #include "libks/arena.h"
-
 #include "regress-html.h"
 
 static void __attribute__((noreturn))

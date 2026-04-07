@@ -1,16 +1,13 @@
 #include "config.h"
-
 #include <err.h>
 #include <limits.h>	/* PATH_MAX */
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
-
 #include "libks/arena-buffer.h"
 #include "libks/arena.h"
 #include "libks/buffer.h"
 #include "libks/vector.h"
-
 #include "conf.h"
 #include "interpolate.h"
 #include "step.h"

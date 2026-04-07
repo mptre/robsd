@@ -1,12 +1,9 @@
 #include "html.h"
-
 #include "config.h"
-
 #include <assert.h>
 #include <err.h>
 #include <stdarg.h>
 #include <stdio.h>
-
 #include "libks/arena-buffer.h"
 #include "libks/arena.h"
 #include "libks/buffer.h"

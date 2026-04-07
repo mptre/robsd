@@ -1,12 +1,10 @@
 #ifdef __OpenBSD__
 
 #include "config.h"
-
 #include <sys/resource.h>
 #include <sys/sched.h>
 #include <sys/swap.h>
 #include <sys/sysctl.h>
-
 #include <err.h>
 #include <inttypes.h>
 #include <limits.h>
@@ -17,7 +15,6 @@
 #include <string.h>
 #include <time.h>
 #include <unistd.h>
-
 #include "libks/arena.h"
 #include "libks/vector.h"
 

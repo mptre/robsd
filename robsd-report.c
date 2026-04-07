@@ -1,13 +1,10 @@
 #include "config.h"
-
 #include <err.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
-
 #include "libks/arena.h"
 #include "libks/buffer.h"
-
 #include "conf.h"
 #include "report.h"
 

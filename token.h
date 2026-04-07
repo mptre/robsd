@@ -1,5 +1,4 @@
 #include <stdint.h>	/* int64_t */
-
 #include "libks/list.h"
 
 LIST(token_list, token);

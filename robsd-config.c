@@ -1,14 +1,11 @@
 #include "config.h"
-
 #include <err.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
-
 #include "libks/arena.h"
 #include "libks/vector.h"
-
 #include "conf.h"
 
 static void	usage(void) __attribute__((noreturn));

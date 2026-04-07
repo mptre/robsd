@@ -1,10 +1,8 @@
 #ifdef __OpenBSD__
 
 #include "config.h"
-
 #include <sys/types.h>
 #include <sys/event.h>
-
 #include <err.h>
 #include <errno.h>
 #include <limits.h>
@@ -12,7 +10,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
-
 #include "libks/compiler.h"
 #include "libks/map.h"
 #include "libks/vector.h"

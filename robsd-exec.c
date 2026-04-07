@@ -1,12 +1,9 @@
 #include "config.h"
-
 #include <err.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
-
 #include "libks/arena.h"
-
 #include "conf.h"
 #include "step-exec.h"
 

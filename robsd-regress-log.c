@@ -1,12 +1,9 @@
 #include "config.h"
-
 #include <err.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
-
 #include "libks/buffer.h"
-
 #include "regress-log.h"
 
 static void	usage(void) __attribute__((noreturn));

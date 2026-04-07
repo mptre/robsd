@@ -1,14 +1,10 @@
 #include "interpolate.h"
-
 #include "config.h"
-
 #include <err.h>
 #include <string.h>
-
 #include "libks/arena-buffer.h"
 #include "libks/arena.h"
 #include "libks/buffer.h"
-
 #include "log.h"
 
 struct interpolate_context {

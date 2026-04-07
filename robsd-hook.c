@@ -1,14 +1,11 @@
 #include "config.h"
-
 #include <err.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
-
 #include "libks/arena.h"
 #include "libks/compiler.h"
 #include "libks/vector.h"
-
 #include "conf.h"
 #include "interpolate.h"
 #include "variable-value.h"

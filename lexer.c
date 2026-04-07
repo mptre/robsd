@@ -1,16 +1,12 @@
 #include "lexer.h"
-
 #include "config.h"
-
 #include <err.h>
 #include <stdarg.h>
 #include <stdlib.h>
-
 #include "libks/arena-buffer.h"
 #include "libks/arena.h"
 #include "libks/buffer.h"
 #include "libks/list.h"
-
 #include "log.h"
 #include "token.h"
 

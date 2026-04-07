@@ -1,7 +1,5 @@
 #include "if.h"
-
 #include "config.h"
-
 #include "libks/arena.h"
 
 #ifdef __OpenBSD__
@@ -9,7 +7,6 @@
 #include <sys/ioctl.h>
 #include <sys/socket.h>
 #include <sys/sockio.h>
-
 #include <arpa/inet.h>
 #include <err.h>
 #include <ifaddrs.h>

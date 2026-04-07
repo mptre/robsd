@@ -1,9 +1,6 @@
 #include "conf-token.h"
-
 #include "config.h"
-
 #include <err.h>
-
 #include "libks/arena.h"
 #include "libks/map.h"
 

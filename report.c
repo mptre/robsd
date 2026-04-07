@@ -1,22 +1,17 @@
 #include "report.h"
-
 #include "config.h"
-
 #include <sys/stat.h>
-
 #include <err.h>
 #include <errno.h>
 #include <fnmatch.h>
 #include <stdint.h>
 #include <string.h>
 #include <unistd.h>
-
 #include "libks/arena-buffer.h"
 #include "libks/arena.h"
 #include "libks/buffer.h"
 #include "libks/compiler.h"
 #include "libks/vector.h"
-
 #include "conf.h"
 #include "invocation.h"
 #include "mode.h"
