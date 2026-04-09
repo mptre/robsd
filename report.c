@@ -16,7 +16,6 @@
 #include "invocation.h"
 #include "mode.h"
 #include "regress-log.h"
-#include "step-exec.h"
 #include "step.h"
 #include "variable-value.h"
 
@@ -747,19 +746,6 @@ report_step_log(struct report_context *r, const struct step *step)
 	return 0;
 }
 
-static int64_t
-accumulated_duration(const struct step *steps, uint64_t idx)
-{
-	int64_t duration = 0;
-	int64_t id = step_get_field(&steps[idx], "step")->integer;
-	for (; step_get_field(&steps[idx], "step")->integer == id; idx--) {
-		duration += step_get_field(&steps[idx], "duration")->integer;
-		if (idx == 0)
-			break;
-	}
-	return duration;
-}
-
 static int
 report_steps(struct report_context *r)
 {
@@ -784,8 +770,6 @@ report_steps(struct report_context *r)
 			case -1:
 				return 1;
 			}
-		} else if (exit_code == EX_RETRY) {
-			continue;
 		}
 
 		buffer_printf(r->out, "\n> %s\n",
@@ -794,7 +778,7 @@ report_steps(struct report_context *r)
 		buffer_printf(r->out, "Exit: %d\n",
 		    (int)step_get_field(step, "exit")->integer);
 
-		int64_t duration = accumulated_duration(steps, i);
+		int64_t duration = step_get_field(step, "duration")->integer;
 		int64_t delta = step_get_field(step, "delta")->integer;
 		buffer_printf(r->out, "Duration: %s\n",
 		    format_duration_and_delta(duration, delta, 0, &s));

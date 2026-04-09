@@ -78,6 +78,13 @@ if testcase "retry"; then
 	EOF
 	mkdir "${ROBSDDIR}"
 	mkdir -p "${TSHDIR}/ports/packages/$(machine)/all"
+
+	_prev_builddir="${ROBSDDIR}/2025-01-01.1"
+	mkdir "${_prev_builddir}"
+	{
+		step_serialize -d 6 -e 0 -n dpb -s 6 -a 0
+	} >"$(step_path "${_prev_builddir}")"
+
 	cat <<-EOF >"${BINDIR}/dpb"
 	#!/bin/sh
 	if [ -e "${TSHDIR}/dpb" ]; then
@@ -87,6 +94,18 @@ if testcase "retry"; then
 		exit 1
 	fi
 	EOF
+	chmod u+x "${BINDIR}/dpb"
+
+	# Make each date(1) invocation advance the wall clock with 10 seconds.
+	cat <<-EOF >"${BINDIR}/date"
+	#!/bin/sh
+	[ -e "${TSHDIR}/date" ] || : >"${TSHDIR}/date"
+	_iterations="\$(awk 'END {print NR}' ${TSHDIR}/date)"
+	echo >>"${TSHDIR}/date"
+	echo "\$((_iterations * 10))"
+	EOF
+	chmod u+x "${BINDIR}/date"
+
 	cat <<-EOF >"${TSHDIR}/robsd-ports-hook"
 	#!/bin/sh
 	echo hook >>"${TSHDIR}/hook"
@@ -98,17 +117,13 @@ if testcase "retry"; then
 	if ! robsd_ports -d -s env -s cvs -s clean -s proot -s patch >"${TMP1}" 2>&1; then
 		fail - "expected exit zero" <"${TMP1}"
 	fi
-	_builddir="$(find "${ROBSDDIR}" -type d -mindepth 1 -maxdepth 1)"
+	_builddir="$(find "${ROBSDDIR}" -type d -mindepth 1 -maxdepth 1 | grep -v "${_prev_builddir}")"
 
 	_dpb_count="$(awk 'END {print NR}' <"${TSHDIR}/dpb")"
 	assert_eq 2 "${_dpb_count}"
 
-	column -t -s, "${_builddir}/step.csv" |
-	grep -w dpb |
-	xargs -L1 |
-	cut -d ' ' -f 2-3 >"${TMP1}"
-	assert_file - "${TMP1}" <<-EOF
-	dpb 125
-	dpb 0
-	EOF
+	step_eval -n dpb "${_builddir}/step.csv"
+	assert_eq 0 "$(step_value exit)"
+	assert_eq 40 "$(step_value duration)"
+	assert_eq "$((40 - 6))" "$(step_value delta)"
 fi

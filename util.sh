@@ -583,6 +583,42 @@ duration_prev() {
 	return 1
 }
 
+# duration_retry -b build-dir -i step-id -n step-name
+#
+# Get the previous duration for the given step assuming its being retried.
+duration_retry() (
+	local _builddir
+	local _d
+	local _duration=0
+	local _id
+	local _name
+	local _steps
+
+	while [ $# -gt 0 ]; do
+		case "$1" in
+		-b)	shift; _builddir="$1";;
+		-i)	shift; _id="$1";;
+		-n)	shift; _name="$1";;
+		*)	break;;
+		esac
+		shift
+	done
+	: "${_builddir:?}"
+	: "${_id:?}"
+	: "${_name:?}"
+
+	_steps="$(step_path "${_builddir}")"
+	if step_eval "${_id}" "${_steps}" 2>/dev/null &&
+	  [ "$(step_value name 2>/dev/null || :)" = "${_name}" ]
+	  [ "$(step_value exit 2>/dev/null || :)" -eq 125 ]
+	then
+		_d="$(step_value duration)"
+		_duration="$((_duration + _d))"
+	fi
+
+	echo "${_duration}"
+)
+
 # duration_total_parallel -s steps
 #
 # Calculate the total duration. Since some robsd utilities runs steps in
@@ -1268,12 +1304,18 @@ step_exec_job() {
 	: "${_name:?}"
 	: "${_steps:?}"
 
+	# Take note of the previous duration if this step is being retried as we
+	# want to accumulate the duration for all retries.
+	_duration_retry="$(duration_retry -b "${_builddir}" -i "${_id}" -n "${_name}")"
+
 	_log="$(log_id -b "${_builddir}" -n "${_name}" -s "${_id}")"
 	_t0="$(date '+%s')"
 	step_write -t -l "${_log}" -s "${_id}" -n "${_name}" -e -1 -d -1 "${_steps}"
 	step_exec -l "${_builddir}/${_log}" -s "${_name}" || _exit="$?"
 	_t1="$(date '+%s')"
 	_d1="$((_t1 - _t0))"
+	_d1="$((_d1 + _duration_retry))"
+
 	_d0="$(duration_prev "${_name}" || :)"
 	if [ -n "${_d0}" ]; then
 		_delta="$((_d1 - _d0))"
