@@ -122,8 +122,15 @@ if testcase "retry"; then
 	_dpb_count="$(awk 'END {print NR}' <"${TSHDIR}/dpb")"
 	assert_eq 2 "${_dpb_count}"
 
-	step_eval -n dpb "${_builddir}/step.csv"
+	step_eval -n dpb "$(step_path "${_builddir}")"
+	_dpb_duration="$(step_value duration)"
 	assert_eq 0 "$(step_value exit)"
-	assert_eq 40 "$(step_value duration)"
 	assert_eq "$((40 - 6))" "$(step_value delta)"
+
+	step_eval -n distrib "$(step_path "${_builddir}")"
+	_distrib_duration="$(step_value duration)"
+	assert_eq 40 "${_dpb_duration}"
+	if ! [ "${_distrib_duration}" -lt "${_dpb_duration}" ]; then
+		fail "expected distrib duration to be smaller than dpb duration"
+	fi
 fi

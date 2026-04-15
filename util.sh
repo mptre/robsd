@@ -609,8 +609,8 @@ duration_retry() (
 
 	_steps="$(step_path "${_builddir}")"
 	if step_eval "${_id}" "${_steps}" 2>/dev/null &&
-	  [ "$(step_value name 2>/dev/null)" = "${_name}" ]
-	  [ "$(step_value exit 2>/dev/null)" -eq 125 ]
+	   [ "$(step_value name)" = "${_name}" ] &&
+	   [ "$(step_value exit)" -eq 125 ]
 	then
 		_d="$(step_value duration)"
 		_duration="$((_duration + _d))"
