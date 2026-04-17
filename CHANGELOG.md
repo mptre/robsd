@@ -1,4 +1,10 @@
-# 21.0.1 - YYYY-MM-DD
+# 21.1.0 - YYYY-MM-DD
+
+## News
+
+- robsd-ports: add support for passing arguments to dpb(1).
+  (4ee6ccaa41a3)
+  (Anton Lindqvist)
 
 ## Bug fixes
 
