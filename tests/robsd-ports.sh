@@ -134,3 +134,35 @@ if testcase "retry"; then
 		fail "expected distrib duration to be smaller than dpb duration"
 	fi
 fi
+
+if testcase "dpb arguments"; then
+	robsd_config -P - <<-EOF
+	robsddir "${ROBSDDIR}"
+	dpb { "-J" "999999" }
+	ports { "devel/robsd" }
+	EOF
+	mkdir "${ROBSDDIR}"
+	mkdir -p "${TSHDIR}/ports/packages/$(machine)/all"
+
+	cat <<-EOF >"${BINDIR}/dpb"
+	#!/bin/sh
+	echo "\${@}" | xargs printf '%s\n' >>"${TSHDIR}/dpb"
+	EOF
+	chmod u+x "${BINDIR}/dpb"
+
+	if ! robsd_ports -d -s env -s cvs -s clean -s proot -s patch \
+	     >"${TMP1}" 2>&1
+	then
+		fail - "expected exit zero" <"${TMP1}"
+	fi
+
+	cat -n "${TSHDIR}/dpb" |
+	sed -n \
+		-e 's/^[[:space:]]*//' \
+		-e 's/[[:space:]][[:space:]]*/ /' \
+		-e '/-J$/,$p' >"${TMP1}"
+	assert_file - "${TMP1}" <<-EOF
+	6 -J
+	7 999999
+	EOF
+fi

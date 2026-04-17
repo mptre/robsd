@@ -12,6 +12,7 @@ static const struct grammar robsd_ports_grammar[] = {
 	{ "distrib-path",	STRING,		config_parse_string,	0,	{ NULL } },
 	{ "distrib-signify",	STRING,		config_parse_string,	0,	{ NULL } },
 	{ "distrib-user",	STRING,		config_parse_user,	0,	{ NULL } },
+	{ "dpb",		LIST,		config_parse_list,	0,	{ NULL } },
 	{ "ports",		LIST,		config_parse_list,	REQ,	{ NULL } },
 	{ "ports-diff",		LIST,		config_parse_glob,	0,	{ NULL } },
 	{ "ports-dir",		STRING,		config_parse_string,	0,	{ "/usr/ports" } },

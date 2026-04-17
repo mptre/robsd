@@ -3,6 +3,7 @@
 
 config_load <<'EOF'
 CHROOT="${chroot}"
+DPB="${dpb}"
 PORTSDIR="${ports-dir}"
 TMPDIR="${tmp-dir}"
 EOF
@@ -19,7 +20,8 @@ if ! [ -e "${TMPDIR}/packages.orig" ]; then
 	ls "${_packages}" >"${TMPDIR}/packages.orig" 2>/dev/null || :
 fi
 
-dpb -c -B "${CHROOT}" -P "${TMPDIR}/ports"
+# shellcheck disable=SC2086
+dpb -c -B "${CHROOT}" -P "${TMPDIR}/ports" ${DPB}
 
 # Look for errors.
 grep -m 1 'E:' "${CHROOT}${PORTSDIR}/logs/${_arch}/engine.log" && exit 1
