@@ -49,7 +49,7 @@ parse_id(const char *str, int *id)
 		warnx("id %s %s", str, errstr);
 		return 1;
 	}
-	*id = rv;
+	*id = (int)rv;
 	return 0;
 }
 

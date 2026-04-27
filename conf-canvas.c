@@ -153,7 +153,7 @@ config_parse_canvas_step(struct config *cf, struct lexer *lx,
 		err(1, NULL);
 	cs->name = name.str;
 	cs->command.val = command;
-	cs->flags.parallel = parallel;
+	cs->flags.parallel = !!parallel;
 
 	return CONFIG_NOP;
 

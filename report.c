@@ -537,7 +537,7 @@ format_size(size_t size, struct arena_scope *s)
 		div = 1024;
 		prefix = "K";
 	}
-	return arena_sprintf(s, "%.01f%s", size / div, prefix);
+	return arena_sprintf(s, "%.01f%s", (double)size / div, prefix);
 }
 
 static int

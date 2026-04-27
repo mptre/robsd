@@ -1,6 +1,8 @@
 #ifndef VARIABLE_VALUE_H
 #define VARIABLE_VALUE_H
 
+#include <stdint.h>
+
 struct variable_value {
 	enum variable_type {
 		INVALID,
@@ -14,6 +16,7 @@ struct variable_value {
 		const void	 *ptr;
 		const char	 *str;
 		const char	**list;
+		int64_t		  i64;
 		int		  integer;
 	};
 };

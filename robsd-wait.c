@@ -151,10 +151,11 @@ kqueue_handle_events(struct wait_context *c, int nevents)
 
 		pid = (int)kev->ident;
 		if (kev->flags & EV_ERROR) {
-			if (kev->data == ESRCH) { /* process already gone */
+			int event_errno = (int)kev->data;
+			if (event_errno == ESRCH) { /* process already gone */
 				MAP_REMOVE(c->pids, pid);
 			} else {
-				warnc(kev->data, "kevent");
+				warnc(event_errno, "kevent");
 				error = 1;
 			}
 		} else if (kev->fflags & NOTE_EXIT) {
@@ -181,10 +182,9 @@ parse_pids(struct wait_context *c, int argc, char **argv)
 		err(1, NULL);
 	for (i = 0; i < argc; i++) {
 		const char *errstr;
-		long long pid;
-
-		pid = strtonum(argv[i], 1, INT_MAX, &errstr);
-		if (pid > 0) {
+		long long val = strtonum(argv[i], 1, INT_MAX, &errstr);
+		if (val > 0) {
+			int pid = (int)val;
 			if (MAP_INSERT_VALUE(c->pids, pid, pid) == NULL)
 				err(1, NULL);
 		} else {

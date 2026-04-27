@@ -87,8 +87,8 @@ if_group_addr(const char *group, int family, struct arena_scope *s)
 
 		sa = ifa->ifa_addr;
 		inet = arena_calloc(s, 1, inetsiz);
-		if (inet_ntop(sa_family, socket_addr(sa, sa_family),
-		    inet, inetsiz) == NULL) {
+		if (inet_ntop(sa_family, socket_addr(sa, sa_family), inet, (unsigned int)inetsiz) ==
+		    NULL) {
 			warn("inet_ntop");
 			goto out;
 		}

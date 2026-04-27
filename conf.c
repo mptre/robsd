@@ -765,7 +765,7 @@ config_parse_boolean(struct config *UNUSED(cf), struct lexer *lx,
 	if (!lexer_expect(lx, TOKEN_BOOLEAN, &tk))
 		return CONFIG_ERROR;
 	variable_value_init(val, INTEGER);
-	val->integer = tk->tk_int;
+	val->integer = !!tk->tk_int;
 	return CONFIG_APPEND;
 }
 
@@ -791,7 +791,7 @@ config_parse_integer(struct config *UNUSED(cf), struct lexer *lx,
 	if (!lexer_expect(lx, TOKEN_INTEGER, &tk))
 		return CONFIG_ERROR;
 	variable_value_init(val, INTEGER);
-	val->integer = tk->tk_int;
+	val->i64 = tk->tk_int;
 	return CONFIG_APPEND;
 }
 
@@ -1049,7 +1049,7 @@ config_default_ncpu(struct config *cf, const char *name)
 	if (ncpu == -1)
 		ncpu = 1;
 	variable_value_init(&val, INTEGER);
-	val.integer = ncpu;
+	val.i64 = ncpu;
 	return config_append(cf, name, &val);
 }
 

@@ -564,7 +564,7 @@ regress_html_parse(struct regress_html *r, const char *arch,
 		}
 
 		if (++ninvocations >= 2) {
-			uint32_t n = VECTOR_LENGTH(r->invocations);
+			uint64_t n = VECTOR_LENGTH(r->invocations);
 			r->invocations[n - 1].duration.delta = duration_delta(
 			    r->invocations[n - 1].duration.seconds,
 			    r->invocations[n - 2].duration.seconds);
@@ -640,7 +640,7 @@ render_rate(const struct regress_invocation *ri, struct arena_scope *s)
 	float rate = 0;
 
 	if (ri->total > 0)
-		rate = 1 - (ri->fail / (float)ri->total);
+		rate = 1 - ((float)ri->fail / (float)ri->total);
 	return arena_sprintf(s, "%d%%", (int)(rate * 100));
 }
 

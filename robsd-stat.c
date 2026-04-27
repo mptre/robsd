@@ -74,10 +74,10 @@ main(int argc, char *argv[])
 			break;
 		case 'i': {
 			const char *errstr;
-
-			interval_s = strtonum(optarg, 1, INT_MAX, &errstr);
-			if (interval_s == 0)
+			long long num = strtonum(optarg, 1, INT_MAX, &errstr);
+			if (num == 0)
 				errx(1, "interval %s %s", optarg, errstr);
+			interval_s = (unsigned int)num;
 			break;
 		}
 		case 'u': {
@@ -167,13 +167,11 @@ stat_cpu(struct stat_context *c)
 
 	memset(c->cpu.c_rel, 0, sizeof(c->cpu.c_rel));
 	for (i = 0; i < CPUSTATES; i++) {
-		double delta;
-
 		if (c->cpu.c_abs[i] == 0)
 			continue;
 
-		delta = cpu[i] - c->cpu.c_abs[i];
-		c->cpu.c_rel[cpustate(i)] += delta / tot;
+		double delta = (double)(cpu[i] - c->cpu.c_abs[i]);
+		c->cpu.c_rel[cpustate(i)] += delta / (double)tot;
 	}
 
 	memcpy(c->cpu.c_abs, cpu, sizeof(c->cpu.c_abs));
@@ -235,7 +233,7 @@ stat_directory1(struct stat_context *c, const char *user)
 		warn("sysctl: kern.proc.uid");
 		return -1;
 	}
-	nprocs = siz / kpsiz;
+	nprocs = (unsigned int)(siz / kpsiz);
 	if (nprocs == 0)
 		return 0;
 	/* Cope with new processes, roughly 10% growth. */
@@ -246,7 +244,7 @@ stat_directory1(struct stat_context *c, const char *user)
 		warn("sysctl: kern.proc.uid");
 		goto err;
 	}
-	nprocs = siz / kpsiz;
+	nprocs = (unsigned int)(siz / kpsiz);
 	if (nprocs == 0)
 		goto out;
 
@@ -292,7 +290,7 @@ stat_loadavg(struct stat_context *c)
 		warn("sysctl: vm.loadavg");
 		return 1;
 	}
-	c->loadavg = (double)lavg.ldavg[0] / lavg.fscale;
+	c->loadavg = (double)lavg.ldavg[0] / (double)lavg.fscale;
 
 	mib[0] = CTL_HW;
 	mib[1] = HW_NCPUONLINE;
