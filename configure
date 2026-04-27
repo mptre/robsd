@@ -90,7 +90,9 @@ rmdup() {
 	xargs
 }
 
-# Check if the compiler implicitly supports GNU C99.
+# check_gnu99
+#
+# Check if the compiler implicitly supports the GNU99 C standard.
 check_gnu99() {
 	compile <<-EOF
 	int main(void) {
