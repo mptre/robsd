@@ -5,11 +5,11 @@ on:
   - pull_request
 
 jobs:
-  linux-clang-sanitize:
+  linux-clang-sanitize-address:
     runs-on: ubuntu-22.04
     steps:
       - name: checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v6
       - name: dependenices
         run: sudo apt-get update && sudo apt-get install libxml2-utils
       - name: test
@@ -17,28 +17,29 @@ jobs:
           CC: clang
           PORTABLE: yes
         run: |
-          ./configure --pedantic --sanitize
+          ./configure --pedantic --sanitize address
           make -j`nproc` test
 
-  linux-gcc-fuzz:
+  linux-clang-sanitize-memory:
     runs-on: ubuntu-22.04
     steps:
       - name: checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v6
       - name: dependenices
-        run: sudo apt-get update && sudo apt-get install afl
+        run: sudo apt-get update && sudo apt-get install libxml2-utils
       - name: test
         env:
-          CC: afl-gcc
+          CC: clang
+          PORTABLE: yes
         run: |
-          ./configure --pedantic --fuzz afl
-          make -j`nproc` fuzz
+          ./configure --pedantic --sanitize memory
+          make -j`nproc` test
 
   linux-gcc-i386:
     runs-on: ubuntu-22.04
     steps:
       - name: checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v6
       - name: dependenices
         run: sudo apt-get update && sudo apt-get install gcc-multilib libxml2-utils
       - name: test
@@ -55,7 +56,7 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
       - name: checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v6
       - name: dependenices
         run: sudo apt-get update && sudo apt-get install libxml2-utils
       - name: test
@@ -67,11 +68,11 @@ jobs:
           ./configure --pedantic
           make -j`nproc` test
 
-  linux-gcc-sanitize:
+  linux-gcc-sanitize-address:
     runs-on: ubuntu-22.04
     steps:
       - name: checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v6
       - name: dependenices
         run: sudo apt-get update && sudo apt-get install libxml2-utils
       - name: test
@@ -79,14 +80,14 @@ jobs:
           CC: gcc
           PORTABLE: yes
         run: |
-          ./configure --pedantic --sanitize
+          ./configure --pedantic --sanitize address
           make -j`nproc` test
 
   linux-gcc-valgrind:
     runs-on: ubuntu-22.04
     steps:
       - name: checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v6
       - name: dependenices
         run: sudo apt-get update && sudo apt-get install libxml2-utils valgrind
       - name: test
